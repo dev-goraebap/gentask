@@ -2,6 +2,9 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.0'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'checkstyle'
+	id 'com.diffplug.spotless' version '8.8.0'
+	id 'com.github.spotbugs' version '6.5.9'
 }
 
 group = 'com.example'
@@ -34,4 +37,29 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// 코딩 표준: 포맷은 Spotless, 품질은 Checkstyle + SpotBugs (결정-0004)
+spotless {
+	java {
+		palantirJavaFormat()
+		removeUnusedImports()
+		formatAnnotations()
+	}
+}
+
+checkstyle {
+	toolVersion = '13.8.0'
+	maxWarnings = 0
+}
+
+spotbugs {
+	excludeFilter = file('config/spotbugs/exclude.xml')
+}
+
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+	reports {
+		html { required = true }
+		xml { required = true }
+	}
 }
