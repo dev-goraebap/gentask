@@ -28,9 +28,34 @@
 
 ## 키트에서 새 프로젝트 시작하기
 
-1. 이 저장소를 템플릿으로 새 저장소 생성 (GitHub Template Repository)
-2. `AGENTS.md`의 정체성 절을 파생 프로젝트용으로 교체 (파생 출처 태그 기록)
-3. `CHANGELOG.md` 초기화, `docs/계획.md`를 새 프로젝트 범위로 재작성
-4. 필요 없는 기능의 요구사항 문서는 상태를 `폐기`로 변경 (삭제 대신 기록 유지)
+### 방법 A — gh CLI (권장)
+
+이 저장소는 GitHub Template Repository로 설정되어 있어, 한 줄로 히스토리 없이 깨끗하게 시작할 수 있다:
+
+```bash
+gh repo create 새프로젝트 --template dev-goraebap/webapp-devkit --private --clone
+```
+
+### 방법 B — 순수 git
+
+git 자체에는 템플릿 기능이 없으므로, 클론 후 히스토리를 버리고 새로 시작한다.
+새 원격 저장소는 GitHub 웹에서 미리 만들어 둔다 (빈 저장소, README 생성 안 함):
+
+```bash
+git clone --depth 1 git@github.com:dev-goraebap/webapp-devkit.git 새프로젝트
+cd 새프로젝트
+rm -rf .git                      # 키트의 히스토리 제거
+git init -b main
+git add -A
+git commit -m "웹앱 개발키트에서 시작"
+git remote add origin git@github.com:<계정>/새프로젝트.git
+git push -u origin main
+```
+
+### 공통 후속 작업
+
+1. `AGENTS.md`의 정체성 절을 파생 프로젝트용으로 교체 (파생 출처 키트 버전 기록)
+2. `CHANGELOG.md` 초기화, `docs/계획.md`를 새 프로젝트 범위로 재작성
+3. 필요 없는 기능의 요구사항 문서는 상태를 `폐기`로 변경 (삭제 대신 기록 유지)
 
 (M0에서 부트스트랩 스크립트로 자동화 예정)
