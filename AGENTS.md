@@ -32,7 +32,7 @@
 | 개발 서버 | `npm start` | `./gradlew bootRun` |
 | 테스트 | `npm test` | `./gradlew test` |
 | 빌드 | `npm run build` | `./gradlew build` |
-| 린트 | (M0에서 구성 예정) | (M0에서 구성 예정) |
+| 린트 | `npm run lint` (품질) / `npm run format:check` (포맷) | (M0에서 구성 예정) |
 
 ## 4. 규칙
 
