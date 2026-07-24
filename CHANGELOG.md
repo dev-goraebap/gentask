@@ -13,3 +13,4 @@
 - server 코딩 표준: Spotless(palantir-java-format) + Checkstyle 13.8 + SpotBugs, `check` 태스크 연결 (#2, 결정-0004)
 - CI 게이트: PR·main push 시 web(린트+포맷+빌드+테스트), server(빌드+린트) 검증 (#4)
 - 에이전트 자산 체계: 검토 페르소나 4종(qa-auditor, release-auditor, doc-sync, security-reviewer)을 개방 표준 위치(`.agents/skills/`)에 스킬로 제공, Claude용 동기화 스크립트 포함 (#3, 결정-0006)
+- 부트스트랩 스크립트: 파생 프로젝트 초기화(정체성 교체, 문서 리셋, 기능 선택) 자동화 (#5)

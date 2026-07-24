@@ -52,10 +52,15 @@ git remote add origin git@github.com:<계정>/새프로젝트.git
 git push -u origin main
 ```
 
-### 공통 후속 작업
+### 공통 후속 작업 — 부트스트랩 스크립트
 
-1. `AGENTS.md`의 정체성 절을 파생 프로젝트용으로 교체 (파생 출처 키트 버전 기록)
-2. `CHANGELOG.md` 초기화, `docs/계획.md`를 새 프로젝트 범위로 재작성
-3. 필요 없는 기능의 요구사항 문서는 상태를 `폐기`로 변경 (삭제 대신 기록 유지)
+```bash
+node scripts/bootstrap.mjs --name "새프로젝트" --kit-version v0.1 --features auth,prof
+```
 
-(M0에서 부트스트랩 스크립트로 자동화 예정)
+스크립트가 하는 일: AGENTS.md 정체성 절을 파생 선언으로 교체(키트 버전 기록),
+CHANGELOG·계획.md 초기화, `--features`에 없는 기능의 요구사항 상태를 일괄 `폐기`로
+변경(문서는 삭제하지 않고 기록 유지), README 제목·출처 표기. 남은 수동 단계(GitHub
+마일스톤·squash 설정 등)는 실행 후 안내가 출력된다.
+
+기능 키: `auth`(인증) `mail`(이메일) `file`(파일업로드) `noti`(알림) `prof`(프로필)
