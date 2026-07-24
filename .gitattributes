@@ -1,0 +1,18 @@
+# 이 저장소의 줄바꿈 정책 (형상 항목) — 근거: 이슈 #12, M0 회고
+# 모든 텍스트 파일은 저장소·체크아웃 모두 LF. 개인 core.autocrlf 설정을 무시하고 이 선언이 우선한다.
+* text=auto eol=lf
+
+# Windows 배치 파일만 예외 — cmd는 CRLF를 기대한다
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 바이너리는 변환 금지
+*.png -text
+*.jpg -text
+*.gif -text
+*.ico -text
+*.jar -text
+*.pdf -text
+*.zip -text
+*.woff -text
+*.woff2 -text
