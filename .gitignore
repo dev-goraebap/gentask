@@ -1,5 +1,2 @@
-.agents
-.claude/*
-!.claude/agents
+.claude/
 tmp
-skills-lock.json
