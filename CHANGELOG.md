@@ -11,3 +11,4 @@
 - 프로세스 문서 체계: AGENTS.md(법전), 계획, 요구사항 5종, 결정기록, 참고 자료
 - web 코딩 표준: angular-eslint 22(flat config) + eslint-config-prettier 연결, `lint`/`format:check` 스크립트 (#1)
 - server 코딩 표준: Spotless(palantir-java-format) + Checkstyle 13.8 + SpotBugs, `check` 태스크 연결 (#2, 결정-0004)
+- CI 게이트: PR·main push 시 web(린트+포맷+빌드+테스트), server(빌드+린트) 검증 (#4)

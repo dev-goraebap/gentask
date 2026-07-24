@@ -1,0 +1,48 @@
+# CI = 측정자 (AGENTS.md 역할 분담)
+# PR과 main push에서 빌드·테스트·린트를 강제한다. 게이트 통과가 머지의 전제 (결정-0003).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: 의존성 설치
+        run: npm ci
+      - name: 린트 (품질)
+        run: npm run lint
+      - name: 포맷 검사
+        run: npm run format:check
+      - name: 빌드
+        run: npm run build
+      - name: 테스트
+        run: npm test -- --watch=false
+
+  server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: 빌드 + 린트 (Checkstyle·SpotBugs·Spotless)
+        # 테스트는 #7(DB 설정 부재) 해결 전까지 게이트에서 제외
+        run: ./gradlew assemble check -x test
