@@ -17,3 +17,8 @@
 - 라인엔딩 정책(`.gitattributes`): 텍스트는 LF 통일(bat만 CRLF) — 로컬/CI 포맷 판정 일치 (#12)
 - 설계 문서 3종 — 인프라 아키텍처 1 + 애플리케이션 아키텍처 2(웹·서버) — 과 결정기록 4건(서버 모듈 구조, 프론트 FSD 채택, DTO record 허용, 조회 경로 설계) (#14, #16)
 - 웹 렌더링·로딩 규칙: URL 접두사 기반 하이브리드 렌더링, 리졸버 + 임계 시간 오버레이, 에러 유형별 분기, 빈 상태 3케이스 (결정-0011·0012)
+- server 기반 배선: 패키지 루트 `dev.goraebap.devkit`, Flyway, jOOQ 코드 생성(DDLDatabase), Testcontainers 통합 테스트, ArchUnit 7규칙, 스키마 헬스 인디케이터 (#20, 결정-0013)
+
+### Fixed
+
+- server 테스트가 DB 설정 부재로 실패하던 문제 — Testcontainers 도입으로 해결하고 CI 게이트에 편입 (#7)
