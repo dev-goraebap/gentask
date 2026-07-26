@@ -5,10 +5,14 @@ plugins {
 	id 'checkstyle'
 	id 'com.diffplug.spotless' version '8.8.0'
 	id 'com.github.spotbugs' version '6.5.9'
+	id 'org.jooq.jooq-codegen-gradle' version '3.21.6'
 }
 
-group = 'com.example'
+group = 'dev.goraebap'
 version = '0.0.1-SNAPSHOT'
+
+// 런타임 jOOQ 버전을 코드 생성기와 맞춘다 (Boot 기본값은 3.21.5)
+ext['jooq.version'] = '3.21.6'
 
 java {
 	toolchain {
@@ -20,16 +24,30 @@ repositories {
 	mavenCentral()
 }
 
+
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-jooq'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	// Spring Boot 4는 자동설정을 모듈로 분리했다 — flyway-core만 넣으면 마이그레이션이 실행되지 않는다
+	implementation 'org.springframework.boot:spring-boot-flyway'
+	implementation 'org.flywaydb:flyway-core'
 	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// 코드 생성기 클래스패스 — DDLDatabase(SQL 파일에서 생성)를 쓰기 위해 필요
+	jooqCodegen 'org.jooq:jooq-meta-extensions:3.21.6'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-jooq-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+	testImplementation 'org.testcontainers:testcontainers-postgresql'
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
@@ -37,11 +55,79 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	// CI 로그만 보고 원인을 알 수 있어야 한다 — 실패 시 전체 스택트레이스를 남긴다
+	testLogging {
+		events 'failed'
+		exceptionFormat 'full'
+		showStackTraces = true
+	}
+}
+
+// jOOQ 코드 생성: 실행 중인 DB 없이 Flyway 마이그레이션 SQL에서 직접 생성한다 (결정-0013).
+// 생성물은 build/ 아래에만 두고 커밋하지 않는다 — 스키마와 어긋날 여지를 없앤다.
+jooq {
+	configuration {
+		generator {
+			database {
+				name = 'org.jooq.meta.extensions.ddl.DDLDatabase'
+				properties {
+					property {
+						key = 'scripts'
+						value = 'src/main/resources/db/migration/*.sql'
+					}
+					property {
+						key = 'sort'
+						value = 'flyway'
+					}
+					property {
+						key = 'defaultNameCase'
+						value = 'lower'
+					}
+					property {
+						key = 'unqualifiedSchema'
+						value = 'public'
+					}
+				}
+				// DDLDatabase는 인메모리 H2를 쓰므로 스키마 이름이 대문자 PUBLIC으로 잡힌다.
+				// PostgreSQL의 실제 스키마는 소문자 public이므로 매핑해준다 —
+				// 그러지 않으면 "PUBLIC"."table"로 렌더링되어 런타임에 SQL 문법 오류가 난다.
+				schemata {
+					schema {
+						inputSchema = 'PUBLIC'
+						outputSchema = 'public'
+					}
+				}
+			}
+			target {
+				packageName = 'dev.goraebap.devkit.jooq'
+				directory = layout.buildDirectory.dir('generated-sources/jooq').get().asFile.absolutePath
+			}
+		}
+	}
+}
+
+tasks.named('jooqCodegen') {
+	// 마이그레이션이 바뀔 때만 재생성한다
+	inputs.files(fileTree('src/main/resources/db/migration'))
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir layout.buildDirectory.dir('generated-sources/jooq')
+		}
+	}
+}
+
+tasks.named('compileJava') {
+	dependsOn tasks.named('jooqCodegen')
 }
 
 // 코딩 표준: 포맷은 Spotless, 품질은 Checkstyle + SpotBugs (결정-0004)
+// 생성 코드는 우리 표준의 대상이 아니므로 정적분석에서 제외한다.
 spotless {
 	java {
+		target fileTree('src') { include '**/*.java' }
 		palantirJavaFormat()
 		removeUnusedImports()
 		formatAnnotations()
@@ -51,6 +137,10 @@ spotless {
 checkstyle {
 	toolVersion = '13.8.0'
 	maxWarnings = 0
+}
+
+tasks.withType(Checkstyle).configureEach {
+	exclude '**/jooq/**'
 }
 
 spotbugs {
