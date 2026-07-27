@@ -3,6 +3,12 @@
 
 @import 'tailwindcss';
 
+/* Pretendard — 변수 폰트 + 동적 서브셋. 92개 유니코드 범위로 쪼개져 있어
+   페이지에 실제로 쓰인 글자 범위만 내려받는다(한글 전체는 3.1MB지만
+   일반적인 화면은 그중 일부만 받는다). 자체 호스팅이라 외부 CDN에
+   의존하지 않는다. OFL-1.1. */
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+
 /* 프리미티브 → 시맨틱 순서. 테마를 바꿀 때 아래 한 줄만 교체한다. */
 @import './app/styles/themes/halo.css';
 @import './app/styles/tokens.css';

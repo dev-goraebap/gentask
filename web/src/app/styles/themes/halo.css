@@ -1,61 +1,93 @@
 /* =============================================================
-   테마: Halo (다크)
+   테마: Halo — 팔레트 (프리미티브)
    -------------------------------------------------------------
-   이 파일은 3계층 토큰의 첫 계층인 **프리미티브**다. 원시 값만 있고
-   역할은 없다. 역할 부여는 tokens.css의 시맨틱 계층이 담당한다.
+   3계층 토큰의 첫 계층. 원시 값만 있고 역할은 없다. 역할 부여와
+   라이트/다크 선택은 tokens.css의 시맨틱 계층이 담당한다.
 
-   교체 방법: 이 파일을 다른 테마 파일로 바꾼다. tokens.css와 컴포넌트는
-   건드리지 않는다. 새 테마는 아래 --prim-* 이름을 **전부** 정의해야 한다
-   — 그 목록이 테마와 시맨틱 계층 사이의 계약이다.
+   교체 방법: 이 파일을 다른 팔레트로 바꾼다. tokens.css와 컴포넌트는
+   건드리지 않는다. 새 팔레트는 아래 --prim-* 이름을 **전부** 정의해야
+   한다 — 그 목록이 팔레트와 시맨틱 계층 사이의 계약이다.
 
-   이름 규칙: 색상은 색조 이름이 아니라 **팔레트 위치**로 부른다
-   (neutral/accent/success/...). 초록 액센트 테마가 들어와도
-   --prim-accent-500이 거짓말이 되지 않게 하기 위함이다.
+   이름 규칙
+   - 색상은 색조가 아니라 **팔레트 위치**로 부른다(neutral/accent/
+     success/...). 초록 액센트 팔레트가 들어와도 이름이 거짓말이 되지
+     않게 하기 위함이다.
+   - **숫자는 항상 밝기다. 작을수록 밝다.** 라이트·다크가 같은 이름을
+     쓰면서 서로 다른 단계를 골라 쓸 수 있는 것이 이 규칙 덕분이다.
 
-   출처: Halo 디자인 시스템 (Uiverse Design, 구매 라이선스).
-   값만 참조했으며 원본 CSS·문서·이미지는 이 저장소에 포함하지 않는다.
-   우리 디자인 원칙은 DESIGN.md에 자체적으로 기술한다.
+   대비 검증: 모든 시맨틱 조합의 WCAG 대비비를 계산해 확인했다.
+   본문·보조 텍스트는 AA(4.5:1), 비활성·경계선은 UI 기준(3:1)을 넘는다.
+   값을 바꿀 때는 그 검증을 다시 해야 한다 — 수치는 DESIGN.md에 있다.
+
+   출처: Halo 디자인 시스템 (Uiverse Design, 구매 라이선스). 다크 단계의
+   값을 참조했고, **라이트 단계와 신호색의 어두운 변형은 이 프로젝트에서
+   새로 설계했다**(Halo는 다크 전용이라 제공하지 않는다). 원본 CSS·문서·
+   이미지는 이 저장소에 포함하지 않는다.
    ============================================================= */
 
 :root {
-  /* ---------- 중립 스케일 (숫자가 클수록 어둡다 — 다크 테마 기준) ----------
-     다크 테마라 950이 페이지 배경이고 50이 본문 텍스트다. 라이트 테마를
-     만들 때는 같은 이름에 반대 방향 값을 넣으면 시맨틱 계층이 그대로 돈다. */
-  --prim-neutral-950: #0a0b0f;
-  --prim-neutral-900: #14151c;
-  --prim-neutral-850: #1e2029;
-  --prim-neutral-800: #2a2d38;
-  --prim-neutral-700: #3a3d4a;
-  --prim-neutral-500: #5c6170;
-  --prim-neutral-400: #9aa0ae;
+  /* ---------- 중립 ----------
+     0~300은 라이트 모드의 표면·경계선, 700~950은 다크 모드의 표면,
+     400~600은 두 모드가 나눠 쓰는 텍스트 단계다. */
+  --prim-neutral-0: #ffffff;
   --prim-neutral-50: #f2f4f8;
+  --prim-neutral-100: #e8ebf1;
+  --prim-neutral-200: #d8dde6;
+  --prim-neutral-300: #bfc5d2;
+  --prim-neutral-400: #9aa0ae;
+  --prim-neutral-500: #828a99;
+  --prim-neutral-600: #5c6170;
+  --prim-neutral-700: #3a3d4a;
+  --prim-neutral-800: #2a2d38;
+  --prim-neutral-850: #1e2029;
+  --prim-neutral-900: #14151c;
+  --prim-neutral-950: #0a0b0f;
 
-  /* ---------- 액센트 (브랜드) ---------- */
-  --prim-accent-600: #4a59e6;
-  --prim-accent-500: #5b6bff;
+  /* ---------- 액센트 ----------
+     500이 팔레트의 원래 색이지만 흰 텍스트를 얹으면 4.21:1로 AA에
+     미달한다. 그래서 **채움에는 600을 쓴다**(5.44:1). 500은 다크 모드
+     호버로만 남는다. 선명함을 조금 내주고 읽을 수 있음을 얻은 거래다. */
   --prim-accent-400: #7886ff;
+  --prim-accent-500: #5b6bff;
+  --prim-accent-600: #4a59e6;
+  --prim-accent-700: #3a46bf;
 
-  /* ---------- 신호색 ----------
-     제품 UI가 상태를 말해야 하므로 네 가지를 갖춘다. 이 넷이 있는 것이
-     이 테마를 고른 이유 중 하나다 — 폼 검증·토스트·배지가 색을 새로
-     만들지 않아도 된다. */
+  /* ---------- 신호 ----------
+     400대는 어두운 표면용, 600대는 밝은 표면용이다. 한 쌍만 두면 한쪽
+     모드에서 반드시 읽히지 않는다 — 라임(#2be08c)을 흰 배경에 얹으면
+     1.6:1이다. */
   --prim-success-400: #2be08c;
+  --prim-success-600: #0c824f;
   --prim-warning-400: #f5d547;
+  --prim-warning-600: #8a6b08;
   --prim-info-400: #3dd7e5;
+  --prim-info-600: #0e7e93;
+  --prim-danger-400: #ff6b85;
   --prim-danger-500: #ff3a5c;
+  --prim-danger-600: #d91f42;
 
-  /* ---------- 서체 ---------- */
+  /* ---------- 서체 ----------
+     Pretendard는 한글과 라틴을 한 서체로 덮는다. 라틴 전용 서체를
+     기준으로 잡으면 한글이 시스템 폰트로 떨어져 굵기·리듬이 어긋난다.
+     모노는 웹폰트를 싣지 않는다 — 지표·코드 라벨 몇 곳에만 쓰여서
+     서체 하나를 더 내려받을 값을 하지 못한다. */
   --prim-font-sans:
-    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic',
-    sans-serif;
-  --prim-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    'Pretendard Variable', Pretendard, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --prim-font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 
   /* ---------- 그림자 ----------
-     다크 테마의 깊이는 그림자만으로는 약하다. 안쪽 하이라이트(inset)를
-     겹쳐 면이 서 있다는 느낌을 만든다. */
-  --prim-shadow-sm: 0 1px 0 rgb(255 255 255 / 0.02) inset, 0 1px 2px rgb(0 0 0 / 0.4);
-  --prim-shadow-md: 0 8px 24px rgb(0 0 0 / 0.45), 0 1px 0 rgb(255 255 255 / 0.03) inset;
-  --prim-shadow-lg: 0 24px 60px rgb(0 0 0 / 0.55), 0 1px 0 rgb(255 255 255 / 0.04) inset;
+     두 모드가 깊이를 다른 수단으로 표현한다. 밝은 배경에서는 그림자가
+     보이므로 그림자가 일을 하고, 어두운 배경에서는 그림자가 보이지
+     않으므로 표면 색과 안쪽 하이라이트가 일을 한다. 같은 값을 쓰면
+     한쪽에서 평평해진다. */
+  --prim-shadow-light-sm: 0 1px 2px rgb(16 18 28 / 0.08);
+  --prim-shadow-light-md: 0 8px 24px rgb(16 18 28 / 0.12), 0 2px 6px rgb(16 18 28 / 0.06);
+  --prim-shadow-light-lg: 0 24px 60px rgb(16 18 28 / 0.18), 0 4px 12px rgb(16 18 28 / 0.08);
+
+  --prim-shadow-dark-sm: 0 1px 0 rgb(255 255 255 / 0.02) inset, 0 1px 2px rgb(0 0 0 / 0.4);
+  --prim-shadow-dark-md: 0 8px 24px rgb(0 0 0 / 0.45), 0 1px 0 rgb(255 255 255 / 0.03) inset;
+  --prim-shadow-dark-lg: 0 24px 60px rgb(0 0 0 / 0.55), 0 1px 0 rgb(255 255 255 / 0.04) inset;
 
   /* ---------- 모션 ---------- */
   --prim-duration-fast: 120ms;
