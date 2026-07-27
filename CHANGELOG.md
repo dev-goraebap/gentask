@@ -23,6 +23,7 @@
 - 메일 발송 인프라 결정 — Gmail SMTP 어댑터 + 비동기 발송, 트랜잭션 커밋 이후 트리거, 재발송으로 복구 (결정-0016)
 - 신규 요구사항 — AUTH-07(비밀번호 재설정, 전 세션 무효화 포함), AUTH-08(이메일 복구), PROF-05(이메일 변경). 로그인 불가 상태의 복구 흐름과 이메일 변경이 요구사항에 없던 공백을 채운다
 - 서버.md §1.6 이메일 소유 증명 계약 — 대기 레코드 식별자 기반 검증, 2단계 소셜 로그인, 세션 미승격 규약
+- 컴포넌트 워크벤치 Storybook — `@storybook/angular-vite`. Angular 22 zoneless에서 dev·빌드 모두 동작함을 시그널 갱신으로 검증했다(zone.js 미설치 유지). `format:check`가 `.storybook`도 검사한다 (#26)
 - 인증 스키마 4테이블 — `users`·`sessions`·`accounts`·`verifications` (`V2__auth_schema.sql`). 결정-0015의 불변식을 DB 제약으로 강제한다: `email_verified_at` NOT NULL(미검증 사용자를 표현할 수 없다), `verifications`에 유일성 제약 없음(대기 시도가 이메일을 선점하지 못한다), `(provider, provider_account_id)` 유니크 (#24, AUTH-06)
 - `docs/설계/데이터베이스.md` — 불변식↔제약 대응 표, 대기 레코드 수명주기, jOOQ DDLDatabase(인메모리 H2 경유)가 스키마에 거는 제약과 `[jooq ignore]` 우회 (#24)
 - `AuthSchemaTest` — 스키마가 불변식을 실제로 막는지 검증하는 통합 테스트 9건. "제약의 부재"(대기 레코드 이메일 중복 허용)도 테스트로 고정했다 (#24)

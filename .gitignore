@@ -1,2 +1,5 @@
 .claude/
 tmp
+
+# Storybook 빌드 산출물
+web/storybook-static
