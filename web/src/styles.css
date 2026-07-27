@@ -32,6 +32,17 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* 모드 경계에서 텍스트 색을 그 모드의 값으로 다시 해석한다.
+     `color`는 상속되는 속성이라, 경계에서 다시 선언하지 않으면 바깥 모드
+     기준으로 이미 계산된 값이 안으로 내려와 대비가 뒤집힌다 — 밝은 배경에
+     흰 글자가 얹히는 식이다. `currentColor`에 기대는 요소(아이콘·스피너)가
+     특히 그렇다.
+
+     @layer base에 두어 유틸리티(text-muted 등)가 이길 수 있게 한다. */
+  [data-theme] {
+    color: var(--color-foreground);
+  }
+
   /* 마우스 클릭에는 링을 띄우지 않고 키보드 이동에만 띄운다. */
   :focus-visible {
     outline: none;
