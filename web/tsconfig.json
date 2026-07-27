@@ -12,7 +12,16 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "preserve",
+    /* 경로 별칭 — 상대 경로 지옥과 레이어 위반을 함께 줄인다(웹.md §4).
+       레이어별로 따로 두는 이유: `@/*` 하나만 두면 어떤 레이어를 참조하는지
+       import 문에서 드러나지 않아 FSD 위반을 눈으로 잡을 수 없다. */
+    /* baseUrl은 TypeScript 7에서 제거되므로 쓰지 않는다.
+       baseUrl 없이 쓰면 paths가 이 파일 위치 기준으로 해석된다. */
+    "paths": {
+      "@/shared/*": ["./src/shared/*"],
+      "@/app/*": ["./src/app/*"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

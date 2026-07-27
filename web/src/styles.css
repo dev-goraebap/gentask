@@ -1,3 +1,63 @@
-/* You can add global styles to this file, and also import other style files */
+/* 전역 스타일 진입점. angular.json의 styles가 이 파일을 가리킨다.
+   실제 내용은 app/styles/ 아래에 둔다(웹.md §3 — 전역 스타일·폰트는 app/). */
 
 @import 'tailwindcss';
+
+/* Pretendard — 변수 폰트 + 동적 서브셋. 92개 유니코드 범위로 쪼개져 있어
+   페이지에 실제로 쓰인 글자 범위만 내려받는다(한글 전체는 3.1MB지만
+   일반적인 화면은 그중 일부만 받는다). 자체 호스팅이라 외부 CDN에
+   의존하지 않는다. OFL-1.1. */
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+
+/* 프리미티브 → 시맨틱 순서. 테마를 바꿀 때 아래 한 줄만 교체한다. */
+@import './app/styles/themes/halo.css';
+@import './app/styles/tokens.css';
+
+/* 기반 스타일 — 토큰을 쓰는 최소한의 전역 규칙만 둔다.
+   컴포넌트 스타일은 여기 쓰지 않는다(shared/ui가 소유한다). */
+@layer base {
+  html {
+    /* 스크롤바 등장으로 레이아웃이 흔들리지 않게 자리를 미리 잡는다. */
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 모드 경계에서 텍스트 색을 그 모드의 값으로 다시 해석한다.
+     `color`는 상속되는 속성이라, 경계에서 다시 선언하지 않으면 바깥 모드
+     기준으로 이미 계산된 값이 안으로 내려와 대비가 뒤집힌다 — 밝은 배경에
+     흰 글자가 얹히는 식이다. `currentColor`에 기대는 요소(아이콘·스피너)가
+     특히 그렇다.
+
+     @layer base에 두어 유틸리티(text-muted 등)가 이길 수 있게 한다. */
+  [data-theme] {
+    color: var(--color-foreground);
+  }
+
+  /* 마우스 클릭에는 링을 띄우지 않고 키보드 이동에만 띄운다. */
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* 모션 민감 사용자에게는 전환을 걷어낸다. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
