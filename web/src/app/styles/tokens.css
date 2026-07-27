@@ -1,0 +1,142 @@
+/* =============================================================
+   시맨틱 토큰 — 3계층의 두 번째 계층
+   -------------------------------------------------------------
+   여기 있는 이름이 **컴포넌트가 읽는 계약**이다. 컴포넌트는 프리미티브
+   (--prim-*)를 직접 읽지 않는다. 그 규칙 하나가 테마 교체를 파일 하나
+   교체로 만든다.
+
+   Tailwind 4의 @theme에 선언하므로 유틸리티가 함께 생성된다:
+     --color-surface      → bg-surface, text-surface, border-surface
+     --text-headline-lg   → text-headline-lg (크기·행간·자간·굵기 포함)
+     --radius-control     → rounded-control
+
+   간격은 토큰을 만들지 않는다. Halo의 간격 스케일(4·8·12·16·20·24·32·
+   40·48·64·80px)이 Tailwind 기본 스케일(4px 배수)과 정확히 같아서
+   p-6 = 24px가 이미 성립한다. 없어도 되는 층을 만들지 않는다.
+   ============================================================= */
+
+@theme {
+  /* ---------- 표면 3단 ----------
+     제품 UI의 깊이는 이 세 단계로 표현한다. 페이지 → 카드/필드 →
+     모달/팝오버. 네 번째 단계를 만들지 않는다 — 다크 테마에서 표면이
+     넷 이상이면 사용자가 층위를 구분하지 못한다. */
+  --color-background: var(--prim-neutral-950);
+  --color-surface: var(--prim-neutral-900);
+  --color-elevated: var(--prim-neutral-850);
+  --color-overlay: color-mix(in srgb, var(--prim-neutral-950) 72%, transparent);
+
+  /* ---------- 전경 ----------
+     foreground → muted → subtle 순으로 대비가 낮아진다. subtle은 본문에
+     쓰지 않는다(대비 부족) — 비활성 상태나 보조 메타데이터 전용이다. */
+  --color-foreground: var(--prim-neutral-50);
+  --color-muted: var(--prim-neutral-400);
+  --color-subtle: var(--prim-neutral-500);
+  --color-inverse: var(--prim-neutral-950);
+
+  /* ---------- 경계선 ----------
+     1px 헤어라인이 기본이다. line-soft는 표면 위에 얹히는 내부 구분선,
+     line-strong은 포커스가 아닌 강조(선택된 행 등)에 쓴다. */
+  --color-line: var(--prim-neutral-800);
+  --color-line-strong: var(--prim-neutral-700);
+  --color-line-soft: color-mix(in srgb, var(--prim-neutral-50) 4%, transparent);
+
+  /* ---------- 액센트 ---------- */
+  --color-accent: var(--prim-accent-500);
+  --color-accent-hover: var(--prim-accent-400);
+  --color-accent-pressed: var(--prim-accent-600);
+  --color-accent-soft: color-mix(in srgb, var(--prim-accent-500) 12%, transparent);
+  --color-on-accent: var(--prim-neutral-50);
+
+  /* ---------- 의도(상태) ----------
+     -soft는 배경용, 기본형은 텍스트·아이콘·테두리용이다. 서로 바꿔 쓰면
+     대비가 무너진다. */
+  --color-success: var(--prim-success-400);
+  --color-success-soft: color-mix(in srgb, var(--prim-success-400) 12%, transparent);
+  --color-warning: var(--prim-warning-400);
+  --color-warning-soft: color-mix(in srgb, var(--prim-warning-400) 14%, transparent);
+  --color-info: var(--prim-info-400);
+  --color-info-soft: color-mix(in srgb, var(--prim-info-400) 14%, transparent);
+  --color-danger: var(--prim-danger-500);
+  --color-danger-soft: color-mix(in srgb, var(--prim-danger-500) 14%, transparent);
+
+  /* ---------- 서체 ---------- */
+  --font-sans: var(--prim-font-sans);
+  --font-mono: var(--prim-font-mono);
+
+  /* ---------- 타입 스케일 ----------
+     역할 이름이다. 크기가 아니라 "무엇으로 쓰는가"로 부른다. 굵기·행간·
+     자간을 토큰에 함께 박아 호출부가 네 값을 매번 고르지 않게 한다. */
+  --text-display: clamp(2.75rem, 6vw, 4.5rem);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 600;
+
+  --text-headline-lg: 2.25rem;
+  --text-headline-lg--line-height: 1.12;
+  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-headline-md: 1.5rem;
+  --text-headline-md--line-height: 1.2;
+  --text-headline-md--letter-spacing: -0.015em;
+  --text-headline-md--font-weight: 600;
+
+  --text-title: 1.125rem;
+  --text-title--line-height: 1.3;
+  --text-title--letter-spacing: -0.01em;
+  --text-title--font-weight: 600;
+
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.55;
+  --text-body--letter-spacing: -0.005em;
+  --text-body--font-weight: 400;
+
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.5;
+  --text-body-sm--font-weight: 400;
+
+  /* 라벨은 대문자화 + 넓은 자간으로 쓴다. text-transform은 유틸리티
+     (uppercase)로 붙인다 — 토큰이 강제하면 한글 라벨에서 무의미해진다. */
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.08em;
+  --text-label--font-weight: 500;
+
+  --text-mono: 0.8125rem;
+  --text-mono--line-height: 1.4;
+  --text-mono--font-weight: 500;
+
+  --text-metric: 2.5rem;
+  --text-metric--line-height: 1;
+  --text-metric--letter-spacing: -0.02em;
+  --text-metric--font-weight: 600;
+
+  /* ---------- 반경 ----------
+     역할별로 둔다. 컨트롤과 표면이 같은 반경을 쓰면 위계가 사라지고,
+     한 컴포넌트 안에서 반경을 섞으면 조립된 느낌이 난다. */
+  --radius-control: 10px;
+  --radius-surface: 16px;
+  --radius-panel: 24px;
+  --radius-tight: 6px;
+  --radius-pill: 999px;
+
+  /* ---------- 깊이 ---------- */
+  --shadow-raised: var(--prim-shadow-sm);
+  --shadow-floating: var(--prim-shadow-md);
+  --shadow-modal: var(--prim-shadow-lg);
+
+  /* ---------- 모션 ---------- */
+  --ease-standard: var(--prim-easing-standard);
+}
+
+/* @theme 밖에 두는 토큰 — Tailwind 유틸리티로 만들 필요가 없고
+   컴포넌트 CSS에서 var()로 직접 읽는 값들이다. */
+:root {
+  --duration-fast: var(--prim-duration-fast);
+  --duration-base: var(--prim-duration-base);
+  --duration-slow: var(--prim-duration-slow);
+
+  /* 포커스 링은 컴포넌트마다 같은 모양이어야 하므로 완성된 형태로 둔다.
+     접근성 요구사항이라 컴포넌트가 임의로 바꾸지 못하게 하는 편이 낫다. */
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--prim-accent-500) 35%, transparent);
+}

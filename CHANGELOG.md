@@ -23,6 +23,8 @@
 - 메일 발송 인프라 결정 — Gmail SMTP 어댑터 + 비동기 발송, 트랜잭션 커밋 이후 트리거, 재발송으로 복구 (결정-0016)
 - 신규 요구사항 — AUTH-07(비밀번호 재설정, 전 세션 무효화 포함), AUTH-08(이메일 복구), PROF-05(이메일 변경). 로그인 불가 상태의 복구 흐름과 이메일 변경이 요구사항에 없던 공백을 채운다
 - 서버.md §1.6 이메일 소유 증명 계약 — 대기 레코드 식별자 기반 검증, 2단계 소셜 로그인, 세션 미승격 규약
+- 디자인 토큰 3계층 — 프리미티브(`app/styles/themes/halo.css`) → 시맨틱(`app/styles/tokens.css`, Tailwind 4 `@theme`) → 컴포넌트. 컴포넌트는 시맨틱만 읽으므로 테마 교체가 파일 한 줄 교체다. 표면 3단·전경 3단·경계선·액센트·의도 4종(success·warning·info·danger)·타입 스케일 9종·반경 5종·깊이 3종. 토큰 참조 화면을 Storybook 스토리로 제공한다 (#26)
+- 전역 기반 스타일 — `scrollbar-gutter: stable`(스크롤바 등장으로 인한 레이아웃 시프트 방지), `:focus-visible` 링, `prefers-reduced-motion` 대응 (#26)
 - 컴포넌트 워크벤치 Storybook — `@storybook/angular-vite`. Angular 22 zoneless에서 dev·빌드 모두 동작함을 시그널 갱신으로 검증했다(zone.js 미설치 유지). `format:check`가 `.storybook`도 검사한다 (#26)
 - 인증 스키마 4테이블 — `users`·`sessions`·`accounts`·`verifications` (`V2__auth_schema.sql`). 결정-0015의 불변식을 DB 제약으로 강제한다: `email_verified_at` NOT NULL(미검증 사용자를 표현할 수 없다), `verifications`에 유일성 제약 없음(대기 시도가 이메일을 선점하지 못한다), `(provider, provider_account_id)` 유니크 (#24, AUTH-06)
 - `docs/설계/데이터베이스.md` — 불변식↔제약 대응 표, 대기 레코드 수명주기, jOOQ DDLDatabase(인메모리 H2 경유)가 스키마에 거는 제약과 `[jooq ignore]` 우회 (#24)

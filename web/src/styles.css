@@ -1,3 +1,46 @@
-/* You can add global styles to this file, and also import other style files */
+/* 전역 스타일 진입점. angular.json의 styles가 이 파일을 가리킨다.
+   실제 내용은 app/styles/ 아래에 둔다(웹.md §3 — 전역 스타일·폰트는 app/). */
 
 @import 'tailwindcss';
+
+/* 프리미티브 → 시맨틱 순서. 테마를 바꿀 때 아래 한 줄만 교체한다. */
+@import './app/styles/themes/halo.css';
+@import './app/styles/tokens.css';
+
+/* 기반 스타일 — 토큰을 쓰는 최소한의 전역 규칙만 둔다.
+   컴포넌트 스타일은 여기 쓰지 않는다(shared/ui가 소유한다). */
+@layer base {
+  html {
+    /* 스크롤바 등장으로 레이아웃이 흔들리지 않게 자리를 미리 잡는다. */
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 마우스 클릭에는 링을 띄우지 않고 키보드 이동에만 띄운다. */
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* 모션 민감 사용자에게는 전환을 걷어낸다. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

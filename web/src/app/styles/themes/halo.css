@@ -1,0 +1,65 @@
+/* =============================================================
+   테마: Halo (다크)
+   -------------------------------------------------------------
+   이 파일은 3계층 토큰의 첫 계층인 **프리미티브**다. 원시 값만 있고
+   역할은 없다. 역할 부여는 tokens.css의 시맨틱 계층이 담당한다.
+
+   교체 방법: 이 파일을 다른 테마 파일로 바꾼다. tokens.css와 컴포넌트는
+   건드리지 않는다. 새 테마는 아래 --prim-* 이름을 **전부** 정의해야 한다
+   — 그 목록이 테마와 시맨틱 계층 사이의 계약이다.
+
+   이름 규칙: 색상은 색조 이름이 아니라 **팔레트 위치**로 부른다
+   (neutral/accent/success/...). 초록 액센트 테마가 들어와도
+   --prim-accent-500이 거짓말이 되지 않게 하기 위함이다.
+
+   출처: Halo 디자인 시스템 (Uiverse Design, 구매 라이선스).
+   값만 참조했으며 원본 CSS·문서·이미지는 이 저장소에 포함하지 않는다.
+   우리 디자인 원칙은 DESIGN.md에 자체적으로 기술한다.
+   ============================================================= */
+
+:root {
+  /* ---------- 중립 스케일 (숫자가 클수록 어둡다 — 다크 테마 기준) ----------
+     다크 테마라 950이 페이지 배경이고 50이 본문 텍스트다. 라이트 테마를
+     만들 때는 같은 이름에 반대 방향 값을 넣으면 시맨틱 계층이 그대로 돈다. */
+  --prim-neutral-950: #0a0b0f;
+  --prim-neutral-900: #14151c;
+  --prim-neutral-850: #1e2029;
+  --prim-neutral-800: #2a2d38;
+  --prim-neutral-700: #3a3d4a;
+  --prim-neutral-500: #5c6170;
+  --prim-neutral-400: #9aa0ae;
+  --prim-neutral-50: #f2f4f8;
+
+  /* ---------- 액센트 (브랜드) ---------- */
+  --prim-accent-600: #4a59e6;
+  --prim-accent-500: #5b6bff;
+  --prim-accent-400: #7886ff;
+
+  /* ---------- 신호색 ----------
+     제품 UI가 상태를 말해야 하므로 네 가지를 갖춘다. 이 넷이 있는 것이
+     이 테마를 고른 이유 중 하나다 — 폼 검증·토스트·배지가 색을 새로
+     만들지 않아도 된다. */
+  --prim-success-400: #2be08c;
+  --prim-warning-400: #f5d547;
+  --prim-info-400: #3dd7e5;
+  --prim-danger-500: #ff3a5c;
+
+  /* ---------- 서체 ---------- */
+  --prim-font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic',
+    sans-serif;
+  --prim-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---------- 그림자 ----------
+     다크 테마의 깊이는 그림자만으로는 약하다. 안쪽 하이라이트(inset)를
+     겹쳐 면이 서 있다는 느낌을 만든다. */
+  --prim-shadow-sm: 0 1px 0 rgb(255 255 255 / 0.02) inset, 0 1px 2px rgb(0 0 0 / 0.4);
+  --prim-shadow-md: 0 8px 24px rgb(0 0 0 / 0.45), 0 1px 0 rgb(255 255 255 / 0.03) inset;
+  --prim-shadow-lg: 0 24px 60px rgb(0 0 0 / 0.55), 0 1px 0 rgb(255 255 255 / 0.04) inset;
+
+  /* ---------- 모션 ---------- */
+  --prim-duration-fast: 120ms;
+  --prim-duration-base: 150ms;
+  --prim-duration-slow: 240ms;
+  --prim-easing-standard: cubic-bezier(0.2, 0.6, 0.2, 1);
+}
