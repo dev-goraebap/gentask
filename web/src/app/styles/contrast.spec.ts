@@ -34,7 +34,8 @@ const 매핑 = (() => {
   const 다크 = new Map<string, string>();
 
   // light-dark(var(--prim-a), var(--prim-b))
-  const 양쪽 = /--color-([a-z-]+)\s*:\s*light-dark\(\s*var\(--prim-([a-z]+-\d+)\)\s*,\s*var\(--prim-([a-z]+-\d+)\)\s*\)/g;
+  const 양쪽 =
+    /--color-([a-z-]+)\s*:\s*light-dark\(\s*var\(--prim-([a-z]+-\d+)\)\s*,\s*var\(--prim-([a-z]+-\d+)\)\s*\)/g;
   for (const [, 역할, l, d] of css.matchAll(양쪽)) {
     라이트.set(역할, l);
     다크.set(역할, d);
@@ -79,6 +80,9 @@ const 조합: [string, string, number, string][] = [
   ['accent-ink', 'surface', AA, '액센트 잉크가 카드에서'],
   ['on-accent', 'accent', AA, '액센트 채움 위의 텍스트'],
   ['accent', 'background', UI, '액센트 채움이 캔버스에서 구분되는지'],
+  ['on-danger', 'danger-fill', AA, '파괴적 채움 위의 텍스트'],
+  ['on-danger', 'danger-fill-hover', AA, '파괴적 채움 호버 위의 텍스트'],
+  ['danger-fill', 'background', UI, '파괴적 채움이 캔버스에서 구분되는지'],
   ['success', 'surface', AA, 'success 텍스트'],
   ['warning', 'surface', AA, 'warning 텍스트'],
   ['info', 'surface', AA, 'info 텍스트'],

@@ -92,6 +92,13 @@
   --color-danger: light-dark(var(--prim-danger-600), var(--prim-danger-500));
   --color-danger-soft: color-mix(in srgb, var(--color-danger) 14%, transparent);
 
+  /* 파괴적 동작 버튼의 채움. 액센트와 같은 이유로 잉크(--color-danger)와
+     분리한다 — 채움 위의 흰 텍스트가 AA를 넘어야 해서 두 모드 모두
+     어두운 단계를 쓴다. */
+  --color-danger-fill: var(--prim-danger-600);
+  --color-danger-fill-hover: var(--prim-danger-700);
+  --color-on-danger: var(--prim-neutral-0);
+
   /* ---------- 서체 ---------- */
   --font-sans: var(--prim-font-sans);
   --font-mono: var(--prim-font-mono);
