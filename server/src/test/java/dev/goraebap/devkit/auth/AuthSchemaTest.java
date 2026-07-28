@@ -198,6 +198,7 @@ class AuthSchemaTest extends IntegrationTestSupport {
                 .set(VERIFICATIONS.ID, UUID.randomUUID())
                 .set(VERIFICATIONS.PURPOSE, purpose)
                 .set(VERIFICATIONS.TARGET_EMAIL, targetEmail)
+                .set(VERIFICATIONS.TARGET_EMAIL_RAW, targetEmail)
                 .set(VERIFICATIONS.CODE_HASH, "hmac-" + UUID.randomUUID())
                 .set(VERIFICATIONS.EXPIRES_AT, now.plusMinutes(10))
                 .set(VERIFICATIONS.USER_ID, userId)

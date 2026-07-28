@@ -2,6 +2,7 @@ package dev.goraebap.devkit;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 /**
@@ -15,7 +16,13 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * 끝날 때 컨테이너가 내려가고 다음 클래스가 죽은 컨테이너에 접속한다. 여기서는 JVM 수명 동안
  * 하나를 유지하고 정리는 Testcontainers의 리퍼(Ryuk)에 맡긴다.
  */
+/*
+ * test 프로파일을 쓰는 이유: src/test/resources/application.properties를 두면 클래스패스에서
+ * 메인 설정 파일을 통째로 가리므로, 프로덕션 기본값(rate limit·세션 수명 등)이 사라진 채로
+ * 테스트가 돈다. 프로파일 파일은 기본 설정을 대체하지 않고 덮어쓴다.
+ */
 @SpringBootTest
+@ActiveProfiles("test")
 public abstract class IntegrationTestSupport {
 
     @ServiceConnection
