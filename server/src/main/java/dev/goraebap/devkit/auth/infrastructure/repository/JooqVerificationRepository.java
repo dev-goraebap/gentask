@@ -60,7 +60,8 @@ class JooqVerificationRepository implements VerificationRepository {
 
     @Override
     public Optional<Verification> findForAttempt(UUID id, VerificationPurpose purpose) {
-        // for update: 같은 레코드에 대한 동시 검증 시도를 직렬화해 시도 횟수의 lost update를 막는다
+        // for update: 같은 레코드에 대한 동시 검증 시도를 직렬화해 시도 횟수의 lost update를 막는다.
+        // 이 한 줄을 지우면 5회 제한이 무력화된다 — OtpConcurrencyTest가 그것을 잡는다.
         return dsl.selectFrom(VERIFICATIONS)
                 .where(VERIFICATIONS.ID.eq(id).and(VERIFICATIONS.PURPOSE.eq(purpose.name())))
                 .forUpdate()

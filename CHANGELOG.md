@@ -47,8 +47,9 @@
 - `mail` 모듈 (MAIL-01) — 발송 포트(`MailSender`) + Gmail SMTP 어댑터. 비동기(전용 executor)·트랜잭션 커밋 후 트리거·짧은 재시도 후 실패 로깅(유스케이스 비중단)·수신자/제목 개행 차단(헤더 인젝션 방지)·자격증명 환경변수 주입 (#28, 결정-0016)
 - `common` 모듈 — RFC 7807 전역 예외 처리(`code`·`traceId` 필드, 검증 실패 시 필드 이름만 노출), `X-Trace-Id` 요청 추적 필터, `BusinessException`/`ErrorCode` 계약 (#28, 설계/서버.md §1.3·§7)
 - 전역 `Clock` 빈 — 시각은 DB 기본값이 아니라 주입된 Clock으로 채운다. 도메인·통합 테스트가 시각을 통제한다 (#28)
-- 인증 테스트 58건 — 도메인 불변식(OTP 만료·5회 폐기·1회용, 슬라이딩 만료와 절대 상한, credential 불변식), 서비스 단위(가짜 저장소, 실패 사유 비구분·이메일 비예약·제한이 해시보다 먼저 걸림), 통합(가입→로그인→로그아웃 전체 흐름, Bearer 경로, Origin 검증, 저장소 왕복). OTP 코드는 항상 발송된 메일에서 관찰한다 (#28)
-- 배포 전제 설정 명시 — `server.forward-headers-strategy`(프록시 뒤에서 클라이언트 IP가 전부 프록시 IP가 되면 rate limit이 전역 카운터로 붕괴하고 Origin 검증이 내부 스킴과 비교된다), `auth.allowed-origins`, actuator health 상세를 ADMIN으로 제한 (#28)
+- OTP 동시성 회귀 테스트 — 같은 대기 레코드에 12개 스레드가 오답을 던져도 시도 횟수가 정확히 5에서 멈추는지, 정답을 동시에 던져도 계정이 하나만 생기는지 검증한다. 행 잠금을 지우면 이 테스트가 실패한다(확인함) — 치명 취약점이 조용히 되살아나는 것을 막는 장치다 (#28)
+- 인증 테스트 55건 — 도메인 불변식(OTP 만료·5회 폐기·1회용, 슬라이딩 만료와 절대 상한, credential 불변식), 서비스 단위(가짜 저장소, 실패 사유 비구분·이메일 비예약·제한이 해시보다 먼저 걸림), 통합(가입→로그인→로그아웃 전체 흐름, Bearer 경로, Origin 검증, 저장소 왕복). OTP 코드는 항상 발송된 메일에서 관찰한다 (#28)
+- 배포 전제 설정 명시 — `server.forward-headers-strategy=NATIVE` + `server.tomcat.remoteip.internal-proxies`(신뢰 프록시 대역), `auth.allowed-origins`, actuator health 상세를 ADMIN으로 제한. `FRAMEWORK`가 아니라 `NATIVE`인 이유는 Tomcat이 `X-Forwarded-For`를 오른쪽에서 왼쪽으로 훑으며 신뢰 프록시를 건너뛰기 때문이다 — Spring 필터는 첫 항목을 채택하는데 nginx 표준 레시피가 클라이언트가 보낸 값을 앞에 두고 덧붙이므로, 헤더 한 줄로 IP 기반 제한을 전부 우회할 수 있다 (#28)
 
 ### Changed
 

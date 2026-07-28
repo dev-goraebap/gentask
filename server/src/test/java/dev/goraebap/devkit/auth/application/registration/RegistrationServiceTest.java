@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import dev.goraebap.devkit.auth.application.session.SessionService;
+import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
@@ -65,7 +66,17 @@ class RegistrationServiceTest {
                 verifications,
                 sessionService,
                 mailer,
-                (key, limit, window) -> rateLimitAllowed,
+                new AttemptRateLimiter() {
+                    @Override
+                    public boolean tryAcquire(String key, int limit, Duration window) {
+                        return rateLimitAllowed;
+                    }
+
+                    @Override
+                    public void reset(String key) {
+                        // 발급 경로는 카운터를 비우지 않는다
+                    }
+                },
                 FakeCrypto.tokenHasher(),
                 FakeCrypto.passwordHasher(),
                 new SecureTokenGenerator(),
@@ -223,9 +234,17 @@ class RegistrationServiceTest {
                         AuthTestFixtures.authProperties(),
                         clock),
                 mailer,
-                (key, limit, window) -> {
-                    consumed.add(key);
-                    return !key.startsWith("otp:issue:ip:");
+                new AttemptRateLimiter() {
+                    @Override
+                    public boolean tryAcquire(String key, int limit, Duration window) {
+                        consumed.add(key);
+                        return !key.startsWith("otp:issue:ip:");
+                    }
+
+                    @Override
+                    public void reset(String key) {
+                        // 발급 경로는 카운터를 비우지 않는다
+                    }
                 },
                 FakeCrypto.tokenHasher(),
                 FakeCrypto.passwordHasher(),

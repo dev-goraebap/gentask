@@ -2,6 +2,7 @@ package dev.goraebap.devkit.auth.application.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
 import dev.goraebap.devkit.auth.application.shared.PasswordHasher;
@@ -14,6 +15,9 @@ import dev.goraebap.devkit.auth.support.FakeCrypto;
 import dev.goraebap.devkit.auth.support.InMemoryAuthRepositories;
 import dev.goraebap.devkit.auth.support.MutableClock;
 import dev.goraebap.devkit.common.BusinessException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -99,7 +103,17 @@ class SessionServiceTest {
                 FakeCrypto.tokenHasher(),
                 countingHasher,
                 new SecureTokenGenerator(),
-                (key, limit, window) -> false,
+                new AttemptRateLimiter() {
+                    @Override
+                    public boolean tryAcquire(String key, int limit, Duration window) {
+                        return false;
+                    }
+
+                    @Override
+                    public void reset(String key) {
+                        throw new AssertionError("거부된 요청은 카운터를 비우지 않는다");
+                    }
+                },
                 AuthTestFixtures.authProperties(),
                 clock);
 
@@ -109,6 +123,67 @@ class SessionServiceTest {
         assertThat(rejected.errorCode()).isEqualTo(AuthErrorCode.AUTH_TOO_MANY_ATTEMPTS);
         assertThat(hashCalls).hasValue(0);
         assertThat(sessions.rows).isEmpty();
+    }
+
+    @Test
+    @DisplayName("AUTH-01 로그인에 성공하면 그 계정의 시도 카운터가 비워진다 — 정상 사용자가 스스로 잠기지 않는다")
+    void 성공하면_계정_카운터를_비운다() {
+        List<String> resetKeys = new ArrayList<>();
+        SessionService counting = new SessionService(
+                users,
+                accounts,
+                sessions,
+                FakeCrypto.tokenHasher(),
+                FakeCrypto.passwordHasher(),
+                new SecureTokenGenerator(),
+                new AttemptRateLimiter() {
+                    @Override
+                    public boolean tryAcquire(String key, int limit, Duration window) {
+                        return true;
+                    }
+
+                    @Override
+                    public void reset(String key) {
+                        resetKeys.add(key);
+                    }
+                },
+                AuthTestFixtures.authProperties(),
+                clock);
+
+        counting.login("Alice@Example.com", "correct-password", CLIENT);
+
+        // 키는 정규화된 이메일이고, IP 축은 비우지 않는다
+        assertThat(resetKeys).containsExactly("login:account:alice@example.com");
+    }
+
+    @Test
+    @DisplayName("AUTH-01 로그인에 실패하면 카운터를 비우지 않는다 — 실패가 누적되어야 제한이 성립한다")
+    void 실패하면_카운터를_비우지_않는다() {
+        List<String> resetKeys = new ArrayList<>();
+        SessionService counting = new SessionService(
+                users,
+                accounts,
+                sessions,
+                FakeCrypto.tokenHasher(),
+                FakeCrypto.passwordHasher(),
+                new SecureTokenGenerator(),
+                new AttemptRateLimiter() {
+                    @Override
+                    public boolean tryAcquire(String key, int limit, Duration window) {
+                        return true;
+                    }
+
+                    @Override
+                    public void reset(String key) {
+                        resetKeys.add(key);
+                    }
+                },
+                AuthTestFixtures.authProperties(),
+                clock);
+
+        catchBusiness(() -> counting.login("alice@example.com", "wrong", CLIENT));
+
+        assertThat(resetKeys).isEmpty();
     }
 
     @Test

@@ -94,7 +94,7 @@ public class SessionService {
      */
     @Transactional
     public IssuedSession login(String email, String rawPassword, ClientInfo client) {
-        rejectIfTooManyAttempts(email, client);
+        String accountKey = rejectIfTooManyAttempts(email, client);
         Optional<User> user = findUser(email);
         Optional<Account> account =
                 user.flatMap(u -> accountRepository.findByUserIdAndProvider(u.id(), AuthProvider.CREDENTIAL));
@@ -104,6 +104,9 @@ public class SessionService {
 
         if (account.isEmpty() || !passwordMatches) {
             throw new BusinessException(AuthErrorCode.AUTH_INVALID_CREDENTIALS, "이메일 또는 비밀번호를 확인해 주세요");
+        }
+        if (accountKey != null) {
+            rateLimiter.reset(accountKey);
         }
         return issue(user.orElseThrow().id(), client);
     }
@@ -117,19 +120,25 @@ public class SessionService {
     /**
      * IP별·계정별 두 축으로 제한한다. 계정별 축의 키는 정규화된 이메일이며, 형식이 틀린 입력은
      * IP 축만으로 다룬다 — 존재하지 않는 계정에도 카운터가 잡히므로 열거 수단이 되지 않는다.
+     *
+     * @return 계정 축 카운터의 키. 로그인에 성공하면 호출자가 이 키를 비워, 성공한 사용자가 스스로
+     *     잠기거나 공격자가 오답만으로 남의 계정을 잠그는 것을 막는다. 형식이 틀린 입력이면 null.
      */
-    private void rejectIfTooManyAttempts(String email, ClientInfo client) {
+    private String rejectIfTooManyAttempts(String email, ClientInfo client) {
         AuthProperties.Login login = properties.login();
         boolean ipAllowed = rateLimiter.tryAcquire("login:ip:" + client.ipAddress(), login.ipLimit(), login.ipWindow());
         if (!ipAllowed) {
             throw new BusinessException(AuthErrorCode.AUTH_TOO_MANY_ATTEMPTS, "잠시 후 다시 시도해 주세요");
         }
-        String accountKey = normalizedOrNull(email);
-        if (accountKey != null
-                && !rateLimiter.tryAcquire(
-                        "login:account:" + accountKey, login.accountLimit(), login.accountWindow())) {
+        String normalized = normalizedOrNull(email);
+        if (normalized == null) {
+            return null;
+        }
+        String accountKey = "login:account:" + normalized;
+        if (!rateLimiter.tryAcquire(accountKey, login.accountLimit(), login.accountWindow())) {
             throw new BusinessException(AuthErrorCode.AUTH_TOO_MANY_ATTEMPTS, "잠시 후 다시 시도해 주세요");
         }
+        return accountKey;
     }
 
     private String normalizedOrNull(String email) {

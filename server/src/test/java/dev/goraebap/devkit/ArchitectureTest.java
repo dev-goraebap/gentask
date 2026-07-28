@@ -27,8 +27,11 @@ class ArchitectureTest {
 
     static final String ROOT = "dev.goraebap.devkit";
 
-    /** jOOQ 코드 생성 산출물은 우리 구조 규칙의 대상이 아니다. */
-    private static final Set<String> NOT_MODULES = Set.of("jooq", "config");
+    /**
+     * 모듈이 아닌 패키지. jOOQ 생성 산출물은 우리 구조 규칙의 대상이 아니고, {@code common}은
+     * 모듈이 아니라 모든 모듈이 딛는 바닥이다(설계/서버.md §2).
+     */
+    private static final Set<String> NOT_MODULES = Set.of("jooq", "config", "common");
 
     // 1. 다른 모듈의 하위 패키지(internal) 참조 금지
     @ArchTest
@@ -107,6 +110,20 @@ class ArchitectureTest {
             .orShould()
             .dependOnClassesThat()
             .haveSimpleNameEndingWith("Queries")
+            .allowEmptyShould(true);
+
+    // 8. common은 어떤 모듈도 참조하지 않는다 — 참조하면 바닥이 아니라 또 하나의 모듈이 된다 (§2)
+    @ArchTest
+    static final ArchRule common은_모듈을_모른다 = noClasses()
+            .that()
+            .resideInAPackage(ROOT + ".common..")
+            .should()
+            .dependOnClassesThat(new DescribedPredicate<JavaClass>("모듈 패키지에 속한다") {
+                @Override
+                public boolean test(JavaClass target) {
+                    return moduleOf(target) != null;
+                }
+            })
             .allowEmptyShould(true);
 
     // 7. 명령 서비스는 조회 포트를 의존하지 않는다 (설계/서버.md §5.3·§5.4)

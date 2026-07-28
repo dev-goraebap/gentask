@@ -15,4 +15,12 @@ public interface AttemptRateLimiter {
 
     /** 한도 안이면 true를 반환하며 카운터를 소비한다. 거부되면 소비하지 않는다. */
     boolean tryAcquire(String key, int limit, Duration window);
+
+    /**
+     * 카운터를 비운다. 인증에 <b>성공한</b> 뒤 그 계정의 실패 카운터를 되돌리는 데 쓴다.
+     *
+     * <p>성공까지 카운터에 쌓아두면 두 가지가 생긴다 — 정상 사용자가 여러 기기에서 로그인하다
+     * 스스로 잠기고, 공격자가 남의 계정에 오답을 넣어 그 계정을 반복 잠글 수 있다.
+     */
+    void reset(String key);
 }

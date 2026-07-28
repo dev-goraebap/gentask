@@ -1,5 +1,6 @@
 package dev.goraebap.devkit.auth.support;
 
+import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthProperties;
 import java.time.Duration;
 import java.time.Instant;
@@ -24,8 +25,18 @@ public final class AuthTestFixtures {
     }
 
     /** 항상 통과하는 rate limiter — 제한 자체를 검증하는 테스트에서만 다른 것을 쓴다. */
-    public static dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter permissiveRateLimiter() {
-        return (key, limit, window) -> true;
+    public static AttemptRateLimiter permissiveRateLimiter() {
+        return new AttemptRateLimiter() {
+            @Override
+            public boolean tryAcquire(String key, int limit, Duration window) {
+                return true;
+            }
+
+            @Override
+            public void reset(String key) {
+                // 통과만 시키므로 비울 카운터가 없다
+            }
+        };
     }
 
     /** 테스트가 시각을 통제한다 (설계/데이터베이스.md §1.3). */

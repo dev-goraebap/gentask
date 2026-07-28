@@ -39,6 +39,11 @@ class InMemoryAttemptRateLimiter implements AttemptRateLimiter {
         return current.count().incrementAndGet() <= limit;
     }
 
+    @Override
+    public void reset(String key) {
+        counters.remove(key);
+    }
+
     private void cleanupIfBloated(Instant now) {
         if (counters.size() > CLEANUP_THRESHOLD) {
             counters.entrySet().removeIf(entry -> entry.getValue().expiresAt().isBefore(now));

@@ -53,6 +53,9 @@ class SmtpMailDispatcher {
     /** 로그에 이메일 원문을 남기지 않는다 — SMTP 장애 시 가입자 목록이 로그로 새는 경로가 된다. */
     private static String mask(String email) {
         int at = email.indexOf('@');
+        if (at < 0) {
+            return "***";
+        }
         return at <= 1 ? "***" + email.substring(at) : email.charAt(0) + "***" + email.substring(at);
     }
 }
