@@ -43,6 +43,23 @@ class JooqUserRepository implements UserRepository {
     }
 
     @Override
+    public boolean registerIfEmailAvailable(User user) {
+        // on conflict do nothing: 유일성 경합이 예외가 아니라 "삽입 0건"으로 돌아와 트랜잭션이 살아 있다
+        int inserted = dsl.insertInto(USERS)
+                .set(USERS.ID, user.id())
+                .set(USERS.EMAIL, user.email().raw())
+                .set(USERS.EMAIL_NORMALIZED, user.email().normalized())
+                .set(USERS.EMAIL_VERIFIED_AT, offset(user.emailVerifiedAt()))
+                .set(USERS.NICKNAME, user.nickname())
+                .set(USERS.CREATED_AT, offset(user.createdAt()))
+                .set(USERS.UPDATED_AT, offset(user.updatedAt()))
+                .onConflict(USERS.EMAIL_NORMALIZED)
+                .doNothing()
+                .execute();
+        return inserted > 0;
+    }
+
+    @Override
     public Optional<User> findById(UUID id) {
         return dsl.selectFrom(USERS).where(USERS.ID.eq(id)).fetchOptional().map(JooqUserRepository::toDomain);
     }

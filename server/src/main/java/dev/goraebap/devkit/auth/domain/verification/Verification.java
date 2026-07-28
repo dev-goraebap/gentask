@@ -27,6 +27,7 @@ public final class Verification {
     private final UUID id;
     private final VerificationPurpose purpose;
     private final String targetEmail;
+    private final String targetEmailRaw;
     private final String codeHash;
     private int attempts;
     private final Instant expiresAt;
@@ -40,6 +41,7 @@ public final class Verification {
             UUID id,
             VerificationPurpose purpose,
             String targetEmail,
+            String targetEmailRaw,
             String codeHash,
             int attempts,
             Instant expiresAt,
@@ -51,6 +53,7 @@ public final class Verification {
         this.id = Objects.requireNonNull(id);
         this.purpose = Objects.requireNonNull(purpose);
         this.targetEmail = Objects.requireNonNull(targetEmail);
+        this.targetEmailRaw = Objects.requireNonNull(targetEmailRaw);
         this.codeHash = Objects.requireNonNull(codeHash);
         this.attempts = attempts;
         this.expiresAt = Objects.requireNonNull(expiresAt);
@@ -61,12 +64,19 @@ public final class Verification {
         this.createdAt = Objects.requireNonNull(createdAt);
     }
 
-    /** 가입 대기 레코드. 사용자 없이 존재한다 — 이메일을 예약하지 않는다 (결정-0015 §결정 4). */
-    public static Verification issueSignup(UUID id, String targetEmailNormalized, String codeHash, Instant now) {
+    /**
+     * 가입 대기 레코드. 사용자 없이 존재한다 — 이메일을 예약하지 않는다 (결정-0015 §결정 4).
+     *
+     * <p>원문과 정규화된 값을 함께 든다 — 판정은 정규화된 값으로, 표시·발송은 원문으로 한다
+     * (결정-0015 §결정 5).
+     */
+    public static Verification issueSignup(
+            UUID id, String targetEmailRaw, String targetEmailNormalized, String codeHash, Instant now) {
         return new Verification(
                 id,
                 VerificationPurpose.EMAIL_SIGNUP,
                 targetEmailNormalized,
+                targetEmailRaw,
                 codeHash,
                 0,
                 now.plus(TTL),
@@ -82,6 +92,7 @@ public final class Verification {
             UUID id,
             VerificationPurpose purpose,
             String targetEmail,
+            String targetEmailRaw,
             String codeHash,
             int attempts,
             Instant expiresAt,
@@ -94,6 +105,7 @@ public final class Verification {
                 id,
                 purpose,
                 targetEmail,
+                targetEmailRaw,
                 codeHash,
                 attempts,
                 expiresAt,
@@ -146,8 +158,14 @@ public final class Verification {
         return purpose;
     }
 
+    /** 정규화된 값 — 동일성·유일성 판정의 기준. */
     public String targetEmail() {
         return targetEmail;
+    }
+
+    /** 사용자가 입력한 원문 — 표시·발송용. */
+    public String targetEmailRaw() {
+        return targetEmailRaw;
     }
 
     public String codeHash() {

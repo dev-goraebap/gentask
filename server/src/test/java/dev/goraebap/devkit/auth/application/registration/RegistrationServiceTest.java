@@ -19,6 +19,8 @@ import dev.goraebap.devkit.auth.support.MutableClock;
 import dev.goraebap.devkit.auth.support.RecordingSignupMailer;
 import dev.goraebap.devkit.common.BusinessException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,6 +56,7 @@ class RegistrationServiceTest {
                 FakeCrypto.tokenHasher(),
                 FakeCrypto.passwordHasher(),
                 new SecureTokenGenerator(),
+                AuthTestFixtures.permissiveRateLimiter(),
                 AuthTestFixtures.authProperties(),
                 clock);
         service = new RegistrationService(
@@ -62,10 +65,11 @@ class RegistrationServiceTest {
                 verifications,
                 sessionService,
                 mailer,
-                (ip, email) -> rateLimitAllowed,
+                (key, limit, window) -> rateLimitAllowed,
                 FakeCrypto.tokenHasher(),
                 FakeCrypto.passwordHasher(),
                 new SecureTokenGenerator(),
+                AuthTestFixtures.authProperties(),
                 clock);
     }
 
@@ -184,6 +188,7 @@ class RegistrationServiceTest {
                 UUID.randomUUID(),
                 VerificationPurpose.PASSWORD_RESET,
                 "new@example.com",
+                "new@example.com",
                 "hmac(123456)",
                 0,
                 clock.instant().plus(Verification.TTL),
@@ -197,6 +202,41 @@ class RegistrationServiceTest {
         assertThatThrownBy(() -> service.completeSignup(passwordReset.id(), "123456", "password-1234", CLIENT))
                 .isInstanceOfSatisfying(BusinessException.class, e -> assertThat(e.errorCode())
                         .isEqualTo(AuthErrorCode.AUTH_OTP_INVALID));
+    }
+
+    @Test
+    @DisplayName("AUTH-01 IP 한도를 넘기면 이메일 카운터를 소비하지 않는다 — 남의 쿼터를 소진시키는 경로를 막는다")
+    void ip가_거부되면_이메일_카운터를_건드리지_않는다() {
+        List<String> consumed = new ArrayList<>();
+        RegistrationService limited = new RegistrationService(
+                users,
+                accounts,
+                verifications,
+                new SessionService(
+                        users,
+                        accounts,
+                        sessions,
+                        FakeCrypto.tokenHasher(),
+                        FakeCrypto.passwordHasher(),
+                        new SecureTokenGenerator(),
+                        AuthTestFixtures.permissiveRateLimiter(),
+                        AuthTestFixtures.authProperties(),
+                        clock),
+                mailer,
+                (key, limit, window) -> {
+                    consumed.add(key);
+                    return !key.startsWith("otp:issue:ip:");
+                },
+                FakeCrypto.tokenHasher(),
+                FakeCrypto.passwordHasher(),
+                new SecureTokenGenerator(),
+                AuthTestFixtures.authProperties(),
+                clock);
+
+        assertThatThrownBy(() -> limited.issueSignupVerification("victim@example.com", "203.0.113.10"))
+                .isInstanceOf(BusinessException.class);
+
+        assertThat(consumed).containsExactly("otp:issue:ip:203.0.113.10");
     }
 
     @Test

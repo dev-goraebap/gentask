@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
+import dev.goraebap.devkit.auth.application.shared.PasswordHasher;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
 import dev.goraebap.devkit.auth.domain.account.Account;
 import dev.goraebap.devkit.auth.domain.user.EmailAddress;
@@ -42,6 +43,7 @@ class SessionServiceTest {
                 FakeCrypto.tokenHasher(),
                 FakeCrypto.passwordHasher(),
                 new SecureTokenGenerator(),
+                AuthTestFixtures.permissiveRateLimiter(),
                 AuthTestFixtures.authProperties(),
                 clock);
 
@@ -71,6 +73,41 @@ class SessionServiceTest {
         assertThat(wrongPassword.errorCode()).isEqualTo(AuthErrorCode.AUTH_INVALID_CREDENTIALS);
         assertThat(unknownEmail.errorCode()).isEqualTo(AuthErrorCode.AUTH_INVALID_CREDENTIALS);
         assertThat(wrongPassword.getMessage()).isEqualTo(unknownEmail.getMessage());
+        assertThat(sessions.rows).isEmpty();
+    }
+
+    @Test
+    @DisplayName("AUTH-01 로그인 시도 제한은 비밀번호 해시 계산보다 먼저 걸린다 — bcrypt CPU 고갈 방지")
+    void 시도_제한은_해시_이전에_걸린다() {
+        java.util.concurrent.atomic.AtomicInteger hashCalls = new java.util.concurrent.atomic.AtomicInteger();
+        PasswordHasher countingHasher = new PasswordHasher() {
+            @Override
+            public String hash(String rawPassword) {
+                return FakeCrypto.passwordHasher().hash(rawPassword);
+            }
+
+            @Override
+            public boolean matches(String rawPassword, String passwordHash) {
+                hashCalls.incrementAndGet();
+                return FakeCrypto.passwordHasher().matches(rawPassword, passwordHash);
+            }
+        };
+        SessionService limited = new SessionService(
+                users,
+                accounts,
+                sessions,
+                FakeCrypto.tokenHasher(),
+                countingHasher,
+                new SecureTokenGenerator(),
+                (key, limit, window) -> false,
+                AuthTestFixtures.authProperties(),
+                clock);
+
+        BusinessException rejected =
+                catchBusiness(() -> limited.login("alice@example.com", "correct-password", CLIENT));
+
+        assertThat(rejected.errorCode()).isEqualTo(AuthErrorCode.AUTH_TOO_MANY_ATTEMPTS);
+        assertThat(hashCalls).hasValue(0);
         assertThat(sessions.rows).isEmpty();
     }
 

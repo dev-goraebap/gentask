@@ -60,7 +60,8 @@ class SessionTokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void authenticate(Session session, SessionTransport transport, Instant now) {
-        if (session.touch(now, properties.session().ttl(), properties.session().touchInterval())) {
+        AuthProperties.Session config = properties.session();
+        if (session.touch(now, config.ttl(), config.absoluteTtl(), config.touchInterval())) {
             sessionRepository.save(session);
         }
         AuthenticatedUser principal = new AuthenticatedUser(session.userId(), session.id(), transport);

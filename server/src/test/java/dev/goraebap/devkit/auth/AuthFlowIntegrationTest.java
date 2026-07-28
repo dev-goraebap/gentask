@@ -44,7 +44,14 @@ import tools.jackson.databind.ObjectMapper;
  */
 @AutoConfigureMockMvc
 @Import(AuthFlowIntegrationTest.RecordingMailConfig.class)
-@TestPropertySource(properties = {"auth.otp.ip-limit=1000", "auth.otp.email-limit=1000"})
+@TestPropertySource(
+        properties = {
+            "auth.otp.issue-ip-limit=1000",
+            "auth.otp.issue-email-limit=1000",
+            "auth.otp.confirm-ip-limit=1000",
+            "auth.login.ip-limit=1000",
+            "auth.login.account-limit=1000"
+        })
 class AuthFlowIntegrationTest extends IntegrationTestSupport {
 
     private static final Pattern OTP_PATTERN = Pattern.compile("확인 코드: (\\d{6})");
@@ -98,8 +105,8 @@ class AuthFlowIntegrationTest extends IntegrationTestSupport {
                 .andExpect(cookie().exists(COOKIE_NAME))
                 .andExpect(cookie().httpOnly(COOKIE_NAME, true))
                 .andExpect(jsonPath("$.token").doesNotExist())
-                // 대기 레코드에는 정규화된 이메일만 저장되므로 계정 이메일은 정규화 형태다
-                .andExpect(jsonPath("$.email").value("flow@example.com"))
+                // 사용자가 입력한 원문이 보존된다 — 유일성 판정만 정규화된 값으로 한다 (결정-0015 §결정 5)
+                .andExpect(jsonPath("$.email").value("Flow@Example.com"))
                 .andReturn();
         assertThat(dsl.fetchCount(USERS)).isEqualTo(1);
 
@@ -111,7 +118,7 @@ class AuthFlowIntegrationTest extends IntegrationTestSupport {
         // 4. 쿠키로 현재 세션 조회
         mockMvc.perform(get("/api/v1/sessions/current").cookie(session))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("flow@example.com"));
+                .andExpect(jsonPath("$.email").value("Flow@Example.com"));
 
         // 5. 로그아웃 — 상태 변경이므로 Origin 검증을 통과해야 한다
         mockMvc.perform(delete("/api/v1/sessions/current").cookie(session).header("Origin", ORIGIN))

@@ -13,7 +13,7 @@ class VerificationTest {
     private static final Instant NOW = Instant.parse("2026-07-28T09:00:00Z");
 
     private Verification signup(String codeHash) {
-        return Verification.issueSignup(UUID.randomUUID(), "user@example.com", codeHash, NOW);
+        return Verification.issueSignup(UUID.randomUUID(), "User@Example.com", "user@example.com", codeHash, NOW);
     }
 
     @Test
@@ -66,5 +66,14 @@ class VerificationTest {
         assertThat(verification.userId()).isNull();
         assertThat(verification.purpose()).isEqualTo(VerificationPurpose.EMAIL_SIGNUP);
         assertThat(verification.expiresAt()).isEqualTo(NOW.plus(Duration.ofMinutes(10)));
+    }
+
+    @Test
+    @DisplayName("AUTH-01 대기 레코드는 원문과 정규화된 이메일을 함께 보존한다 (결정-0015)")
+    void 원문과_정규화된_이메일을_함께_보존한다() {
+        Verification verification = signup("hash-ok");
+
+        assertThat(verification.targetEmailRaw()).isEqualTo("User@Example.com");
+        assertThat(verification.targetEmail()).isEqualTo("user@example.com");
     }
 }

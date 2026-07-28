@@ -1,5 +1,6 @@
 package dev.goraebap.devkit.auth.application.session;
 
+import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.AuthProperties;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
@@ -37,6 +38,7 @@ public class SessionService {
     private final TokenHasher tokenHasher;
     private final PasswordHasher passwordHasher;
     private final SecureTokenGenerator tokenGenerator;
+    private final AttemptRateLimiter rateLimiter;
     private final AuthProperties properties;
     private final Clock clock;
 
@@ -50,6 +52,7 @@ public class SessionService {
             TokenHasher tokenHasher,
             PasswordHasher passwordHasher,
             SecureTokenGenerator tokenGenerator,
+            AttemptRateLimiter rateLimiter,
             AuthProperties properties,
             Clock clock) {
         this.userRepository = userRepository;
@@ -58,6 +61,7 @@ public class SessionService {
         this.tokenHasher = tokenHasher;
         this.passwordHasher = passwordHasher;
         this.tokenGenerator = tokenGenerator;
+        this.rateLimiter = rateLimiter;
         this.properties = properties;
         this.clock = clock;
         this.timingEqualizerHash = passwordHasher.hash(tokenGenerator.sessionToken());
@@ -83,9 +87,14 @@ public class SessionService {
     /**
      * 이메일/비밀번호 로그인. 실패 응답은 "이메일이 없음"과 "비밀번호가 틀림"을 구분하지 않는다
      * (AUTH-01) — 예외 하나, 문구 하나다.
+     *
+     * <p>rate limit은 <b>비밀번호 해시 계산보다 먼저</b> 건다. bcrypt는 의도적으로 느리고 실패
+     * 경로도 타이밍 균등화를 위해 항상 한 번 계산하므로, 제한을 뒤에 두면 인증 없는 요청만으로
+     * CPU를 고갈시키는 DoS가 성립한다.
      */
     @Transactional
     public IssuedSession login(String email, String rawPassword, ClientInfo client) {
+        rejectIfTooManyAttempts(email, client);
         Optional<User> user = findUser(email);
         Optional<Account> account =
                 user.flatMap(u -> accountRepository.findByUserIdAndProvider(u.id(), AuthProvider.CREDENTIAL));
@@ -103,6 +112,32 @@ public class SessionService {
     @Transactional
     public void logout(UUID sessionId) {
         sessionRepository.deleteById(sessionId);
+    }
+
+    /**
+     * IP별·계정별 두 축으로 제한한다. 계정별 축의 키는 정규화된 이메일이며, 형식이 틀린 입력은
+     * IP 축만으로 다룬다 — 존재하지 않는 계정에도 카운터가 잡히므로 열거 수단이 되지 않는다.
+     */
+    private void rejectIfTooManyAttempts(String email, ClientInfo client) {
+        AuthProperties.Login login = properties.login();
+        boolean ipAllowed = rateLimiter.tryAcquire("login:ip:" + client.ipAddress(), login.ipLimit(), login.ipWindow());
+        if (!ipAllowed) {
+            throw new BusinessException(AuthErrorCode.AUTH_TOO_MANY_ATTEMPTS, "잠시 후 다시 시도해 주세요");
+        }
+        String accountKey = normalizedOrNull(email);
+        if (accountKey != null
+                && !rateLimiter.tryAcquire(
+                        "login:account:" + accountKey, login.accountLimit(), login.accountWindow())) {
+            throw new BusinessException(AuthErrorCode.AUTH_TOO_MANY_ATTEMPTS, "잠시 후 다시 시도해 주세요");
+        }
+    }
+
+    private String normalizedOrNull(String email) {
+        try {
+            return EmailAddress.of(email).normalized();
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private Optional<User> findUser(String email) {

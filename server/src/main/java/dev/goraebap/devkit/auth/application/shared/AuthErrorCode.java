@@ -16,6 +16,7 @@ public enum AuthErrorCode implements ErrorCode {
     AUTH_OTP_EXPIRED(400, "확인 코드가 만료되었습니다"),
     AUTH_OTP_ATTEMPTS_EXCEEDED(400, "확인 코드 시도 횟수를 초과했습니다"),
     AUTH_OTP_RATE_LIMITED(429, "요청이 너무 잦습니다"),
+    AUTH_TOO_MANY_ATTEMPTS(429, "시도가 너무 잦습니다"),
     AUTH_EMAIL_ALREADY_USED(409, "이미 가입된 이메일입니다");
 
     private final int status;

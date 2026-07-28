@@ -106,7 +106,7 @@ class JooqAuthRepositoriesTest extends IntegrationTestSupport {
 
         // 슬라이딩 연장을 저장하면 만료가 갱신된다
         Instant later = NOW.plus(Duration.ofHours(2));
-        assertThat(session.touch(later, Duration.ofDays(30), Duration.ofHours(1)))
+        assertThat(session.touch(later, Duration.ofDays(30), Duration.ofDays(90), Duration.ofHours(1)))
                 .isTrue();
         sessionRepository.save(session);
         assertThat(sessionRepository.findByTokenHash("token-hash-1"))
@@ -133,7 +133,8 @@ class JooqAuthRepositoriesTest extends IntegrationTestSupport {
     @Test
     @DisplayName("AUTH-06 대기 레코드 조회는 항상 용도로 필터된다 — 다른 용도로는 찾을 수 없다 (결정-0015)")
     void 대기_레코드는_용도로_필터된다() {
-        Verification verification = Verification.issueSignup(UUID.randomUUID(), "a@example.com", "code-hash", NOW);
+        Verification verification =
+                Verification.issueSignup(UUID.randomUUID(), "A@Example.com", "a@example.com", "code-hash", NOW);
         verificationRepository.save(verification);
 
         assertThat(verificationRepository.findByIdAndPurpose(verification.id(), VerificationPurpose.EMAIL_SIGNUP))
@@ -145,7 +146,8 @@ class JooqAuthRepositoriesTest extends IntegrationTestSupport {
     @Test
     @DisplayName("AUTH-06 시도 횟수와 소진 시각이 저장을 거쳐 보존된다")
     void 시도_횟수와_소진이_보존된다() {
-        Verification verification = Verification.issueSignup(UUID.randomUUID(), "a@example.com", "code-hash", NOW);
+        Verification verification =
+                Verification.issueSignup(UUID.randomUUID(), "A@Example.com", "a@example.com", "code-hash", NOW);
         verificationRepository.save(verification);
 
         assertThat(verification.attempt("wrong-hash", NOW)).isEqualTo(VerificationCheck.CODE_MISMATCH);

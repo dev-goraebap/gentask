@@ -36,6 +36,15 @@ public final class InMemoryAuthRepositories {
         }
 
         @Override
+        public boolean registerIfEmailAvailable(User user) {
+            if (existsByEmailNormalized(user.email().normalized())) {
+                return false;
+            }
+            rows.put(user.id(), user);
+            return true;
+        }
+
+        @Override
         public Optional<User> findById(UUID id) {
             return Optional.ofNullable(rows.get(id));
         }
@@ -114,6 +123,11 @@ public final class InMemoryAuthRepositories {
         @Override
         public Optional<Verification> findByIdAndPurpose(UUID id, VerificationPurpose purpose) {
             return Optional.ofNullable(rows.get(id)).filter(verification -> verification.purpose() == purpose);
+        }
+
+        @Override
+        public Optional<Verification> findForAttempt(UUID id, VerificationPurpose purpose) {
+            return findByIdAndPurpose(id, purpose);
         }
     }
 }

@@ -2,7 +2,9 @@ package dev.goraebap.devkit.auth.application.registration;
 
 import dev.goraebap.devkit.auth.application.session.IssuedSession;
 import dev.goraebap.devkit.auth.application.session.SessionService;
+import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
+import dev.goraebap.devkit.auth.application.shared.AuthProperties;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
 import dev.goraebap.devkit.auth.application.shared.PasswordHasher;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
@@ -21,7 +23,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,10 +47,11 @@ public class RegistrationService {
     private final VerificationRepository verificationRepository;
     private final SessionService sessionService;
     private final SignupMailer signupMailer;
-    private final OtpIssueRateLimiter rateLimiter;
+    private final AttemptRateLimiter rateLimiter;
     private final TokenHasher tokenHasher;
     private final PasswordHasher passwordHasher;
     private final SecureTokenGenerator tokenGenerator;
+    private final AuthProperties properties;
     private final Clock clock;
 
     public RegistrationService(
@@ -58,10 +60,11 @@ public class RegistrationService {
             VerificationRepository verificationRepository,
             SessionService sessionService,
             SignupMailer signupMailer,
-            OtpIssueRateLimiter rateLimiter,
+            AttemptRateLimiter rateLimiter,
             TokenHasher tokenHasher,
             PasswordHasher passwordHasher,
             SecureTokenGenerator tokenGenerator,
+            AuthProperties properties,
             Clock clock) {
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
@@ -72,6 +75,7 @@ public class RegistrationService {
         this.tokenHasher = tokenHasher;
         this.passwordHasher = passwordHasher;
         this.tokenGenerator = tokenGenerator;
+        this.properties = properties;
         this.clock = clock;
     }
 
@@ -83,13 +87,21 @@ public class RegistrationService {
     @Transactional
     public UUID issueSignupVerification(String email, String clientIp) {
         EmailAddress address = EmailAddress.of(email);
-        if (!rateLimiter.tryAcquire(clientIp, address.normalized())) {
+        AuthProperties.Otp otp = properties.otp();
+
+        // IP를 먼저 본다. 거부되면 이메일 카운터를 건드리지 않는다 —
+        // 그러지 않으면 공격자가 자기 한도를 넘긴 뒤에도 남의 이메일 쿼터를 계속 갉아먹는다
+        if (!rateLimiter.tryAcquire("otp:issue:ip:" + clientIp, otp.issueIpLimit(), otp.issueIpWindow())) {
+            throw new BusinessException(AuthErrorCode.AUTH_OTP_RATE_LIMITED, "잠시 후 다시 시도해 주세요");
+        }
+        if (!rateLimiter.tryAcquire(
+                "otp:issue:email:" + address.normalized(), otp.issueEmailLimit(), otp.issueEmailWindow())) {
             throw new BusinessException(AuthErrorCode.AUTH_OTP_RATE_LIMITED, "잠시 후 다시 시도해 주세요");
         }
 
         String code = tokenGenerator.otpCode();
         Verification verification = Verification.issueSignup(
-                UUID.randomUUID(), address.normalized(), tokenHasher.hmac(code), clock.instant());
+                UUID.randomUUID(), address.raw(), address.normalized(), tokenHasher.hmac(code), clock.instant());
         verificationRepository.save(verification);
 
         // 발송은 mail 모듈이 커밋 이후로 미룬다 — 롤백되면 메일이 나가지 않는다 (결정-0016)
@@ -109,8 +121,16 @@ public class RegistrationService {
      */
     @Transactional(noRollbackFor = BusinessException.class)
     public SignupResult completeSignup(UUID verificationId, String code, String rawPassword, ClientInfo client) {
+        AuthProperties.Otp otp = properties.otp();
+        // 시도 제한은 레코드 단위(5회)와 요청 빈도(IP) 두 겹이다 — 레코드를 갈아치우며 대입하는
+        // 경로를 레코드 단위 카운터만으로는 막을 수 없다
+        if (!rateLimiter.tryAcquire(
+                "otp:confirm:ip:" + client.ipAddress(), otp.confirmIpLimit(), otp.confirmIpWindow())) {
+            throw new BusinessException(AuthErrorCode.AUTH_OTP_RATE_LIMITED, "잠시 후 다시 시도해 주세요");
+        }
+
         Verification verification = verificationRepository
-                .findByIdAndPurpose(verificationId, VerificationPurpose.EMAIL_SIGNUP)
+                .findForAttempt(verificationId, VerificationPurpose.EMAIL_SIGNUP)
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.AUTH_OTP_INVALID, "확인 코드를 다시 확인해 주세요"));
 
         Instant now = clock.instant();
@@ -118,21 +138,13 @@ public class RegistrationService {
         verificationRepository.save(verification);
         rejectUnless(check, verification);
 
-        EmailAddress address = EmailAddress.of(verification.targetEmail());
-        if (userRepository.existsByEmailNormalized(address.normalized())) {
-            // 대기 중 다른 시도가 먼저 계정을 얻은 경우 — 코드는 소진되며, 로그인으로 안내한다
-            throw new BusinessException(AuthErrorCode.AUTH_EMAIL_ALREADY_USED, "이미 가입된 이메일입니다. 로그인해 주세요");
-        }
-
+        EmailAddress address = new EmailAddress(verification.targetEmailRaw(), verification.targetEmail());
         User user = User.register(UUID.randomUUID(), address, now);
-        Account account = Account.credential(UUID.randomUUID(), user.id(), passwordHasher.hash(rawPassword), now);
-        try {
-            userRepository.save(user);
-            accountRepository.save(account);
-        } catch (DataIntegrityViolationException e) {
-            // 위 존재 검사와 이 INSERT 사이의 경합 — 유일성 제약이 최후 방어선이다
+        if (!userRepository.registerIfEmailAvailable(user)) {
+            // 대기 중 다른 시도가 먼저 계정을 얻었다 — 코드는 소진되며, 로그인으로 안내한다
             throw new BusinessException(AuthErrorCode.AUTH_EMAIL_ALREADY_USED, "이미 가입된 이메일입니다. 로그인해 주세요");
         }
+        accountRepository.save(Account.credential(UUID.randomUUID(), user.id(), passwordHasher.hash(rawPassword), now));
 
         IssuedSession session = sessionService.issue(user.id(), client);
         return new SignupResult(user.id(), user.email().raw(), session);

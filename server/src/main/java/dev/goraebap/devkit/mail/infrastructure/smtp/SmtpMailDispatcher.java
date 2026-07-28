@@ -42,11 +42,17 @@ class SmtpMailDispatcher {
                 return;
             } catch (MailException e) {
                 if (attempt == MAX_ATTEMPTS) {
-                    log.error("메일 발송 실패 (수신자={}, 제목={}) — 복구 수단은 재발송이다", message.to(), message.subject(), e);
+                    log.error("메일 발송 실패 (수신자={}) — 복구 수단은 재발송이다", mask(message.to()), e);
                 } else {
-                    log.warn("메일 발송 재시도 {}/{} (수신자={})", attempt, MAX_ATTEMPTS, message.to());
+                    log.warn("메일 발송 재시도 {}/{} (수신자={})", attempt, MAX_ATTEMPTS, mask(message.to()));
                 }
             }
         }
+    }
+
+    /** 로그에 이메일 원문을 남기지 않는다 — SMTP 장애 시 가입자 목록이 로그로 새는 경로가 된다. */
+    private static String mask(String email) {
+        int at = email.indexOf('@');
+        return at <= 1 ? "***" + email.substring(at) : email.charAt(0) + "***" + email.substring(at);
     }
 }

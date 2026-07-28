@@ -30,6 +30,7 @@ class JooqVerificationRepository implements VerificationRepository {
                 .set(VERIFICATIONS.ID, verification.id())
                 .set(VERIFICATIONS.PURPOSE, verification.purpose().name())
                 .set(VERIFICATIONS.TARGET_EMAIL, verification.targetEmail())
+                .set(VERIFICATIONS.TARGET_EMAIL_RAW, verification.targetEmailRaw())
                 .set(VERIFICATIONS.CODE_HASH, verification.codeHash())
                 .set(VERIFICATIONS.ATTEMPTS, verification.attempts())
                 .set(VERIFICATIONS.EXPIRES_AT, offset(verification.expiresAt()))
@@ -57,11 +58,22 @@ class JooqVerificationRepository implements VerificationRepository {
                 .map(JooqVerificationRepository::toDomain);
     }
 
+    @Override
+    public Optional<Verification> findForAttempt(UUID id, VerificationPurpose purpose) {
+        // for update: 같은 레코드에 대한 동시 검증 시도를 직렬화해 시도 횟수의 lost update를 막는다
+        return dsl.selectFrom(VERIFICATIONS)
+                .where(VERIFICATIONS.ID.eq(id).and(VERIFICATIONS.PURPOSE.eq(purpose.name())))
+                .forUpdate()
+                .fetchOptional()
+                .map(JooqVerificationRepository::toDomain);
+    }
+
     private static Verification toDomain(VerificationsRecord record) {
         return Verification.restore(
                 record.getId(),
                 VerificationPurpose.valueOf(record.getPurpose()),
                 record.getTargetEmail(),
+                record.getTargetEmailRaw(),
                 record.getCodeHash(),
                 record.getAttempts(),
                 record.getExpiresAt().toInstant(),
