@@ -132,6 +132,45 @@ class AuthFlowIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("AUTH-01 비밀번호는 bcrypt 해시로 저장되고 세션 토큰은 원문으로 저장되지 않는다")
+    void 비밀번호와_토큰이_원문으로_저장되지_않는다() throws Exception {
+        String verificationId = issueVerification("hash@example.com");
+        String code = lastOtpCode();
+
+        MvcResult signup = mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(
+                                "verificationId",
+                                verificationId,
+                                "code",
+                                code,
+                                "password",
+                                "password-1234",
+                                "transport",
+                                "BEARER")))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String token = objectMapper
+                .readTree(signup.getResponse().getContentAsString())
+                .get("token")
+                .asString();
+
+        String passwordHash = dsl.select(dev.goraebap.devkit.jooq.Tables.ACCOUNTS.PASSWORD_HASH)
+                .from(dev.goraebap.devkit.jooq.Tables.ACCOUNTS)
+                .fetchOne(dev.goraebap.devkit.jooq.Tables.ACCOUNTS.PASSWORD_HASH);
+        assertThat(passwordHash).as("bcrypt 해시 형식이어야 한다").startsWith("$2");
+        assertThat(passwordHash).as("원문이 저장되면 안 된다").doesNotContain("password-1234");
+
+        String tokenHash = dsl.select(SESSIONS.TOKEN_HASH).from(SESSIONS).fetchOne(SESSIONS.TOKEN_HASH);
+        assertThat(tokenHash).as("세션 토큰은 HMAC hex 64자로 저장된다").hasSize(64).isNotEqualTo(token);
+
+        // OTP도 원문으로 남지 않는다
+        String codeHash =
+                dsl.select(VERIFICATIONS.CODE_HASH).from(VERIFICATIONS).fetchOne(VERIFICATIONS.CODE_HASH);
+        assertThat(codeHash).hasSize(64).isNotEqualTo(code);
+    }
+
+    @Test
     @DisplayName("AUTH-01 OTP를 통과하지 못하면 user 행이 생기지 않는다 — 5회 실패 시 폐기")
     void 검증_실패는_사용자를_만들지_않는다() throws Exception {
         String verificationId = issueVerification("fail@example.com");
