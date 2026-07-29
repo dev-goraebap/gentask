@@ -46,8 +46,17 @@ class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        // 복구 경로는 로그인할 수 없는 사용자를 위한 것이라 세션을 요구할 수 없다 —
+                        // 보호는 OTP와 시도 제한이 담당한다 (AUTH-07·08)
                         .requestMatchers(
-                                HttpMethod.POST, "/api/v1/email-verifications", "/api/v1/users", "/api/v1/sessions")
+                                HttpMethod.POST,
+                                "/api/v1/email-verifications",
+                                "/api/v1/users",
+                                "/api/v1/sessions",
+                                "/api/v1/password-resets",
+                                "/api/v1/password-resets/confirm",
+                                "/api/v1/account-recoveries",
+                                "/api/v1/account-recoveries/confirm")
                         .permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/health")
                         .permitAll()

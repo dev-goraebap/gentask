@@ -69,6 +69,13 @@ class JooqVerificationRepository implements VerificationRepository {
                 .map(JooqVerificationRepository::toDomain);
     }
 
+    @Override
+    public int deleteAllByUserIdAndPurpose(UUID userId, VerificationPurpose purpose) {
+        return dsl.deleteFrom(VERIFICATIONS)
+                .where(VERIFICATIONS.USER_ID.eq(userId).and(VERIFICATIONS.PURPOSE.eq(purpose.name())))
+                .execute();
+    }
+
     private static Verification toDomain(VerificationsRecord record) {
         return Verification.restore(
                 record.getId(),

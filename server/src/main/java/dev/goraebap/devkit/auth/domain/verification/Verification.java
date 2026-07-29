@@ -87,6 +87,42 @@ public final class Verification {
                 now);
     }
 
+    /**
+     * 기존 사용자를 대상으로 하는 대기 레코드 — 비밀번호 재설정(AUTH-07), 계정 복구(AUTH-08).
+     *
+     * <p>가입과 달리 {@code userId}가 채워진다. 검증이 통과해도 <b>새 사용자를 만들지 않고</b>
+     * 이미 있는 사용자에 대해 후속 처리(비밀번호 교체·세션 발급)를 한다.
+     *
+     * <p>{@code purpose}를 인자로 받는 이유는 두 용도가 흐름만 다를 뿐 레코드 형태가 같기
+     * 때문이다. 다만 <b>조회는 언제나 용도로 필터되므로</b> 재설정용 코드가 복구에 통과하는 일은
+     * 없다 (결정-0015 §결정 8).
+     */
+    public static Verification issueForUser(
+            UUID id,
+            VerificationPurpose purpose,
+            UUID userId,
+            String targetEmailRaw,
+            String targetEmailNormalized,
+            String codeHash,
+            Instant now) {
+        if (purpose == VerificationPurpose.EMAIL_SIGNUP) {
+            throw new IllegalArgumentException("가입 대기 레코드는 사용자를 가질 수 없다 — issueSignup을 쓰라");
+        }
+        return new Verification(
+                id,
+                purpose,
+                targetEmailNormalized,
+                targetEmailRaw,
+                codeHash,
+                0,
+                now.plus(TTL),
+                null,
+                Objects.requireNonNull(userId, "기존 사용자 대상 용도에는 userId가 있어야 한다"),
+                null,
+                null,
+                now);
+    }
+
     /** 저장소 전용 재구성. */
     public static Verification restore(
             UUID id,

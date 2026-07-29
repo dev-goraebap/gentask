@@ -54,6 +54,14 @@ class JooqSessionRepository implements SessionRepository {
     }
 
     @Override
+    public boolean deleteByIdAndUserId(UUID id, UUID userId) {
+        return dsl.deleteFrom(SESSIONS)
+                        .where(SESSIONS.ID.eq(id).and(SESSIONS.USER_ID.eq(userId)))
+                        .execute()
+                > 0;
+    }
+
+    @Override
     public void deleteAllByUserId(UUID userId) {
         dsl.deleteFrom(SESSIONS).where(SESSIONS.USER_ID.eq(userId)).execute();
     }

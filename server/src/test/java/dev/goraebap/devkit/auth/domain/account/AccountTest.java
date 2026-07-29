@@ -41,6 +41,36 @@ class AccountTest {
     }
 
     @Test
+    @DisplayName("AUTH-07 credential 계정의 비밀번호는 교체할 수 있다")
+    void 비밀번호를_교체한다() {
+        Account account = Account.credential(UUID.randomUUID(), UUID.randomUUID(), "$2a$10$old", NOW);
+        Instant later = NOW.plusSeconds(60);
+
+        account.changePassword("$2a$10$new", later);
+
+        assertThat(account.passwordHash()).isEqualTo("$2a$10$new");
+        assertThat(account.updatedAt()).isEqualTo(later);
+    }
+
+    @Test
+    @DisplayName("AUTH-07 소셜 계정에는 비밀번호를 설정할 수 없다")
+    void 소셜_계정은_비밀번호를_가질_수_없다() {
+        Account social = Account.restore(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                AuthProvider.GOOGLE,
+                "google-subject",
+                null,
+                null,
+                null,
+                null,
+                NOW,
+                NOW);
+
+        assertThatThrownBy(() -> social.changePassword("$2a$10$new", NOW)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     @DisplayName("AUTH-06 credential의 제공자 식별자는 사용자 id의 문자열이다")
     void credential의_제공자_식별자는_사용자_id다() {
         UUID userId = UUID.randomUUID();

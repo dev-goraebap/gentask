@@ -24,4 +24,16 @@ public interface VerificationRepository {
      * <p>반드시 트랜잭션 안에서 호출해야 하며, 검증 결과와 무관하게 저장해야 시도가 누적된다.
      */
     Optional<Verification> findForAttempt(UUID id, VerificationPurpose purpose);
+
+    /**
+     * 한 사용자의 특정 용도 대기 레코드를 <b>소진 여부와 무관하게</b> 모두 지운다.
+     *
+     * <p>비밀번호 재설정이 완료되면 대기 중인 이메일 변경을 취소하는 데 쓴다(AUTH-07). 이 정리가
+     * 없으면 이런 공격이 성립한다 — 공격자가 피해자 계정에 이메일 변경을 걸어두고, 피해자가
+     * 이상을 감지해 비밀번호를 재설정한 뒤에, 공격자가 아까 받아둔 코드로 변경을 완료해 계정을
+     * 가져간다(pre-hijacking 변종 4).
+     *
+     * @return 지운 행 수
+     */
+    int deleteAllByUserIdAndPurpose(UUID userId, VerificationPurpose purpose);
 }
