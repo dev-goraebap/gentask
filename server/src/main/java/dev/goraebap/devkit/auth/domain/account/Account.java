@@ -16,7 +16,7 @@ public final class Account {
     private final UUID userId;
     private final AuthProvider provider;
     private final String providerAccountId;
-    private final String passwordHash;
+    private String passwordHash;
     private final String accessToken;
     private final String refreshToken;
     private final Instant tokenExpiresAt;
@@ -81,6 +81,23 @@ public final class Account {
                 tokenExpiresAt,
                 createdAt,
                 updatedAt);
+    }
+
+    /**
+     * 비밀번호를 교체한다 (AUTH-07, PROF-03).
+     *
+     * <p>소셜 계정에는 비밀번호가 없어야 하므로 {@code credential}에만 허용한다 — 이 불변식은
+     * 스키마의 체크 제약과 짝을 이룬다(설계/데이터베이스.md §2.3).
+     */
+    public void changePassword(String newPasswordHash, Instant now) {
+        if (provider != AuthProvider.CREDENTIAL) {
+            throw new IllegalStateException("비밀번호는 credential 계정에만 있다");
+        }
+        if (newPasswordHash == null || newPasswordHash.isBlank()) {
+            throw new IllegalArgumentException("비밀번호 해시가 비어 있다");
+        }
+        this.passwordHash = newPasswordHash;
+        this.updatedAt = Objects.requireNonNull(now);
     }
 
     public UUID id() {

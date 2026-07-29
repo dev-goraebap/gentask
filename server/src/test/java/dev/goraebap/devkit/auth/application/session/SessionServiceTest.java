@@ -197,6 +197,38 @@ class SessionServiceTest {
         assertThat(sessions.findByTokenHash("hmac(" + issued.token() + ")")).isEmpty();
     }
 
+    @Test
+    @DisplayName("AUTH-06 자기 세션은 개별로 무효화할 수 있다")
+    void 자기_세션을_끊는다() {
+        IssuedSession first = service.login("alice@example.com", "correct-password", CLIENT);
+        IssuedSession second = service.login("alice@example.com", "correct-password", CLIENT);
+
+        service.revokeSession(first.sessionId(), userId);
+
+        assertThat(sessions.findByTokenHash("hmac(" + first.token() + ")")).isEmpty();
+        assertThat(sessions.findByTokenHash("hmac(" + second.token() + ")"))
+                .as("다른 세션은 살아 있어야 한다")
+                .isPresent();
+    }
+
+    @Test
+    @DisplayName("AUTH-06 남의 세션은 끊을 수 없고, 없는 세션과 구분해 응답하지 않는다")
+    void 남의_세션은_끊을_수_없다() {
+        IssuedSession victim = service.login("alice@example.com", "correct-password", CLIENT);
+        UUID attackerId = UUID.randomUUID();
+
+        BusinessException othersSession = catchBusiness(() -> service.revokeSession(victim.sessionId(), attackerId));
+        BusinessException missingSession = catchBusiness(() -> service.revokeSession(UUID.randomUUID(), attackerId));
+
+        assertThat(othersSession.errorCode()).isEqualTo(AuthErrorCode.AUTH_SESSION_NOT_FOUND);
+        assertThat(othersSession.getMessage())
+                .as("남의 세션과 없는 세션의 응답이 같아야 존재가 새지 않는다")
+                .isEqualTo(missingSession.getMessage());
+        assertThat(sessions.findByTokenHash("hmac(" + victim.token() + ")"))
+                .as("피해자 세션은 그대로여야 한다")
+                .isPresent();
+    }
+
     private BusinessException catchBusiness(Runnable runnable) {
         try {
             runnable.run();

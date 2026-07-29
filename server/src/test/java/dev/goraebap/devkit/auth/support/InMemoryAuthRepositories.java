@@ -107,6 +107,16 @@ public final class InMemoryAuthRepositories {
         }
 
         @Override
+        public boolean deleteByIdAndUserId(UUID id, UUID userId) {
+            Session session = rows.get(id);
+            if (session == null || !session.userId().equals(userId)) {
+                return false;
+            }
+            rows.remove(id);
+            return true;
+        }
+
+        @Override
         public void deleteAllByUserId(UUID userId) {
             rows.values().removeIf(session -> session.userId().equals(userId));
         }
@@ -128,6 +138,15 @@ public final class InMemoryAuthRepositories {
         @Override
         public Optional<Verification> findForAttempt(UUID id, VerificationPurpose purpose) {
             return findByIdAndPurpose(id, purpose);
+        }
+
+        @Override
+        public int deleteAllByUserIdAndPurpose(UUID userId, VerificationPurpose purpose) {
+            int before = rows.size();
+            rows.values()
+                    .removeIf(
+                            verification -> purpose == verification.purpose() && userId.equals(verification.userId()));
+            return before - rows.size();
         }
     }
 }

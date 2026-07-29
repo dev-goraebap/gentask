@@ -5,6 +5,11 @@ import static dev.goraebap.devkit.jooq.Tables.USERS;
 
 import dev.goraebap.devkit.auth.application.session.CurrentSessionView;
 import dev.goraebap.devkit.auth.application.session.SessionQueries;
+import dev.goraebap.devkit.auth.application.session.UserSessionView;
+import java.time.Clock;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.jooq.DSLContext;
@@ -15,9 +20,11 @@ import org.springframework.stereotype.Component;
 class JooqSessionQueries implements SessionQueries {
 
     private final DSLContext dsl;
+    private final Clock clock;
 
-    JooqSessionQueries(DSLContext dsl) {
+    JooqSessionQueries(DSLContext dsl, Clock clock) {
         this.dsl = dsl;
+        this.clock = clock;
     }
 
     @Override
@@ -32,5 +39,26 @@ class JooqSessionQueries implements SessionQueries {
                         record.get(USERS.EMAIL),
                         record.get(USERS.NICKNAME),
                         record.get(SESSIONS.EXPIRES_AT).toInstant()));
+    }
+
+    @Override
+    public List<UserSessionView> findActiveSessions(UUID userId, UUID currentSessionId) {
+        OffsetDateTime now = OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
+        return dsl.select(
+                        SESSIONS.ID,
+                        SESSIONS.IP_ADDRESS,
+                        SESSIONS.USER_AGENT,
+                        SESSIONS.LAST_USED_AT,
+                        SESSIONS.CREATED_AT)
+                .from(SESSIONS)
+                .where(SESSIONS.USER_ID.eq(userId).and(SESSIONS.EXPIRES_AT.gt(now)))
+                .orderBy(SESSIONS.LAST_USED_AT.desc())
+                .fetch(record -> new UserSessionView(
+                        record.get(SESSIONS.ID),
+                        record.get(SESSIONS.IP_ADDRESS),
+                        record.get(SESSIONS.USER_AGENT),
+                        record.get(SESSIONS.LAST_USED_AT).toInstant(),
+                        record.get(SESSIONS.CREATED_AT).toInstant(),
+                        record.get(SESSIONS.ID).equals(currentSessionId)));
     }
 }

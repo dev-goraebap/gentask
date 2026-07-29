@@ -118,6 +118,19 @@ public class SessionService {
     }
 
     /**
+     * 특정 기기의 세션을 끊는다 (AUTH-06).
+     *
+     * <p>없는 세션과 남의 세션을 <b>구분해 응답하지 않는다</b> — 구분하면 남의 세션 식별자를
+     * 넣어보는 것만으로 그 세션의 존재를 확인할 수 있다.
+     */
+    @Transactional
+    public void revokeSession(UUID sessionId, UUID ownerId) {
+        if (!sessionRepository.deleteByIdAndUserId(sessionId, ownerId)) {
+            throw new BusinessException(AuthErrorCode.AUTH_SESSION_NOT_FOUND, "해당 세션을 찾을 수 없습니다");
+        }
+    }
+
+    /**
      * IP별·계정별 두 축으로 제한한다. 계정별 축의 키는 정규화된 이메일이며, 형식이 틀린 입력은
      * IP 축만으로 다룬다 — 존재하지 않는 계정에도 카운터가 잡히므로 열거 수단이 되지 않는다.
      *
