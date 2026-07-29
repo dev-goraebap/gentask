@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,13 +19,10 @@ import tools.jackson.databind.ObjectMapper;
  * 이후만 담당하므로 보안 필터는 직접 쓴다.
  */
 @Component
+@RequiredArgsConstructor
 class ProblemResponseWriter {
 
     private final ObjectMapper objectMapper;
-
-    ProblemResponseWriter(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     void write(HttpServletRequest request, HttpServletResponse response, ErrorCode code, String detail)
             throws IOException {

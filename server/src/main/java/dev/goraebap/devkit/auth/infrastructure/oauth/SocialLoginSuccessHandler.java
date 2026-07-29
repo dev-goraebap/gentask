@@ -14,6 +14,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
@@ -34,23 +35,13 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
  * 이라 JSON을 돌려줄 수 없다. 화면이 이어서 처리하도록 프론트 경로로 보낸다.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final SocialLoginService socialLoginService;
     private final SessionCookieFactory cookieFactory;
     private final String redirectBase;
     private final Clock clock;
-
-    public SocialLoginSuccessHandler(
-            SocialLoginService socialLoginService,
-            SessionCookieFactory cookieFactory,
-            String redirectBase,
-            Clock clock) {
-        this.socialLoginService = socialLoginService;
-        this.cookieFactory = cookieFactory;
-        this.redirectBase = redirectBase;
-        this.clock = clock;
-    }
 
     @Override
     public void onAuthenticationSuccess(

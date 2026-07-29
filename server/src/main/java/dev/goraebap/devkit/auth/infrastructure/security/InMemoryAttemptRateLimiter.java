@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,16 +16,13 @@ import org.springframework.stereotype.Component;
  * (Redis 등) 구현으로 교체한다. 포트 뒤에 있으므로 교체는 이 클래스 하나다.
  */
 @Component
+@RequiredArgsConstructor
 class InMemoryAttemptRateLimiter implements AttemptRateLimiter {
 
     private static final int CLEANUP_THRESHOLD = 10_000;
 
     private final ConcurrentHashMap<String, Window> counters = new ConcurrentHashMap<>();
     private final Clock clock;
-
-    InMemoryAttemptRateLimiter(Clock clock) {
-        this.clock = clock;
-    }
 
     @Override
     public boolean tryAcquire(String key, int limit, Duration window) {

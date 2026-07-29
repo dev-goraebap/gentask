@@ -45,6 +45,8 @@ public class SessionService {
     /** 존재하지 않는 계정에도 같은 비용의 비교를 수행해 타이밍으로 계정 존재가 새는 것을 막는다. */
     private final String timingEqualizerHash;
 
+    // 생성자를 손으로 둔다 (결정-0023의 예외): 마지막 줄이 배선이 아니라 값을 계산한다.
+    // @RequiredArgsConstructor로 바꾸면 timingEqualizerHash를 만들 자리가 사라진다.
     public SessionService(
             UserRepository userRepository,
             AccountRepository accountRepository,

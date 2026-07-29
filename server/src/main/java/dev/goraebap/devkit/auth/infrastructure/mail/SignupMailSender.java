@@ -4,6 +4,7 @@ import dev.goraebap.devkit.auth.application.registration.SignupMailer;
 import dev.goraebap.devkit.auth.domain.verification.Verification;
 import dev.goraebap.devkit.mail.MailMessage;
 import dev.goraebap.devkit.mail.MailSender;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
  * 필드에만 쓰이고 본문·제목에 섞이지 않는다 — 인젝션 방지의 가장 단순한 형태다.
  */
 @Component
+@RequiredArgsConstructor
 class SignupMailSender implements SignupMailer {
 
     private static final String SUBJECT = "[웹앱 개발키트] 이메일 확인 안내";
@@ -36,10 +38,6 @@ class SignupMailSender implements SignupMailer {
             """;
 
     private final MailSender mailSender;
-
-    SignupMailSender(MailSender mailSender) {
-        this.mailSender = mailSender;
-    }
 
     @Override
     public void sendOtp(String email, String code) {

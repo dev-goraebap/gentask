@@ -6,6 +6,7 @@ import static dev.goraebap.devkit.jooq.Tables.VERIFICATIONS;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,15 +23,11 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 class ExpiredRowPruner {
 
     private final DSLContext dsl;
     private final Clock clock;
-
-    ExpiredRowPruner(DSLContext dsl, Clock clock) {
-        this.dsl = dsl;
-        this.clock = clock;
-    }
 
     /** 매일 03:15. 트래픽이 낮은 시간대를 고른다. */
     @Scheduled(cron = "0 15 3 * * *")

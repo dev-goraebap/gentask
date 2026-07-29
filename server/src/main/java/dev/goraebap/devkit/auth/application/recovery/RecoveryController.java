@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Clock;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,17 +30,12 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/v1")
+@RequiredArgsConstructor
 public class RecoveryController {
 
     private final RecoveryService recoveryService;
     private final SessionCookieFactory cookieFactory;
     private final Clock clock;
-
-    public RecoveryController(RecoveryService recoveryService, SessionCookieFactory cookieFactory, Clock clock) {
-        this.recoveryService = recoveryService;
-        this.cookieFactory = cookieFactory;
-        this.clock = clock;
-    }
 
     @PostMapping("/password-resets")
     public ResponseEntity<RecoveryRequests.IssueResponse> issuePasswordReset(

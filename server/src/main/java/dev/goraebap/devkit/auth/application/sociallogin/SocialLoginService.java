@@ -23,6 +23,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SocialLoginService {
 
     private final UserRepository userRepository;
@@ -62,32 +64,6 @@ public class SocialLoginService {
     private final SecureTokenGenerator tokenGenerator;
     private final AuthProperties properties;
     private final Clock clock;
-
-    @SuppressWarnings("checkstyle:ParameterNumber")
-    public SocialLoginService(
-            UserRepository userRepository,
-            AccountRepository accountRepository,
-            VerificationRepository verificationRepository,
-            SessionService sessionService,
-            SignupMailer signupMailer,
-            AttemptRateLimiter rateLimiter,
-            PendingSocialTicketCodec ticketCodec,
-            TokenHasher tokenHasher,
-            SecureTokenGenerator tokenGenerator,
-            AuthProperties properties,
-            Clock clock) {
-        this.userRepository = userRepository;
-        this.accountRepository = accountRepository;
-        this.verificationRepository = verificationRepository;
-        this.sessionService = sessionService;
-        this.signupMailer = signupMailer;
-        this.rateLimiter = rateLimiter;
-        this.ticketCodec = ticketCodec;
-        this.tokenHasher = tokenHasher;
-        this.tokenGenerator = tokenGenerator;
-        this.properties = properties;
-        this.clock = clock;
-    }
 
     /**
      * 1단계 — 제공자 인증 결과를 받는다.

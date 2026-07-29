@@ -4,19 +4,17 @@ import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.common.BusinessException;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /** 현재 세션 조회 유스케이스. */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class SessionQueryService {
 
     private final SessionQueries sessionQueries;
-
-    public SessionQueryService(SessionQueries sessionQueries) {
-        this.sessionQueries = sessionQueries;
-    }
 
     public CurrentSessionView currentSession(UUID sessionId) {
         return sessionQueries

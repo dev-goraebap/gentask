@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class RecoveryService {
 
     private final UserRepository userRepository;
@@ -61,34 +63,6 @@ public class RecoveryService {
     private final SecureTokenGenerator tokenGenerator;
     private final AuthProperties properties;
     private final Clock clock;
-
-    @SuppressWarnings("checkstyle:ParameterNumber")
-    public RecoveryService(
-            UserRepository userRepository,
-            AccountRepository accountRepository,
-            SessionRepository sessionRepository,
-            VerificationRepository verificationRepository,
-            SessionService sessionService,
-            RecoveryMailer recoveryMailer,
-            AttemptRateLimiter rateLimiter,
-            TokenHasher tokenHasher,
-            PasswordHasher passwordHasher,
-            SecureTokenGenerator tokenGenerator,
-            AuthProperties properties,
-            Clock clock) {
-        this.userRepository = userRepository;
-        this.accountRepository = accountRepository;
-        this.sessionRepository = sessionRepository;
-        this.verificationRepository = verificationRepository;
-        this.sessionService = sessionService;
-        this.recoveryMailer = recoveryMailer;
-        this.rateLimiter = rateLimiter;
-        this.tokenHasher = tokenHasher;
-        this.passwordHasher = passwordHasher;
-        this.tokenGenerator = tokenGenerator;
-        this.properties = properties;
-        this.clock = clock;
-    }
 
     /**
      * 비밀번호 재설정 코드 발급 (AUTH-07).

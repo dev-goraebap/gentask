@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,23 +33,13 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/v1/sessions")
+@RequiredArgsConstructor
 public class SessionController {
 
     private final SessionService sessionService;
     private final SessionQueryService sessionQueryService;
     private final SessionCookieFactory cookieFactory;
     private final Clock clock;
-
-    public SessionController(
-            SessionService sessionService,
-            SessionQueryService sessionQueryService,
-            SessionCookieFactory cookieFactory,
-            Clock clock) {
-        this.sessionService = sessionService;
-        this.sessionQueryService = sessionQueryService;
-        this.cookieFactory = cookieFactory;
-        this.clock = clock;
-    }
 
     @PostMapping
     public ResponseEntity<SessionResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {

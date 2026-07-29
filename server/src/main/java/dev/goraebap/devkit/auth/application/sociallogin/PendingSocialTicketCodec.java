@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 /**
  * 중간 상태 표를 문자열로 만들고 되돌린다 (AUTH-02·03).
@@ -18,6 +19,7 @@ import java.util.Optional;
  * <p>수명을 10분으로 짧게 두는 이유: 이 표는 "이메일을 입력하는 동안"만 살아 있으면 된다.
  * 길게 두면 제공자 인증 한 번으로 얻은 표를 오래 재사용할 수 있게 된다.
  */
+@RequiredArgsConstructor
 public class PendingSocialTicketCodec {
 
     /** 이메일 입력에 필요한 만큼만. */
@@ -28,11 +30,6 @@ public class PendingSocialTicketCodec {
 
     private final TokenHasher tokenHasher;
     private final Clock clock;
-
-    public PendingSocialTicketCodec(TokenHasher tokenHasher, Clock clock) {
-        this.tokenHasher = tokenHasher;
-        this.clock = clock;
-    }
 
     public String encode(AuthProvider provider, String providerAccountId) {
         Instant expiresAt = clock.instant().plus(TTL);

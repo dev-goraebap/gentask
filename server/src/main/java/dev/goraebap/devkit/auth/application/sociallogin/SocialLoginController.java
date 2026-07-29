@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Clock;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,18 +31,12 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/v1/social-logins")
+@RequiredArgsConstructor
 public class SocialLoginController {
 
     private final SocialLoginService socialLoginService;
     private final SessionCookieFactory cookieFactory;
     private final Clock clock;
-
-    public SocialLoginController(
-            SocialLoginService socialLoginService, SessionCookieFactory cookieFactory, Clock clock) {
-        this.socialLoginService = socialLoginService;
-        this.cookieFactory = cookieFactory;
-        this.clock = clock;
-    }
 
     @PostMapping("/email")
     public ResponseEntity<SocialLoginRequests.EmailResponse> requestEmail(

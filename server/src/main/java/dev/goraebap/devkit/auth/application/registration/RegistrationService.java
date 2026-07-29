@@ -22,6 +22,7 @@ import dev.goraebap.devkit.common.BusinessException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class RegistrationService {
 
     private final UserRepository userRepository;
@@ -53,31 +55,6 @@ public class RegistrationService {
     private final SecureTokenGenerator tokenGenerator;
     private final AuthProperties properties;
     private final Clock clock;
-
-    public RegistrationService(
-            UserRepository userRepository,
-            AccountRepository accountRepository,
-            VerificationRepository verificationRepository,
-            SessionService sessionService,
-            SignupMailer signupMailer,
-            AttemptRateLimiter rateLimiter,
-            TokenHasher tokenHasher,
-            PasswordHasher passwordHasher,
-            SecureTokenGenerator tokenGenerator,
-            AuthProperties properties,
-            Clock clock) {
-        this.userRepository = userRepository;
-        this.accountRepository = accountRepository;
-        this.verificationRepository = verificationRepository;
-        this.sessionService = sessionService;
-        this.signupMailer = signupMailer;
-        this.rateLimiter = rateLimiter;
-        this.tokenHasher = tokenHasher;
-        this.passwordHasher = passwordHasher;
-        this.tokenGenerator = tokenGenerator;
-        this.properties = properties;
-        this.clock = clock;
-    }
 
     /**
      * OTP 발급. 응답은 계정 존재 여부와 무관하게 같은 형태다 — 기존 계정이면 코드 대신 안내

@@ -10,18 +10,16 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 /** jOOQ에는 변경 감지가 없다 — 저장은 항상 명시적 {@code save} 호출이다 (설계/서버.md §5.3). */
 @Repository
+@RequiredArgsConstructor
 class JooqUserRepository implements UserRepository {
 
     private final DSLContext dsl;
-
-    JooqUserRepository(DSLContext dsl) {
-        this.dsl = dsl;
-    }
 
     @Override
     public void save(User user) {

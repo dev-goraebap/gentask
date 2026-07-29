@@ -4,6 +4,7 @@ import dev.goraebap.devkit.auth.application.recovery.RecoveryMailer;
 import dev.goraebap.devkit.auth.domain.verification.Verification;
 import dev.goraebap.devkit.mail.MailMessage;
 import dev.goraebap.devkit.mail.MailSender;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
  * <p>본문은 서버가 만든 값(코드·고정 문구)으로만 조립한다. 사용자 입력은 수신자 필드에만 쓰인다.
  */
 @Component
+@RequiredArgsConstructor
 class RecoveryMailSender implements RecoveryMailer {
 
     private static final String SUBJECT = "[웹앱 개발키트] 계정 접근 안내";
@@ -70,10 +72,6 @@ class RecoveryMailSender implements RecoveryMailer {
             """;
 
     private final MailSender mailSender;
-
-    RecoveryMailSender(MailSender mailSender) {
-        this.mailSender = mailSender;
-    }
 
     @Override
     public void sendPasswordResetOtp(String email, String code) {

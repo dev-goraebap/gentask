@@ -2,6 +2,7 @@ package dev.goraebap.devkit.mail.infrastructure.smtp;
 
 import dev.goraebap.devkit.mail.MailMessage;
 import dev.goraebap.devkit.mail.MailSender;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -13,13 +14,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * 상태. 진행 중인 트랜잭션이 없으면 즉시 위임한다.
  */
 @Component
+@RequiredArgsConstructor
 class TransactionAwareMailSender implements MailSender {
 
     private final SmtpMailDispatcher dispatcher;
-
-    TransactionAwareMailSender(SmtpMailDispatcher dispatcher) {
-        this.dispatcher = dispatcher;
-    }
 
     @Override
     public void send(MailMessage message) {
