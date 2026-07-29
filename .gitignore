@@ -7,3 +7,6 @@ web/storybook-static
 # 개인 로컬 규칙 (커밋하지 않는다 — 전역 AGENTS.md의 팀 공유/개인 관리 분리 원칙)
 CLAUDE.local.md
 AGENTS.local.md
+
+# 로컬 전용 설정 (시크릿 주입용 — 커밋하지 않는다)
+server/src/main/resources/application-local.properties

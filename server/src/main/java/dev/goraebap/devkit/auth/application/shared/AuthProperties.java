@@ -13,7 +13,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * 요청 빈도 제한뿐이다.
  */
 @ConfigurationProperties(prefix = "auth")
-public record AuthProperties(String secret, Session session, Otp otp, Login login, List<String> allowedOrigins) {
+public record AuthProperties(
+        String secret, Session session, Otp otp, Login login, List<String> allowedOrigins, Oauth oauth) {
+
+    /** 소셜 로그인을 마친 브라우저를 되돌려보낼 곳. 화면이 이어서 처리한다 (AUTH-02·03). */
+    public String oauthRedirectBase() {
+        return oauth == null ? "" : oauth.redirectBase();
+    }
 
     /** HMAC 키로 쓰기에 충분한 길이. 짧은 키는 키트를 그대로 배포한 파생 프로젝트에서 사고가 된다. */
     private static final int MIN_SECRET_LENGTH = 32;
@@ -49,4 +55,7 @@ public record AuthProperties(String secret, Session session, Otp otp, Login logi
 
     /** 로그인 시도 제한 — 크리덴셜 스터핑과 bcrypt CPU 고갈을 함께 막는다. */
     public record Login(int ipLimit, Duration ipWindow, int accountLimit, Duration accountWindow) {}
+
+    /** 소셜 로그인 (AUTH-02·03). */
+    public record Oauth(String redirectBase) {}
 }

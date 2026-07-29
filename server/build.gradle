@@ -30,6 +30,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jooq'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	// 소셜 로그인 (AUTH-02·03) — state·PKCE·리다이렉트 검증을 직접 책임지지 않기 위해 쓴다
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	// Spring Boot 4는 자동설정을 모듈로 분리했다 — flyway-core만 넣으면 마이그레이션이 실행되지 않는다

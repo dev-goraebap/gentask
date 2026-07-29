@@ -88,6 +88,44 @@ public final class Verification {
     }
 
     /**
+     * 소셜 최초 로그인의 가입 대기 레코드 (AUTH-02·03, 결정-0015 §결정 4).
+     *
+     * <p>제공자 인증은 끝났지만 이메일 소유는 아직 증명되지 않은 상태다. 이 시점에
+     * <b>{@code account}를 만들지 않는 것</b>이 핵심이다 — {@code accounts.user_id}가 NOT NULL이라
+     * 사용자 없이는 둘 수도 없고, 두면 소유 증명 전에 제공자 신원이 계정에 붙는다.
+     *
+     * <p>그래서 검증된 제공자 신원을 대기 레코드가 함께 보관한다. OTP를 통과하는 순간
+     * {@code user}·{@code account}가 함께 생긴다.
+     */
+    public static Verification issueSocialSignup(
+            UUID id,
+            AuthProvider socialProvider,
+            String socialProviderAccountId,
+            String targetEmailRaw,
+            String targetEmailNormalized,
+            String codeHash,
+            Instant now) {
+        return new Verification(
+                id,
+                VerificationPurpose.EMAIL_SIGNUP,
+                targetEmailNormalized,
+                targetEmailRaw,
+                codeHash,
+                0,
+                now.plus(TTL),
+                null,
+                null,
+                Objects.requireNonNull(socialProvider, "소셜 가입 대기에는 제공자가 있어야 한다"),
+                Objects.requireNonNull(socialProviderAccountId, "소셜 가입 대기에는 제공자 식별자가 있어야 한다"),
+                now);
+    }
+
+    /** 소셜 최초 로그인 대기인가 — 통과 시 credential이 아니라 소셜 account를 만든다. */
+    public boolean isSocialSignup() {
+        return purpose == VerificationPurpose.EMAIL_SIGNUP && socialProvider != null;
+    }
+
+    /**
      * 기존 사용자를 대상으로 하는 대기 레코드 — 비밀번호 재설정(AUTH-07), 계정 복구(AUTH-08).
      *
      * <p>가입과 달리 {@code userId}가 채워진다. 검증이 통과해도 <b>새 사용자를 만들지 않고</b>

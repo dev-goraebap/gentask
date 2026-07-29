@@ -24,7 +24,8 @@ class AuthPropertiesTest {
                         Duration.ofDays(30), Duration.ofDays(90), Duration.ofHours(1), "session_token", true),
                 new AuthProperties.Otp(5, Duration.ofMinutes(10), 30, Duration.ofHours(1), 20, Duration.ofMinutes(10)),
                 new AuthProperties.Login(20, Duration.ofMinutes(10), 10, Duration.ofMinutes(10)),
-                List.of());
+                List.of(),
+                new AuthProperties.Oauth("http://localhost:4200"));
     }
 
     @Test
@@ -51,7 +52,8 @@ class AuthPropertiesTest {
                         new AuthProperties.Otp(
                                 5, Duration.ofMinutes(10), 30, Duration.ofHours(1), 20, Duration.ofMinutes(10)),
                         new AuthProperties.Login(20, Duration.ofMinutes(10), 10, Duration.ofMinutes(10)),
-                        null))
+                        null,
+                        new AuthProperties.Oauth("http://localhost:4200")))
                 .doesNotThrowAnyException();
     }
 }

@@ -21,7 +21,8 @@ public final class AuthTestFixtures {
                         Duration.ofDays(30), Duration.ofDays(90), Duration.ofHours(1), "session_token", false),
                 new AuthProperties.Otp(5, Duration.ofMinutes(10), 30, Duration.ofHours(1), 20, Duration.ofMinutes(10)),
                 new AuthProperties.Login(20, Duration.ofMinutes(10), 10, Duration.ofMinutes(10)),
-                List.of());
+                List.of(),
+                new AuthProperties.Oauth("http://localhost:4200"));
     }
 
     /** 항상 통과하는 rate limiter — 제한 자체를 검증하는 테스트에서만 다른 것을 쓴다. */
