@@ -123,6 +123,49 @@ public final class Verification {
                 now);
     }
 
+    /**
+     * <b>미끼</b> 대기 레코드 — 대상 계정이 없을 때 만든다 (AUTH-07·08).
+     *
+     * <p>만들지 않으면 계정 유무가 새어 나간다. 공격자가 식별자를 받아 코드를 다섯 번 틀려보면,
+     * 진짜 레코드가 있는 쪽만 "시도 횟수 초과"로 응답이 갈리기 때문이다. 미끼가 있으면 시도 횟수가
+     * 똑같이 쌓이고 똑같이 소진되어 두 경우를 구분할 수 없다.
+     *
+     * <p>{@code codeHash}에는 <b>아무도 모르는 값</b>을 넣는다 — 호출자가 버리는 난수의 다이제스트를
+     * 준다. 따라서 이 레코드는 어떤 입력으로도 통과하지 않는다.
+     *
+     * <p>{@code userId}가 null인 것이 미끼의 표식이다. 검증이 통과할 수 없으므로 후속 처리로
+     * 넘어갈 일이 없지만, 서비스는 방어적으로 한 번 더 확인한다.
+     */
+    public static Verification issueDecoy(
+            UUID id,
+            VerificationPurpose purpose,
+            String targetEmailRaw,
+            String targetEmailNormalized,
+            String unmatchableCodeHash,
+            Instant now) {
+        if (purpose == VerificationPurpose.EMAIL_SIGNUP) {
+            throw new IllegalArgumentException("가입 흐름은 미끼가 필요 없다 — 계정 유무와 무관하게 레코드를 만든다");
+        }
+        return new Verification(
+                id,
+                purpose,
+                targetEmailNormalized,
+                targetEmailRaw,
+                unmatchableCodeHash,
+                0,
+                now.plus(TTL),
+                null,
+                null,
+                null,
+                null,
+                now);
+    }
+
+    /** 미끼인가 — 대상 계정이 없어 만들어진 레코드. */
+    public boolean isDecoy() {
+        return userId == null && purpose != VerificationPurpose.EMAIL_SIGNUP;
+    }
+
     /** 저장소 전용 재구성. */
     public static Verification restore(
             UUID id,

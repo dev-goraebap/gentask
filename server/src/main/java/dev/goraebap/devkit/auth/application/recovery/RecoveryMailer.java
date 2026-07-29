@@ -29,4 +29,12 @@ public interface RecoveryMailer {
      * <p>재설정할 비밀번호가 없으므로 코드를 보내지 않고, 계정 복구 경로로 안내한다.
      */
     void sendNoPasswordGuide(String email);
+
+    /**
+     * 복구 로그인이 일어났음을 알린다 (AUTH-08).
+     *
+     * <p>복구는 비밀번호 없이 세션을 내주면서 기존 세션은 끊지 않는다. 메일함에 잠깐 접근한
+     * 사람이 조용히 들어오는 경로이므로, <b>본인이 알아차릴 신호</b>가 하나는 있어야 한다.
+     */
+    void sendRecoveryLoginNotice(String email);
 }

@@ -60,6 +60,15 @@ class RecoveryMailSender implements RecoveryMailer {
             본인이 요청하지 않았다면 이 메일은 무시해도 됩니다.
             """;
 
+    private static final String RECOVERY_LOGIN_NOTICE_BODY = """
+            안녕하세요.
+
+            방금 계정 복구로 로그인되었습니다.
+
+            본인이 아니라면 지금 바로 비밀번호를 재설정해 주세요.
+            재설정하면 모든 기기에서 로그아웃되고 대기 중인 코드도 함께 취소됩니다.
+            """;
+
     private final MailSender mailSender;
 
     RecoveryMailSender(MailSender mailSender) {
@@ -84,6 +93,11 @@ class RecoveryMailSender implements RecoveryMailer {
     @Override
     public void sendNoPasswordGuide(String email) {
         mailSender.send(new MailMessage(email, SUBJECT, NO_PASSWORD_BODY));
+    }
+
+    @Override
+    public void sendRecoveryLoginNotice(String email) {
+        mailSender.send(new MailMessage(email, SUBJECT, RECOVERY_LOGIN_NOTICE_BODY));
     }
 
     private static String render(String template, String code) {

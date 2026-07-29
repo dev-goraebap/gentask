@@ -23,6 +23,7 @@ import dev.goraebap.devkit.auth.domain.verification.VerificationRepository;
 import dev.goraebap.devkit.common.BusinessException;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +95,8 @@ public class RecoveryService {
      *
      * <p>계정이 없거나, 있어도 비밀번호가 없는 소셜 전용 계정이면 코드를 보내지 않는다. 어느
      * 경우든 <b>대기 레코드를 만들고 같은 응답을 돌려준다</b> — 응답 형태·시간이 갈리면 그것이
-     * 계정 존재의 신호가 된다.
+     * 계정 존재의 신호가 된다. 코드를 보내지 않는 경우에는 아무도 맞힐 수 없는 미끼 레코드를
+     * 남겨, 시도 횟수를 소진시켜 보는 방법으로도 두 경우를 구분할 수 없게 한다.
      */
     @Transactional
     public UUID issuePasswordReset(String email, String clientIp) {
@@ -123,18 +125,15 @@ public class RecoveryService {
         String code = tokenGenerator.otpCode();
 
         if (user.isEmpty()) {
-            // 계정이 없어도 대기 레코드를 만든다 — user_id가 필요하므로 만들 수 없다.
-            // 대신 안내 메일을 보내고 무의미한 식별자를 돌려준다: 클라이언트는 구분할 수 없고,
-            // 그 식별자로 검증을 시도하면 "코드가 올바르지 않다"로 끝난다.
             recoveryMailer.sendNoAccountGuide(address.raw());
-            return UUID.randomUUID();
+            return saveDecoy(address, purpose);
         }
 
         UUID userId = user.orElseThrow().id();
         if (purpose == VerificationPurpose.PASSWORD_RESET && !hasPassword(userId)) {
             // 비밀번호가 없는 소셜 전용 계정 — 재설정할 대상이 없다. 복구 경로로 안내한다
             recoveryMailer.sendNoPasswordGuide(address.raw());
-            return UUID.randomUUID();
+            return saveDecoy(address, purpose);
         }
 
         Verification verification = Verification.issueForUser(
@@ -177,11 +176,22 @@ public class RecoveryService {
         // 전 세션 무효화 — 재설정을 요청한 세션도 끊는다
         sessionRepository.deleteAllByUserId(userId);
 
-        // 대기 중인 이메일 변경 취소 — 이것이 없으면 재설정 후에 남의 변경이 완료된다
-        int cancelled = verificationRepository.deleteAllByUserIdAndPurpose(userId, VerificationPurpose.EMAIL_CHANGE);
-        if (cancelled > 0) {
-            log.info("비밀번호 재설정으로 대기 중인 이메일 변경을 취소했다 (userId={}, count={})", userId, cancelled);
+        // 대기 중인 코드를 전부 취소한다. 세션만 끊는 것으로는 부족하다 —
+        // 살아 있는 복구 코드가 남아 있으면, 메일함을 잠깐 봤던 공격자가 재설정 직후에 그 코드로
+        // 비밀번호 없이 다시 들어올 수 있다. 이메일 변경도 같은 이유로 지운다(pre-hijacking 변종 4).
+        int cancelled = 0;
+        for (VerificationPurpose stale : List.of(
+                VerificationPurpose.EMAIL_CHANGE,
+                VerificationPurpose.ACCOUNT_RECOVERY,
+                VerificationPurpose.PASSWORD_RESET)) {
+            cancelled += verificationRepository.deleteAllByUserIdAndPurpose(userId, stale);
         }
+        if (cancelled > 0) {
+            log.info("비밀번호 재설정으로 대기 중인 코드를 취소했다 (userId={}, count={})", userId, cancelled);
+        }
+
+        // 공격자가 오답으로 채워둔 카운터 때문에 정작 주인이 새 비밀번호로 못 들어가는 일을 막는다
+        rateLimiter.reset("login:account:" + verification.targetEmail());
     }
 
     /**
@@ -197,7 +207,29 @@ public class RecoveryService {
 
         IssuedSession session = sessionService.issue(userId, client);
         boolean hasPassword = hasPassword(userId);
+
+        // 복구 로그인은 비밀번호 없이 세션을 준다 — 본인이 아니라면 알아차릴 수 있어야 한다.
+        // 기존 세션을 끊지 않으므로 이 알림이 유일한 신호다.
+        recoveryMailer.sendRecoveryLoginNotice(verification.targetEmailRaw());
         return new RecoveryLoginResult(userId, session, hasPassword);
+    }
+
+    /**
+     * 미끼 대기 레코드를 남긴다 — 코드를 보내지 않은 경우에도 진짜와 같은 흔적을 만든다.
+     *
+     * <p>코드 해시에 버려지는 난수의 다이제스트를 넣으므로 아무도 통과할 수 없고, 시도 횟수는
+     * 진짜와 똑같이 쌓여 5회에 소진된다. 응답도, 시도 소진 경로도 구분되지 않는다.
+     */
+    private UUID saveDecoy(EmailAddress address, VerificationPurpose purpose) {
+        Verification decoy = Verification.issueDecoy(
+                UUID.randomUUID(),
+                purpose,
+                address.raw(),
+                address.normalized(),
+                tokenHasher.hmac(tokenGenerator.sessionToken()),
+                clock.instant());
+        verificationRepository.save(decoy);
+        return decoy.id();
     }
 
     /** 코드 검증과 소진. 세 흐름이 공유하는 부분이다. */
@@ -214,6 +246,13 @@ public class RecoveryService {
         VerificationCheck check = verification.attempt(tokenHasher.hmac(code), clock.instant());
         verificationRepository.save(verification);
         rejectUnless(check, verification);
+
+        if (verification.isDecoy()) {
+            // 도달할 수 없는 경로다 — 미끼의 코드 해시는 아무도 모르는 난수라 attempt가 통과하지
+            // 못한다. 그래도 확인한다: 이 방어가 뚫리면 사용자 없이 후속 처리가 도는 셈이다
+            log.error("미끼 레코드가 검증을 통과했다 — 코드 해시 생성을 점검하라 (verificationId={})", verification.id());
+            throw new BusinessException(AuthErrorCode.AUTH_OTP_INVALID, "확인 코드를 다시 확인해 주세요");
+        }
         return verification;
     }
 

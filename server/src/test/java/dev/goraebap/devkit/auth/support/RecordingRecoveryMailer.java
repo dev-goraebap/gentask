@@ -31,6 +31,11 @@ public final class RecordingRecoveryMailer implements RecoveryMailer {
         mails.add(new Sent("NO_PASSWORD", email, null));
     }
 
+    @Override
+    public void sendRecoveryLoginNotice(String email) {
+        mails.add(new Sent("RECOVERY_LOGIN_NOTICE", email, null));
+    }
+
     public Sent last() {
         return mails.get(mails.size() - 1);
     }

@@ -21,6 +21,8 @@ import dev.goraebap.devkit.auth.support.MutableClock;
 import dev.goraebap.devkit.auth.support.RecordingRecoveryMailer;
 import dev.goraebap.devkit.common.BusinessException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -170,7 +172,43 @@ class RecoveryServiceTest {
         assertThat(verificationId).as("식별자는 언제나 돌아온다").isNotNull();
         assertThat(mailer.last().kind()).isEqualTo("NO_ACCOUNT");
         assertThat(mailer.last().code()).isNull();
-        assertThat(verifications.rows).as("대기 레코드가 만들어지지 않는다").isEmpty();
+        assertThat(verifications.rows)
+                .as("미끼 레코드는 만들어진다 — 없으면 시도 횟수 소진 여부로 계정 유무가 드러난다")
+                .hasSize(1);
+        assertThat(verifications.rows.values().iterator().next().isDecoy()).isTrue();
+    }
+
+    @Test
+    @DisplayName("AUTH-07 계정이 없어도 시도 횟수가 똑같이 소진된다 — 소진 응답으로 계정을 열거할 수 없다")
+    void 계정_유무를_시도_소진으로_구분할_수_없다() {
+        비밀번호를_설정한다();
+        UUID realId = service.issuePasswordReset("alice@example.com", IP);
+        UUID decoyId = service.issuePasswordReset("nobody@example.com", IP);
+
+        // 양쪽에 같은 횟수의 오답을 넣으면 오류 코드 열이 같아야 한다
+        List<dev.goraebap.devkit.common.ErrorCode> realCodes = 다섯_번_틀린다(realId);
+        List<dev.goraebap.devkit.common.ErrorCode> decoyCodes = 다섯_번_틀린다(decoyId);
+
+        assertThat(decoyCodes).isEqualTo(realCodes);
+        assertThat(realCodes).as("마지막에는 양쪽 다 시도 횟수 초과가 되어야 한다").endsWith(AuthErrorCode.AUTH_OTP_ATTEMPTS_EXCEEDED);
+    }
+
+    private List<dev.goraebap.devkit.common.ErrorCode> 다섯_번_틀린다(UUID verificationId) {
+        List<dev.goraebap.devkit.common.ErrorCode> codes = new ArrayList<>();
+        for (int i = 0; i < Verification.MAX_ATTEMPTS; i++) {
+            codes.add(catchBusiness(() -> service.completePasswordReset(verificationId, "000000", "new-password", IP))
+                    .errorCode());
+        }
+        return codes;
+    }
+
+    private BusinessException catchBusiness(Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (BusinessException e) {
+            return e;
+        }
+        throw new AssertionError("BusinessException이 발생해야 한다");
     }
 
     @Test
@@ -181,7 +219,35 @@ class RecoveryServiceTest {
 
         assertThat(verificationId).isNotNull();
         assertThat(mailer.last().kind()).isEqualTo("NO_PASSWORD");
-        assertThat(verifications.rows).isEmpty();
+        assertThat(verifications.rows).as("여기에도 미끼가 남는다").hasSize(1);
+        assertThat(verifications.rows.values().iterator().next().isDecoy()).isTrue();
+    }
+
+    @Test
+    @DisplayName("AUTH-07 재설정하면 살아 있는 복구 코드도 함께 취소된다 — 재설정 직후 되들어오는 경로를 막는다")
+    void 재설정하면_대기중_복구_코드도_취소된다() {
+        비밀번호를_설정한다();
+        // 공격자가 메일함을 잠깐 보고 복구 코드를 받아둔 상황
+        UUID recoveryId = service.issueAccountRecovery("alice@example.com", IP);
+        String stolenCode = mailer.last().code();
+
+        UUID resetId = service.issuePasswordReset("alice@example.com", IP);
+        service.completePasswordReset(resetId, mailer.last().code(), "new-password", IP);
+
+        assertThatThrownBy(() -> service.completeAccountRecovery(recoveryId, stolenCode, CLIENT))
+                .as("재설정 전에 발급된 복구 코드는 더 이상 통하지 않아야 한다")
+                .isInstanceOfSatisfying(BusinessException.class, e -> assertThat(e.errorCode())
+                        .isEqualTo(AuthErrorCode.AUTH_OTP_INVALID));
+    }
+
+    @Test
+    @DisplayName("AUTH-08 복구 로그인이 일어나면 본인에게 알림 메일이 간다")
+    void 복구_로그인은_알림을_보낸다() {
+        UUID verificationId = service.issueAccountRecovery("alice@example.com", IP);
+
+        service.completeAccountRecovery(verificationId, mailer.last().code(), CLIENT);
+
+        assertThat(mailer.last().kind()).isEqualTo("RECOVERY_LOGIN_NOTICE");
     }
 
     @Test
