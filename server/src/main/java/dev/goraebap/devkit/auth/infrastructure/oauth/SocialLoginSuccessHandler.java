@@ -69,7 +69,7 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler {
             response.sendRedirect(redirectBase + "/auth/error");
             return;
         }
-        SocialIdentity identity = new SocialIdentity(provider, principal.getName(), null, null, null);
+        SocialIdentity identity = new SocialIdentity(provider, principal.getName());
 
         SocialLoginOutcome outcome = socialLoginService.onProviderAuthenticated(
                 identity, ClientInfo.of(request.getRemoteAddr(), request.getHeader("User-Agent")));

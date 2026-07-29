@@ -198,9 +198,6 @@ public class SocialLoginService {
                 user.id(),
                 verification.socialProvider(),
                 verification.socialProviderAccountId(),
-                null,
-                null,
-                null,
                 now));
 
         IssuedSession session = sessionService.issue(user.id(), client);

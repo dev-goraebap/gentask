@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "server: 포맷 적용 (spotlessApply)",
+      "type": "shell",
+      "command": "./gradlew spotlessApply",
+      "options": { "cwd": "${workspaceFolder}/server" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "shared" }
+    },
+    {
+      "label": "server: 린트 (check)",
+      "type": "shell",
+      "command": "./gradlew check -x test",
+      "options": { "cwd": "${workspaceFolder}/server" },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "web: 포맷 적용",
+      "type": "shell",
+      "command": "npm run format",
+      "options": { "cwd": "${workspaceFolder}/web" },
+      "problemMatcher": []
+    }
+  ]
+}

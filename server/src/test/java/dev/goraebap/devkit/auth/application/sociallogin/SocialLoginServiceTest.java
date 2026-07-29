@@ -74,7 +74,7 @@ class SocialLoginServiceTest {
     }
 
     private SocialIdentity 구글신원() {
-        return new SocialIdentity(AuthProvider.GOOGLE, GOOGLE_SUBJECT, null, null, null);
+        return new SocialIdentity(AuthProvider.GOOGLE, GOOGLE_SUBJECT);
     }
 
     private UUID 로컬가입자를_만든다(String email) {
@@ -90,8 +90,8 @@ class SocialLoginServiceTest {
     void 아는_신원은_바로_로그인된다() {
         User user = User.register(UUID.randomUUID(), EmailAddress.of("known@example.com"), clock.instant());
         users.save(user);
-        accounts.save(Account.social(
-                UUID.randomUUID(), user.id(), AuthProvider.GOOGLE, GOOGLE_SUBJECT, null, null, null, clock.instant()));
+        accounts.save(
+                Account.social(UUID.randomUUID(), user.id(), AuthProvider.GOOGLE, GOOGLE_SUBJECT, clock.instant()));
 
         SocialLoginOutcome outcome = service.onProviderAuthenticated(구글신원(), CLIENT);
 
@@ -131,7 +131,7 @@ class SocialLoginServiceTest {
                 .hasValueSatisfying(account -> {
                     assertThat(account.providerAccountId()).isEqualTo(GOOGLE_SUBJECT);
                     assertThat(account.passwordHash()).as("소셜 계정에는 비밀번호가 없다").isNull();
-                    assertThat(account.accessToken()).as("제공자 토큰을 보관하지 않는다").isNull();
+                    // 제공자 토큰을 보관하지 않는다는 것은 이제 타입이 보장한다 (결정-0022) — 담을 자리가 없다
                 });
     }
 
@@ -214,8 +214,8 @@ class SocialLoginServiceTest {
         // 다른 탭에서 같은 소셜 신원으로 가입이 완료된 상황
         User other = User.register(UUID.randomUUID(), EmailAddress.of("other@example.com"), clock.instant());
         users.save(other);
-        accounts.save(Account.social(
-                UUID.randomUUID(), other.id(), AuthProvider.GOOGLE, GOOGLE_SUBJECT, null, null, null, clock.instant()));
+        accounts.save(
+                Account.social(UUID.randomUUID(), other.id(), AuthProvider.GOOGLE, GOOGLE_SUBJECT, clock.instant()));
 
         assertThatThrownBy(() -> service.requestEmailVerification(ticket, "new@example.com", IP))
                 .isInstanceOfSatisfying(BusinessException.class, e -> assertThat(e.errorCode())

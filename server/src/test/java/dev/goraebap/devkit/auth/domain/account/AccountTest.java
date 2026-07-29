@@ -32,9 +32,6 @@ class AccountTest {
                         AuthProvider.GOOGLE,
                         "google-subject",
                         "$2a$10$hash",
-                        null,
-                        null,
-                        null,
                         NOW,
                         NOW))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -56,16 +53,7 @@ class AccountTest {
     @DisplayName("AUTH-07 소셜 계정에는 비밀번호를 설정할 수 없다")
     void 소셜_계정은_비밀번호를_가질_수_없다() {
         Account social = Account.restore(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                AuthProvider.GOOGLE,
-                "google-subject",
-                null,
-                null,
-                null,
-                null,
-                NOW,
-                NOW);
+                UUID.randomUUID(), UUID.randomUUID(), AuthProvider.GOOGLE, "google-subject", null, NOW, NOW);
 
         assertThatThrownBy(() -> social.changePassword("$2a$10$new", NOW)).isInstanceOf(IllegalStateException.class);
     }
