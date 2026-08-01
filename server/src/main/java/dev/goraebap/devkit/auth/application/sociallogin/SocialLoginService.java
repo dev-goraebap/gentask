@@ -80,7 +80,7 @@ public class SocialLoginService {
             IssuedSession session = sessionService.issue(existing.orElseThrow().userId(), client);
             return SocialLoginOutcome.signedIn(existing.orElseThrow().userId(), session);
         }
-        return SocialLoginOutcome.emailRequired(null);
+        return SocialLoginOutcome.emailRequired();
     }
 
     /** 1단계의 중간 표를 만든다. 컨트롤러가 리다이렉트 파라미터로 실어 보낸다. */
