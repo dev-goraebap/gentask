@@ -13,9 +13,13 @@ public final class SocialLoginRequests {
 
     private SocialLoginRequests() {}
 
-    /** 2단계 앞부분 — 중간 표와 함께 이메일을 보낸다. */
+    /**
+     * 2단계 앞부분 — 이메일만 보낸다.
+     *
+     * <p>중간 표는 본문에 담지 않는다. 제공자 인증 직후 심어진 {@code HttpOnly} 쿠키로만 전달되며
+     * 클라이언트는 그 값을 볼 수도 만질 수도 없다 (보안 검토 F1, {@link SocialTicketCookieFactory}).
+     */
     public record EmailRequest(
-            @NotBlank String ticket,
             @NotBlank @Email @Size(max = 320) String email) {}
 
     /** 발급 응답 — 계정 존재 여부와 무관하게 같은 형태다(AUTH-05). */

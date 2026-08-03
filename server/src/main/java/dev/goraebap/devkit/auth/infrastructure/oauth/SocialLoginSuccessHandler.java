@@ -6,12 +6,11 @@ import dev.goraebap.devkit.auth.application.shared.SessionCookieFactory;
 import dev.goraebap.devkit.auth.application.sociallogin.SocialIdentity;
 import dev.goraebap.devkit.auth.application.sociallogin.SocialLoginOutcome;
 import dev.goraebap.devkit.auth.application.sociallogin.SocialLoginService;
+import dev.goraebap.devkit.auth.application.sociallogin.SocialTicketCookieFactory;
 import dev.goraebap.devkit.auth.domain.account.AuthProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +32,10 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
  *
  * <p>리다이렉트로 돌려보내는 이유: 이 지점은 브라우저가 제공자에서 넘어오는 <b>탐색(navigation)</b>
  * 이라 JSON을 돌려줄 수 없다. 화면이 이어서 처리하도록 프론트 경로로 보낸다.
+ *
+ * <p><b>중간 표는 리다이렉트 URL이 아니라 쿠키로 실어 보낸다</b>(보안 검토 F1). 쿼리스트링에 실으면
+ * 액세스 로그와 {@code Location} 헤더에 표가 남고, 그것을 주운 사람이 자기 이메일로 소유 증명을
+ * 통과해 남의 제공자 신원을 선점할 수 있다 — 자세한 이유는 {@link SocialTicketCookieFactory}.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -40,6 +43,7 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final SocialLoginService socialLoginService;
     private final SessionCookieFactory cookieFactory;
+    private final SocialTicketCookieFactory ticketCookieFactory;
     private final String redirectBase;
     private final Clock clock;
 
@@ -52,7 +56,17 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        AuthProvider provider = AuthProvider.fromValue(token.getAuthorizedClientRegistrationId());
+        // 파생 프로젝트가 제공자 등록만 추가하고 enum 상수를 빠뜨리면 여기서 던진다. 이 지점은
+        // @RestControllerAdvice 밖(서블릿 필터)이라 그대로 두면 컨테이너 기본 에러 페이지가 나온다 (F7)
+        AuthProvider provider;
+        try {
+            provider = AuthProvider.fromValue(token.getAuthorizedClientRegistrationId());
+        } catch (IllegalArgumentException e) {
+            log.warn("등록되지 않은 제공자로 인증이 들어왔다 (registrationId={})", token.getAuthorizedClientRegistrationId());
+            response.sendRedirect(redirectBase + "/auth/error?reason=unsupported");
+            return;
+        }
+
         OAuth2User principal = token.getPrincipal();
         if (principal == null || principal.getName() == null) {
             // 제공자가 신원 식별자를 주지 않았다 — 이 신원으로는 계정을 만들 수 없다
@@ -80,9 +94,10 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        // 처음 보는 신원 — 이메일을 물어야 한다. 중간 표를 실어 보낸다
+        // 처음 보는 신원 — 이메일을 물어야 한다. 표는 쿠키로 심고 URL에는 남기지 않는다 (F1)
         String ticket = socialLoginService.issueTicket(identity);
-        response.sendRedirect(
-                redirectBase + "/auth/social/email?ticket=" + URLEncoder.encode(ticket, StandardCharsets.UTF_8));
+        response.addHeader(
+                HttpHeaders.SET_COOKIE, ticketCookieFactory.issue(ticket).toString());
+        response.sendRedirect(redirectBase + "/auth/social/email");
     }
 }

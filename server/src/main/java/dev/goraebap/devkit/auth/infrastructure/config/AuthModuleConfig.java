@@ -6,6 +6,7 @@ import dev.goraebap.devkit.auth.application.shared.SessionCookieFactory;
 import dev.goraebap.devkit.auth.application.shared.TokenHasher;
 import dev.goraebap.devkit.auth.application.sociallogin.PendingSocialTicketCodec;
 import dev.goraebap.devkit.auth.application.sociallogin.SocialLoginService;
+import dev.goraebap.devkit.auth.application.sociallogin.SocialTicketCookieFactory;
 import dev.goraebap.devkit.auth.infrastructure.oauth.SocialLoginSuccessHandler;
 import java.time.Clock;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -36,11 +37,18 @@ class AuthModuleConfig {
     }
 
     @Bean
+    SocialTicketCookieFactory socialTicketCookieFactory(AuthProperties properties) {
+        return new SocialTicketCookieFactory(properties);
+    }
+
+    @Bean
     AuthenticationSuccessHandler socialLoginSuccessHandler(
             SocialLoginService socialLoginService,
             SessionCookieFactory cookieFactory,
+            SocialTicketCookieFactory ticketCookieFactory,
             AuthProperties properties,
             Clock clock) {
-        return new SocialLoginSuccessHandler(socialLoginService, cookieFactory, properties.oauthRedirectBase(), clock);
+        return new SocialLoginSuccessHandler(
+                socialLoginService, cookieFactory, ticketCookieFactory, properties.oauthRedirectBase(), clock);
     }
 }

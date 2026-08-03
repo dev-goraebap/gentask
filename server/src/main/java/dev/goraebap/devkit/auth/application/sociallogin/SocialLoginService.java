@@ -162,6 +162,17 @@ public class SocialLoginService {
         verificationRepository.save(verification);
         rejectUnless(check, verification);
 
+        // 이 제공자 신원으로 이미 계정이 생겼는지 마지막으로 본다 (보안 검토 F4).
+        // 표 하나로 대기 레코드를 여러 개 만들어 둘 이상을 통과시키면, 이 확인이 없을 때
+        // user 삽입까지 성공한 뒤 accounts의 유니크 제약에 걸려 500으로 떨어진다 —
+        // 비즈니스 오류를 DB 제약 위반으로 처리하는 셈이라 로그가 오염되고 원인이 가려진다.
+        if (accountRepository
+                .findByProviderAndProviderAccountId(
+                        verification.socialProvider(), verification.socialProviderAccountId())
+                .isPresent()) {
+            throw new BusinessException(AuthErrorCode.AUTH_SOCIAL_TICKET_INVALID, "다시 로그인해 주세요");
+        }
+
         EmailAddress address = new EmailAddress(verification.targetEmailRaw(), verification.targetEmail());
         User user = User.register(UUID.randomUUID(), address, now);
         if (!userRepository.registerIfEmailAvailable(user)) {

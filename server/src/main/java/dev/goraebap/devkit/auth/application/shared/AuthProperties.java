@@ -18,7 +18,7 @@ public record AuthProperties(
 
     /** 소셜 로그인을 마친 브라우저를 되돌려보낼 곳. 화면이 이어서 처리한다 (AUTH-02·03). */
     public String oauthRedirectBase() {
-        return oauth == null ? "" : oauth.redirectBase();
+        return oauth.redirectBase();
     }
 
     /** HMAC 키로 쓰기에 충분한 길이. 짧은 키는 키트를 그대로 배포한 파생 프로젝트에서 사고가 된다. */
@@ -32,6 +32,7 @@ public record AuthProperties(
             throw new IllegalArgumentException("auth.secret은 " + MIN_SECRET_LENGTH + "자 이상이어야 한다");
         }
         allowedOrigins = allowedOrigins == null ? List.of() : List.copyOf(allowedOrigins);
+        oauth = oauth == null ? Oauth.disabled() : oauth;
     }
 
     /** 세션 수명과 쿠키 속성 (결정-0014). */
@@ -56,6 +57,27 @@ public record AuthProperties(
     /** 로그인 시도 제한 — 크리덴셜 스터핑과 bcrypt CPU 고갈을 함께 막는다. */
     public record Login(int ipLimit, Duration ipWindow, int accountLimit, Duration accountWindow) {}
 
-    /** 소셜 로그인 (AUTH-02·03). */
-    public record Oauth(String redirectBase) {}
+    /**
+     * 소셜 로그인 (AUTH-02·03).
+     *
+     * <p>{@code startIp*}는 <b>로그인 시작 경로</b>({@code /oauth2/authorization/**})의 IP당 한도다.
+     * 이 경로는 로그인 전이라 열려 있고, 한 번 호출될 때마다 인가 요청을 보관할 서블릿 세션이 하나씩
+     * 생긴다 — 제한이 없으면 반복 호출만으로 힙을 고갈시킬 수 있다(보안 검토 F3).
+     * 사람이 로그인 버튼을 누르는 빈도에 비해 넉넉하되, 자동화된 반복에는 걸리는 값으로 둔다.
+     */
+    public record Oauth(String redirectBase, int startIpLimit, Duration startIpWindow) {
+
+        private static final int DEFAULT_START_IP_LIMIT = 20;
+        private static final Duration DEFAULT_START_IP_WINDOW = Duration.ofMinutes(10);
+
+        public Oauth {
+            startIpLimit = startIpLimit <= 0 ? DEFAULT_START_IP_LIMIT : startIpLimit;
+            startIpWindow = startIpWindow == null ? DEFAULT_START_IP_WINDOW : startIpWindow;
+        }
+
+        /** 소셜 로그인을 쓰지 않는 파생 프로젝트용 — 설정이 없어도 기동은 된다. */
+        static Oauth disabled() {
+            return new Oauth("", DEFAULT_START_IP_LIMIT, DEFAULT_START_IP_WINDOW);
+        }
+    }
 }
