@@ -7,6 +7,7 @@ import dev.goraebap.devkit.auth.application.session.SessionService;
 import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
+import dev.goraebap.devkit.auth.application.shared.HmacPurpose;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
 import dev.goraebap.devkit.auth.domain.account.AuthProvider;
 import dev.goraebap.devkit.auth.domain.user.EmailAddress;
@@ -138,7 +139,8 @@ class RegistrationServiceTest {
                         account -> assertThat(account.passwordHash()).isEqualTo("enc(password-1234)"));
 
         assertThat(result.session().token()).isNotBlank();
-        assertThat(sessions.findByTokenHash("hmac(" + result.session().token() + ")"))
+        assertThat(sessions.findByTokenHash(
+                        FakeCrypto.해시(HmacPurpose.SESSION, result.session().token())))
                 .isPresent();
     }
 
@@ -200,7 +202,7 @@ class RegistrationServiceTest {
                 VerificationPurpose.PASSWORD_RESET,
                 "new@example.com",
                 "new@example.com",
-                "hmac(123456)",
+                FakeCrypto.해시(HmacPurpose.OTP, "123456"),
                 0,
                 clock.instant().plus(Verification.TTL),
                 null,

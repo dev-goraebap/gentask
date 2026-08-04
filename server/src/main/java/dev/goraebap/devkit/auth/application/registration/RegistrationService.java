@@ -6,6 +6,7 @@ import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.AuthProperties;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
+import dev.goraebap.devkit.auth.application.shared.HmacPurpose;
 import dev.goraebap.devkit.auth.application.shared.PasswordHasher;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
 import dev.goraebap.devkit.auth.application.shared.TokenHasher;
@@ -78,7 +79,11 @@ public class RegistrationService {
 
         String code = tokenGenerator.otpCode();
         Verification verification = Verification.issueSignup(
-                UUID.randomUUID(), address.raw(), address.normalized(), tokenHasher.hmac(code), clock.instant());
+                UUID.randomUUID(),
+                address.raw(),
+                address.normalized(),
+                tokenHasher.hmac(HmacPurpose.OTP, code),
+                clock.instant());
         verificationRepository.save(verification);
 
         // 발송은 mail 모듈이 커밋 이후로 미룬다 — 롤백되면 메일이 나가지 않는다 (결정-0016)
@@ -111,7 +116,7 @@ public class RegistrationService {
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.AUTH_OTP_INVALID, "확인 코드를 다시 확인해 주세요"));
 
         Instant now = clock.instant();
-        VerificationCheck check = verification.attempt(tokenHasher.hmac(code), now);
+        VerificationCheck check = verification.attempt(tokenHasher.hmac(HmacPurpose.OTP, code), now);
         verificationRepository.save(verification);
         rejectUnless(check, verification);
 

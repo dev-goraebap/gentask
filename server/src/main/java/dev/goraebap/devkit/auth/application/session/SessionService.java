@@ -4,6 +4,7 @@ import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.AuthProperties;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
+import dev.goraebap.devkit.auth.application.shared.HmacPurpose;
 import dev.goraebap.devkit.auth.application.shared.PasswordHasher;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
 import dev.goraebap.devkit.auth.application.shared.TokenHasher;
@@ -77,7 +78,7 @@ public class SessionService {
         Session session = Session.issue(
                 UUID.randomUUID(),
                 userId,
-                tokenHasher.hmac(token),
+                tokenHasher.hmac(HmacPurpose.SESSION, token),
                 now,
                 properties.session().ttl(),
                 client.ipAddress(),

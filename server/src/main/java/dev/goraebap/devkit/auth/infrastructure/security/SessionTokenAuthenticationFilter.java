@@ -2,6 +2,7 @@ package dev.goraebap.devkit.auth.infrastructure.security;
 
 import dev.goraebap.devkit.auth.application.shared.AuthProperties;
 import dev.goraebap.devkit.auth.application.shared.AuthenticatedUser;
+import dev.goraebap.devkit.auth.application.shared.HmacPurpose;
 import dev.goraebap.devkit.auth.application.shared.SessionTransport;
 import dev.goraebap.devkit.auth.application.shared.TokenHasher;
 import dev.goraebap.devkit.auth.domain.session.Session;
@@ -46,7 +47,7 @@ class SessionTokenAuthenticationFilter extends OncePerRequestFilter {
         if (resolved != null) {
             Instant now = clock.instant();
             sessionRepository
-                    .findByTokenHash(tokenHasher.hmac(resolved.token()))
+                    .findByTokenHash(tokenHasher.hmac(HmacPurpose.SESSION, resolved.token()))
                     .filter(session -> !session.isExpired(now))
                     .ifPresent(session -> authenticate(session, resolved.transport(), now));
         }

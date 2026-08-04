@@ -1,6 +1,7 @@
 package dev.goraebap.devkit.auth.infrastructure.security;
 
 import dev.goraebap.devkit.auth.application.shared.AuthProperties;
+import dev.goraebap.devkit.auth.application.shared.HmacPurpose;
 import dev.goraebap.devkit.auth.application.shared.TokenHasher;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
@@ -27,12 +28,20 @@ class HmacTokenHasher implements TokenHasher {
         this.key = new SecretKeySpec(properties.secret().getBytes(StandardCharsets.UTF_8), ALGORITHM);
     }
 
+    /**
+     * 용도 라벨을 값 앞에 붙여 계산한다 — {@code "session:<토큰>"} 형태다.
+     *
+     * <p>구분자 {@code :}는 라벨 집합({@link HmacPurpose})이 소문자 영문뿐이라 안전하다.
+     * 라벨에 {@code :}가 들어갈 수 있게 되면 {@code "a:b"}와 {@code "a"} + {@code ":b"}가
+     * 같은 입력이 되므로, 그때는 길이 접두 방식으로 바꿔야 한다.
+     */
     @Override
-    public String hmac(String value) {
+    public String hmac(HmacPurpose purpose, String value) {
         try {
             Mac mac = Mac.getInstance(ALGORITHM);
             mac.init(key);
-            return HexFormat.of().formatHex(mac.doFinal(value.getBytes(StandardCharsets.UTF_8)));
+            String input = purpose.label() + ":" + value;
+            return HexFormat.of().formatHex(mac.doFinal(input.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException e) {
             throw new IllegalStateException("HMAC 계산에 실패했다", e);
         }

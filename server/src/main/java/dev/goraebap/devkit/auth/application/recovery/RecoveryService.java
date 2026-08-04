@@ -6,6 +6,7 @@ import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.AuthProperties;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
+import dev.goraebap.devkit.auth.application.shared.HmacPurpose;
 import dev.goraebap.devkit.auth.application.shared.PasswordHasher;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
 import dev.goraebap.devkit.auth.application.shared.TokenHasher;
@@ -116,7 +117,7 @@ public class RecoveryService {
                 userId,
                 address.raw(),
                 address.normalized(),
-                tokenHasher.hmac(code),
+                tokenHasher.hmac(HmacPurpose.OTP, code),
                 clock.instant());
         verificationRepository.save(verification);
 
@@ -200,7 +201,7 @@ public class RecoveryService {
                 purpose,
                 address.raw(),
                 address.normalized(),
-                tokenHasher.hmac(tokenGenerator.sessionToken()),
+                tokenHasher.hmac(HmacPurpose.SESSION, tokenGenerator.sessionToken()),
                 clock.instant());
         verificationRepository.save(decoy);
         return decoy.id();
@@ -217,7 +218,7 @@ public class RecoveryService {
                 .findForAttempt(verificationId, purpose)
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.AUTH_OTP_INVALID, "확인 코드를 다시 확인해 주세요"));
 
-        VerificationCheck check = verification.attempt(tokenHasher.hmac(code), clock.instant());
+        VerificationCheck check = verification.attempt(tokenHasher.hmac(HmacPurpose.OTP, code), clock.instant());
         verificationRepository.save(verification);
         rejectUnless(check, verification);
 

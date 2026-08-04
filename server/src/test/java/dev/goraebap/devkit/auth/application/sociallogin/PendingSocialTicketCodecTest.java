@@ -64,4 +64,31 @@ class PendingSocialTicketCodecTest {
         assertThat(codec.decode(".only-signature")).isEmpty();
         assertThat(codec.decode("not-base64.deadbeef")).isEmpty();
     }
+
+    @Test
+    @DisplayName("AUTH-02 제공자 식별자에 구분자가 들어 있어도 원래 값 그대로 복원된다 (보안 검토 F6)")
+    void 구분자가_든_식별자를_잃지_않는다() {
+        // 구글 sub·카카오 id는 숫자라 지금은 걸리지 않는다. 다만 이 키트는 파생 프로젝트가
+        // 제공자를 추가할 것을 전제하며(결정-0015), 문자열 식별자를 주는 제공자를 붙이면
+        // 자유 형식 필드가 가운데 있던 옛 배치에서는 만료시각 파싱이 깨져 표가 원인 불명으로
+        // 거부됐다. 실패 사유를 구분하지 않는 설계라 디버깅이 특히 어려운 종류의 결함이다.
+        String identifierWithSeparator = "tenant|user|42";
+
+        String ticket = codec.encode(AuthProvider.GOOGLE, identifierWithSeparator);
+
+        assertThat(codec.decode(ticket)).hasValueSatisfying(표 -> {
+            assertThat(표.providerAccountId()).isEqualTo(identifierWithSeparator);
+            assertThat(표.provider()).isEqualTo(AuthProvider.GOOGLE);
+            assertThat(표.isExpired(clock.instant())).isFalse();
+        });
+    }
+
+    @Test
+    @DisplayName("AUTH-02 빈 제공자 식별자도 만료시각과 섞이지 않는다")
+    void 빈_식별자도_경계를_지킨다() {
+        String ticket = codec.encode(AuthProvider.KAKAO, "");
+
+        assertThat(codec.decode(ticket))
+                .hasValueSatisfying(표 -> assertThat(표.providerAccountId()).isEmpty());
+    }
 }
