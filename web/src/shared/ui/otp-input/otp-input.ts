@@ -36,13 +36,13 @@ import {
       <div class="pointer-events-none flex gap-2" aria-hidden="true">
         @for (slot of slots(); track $index) {
           <div
-            class="flex h-12 w-10 items-center justify-center rounded-control border bg-surface text-headline-md font-medium text-foreground transition-colors duration-150 ease-standard"
+            class="flex h-12 w-10 items-center justify-center rounded-md border bg-surface text-2xl font-semibold text-fg transition-colors"
             [class]="cellClass(slot.active)"
           >
             @if (slot.char) {
               {{ slot.char }}
             } @else if (slot.active && focused()) {
-              <span class="h-5 w-px animate-pulse bg-accent-ink"></span>
+              <span class="h-5 w-px animate-pulse bg-primary"></span>
             }
           </div>
         }
@@ -116,7 +116,11 @@ export class UiOtpInput {
    * 그것만으로는 시각적 표현이 없다.
    */
   protected cellClass(active: boolean): string {
-    const 테두리 = this.invalid() ? 'border-danger' : active ? 'border-accent' : 'border-line';
+    const 테두리 = this.invalid()
+      ? 'border-danger'
+      : active
+        ? 'border-primary'
+        : 'border-border-control';
 
     // 오류 상태에서도 링 색은 그대로 둔다 — 포커스 표시가 상태에 따라 색을
     // 바꾸면 "지금 포커스가 여기 있다"는 신호를 알아보기 어려워진다.

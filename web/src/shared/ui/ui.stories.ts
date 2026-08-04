@@ -26,10 +26,10 @@ const meta: Meta = {
 export default meta;
 
 const 모드 = (테마: 'light' | 'dark', 내용: string) => `
-  <div data-theme="${테마}" class="flex-1 bg-background p-8">
+  <div class="${테마 === 'dark' ? 'dark ' : ''}flex-1 bg-background p-8">
     <div class="mb-8 flex items-center gap-3">
-      <span class="text-label uppercase text-muted">${테마 === 'light' ? '라이트' : '다크'}</span>
-      <span class="h-px flex-1 bg-line"></span>
+      <span class="t-label-sm">${테마 === 'dark' ? '다크' : '라이트'}</span>
+      <span class="h-px flex-1 bg-border"></span>
     </div>
     <div class="flex flex-col gap-10">${내용}</div>
   </div>
@@ -41,7 +41,7 @@ const 나란히 = (내용: string) => ({
 
 const 절 = (제목: string, 내용: string) => `
   <section class="flex flex-col gap-3">
-    <h2 class="text-label uppercase text-subtle">${제목}</h2>
+    <h2 class="t-label-sm text-fg-faint">${제목}</h2>
     ${내용}
   </section>
 `;
@@ -54,7 +54,7 @@ export const 버튼: StoryObj = {
         `<div class="flex flex-wrap items-center gap-3">
           <button ui-button variant="primary">주 동작</button>
           <button ui-button variant="secondary">기본</button>
-          <button ui-button variant="quiet">조용한</button>
+          <button ui-button variant="tertiary">조용한</button>
           <button ui-button variant="danger">삭제</button>
         </div>`,
       )}
@@ -80,7 +80,7 @@ export const 버튼: StoryObj = {
           <button ui-button variant="secondary" [iconOnly]="true" aria-label="닫기">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="size-4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
-          <button ui-button variant="quiet" [iconOnly]="true" aria-label="설정">
+          <button ui-button variant="tertiary" [iconOnly]="true" aria-label="설정">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
           </button>
         </div>`,
@@ -167,22 +167,22 @@ export const 카드와기타: StoryObj = {
   render: () =>
     나란히(`
       ${절(
-        '카드 — 정적 카드에는 그림자를 얹지 않는다',
+        '카드 — 같은 평면은 선으로 가르고, 그림자는 실제로 떠 있는 것에만',
         `<div class="grid max-w-2xl gap-4 sm:grid-cols-2">
           <ui-card>
-            <h3 class="text-title text-foreground">기본 표면</h3>
-            <p class="text-body-sm text-muted">반경과 헤어라인으로 충분합니다.</p>
+            <h3 class="t-title-md">기본 표면</h3>
+            <p class="t-body-sm text-fg-muted">헤어라인 보더가 면을 가릅니다.</p>
             <div><button ui-button variant="secondary" size="sm">동작</button></div>
           </ui-card>
           <ui-card surface="elevated">
-            <h3 class="text-title text-foreground">떠 있는 표면</h3>
-            <p class="text-body-sm text-muted">모달·팝오버처럼 실제로 떠 있는 것에만 씁니다.</p>
+            <h3 class="t-title-md">떠 있는 표면</h3>
+            <p class="t-body-sm text-fg-muted">모달·팝오버처럼 실제로 떠 있는 것에만 씁니다.</p>
           </ui-card>
         </div>`,
       )}
       ${절(
         '링크 — 색만으로 구분하지 않으므로 밑줄이 기본이다',
-        `<p class="max-w-md text-body text-foreground">
+        `<p class="t-body-md max-w-md">
           계정이 이미 있다면 <a ui-link href="#">로그인</a>하세요.
           문제가 계속되면 <a ui-link href="#">도움말</a>을 참고하세요.
         </p>`,

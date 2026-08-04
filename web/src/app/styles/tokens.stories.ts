@@ -1,14 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/angular-vite';
 
 /**
- * 시맨틱 토큰의 참조 페이지. tokens.css와 나란히 두는 이유는 값이 바뀌면
- * 이 화면이 같이 바뀌어야 하기 때문이다 — 떨어져 있으면 갱신을 잊는다.
+ * 디자인 토큰 참조 화면 — Krill (결정-0024). krill.css와 나란히 두는 이유는
+ * 값이 바뀌면 이 화면이 같이 바뀌어야 하기 때문이다 — 떨어져 있으면 갱신을 잊는다.
  *
- * 두 모드를 **나란히** 보여준다. 한 번에 하나만 보이면 한쪽 모드가 깨진
- * 것을 늦게 발견한다. data-theme을 하위 트리에 걸 수 있게 만들어 둔 덕에
- * 한 화면에 둘을 띄울 수 있다.
+ * 두 모드를 **나란히** 보여준다. 한 번에 하나만 보이면 한쪽 모드가 깨진 것을
+ * 늦게 발견한다.
  *
- * 여기서 쓰는 클래스는 전부 @theme이 생성한 유틸리티다.
+ * 라이트가 기본이고 `.dark` 클래스가 색 토큰만 덮어쓴다. 그래서 라이트 패널은
+ * 클래스가 없고 다크 패널에만 `dark`를 건다 — Storybook 프리뷰 루트에는
+ * `.dark`가 붙지 않으므로 이 배치가 성립한다.
+ *
+ * 여기서 쓰는 클래스는 전부 krill.css가 생성한 유틸리티다. 이 화면이 깨지면
+ * 토큰이 사라졌거나 이름이 바뀐 것이다.
  */
 const meta: Meta = {
   title: 'Foundation/토큰',
@@ -19,182 +23,183 @@ const meta: Meta = {
 
 export default meta;
 
-/** 한 모드의 캔버스를 만든다. data-theme이 color-scheme을 바꾸고
- *  light-dark()가 그것을 따라간다. */
 const 모드 = (테마: 'light' | 'dark', 내용: string) => `
-  <div data-theme="${테마}" class="flex-1 bg-background p-8">
+  <div class="${테마 === 'dark' ? 'dark ' : ''}flex-1 bg-background p-8">
     <div class="mb-8 flex items-center gap-3">
-      <span class="text-label uppercase text-muted">${테마 === 'light' ? '라이트' : '다크'}</span>
-      <span class="h-px flex-1 bg-line"></span>
+      <span class="t-label-sm">${테마 === 'dark' ? '다크' : '라이트'}</span>
+      <span class="h-px flex-1 bg-border"></span>
     </div>
-    <div class="flex flex-col gap-12">${내용}</div>
+    <div class="flex flex-col gap-10">${내용}</div>
   </div>
 `;
 
-const 나란히 = (내용: string) => `
-  <div class="flex min-h-screen flex-col lg:flex-row">
-    ${모드('light', 내용)}${모드('dark', 내용)}
-  </div>
-`;
+const 나란히 = (내용: string) => ({
+  template: `<div class="flex min-h-screen flex-col lg:flex-row">${모드('light', 내용)}${모드('dark', 내용)}</div>`,
+});
 
 const 절 = (제목: string, 내용: string) => `
-  <section class="flex flex-col gap-5">
-    <h2 class="text-label uppercase text-subtle">${제목}</h2>
+  <section class="flex flex-col gap-3">
+    <h2 class="t-label-sm text-fg-faint">${제목}</h2>
     ${내용}
   </section>
 `;
 
+/** 색 견본 한 칸. 채움을 보여주고 이름과 쓰임을 붙인다. */
 const 견본 = (이름: string, 클래스: string, 설명: string) => `
-  <div class="flex items-center gap-3">
-    <div class="size-10 shrink-0 rounded-tight border border-line ${클래스}"></div>
-    <div class="min-w-0">
-      <div class="font-mono text-body-sm text-foreground">${이름}</div>
-      <div class="text-body-sm text-muted">${설명}</div>
-    </div>
+  <div class="flex flex-col gap-1.5">
+    <div class="h-14 rounded-md border border-border ${클래스}"></div>
+    <div class="font-mono text-[0.8125rem] text-fg">${이름}</div>
+    <div class="t-body-sm text-fg-muted">${설명}</div>
   </div>
 `;
 
-const 색상내용 = `
-  ${절(
-    '표면 — 라이트는 그림자가, 다크는 색이 층위를 만든다',
-    `<div class="grid gap-4 sm:grid-cols-2">
-      ${견본('background', 'bg-background', '페이지 캔버스')}
-      ${견본('surface', 'bg-surface', '카드 · 입력 필드')}
-      ${견본('elevated', 'bg-elevated', '모달 · 팝오버')}
-      ${견본('overlay', 'bg-overlay', '배경 딤')}
-    </div>`,
-  )}
-  ${절(
-    '전경',
-    `<div class="grid gap-4 sm:grid-cols-2">
-      ${견본('foreground', 'bg-foreground', '제목 · 본문 — AA 통과')}
-      ${견본('muted', 'bg-muted', '보조 텍스트 — AA 통과')}
-      ${견본('subtle', 'bg-subtle', '비활성 · 메타 — UI 기준만. 본문 금지')}
-    </div>`,
-  )}
-  ${절(
-    '경계선 · 액센트',
-    `<div class="grid gap-4 sm:grid-cols-2">
-      ${견본('line', 'bg-line', '기본 헤어라인')}
-      ${견본('line-strong', 'bg-line-strong', '선택 행 등 강조')}
-      ${견본('accent', 'bg-accent', '채움 — 흰 텍스트가 AA를 넘는 단계')}
-      ${견본('accent-ink', 'bg-accent-ink', '잉크 — 링크 · 아이콘')}
-      ${견본('accent-soft', 'bg-accent-soft', '선택 상태 배경')}
-    </div>`,
-  )}
-  ${절(
-    '의도 — 기본형은 텍스트용, soft는 배경용',
-    `<div class="grid gap-4 sm:grid-cols-2">
-      ${견본('success', 'bg-success', '완료')}
-      ${견본('success-soft', 'bg-success-soft', '완료 배너 배경')}
-      ${견본('warning', 'bg-warning', '주의')}
-      ${견본('warning-soft', 'bg-warning-soft', '주의 배너 배경')}
-      ${견본('info', 'bg-info', '안내')}
-      ${견본('info-soft', 'bg-info-soft', '안내 배너 배경')}
-      ${견본('danger', 'bg-danger', '오류 · 파괴적 동작')}
-      ${견본('danger-soft', 'bg-danger-soft', '오류 배너 배경')}
-    </div>`,
-  )}
-  ${절(
-    '실사용 — 대비를 눈으로 확인한다',
-    `<div class="flex flex-col gap-3">
-      <div class="rounded-surface border border-line bg-surface p-5">
-        <p class="text-title text-foreground">카드 제목</p>
-        <p class="mt-1 text-body text-muted">보조 설명이 이 대비로 읽힙니다.</p>
-        <p class="mt-1 text-body-sm text-subtle">메타데이터는 여기까지만 낮춥니다.</p>
-        <div class="mt-4 flex items-center gap-3">
-          <span class="rounded-control bg-accent px-4 py-2 text-body-sm font-medium text-on-accent">주 동작</span>
-          <span class="text-body-sm text-accent-ink">링크 텍스트</span>
-        </div>
-      </div>
-      <div class="rounded-control border border-line bg-danger-soft px-4 py-3">
-        <p class="text-body-sm text-danger">오류 메시지가 soft 배경 위에 얹힙니다.</p>
-      </div>
-    </div>`,
-  )}
-`;
-
-export const 색상: StoryObj = {
-  render: () => ({ template: 나란히(색상내용) }),
+export const 색: StoryObj = {
+  render: () =>
+    나란히(`
+      ${절(
+        '표면 3단 — 올라갈수록 앞에 있다',
+        `<div class="grid max-w-3xl gap-4 sm:grid-cols-4">
+          ${견본('background', 'bg-background', '캔버스')}
+          ${견본('surface', 'bg-surface', '컴포넌트 면')}
+          ${견본('elevated', 'bg-elevated', '떠 있는 면')}
+          ${견본('muted', 'bg-muted', 'hover · 비활성 채움')}
+        </div>`,
+      )}
+      ${절(
+        '보더 — 선이 구조를 그린다',
+        `<div class="grid max-w-3xl gap-4 sm:grid-cols-3">
+          ${견본('border', 'bg-border', '장식선 — 면을 가른다')}
+          ${견본('border-strong', 'bg-border-strong', '강조된 장식선')}
+          ${견본('border-control', 'bg-border-control', '폼 컨트롤 경계 — 3:1을 만족한다')}
+        </div>`,
+      )}
+      ${절(
+        '전경 — 아래로 갈수록 대비가 낮아진다',
+        `<div class="grid max-w-3xl gap-4 sm:grid-cols-3">
+          ${견본('fg', 'bg-fg', '제목 · 본문')}
+          ${견본('fg-muted', 'bg-fg-muted', '보조 텍스트 · 라벨')}
+          ${견본('fg-faint', 'bg-fg-faint', '플레이스홀더 · 캡션')}
+        </div>`,
+      )}
+      ${절(
+        '브랜드',
+        `<div class="grid max-w-3xl gap-4 sm:grid-cols-4">
+          ${견본('primary', 'bg-primary', '주 동작 · 링크')}
+          ${견본('primary-hover', 'bg-primary-hover', 'hover')}
+          ${견본('primary-pressed', 'bg-primary-pressed', 'active')}
+          ${견본('primary-soft', 'bg-primary-soft', '칩 배경')}
+        </div>`,
+      )}
+      ${절(
+        '시그널 — 색만으로 의미를 전달하지 않는다',
+        `<div class="grid max-w-3xl gap-4 sm:grid-cols-4">
+          ${견본('success', 'bg-success', '완료 · 상승')}
+          ${견본('warning', 'bg-warning', '주의')}
+          ${견본('info', 'bg-info', '안내')}
+          ${견본('danger', 'bg-danger', '오류 · 파괴적 동작')}
+        </div>`,
+      )}
+      ${절(
+        '읽히는 조합 — 대비 테스트가 지키는 것',
+        `<div class="flex max-w-2xl flex-col gap-3">
+          <div class="rounded-lg border border-border bg-surface p-5">
+            <p class="t-body-md">표면 위 본문입니다. 여기가 AA 4.5:1 기준선입니다.</p>
+            <p class="t-body-sm mt-1 text-fg-muted">보조 설명이 이 대비로 읽힙니다.</p>
+            <p class="t-body-sm mt-1 text-fg-faint">
+              fg-faint는 AA(4.5:1)에 못 미칩니다 — 플레이스홀더 전용이며 본문·캡션에 쓰지 않습니다.
+            </p>
+            <p class="t-body-sm mt-2"><span class="text-primary underline">링크 텍스트</span></p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="inline-flex h-6 items-center rounded-full bg-success-soft px-2.5 text-xs font-medium text-success">↑ 완료</span>
+            <span class="inline-flex h-6 items-center rounded-full bg-warning-soft px-2.5 text-xs font-medium text-warning">주의</span>
+            <span class="inline-flex h-6 items-center rounded-full bg-info-soft px-2.5 text-xs font-medium text-info">안내</span>
+            <span class="inline-flex h-6 items-center rounded-full bg-danger-soft px-2.5 text-xs font-medium text-danger">↓ 실패</span>
+          </div>
+        </div>`,
+      )}
+    `),
 };
 
-const 타입내용 = `
-  ${절(
-    '타입 스케일 — 크기가 아니라 역할로 부른다',
-    `<div class="flex flex-col gap-6">
-      <div><div class="text-label uppercase text-subtle">display</div><p class="text-display text-foreground">정보는 빛이다</p></div>
-      <div><div class="text-label uppercase text-subtle">headline-lg</div><p class="text-headline-lg text-foreground">페이지 제목</p></div>
-      <div><div class="text-label uppercase text-subtle">headline-md</div><p class="text-headline-md text-foreground">절 제목</p></div>
-      <div><div class="text-label uppercase text-subtle">title</div><p class="text-title text-foreground">카드 제목</p></div>
-      <div>
-        <div class="text-label uppercase text-subtle">body</div>
-        <p class="max-w-prose text-body text-foreground">
-          본문 기본 크기입니다. 한글과 라틴이 한 서체(Pretendard)로 덮이는지 확인하세요 —
-          Latin mixed inline 처럼 섞였을 때 굵기와 리듬이 어긋나지 않아야 합니다.
-        </p>
-      </div>
-      <div><div class="text-label uppercase text-subtle">body-sm</div><p class="text-body-sm text-muted">보조 설명 · 힌트 · 캡션</p></div>
-      <div><div class="text-label uppercase text-subtle">label</div><p class="text-label uppercase text-muted">폼 라벨 · FORM LABEL</p></div>
-      <div><div class="text-label uppercase text-subtle">mono (시스템 스택)</div><p class="font-mono text-mono text-foreground">const token = 'value';</p></div>
-      <div><div class="text-label uppercase text-subtle">metric</div><p class="text-metric text-foreground">1,284</p></div>
-    </div>`,
-  )}
-`;
-
-export const 타입스케일: StoryObj = {
-  render: () => ({ template: 나란히(타입내용) }),
+export const 타이포: StoryObj = {
+  render: () =>
+    나란히(`
+      ${절(
+        '스케일 — 크기 · 굵기 · 자간 · 행간이 한 세트로 적용된다',
+        `<div class="flex max-w-2xl flex-col gap-5">
+          <div><div class="t-label-sm text-fg-faint">display</div><p class="t-display">Display</p></div>
+          <div><div class="t-label-sm text-fg-faint">headline-lg</div><p class="t-headline-lg">큰 제목 Headline</p></div>
+          <div><div class="t-label-sm text-fg-faint">headline-md</div><p class="t-headline-md">중간 제목 Headline</p></div>
+          <div><div class="t-label-sm text-fg-faint">title-md</div><p class="t-title-md">카드 제목 Title</p></div>
+          <div><div class="t-label-sm text-fg-faint">body-md</div><p class="t-body-md">본문입니다. 읽는 글의 기본 크기 Body</p></div>
+          <div><div class="t-label-sm text-fg-faint">body-sm</div><p class="t-body-sm text-fg-muted">보조 설명 · 힌트 · 캡션</p></div>
+          <div><div class="t-label-sm text-fg-faint">label-sm</div><p class="t-label-sm">폼 라벨 · FORM LABEL</p></div>
+        </div>`,
+      )}
+      ${절(
+        '수치는 모노스페이스 — 자릿수를 맞춘다',
+        `<div class="flex max-w-2xl flex-col gap-4">
+          <p class="t-metric">1,284</p>
+          <div class="overflow-x-auto rounded-lg border border-border">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr class="border-b border-border bg-muted">
+                  <th scope="col" class="t-label-sm px-4 py-3 text-start">항목</th>
+                  <th scope="col" class="t-label-sm px-4 py-3 text-start">값</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-border last:border-0">
+                  <td class="px-4 py-3 text-[0.8125rem] text-fg">정렬된 수치</td>
+                  <td class="px-4 py-3 text-end font-mono text-[0.8125rem] tabular-nums text-fg">1,284</td>
+                </tr>
+                <tr class="border-b border-border last:border-0">
+                  <td class="px-4 py-3 text-[0.8125rem] text-fg">자릿수가 달라도</td>
+                  <td class="px-4 py-3 text-end font-mono text-[0.8125rem] tabular-nums text-fg">97</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>`,
+      )}
+    `),
 };
-
-const 형태내용 = `
-  ${절(
-    '반경 — 역할별로 고정한다',
-    `<div class="grid gap-4 sm:grid-cols-2">
-      ${[
-        'tight · 6px|체크박스',
-        'control · 10px|버튼 · 입력',
-        'surface · 16px|카드',
-        'panel · 24px|모달 · 시트',
-        'pill|배지 · 스위치',
-      ]
-        .map((v) => {
-          const [n, d] = v.split('|');
-          const cls = 'rounded-' + n.split(' ')[0];
-          return `<div class="flex items-center gap-3">
-            <div class="h-10 w-16 shrink-0 border border-line bg-surface ${cls}"></div>
-            <div><div class="font-mono text-body-sm text-foreground">${n}</div><div class="text-body-sm text-muted">${d}</div></div>
-          </div>`;
-        })
-        .join('')}
-    </div>`,
-  )}
-  ${절(
-    '깊이 — 두 모드가 다른 수단을 쓴다',
-    `<div class="grid gap-5 sm:grid-cols-3">
-      <div class="flex flex-col gap-2">
-        <div class="h-20 rounded-surface bg-elevated shadow-raised"></div>
-        <span class="font-mono text-body-sm text-muted">raised</span>
-      </div>
-      <div class="flex flex-col gap-2">
-        <div class="h-20 rounded-surface bg-elevated shadow-floating"></div>
-        <span class="font-mono text-body-sm text-muted">floating</span>
-      </div>
-      <div class="flex flex-col gap-2">
-        <div class="h-20 rounded-panel bg-elevated shadow-modal"></div>
-        <span class="font-mono text-body-sm text-muted">modal</span>
-      </div>
-    </div>`,
-  )}
-  ${절(
-    '포커스 링 — 컴포넌트가 바꾸지 않는다',
-    `<div class="flex flex-wrap items-center gap-4">
-      <div class="rounded-control border border-line bg-surface px-4 py-2 text-body text-foreground" style="box-shadow: var(--focus-ring)">
-        :focus-visible
-      </div>
-      <span class="text-body-sm text-subtle">키보드 이동에만 나타난다</span>
-    </div>`,
-  )}
-`;
 
 export const 형태와깊이: StoryObj = {
-  render: () => ({ template: 나란히(형태내용) }),
+  render: () =>
+    나란히(`
+      ${절(
+        '반경 — md 이상에는 초타원 곡선이 걸린다',
+        `<div class="flex flex-wrap items-end gap-4">
+          ${[
+            ['sm', 'rounded-sm'],
+            ['md', 'rounded-md'],
+            ['lg', 'rounded-lg'],
+            ['xl', 'rounded-xl'],
+            ['full', 'rounded-full'],
+          ]
+            .map(
+              ([n, c]) => `
+            <div class="flex flex-col items-center gap-2">
+              <div class="size-16 border border-border-strong bg-surface ${c}"></div>
+              <span class="font-mono text-[0.8125rem] text-fg-muted">${n}</span>
+            </div>`,
+            )
+            .join('')}
+        </div>`,
+      )}
+      ${절(
+        '깊이 — 같은 평면은 선으로, 떠 있는 것만 그림자로',
+        `<div class="grid max-w-2xl gap-4 sm:grid-cols-2">
+          <div class="rounded-lg border border-border bg-elevated p-5">
+            <p class="t-title-md">같은 평면</p>
+            <p class="t-body-sm mt-1 text-fg-muted">헤어라인 보더가 면을 가릅니다. 그림자를 쓰지 않습니다.</p>
+          </div>
+          <div class="rounded-lg border border-border-strong bg-elevated p-5 shadow-md">
+            <p class="t-title-md">실제로 떠 있음</p>
+            <p class="t-body-sm mt-1 text-fg-muted">모달 · 팝오버 · 드롭다운에만 그림자를 씁니다.</p>
+          </div>
+        </div>`,
+      )}
+    `),
 };

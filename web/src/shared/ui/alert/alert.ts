@@ -28,7 +28,7 @@ const 의도 = {
     <svg
       viewBox="0 0 24 24"
       fill="none"
-      class="mt-0.5 size-4 shrink-0"
+      class="mt-0.5 size-5 shrink-0"
       stroke="currentColor"
       stroke-width="2"
       stroke-linecap="round"
@@ -38,11 +38,11 @@ const 의도 = {
       <path [attr.d]="iconPath()" />
     </svg>
 
-    <div class="flex min-w-0 flex-col gap-1">
+    <div class="flex min-w-0 flex-col gap-0.5">
       @if (title()) {
-        <p class="text-body font-medium">{{ title() }}</p>
+        <p class="text-[0.9375rem] font-semibold text-fg">{{ title() }}</p>
       }
-      <div class="text-body-sm text-foreground">
+      <div class="text-[0.875rem] text-fg-muted">
         <ng-content />
       </div>
     </div>
@@ -56,8 +56,9 @@ export class UiAlert {
   readonly intent = input<keyof typeof 의도>('info');
   readonly title = input<string>();
 
+  // 보더를 두지 않는다 — soft 배경이 이미 면을 구분하므로 선을 더하면 이중이다.
   protected readonly classes = computed(
-    () => `flex gap-3 rounded-control border border-line p-3.5 ${의도[this.intent()].box}`,
+    () => `flex gap-3 rounded-lg p-4 ${의도[this.intent()].box}`,
   );
 
   protected readonly iconPath = computed(() => 의도[this.intent()].icon);

@@ -1,55 +1,72 @@
 /* 전역 스타일 진입점. angular.json의 styles가 이 파일을 가리킨다.
    실제 내용은 app/styles/ 아래에 둔다(웹.md §3 — 전역 스타일·폰트는 app/). */
 
-@import 'tailwindcss';
-
 /* Pretendard — 변수 폰트 + 동적 서브셋. 92개 유니코드 범위로 쪼개져 있어
    페이지에 실제로 쓰인 글자 범위만 내려받는다(한글 전체는 3.1MB지만
    일반적인 화면은 그중 일부만 받는다). 자체 호스팅이라 외부 CDN에
-   의존하지 않는다. OFL-1.1. */
+   의존하지 않는다. OFL-1.1.
+
+   Krill 문서는 CDN @import를 보여주지만 채택하지 않았다 — 외부 의존이
+   생기고 서브셋 없이 통째로 받게 되기 때문이다(결정-0024). krill.css의
+   --font-sans가 'Pretendard Variable'을 첫 후보로 두고 있어 그대로 맞물린다.
+
+   CSS 규격상 @import는 다른 규칙보다 앞에 와야 한다. 순서를 어기면 브라우저가
+   폰트 임포트를 조용히 무시하고 폴백 폰트를 쓴다. */
 @import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+@import 'tailwindcss';
 
-/* 프리미티브 → 시맨틱 순서. 테마를 바꿀 때 아래 한 줄만 교체한다. */
-@import './app/styles/themes/halo.css';
-@import './app/styles/tokens.css';
+/* 디자인 토큰 — Krill (결정-0024). 이 한 장이 색·타이포·반경·모션·그림자와
+   기반 스타일(@layer base)까지 담는다. 값을 고칠 일이 있으면 컴포넌트가
+   아니라 이 파일에 넣는다.
 
-/* 기반 스타일 — 토큰을 쓰는 최소한의 전역 규칙만 둔다.
-   컴포넌트 스타일은 여기 쓰지 않는다(shared/ui가 소유한다). */
+   정본은 .agents/skills/krill-design-system/assets/krill.css이고 여기 있는
+   것은 사본이다. Krill이 갱신되면 파일을 통째로 갈아끼운다 — 손으로 부분
+   수정하지 않는다. 그것이 3계층을 버리고 한 장을 택한 이유다. */
+@import './app/styles/krill.css';
+
+/* ── Krill 토큰 오버라이드 ──────────────────────────────────────────
+   krill.css는 손대지 않는다(통째로 갈아끼우는 것이 채택 전제다). 고쳐야 할
+   값이 있으면 여기서 덮어쓴다 — 벗어난 지점이 우리 파일에만 모여 있어야
+   업스트림이 갱신됐을 때 무엇을 지울지 알 수 있다.
+
+   ## 다크 모드 border-control (2026-08-03)
+
+   Krill 다크의 `--color-border-control`(흰색 알파 0.30)은 배경 위에서 2.67:1,
+   표면 위에서 2.71:1로 **WCAG 1.4.11의 3:1에 못 미친다.** 라이트는 3.02·3.24로
+   통과하므로 다크만 놓친 것으로 보인다(krill.css 주석도 "바탕·표면 양쪽 3:1"을
+   의도로 밝히고 있다).
+
+   폼 컨트롤의 테두리는 "여기가 입력란"임을 알리는 유일한 시각 정보라 이 기준을
+   면제할 수 없다. 알파를 0.34로 올리면 3.09·3.12가 된다 — 은은함을 거의 그대로
+   두면서 기준을 넘는 최소값이다.
+
+   업스트림(dev-goraebap/krill)에 반영되면 이 블록을 지운다. 근거와 재현 수치는
+   docs/참고/krill-대비-보고.txt에 있다. */
+.dark {
+  --color-border-control: oklch(1 0 0 / 0.34);
+}
+
+/* krill.css의 @layer base가 대부분을 덮는다(스크롤바 거터, 포커스 링, body
+   타이포, 선택 영역). 여기에는 그것이 다루지 않는 것만 더한다. */
 @layer base {
   html {
-    /* 스크롤바 등장으로 레이아웃이 흔들리지 않게 자리를 미리 잡는다. */
-    scrollbar-gutter: stable;
+    /* 모바일 가로 회전 시 브라우저가 글자를 임의로 키우지 않게 한다. */
     -webkit-text-size-adjust: 100%;
-  }
-
-  body {
-    margin: 0;
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-    font-family: var(--font-sans);
-    font-size: var(--text-body);
-    line-height: 1.55;
-    -webkit-font-smoothing: antialiased;
   }
 
   /* 모드 경계에서 텍스트 색을 그 모드의 값으로 다시 해석한다.
      `color`는 상속되는 속성이라, 경계에서 다시 선언하지 않으면 바깥 모드
-     기준으로 이미 계산된 값이 안으로 내려와 대비가 뒤집힌다 — 밝은 배경에
-     흰 글자가 얹히는 식이다. `currentColor`에 기대는 요소(아이콘·스피너)가
-     특히 그렇다.
+     기준으로 이미 계산된 값이 안으로 내려온다 — 밝은 페이지 안에 어두운
+     영역을 넣으면 흰 배경에 흰 글자가 얹히는 식이다. `currentColor`에
+     기대는 요소(아이콘·스피너)가 특히 그렇다.
 
-     @layer base에 두어 유틸리티(text-muted 등)가 이길 수 있게 한다. */
-  [data-theme] {
-    color: var(--color-foreground);
+     @layer base에 두어 유틸리티(text-fg-muted 등)가 이길 수 있게 한다. */
+  .dark {
+    color: var(--color-fg);
   }
 
-  /* 마우스 클릭에는 링을 띄우지 않고 키보드 이동에만 띄운다. */
-  :focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
-  /* 모션 민감 사용자에게는 전환을 걷어낸다. */
+  /* 모션 민감 사용자에게는 전환을 걷어낸다. krill.css는 모션 토큰을 주지만
+     이 선호 처리는 담지 않는다. */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

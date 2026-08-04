@@ -1,0 +1,414 @@
+/* =============================================================
+   Krill — 디자인 토큰
+
+   이 파일 하나를 프로젝트의 Tailwind 진입점(styles.css 등)에 붙여넣으면
+   끝이다. 설치할 패키지도, 빌드 단계도 없다.
+
+     @import 'tailwindcss';
+     ... 여기부터 이 파일 내용 ...
+
+   웹폰트가 필요하면 파일 맨 위, tailwindcss 임포트보다 위에 둔다.
+
+     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+     @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap');
+     @import 'tailwindcss';
+
+   CSS 규격상 임포트는 다른 규칙보다 앞에 와야 한다. 순서를 어기면 브라우저가
+   폰트 임포트를 통째로 무시하는데, 에러 없이 폴백 폰트가 쓰이므로 눈치채기
+   어렵다. document.fonts.size 가 0 이면 이 상황이다.
+
+   원칙
+     · 선이 구조를 그린다 — 그림자가 아닌 1px 헤어라인 보더
+     · 수치는 모노스페이스 — tabular-nums 로 자릿수를 맞춘다
+     · 시그널 색은 아껴 쓴다 — 의미가 있을 때만, 항상 텍스트와 함께
+     · 모서리는 결코 날카롭지 않다 — 초타원 곡선
+     · 색은 OKLCH — 라이트/다크 파생과 AA 대비를 계산으로 맞춘다
+
+   라이트가 기본이고 .dark 클래스가 색 토큰만 덮어쓴다. 타이포·라운딩·모션은
+   테마 간 공유한다.
+   ============================================================= */
+
+/* 컴포넌트에서 dark: 유틸리티를 쓸 수 있게 한다(기본은 토큰 오버라이드). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* ---------- 색: 표면 3단 (따뜻한 바탕 → 컴포넌트 → 떠 있는 면) ---------- */
+  --color-background: oklch(0.97 0.006 110);
+  --color-surface: oklch(0.995 0.002 110);
+  --color-elevated: oklch(1 0 0);
+  --color-chrome: oklch(0.985 0.004 110); /* 앱 크롬(사이드바·헤더·탭바) */
+  --color-muted: oklch(0.945 0.008 110); /* hover·비활성 채움 */
+  --color-overlay: oklch(0.18 0.01 110 / 0.45);
+
+  /* ---------- 색: 보더 (그림자 대신 선이 구조를 그린다) ----------
+     border / border-strong 은 면을 가르는 장식선이다. 은은한 톤이 이 시스템의
+     정체성이라 WCAG 1.4.11(비텍스트 3:1)을 적용하지 않는다 — 이 선들이 사라져도
+     컴포넌트를 식별하지 못하게 되지는 않기 때문이다.
+
+     반면 폼 컨트롤(input·select·textarea)의 테두리는 "여기가 입력란"임을 알리는
+     유일한 시각 정보라 1.4.11 대상이다. 그래서 3:1 을 만족하는 별도 토큰을 둔다.
+     장식선을 진하게 만들어 미감을 깨는 대신, 필요한 곳에만 진한 선을 쓴다. */
+  --color-border: oklch(0.915 0.008 110);
+  --color-border-strong: oklch(0.85 0.012 110);
+  --color-border-control: oklch(0.645 0.012 110); /* 폼 컨트롤 경계 — 바탕·표면 양쪽 3:1 */
+
+  /* ---------- 색: 전경 ---------- */
+  --color-fg: oklch(0.23 0.015 110); /* 제목·본문 */
+  --color-fg-muted: oklch(0.47 0.02 110); /* 보조 텍스트·라벨 */
+  --color-fg-faint: oklch(0.63 0.02 110); /* 플레이스홀더·캡션 */
+  --color-fg-inverse: oklch(0.99 0.003 110);
+
+  /* ---------- 색: 브랜드 (자연·숲 계열 그린) ---------- */
+  --color-primary: oklch(0.5 0.105 118);
+  --color-primary-hover: oklch(0.44 0.105 118);
+  --color-primary-pressed: oklch(0.38 0.1 118);
+  --color-primary-soft: oklch(0.95 0.04 118);
+  --color-primary-fg: oklch(0.99 0.02 118);
+
+  /* ---------- 색: 시그널 (단색 + 칩용 soft 배경) ----------
+     명도는 "표면 위 텍스트"와 "soft 배경 위 칩" 두 조건을 동시에 4.5:1 로
+     만드는 최대값이다(scripts/solve-signal.mjs). 색상·채도는 유지하고 명도만
+     필요한 만큼 낮춰 원본 톤에서 최소한으로 벗어나게 했다.
+     경고(warning)가 가장 많이 내려갔다 — 노랑 계열은 밝을 때 대비를 못 낸다. */
+  --color-success: oklch(0.52 0.13 150);
+  --color-warning: oklch(0.535 0.13 75);
+  --color-info: oklch(0.525 0.1 235);
+  --color-danger: oklch(0.545 0.2 25);
+
+  --color-success-soft: oklch(0.95 0.04 150);
+  --color-warning-soft: oklch(0.95 0.05 80);
+  --color-info-soft: oklch(0.95 0.04 235);
+  --color-danger-soft: oklch(0.95 0.04 25);
+
+  /* ---------- 타이포: 글꼴 ----------
+     Pretendard 의 라틴 글리프가 Inter 기반이라 별도 영문 서체를 겹치지 않는다.
+     하이브리드는 본문 라틴 교체가 아니라 역할별 대비(본문 ↔ 수치)로 만든다.
+     웹폰트 로드는 fonts.css 참조(선택). */
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+    'Apple SD Gothic Neo', 'Segoe UI', Roboto, 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ---------- 라운딩 (모서리는 결코 날카롭지 않다) ---------- */
+  --radius-none: 0px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  /* ---------- 그림자 (떠 있는 면에만 절제해서 사용) ---------- */
+  --shadow-sm: 0 1px 2px rgba(16, 18, 24, 0.06);
+  --shadow-md: 0 8px 24px rgba(16, 18, 24, 0.1), 0 1px 2px rgba(16, 18, 24, 0.06);
+  --shadow-lg: 0 24px 60px rgba(16, 18, 24, 0.16), 0 2px 6px rgba(16, 18, 24, 0.08);
+}
+
+/* =============================================================
+   모서리 곡선 — 초타원(superellipse)
+
+   md(10px) 이상 라운드 유틸에만 corner-shape 를 입혀 모서리를 4분원이 아닌
+   부드러운 초타원 곡선으로 통일한다. 컴포넌트마다 클래스를 달지 않고 여기 한
+   곳에서 반경 스케일 기준으로 건다 → 새 컴포넌트도 rounded-lg 만 쓰면 자동 적용.
+
+     · 제외: rounded-full(알약·원 — squircle 을 주면 형태가 일그러진다),
+             rounded-sm(6px — 곡률 차이가 눈에 보이지 않는다)
+     · rounded-t-xl 은 모바일 바텀시트 상단 모서리(부분 라운드)라 포함
+     · 미지원 브라우저는 @supports 로 일반 둥근 모서리 폴백
+
+   곡률 1.6 은 은은한 톤. 더 또렷한 애플식이 필요하면 2 로 올린다(단일 출처).
+   ============================================================= */
+
+@supports (corner-shape: superellipse(1.6)) {
+  :where(.rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl),
+  [class*='rounded-t-xl'] {
+    corner-shape: superellipse(1.6);
+  }
+}
+
+/* =============================================================
+   유틸리티가 아닌 토큰 (타이포 스케일·모션·포커스·레이아웃)
+   ============================================================= */
+
+:root {
+  /* 폼 컨트롤·스크롤바가 라이트 위젯으로 렌더되도록 */
+  color-scheme: light;
+
+  /* ---------- 타이포 스케일 9종 ----------
+     각 항목은 size·weight·tracking·leading 4개 값을 한 세트로 갖는다. */
+  --text-display-size: clamp(2.75rem, 6vw, 4.5rem);
+  --text-display-weight: 600;
+  --text-display-tracking: -0.03em;
+  --text-display-leading: 1.04;
+
+  --text-headline-lg-size: 2.25rem;
+  --text-headline-lg-weight: 600;
+  --text-headline-lg-tracking: -0.02em;
+  --text-headline-lg-leading: 1.12;
+
+  --text-headline-md-size: 1.5rem;
+  --text-headline-md-weight: 600;
+  --text-headline-md-tracking: -0.015em;
+  --text-headline-md-leading: 1.2;
+
+  --text-title-md-size: 1.125rem;
+  --text-title-md-weight: 600;
+  --text-title-md-tracking: -0.01em;
+  --text-title-md-leading: 1.3;
+
+  --text-body-md-size: 0.9375rem;
+  --text-body-md-weight: 400;
+  --text-body-md-tracking: -0.005em;
+  --text-body-md-leading: 1.55;
+
+  --text-body-sm-size: 0.8125rem;
+  --text-body-sm-weight: 400;
+  --text-body-sm-tracking: 0;
+  --text-body-sm-leading: 1.5;
+
+  --text-label-sm-size: 0.75rem;
+  --text-label-sm-weight: 500;
+  --text-label-sm-tracking: 0.08em;
+  --text-label-sm-leading: 1.2;
+
+  --text-mono-sm-size: 0.8125rem;
+  --text-mono-sm-weight: 500;
+  --text-mono-sm-tracking: 0;
+  --text-mono-sm-leading: 1.4;
+
+  --text-metric-size: 2.5rem;
+  --text-metric-weight: 600;
+  --text-metric-tracking: -0.02em;
+  --text-metric-leading: 1;
+
+  /* ---------- 모션 ---------- */
+  --motion-fast: 120ms;
+  --motion-base: 150ms;
+  --motion-slow: 240ms;
+  --easing-standard: cubic-bezier(0.2, 0.6, 0.2, 1);
+
+  /* ---------- 포커스 ---------- */
+  --focus-ring-color: oklch(0.5 0.105 118 / 0.32);
+  --focus-ring: 0 0 0 3px var(--focus-ring-color);
+
+  /* ---------- 레이아웃 ---------- */
+  --container-max: 1200px;
+  --container-pad: clamp(20px, 4vw, 48px);
+}
+
+/* =============================================================
+   다크 테마 — 색 토큰만 덮어쓴다(타이포·라운딩·모션은 공유).
+
+   시그널은 어두운 바탕에서 텍스트로 읽히도록 밝게 올리고, soft 배경은 같은
+   색상의 어두운 톤으로 둔다. primary-fg / fg-inverse 는 밝아진 브랜드·시그널
+   위에서 어두운 글자가 되도록 뒤집힌다.
+   ============================================================= */
+
+.dark {
+  color-scheme: dark;
+
+  /* 표면 3단 (따뜻한 근흑 → 카드 → 떠 있는 면) */
+  --color-background: oklch(0.175 0.008 118);
+  --color-surface: oklch(0.215 0.01 118);
+  --color-elevated: oklch(0.255 0.012 118);
+  --color-chrome: oklch(0.2 0.008 118);
+  --color-muted: oklch(0.285 0.014 118);
+  --color-overlay: oklch(0 0 0 / 0.6);
+
+  /* 보더 — 어두운 바탕에선 흰색 알파 헤어라인이 더 또렷하다 */
+  --color-border: oklch(1 0 0 / 0.1);
+  --color-border-strong: oklch(1 0 0 / 0.2);
+  --color-border-control: oklch(1 0 0 / 0.3);
+
+  /* 전경 */
+  --color-fg: oklch(0.96 0.005 110);
+  --color-fg-muted: oklch(0.74 0.02 110);
+  --color-fg-faint: oklch(0.58 0.02 110);
+  --color-fg-inverse: oklch(0.18 0.008 118);
+
+  /* 브랜드 — 밝은 그린, 어두운 글자(primary-fg)와 짝 */
+  --color-primary: oklch(0.68 0.12 118);
+  --color-primary-hover: oklch(0.73 0.12 118);
+  --color-primary-pressed: oklch(0.78 0.11 118);
+  --color-primary-soft: oklch(0.3 0.05 118);
+  --color-primary-fg: oklch(0.18 0.03 118);
+
+  /* 시그널 — 텍스트로 읽히게 밝게, soft 는 어두운 동색 */
+  --color-success: oklch(0.72 0.14 150);
+  --color-warning: oklch(0.78 0.13 80);
+  --color-info: oklch(0.72 0.11 235);
+  --color-danger: oklch(0.7 0.17 25);
+
+  --color-success-soft: oklch(0.3 0.05 150);
+  --color-warning-soft: oklch(0.32 0.05 80);
+  --color-info-soft: oklch(0.3 0.05 235);
+  --color-danger-soft: oklch(0.32 0.06 25);
+
+  /* 포커스 링 — 밝은 그린, 알파 강화 */
+  --focus-ring-color: oklch(0.68 0.12 118 / 0.45);
+
+  /* 그림자 — 어두운 바탕에선 더 진하게 깔아 깊이를 살린다 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 스크롤바 거터를 항상 예약 — 콘텐츠가 스크롤 유무(짧은 페이지 ↔ 긴 페이지)를
+     오갈 때 세로 스크롤바가 생겼다 사라지며 뷰포트 너비가 바뀌어 레이아웃이 가로로
+     흔들리는 현상을 막는다. 데스크톱 스크롤바에만 효과(모바일은 오버레이 스크롤바).
+
+     scrollbar-color — 브라우저 기본 스크롤바는 요소 배경과 무관하게 자체 색으로
+     그려져 콘텐츠 배경과 어긋난다. 트랙을 surface 로 고정하면 콘텐츠 컬럼과 이어진다.
+     상속되는 속성이라 html 한 곳이면 전체에 적용된다. */
+  html {
+    scrollbar-gutter: stable;
+    scrollbar-color: var(--color-border-strong) var(--color-surface);
+    /* 스크롤바가 *없을 때* 예약된 거터 띠에는 트랙이 그려지지 않아 scrollbar-color 가
+       미치지 않고 캔버스 배경이 비친다(예: 오버레이가 배경 스크롤을 잠근 동안).
+       캔버스 배경은 html 것이 우선이므로 surface 로 칠해 거터가 항상 콘텐츠와 이어지게
+       한다. body 는 여전히 자기 박스를 background 로 칠하므로 그 외 영역은 무변화. */
+    background-color: var(--color-surface);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-body-md-size);
+    line-height: var(--text-body-md-leading);
+    letter-spacing: var(--text-body-md-tracking);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary-pressed);
+  }
+
+  /* 포커스는 브랜드 링으로 일관되게 */
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid var(--color-border);
+    margin: 0;
+  }
+}
+
+@layer components {
+  .t-display {
+    font-family: var(--font-sans);
+    font-size: var(--text-display-size);
+    font-weight: var(--text-display-weight);
+    letter-spacing: var(--text-display-tracking);
+    line-height: var(--text-display-leading);
+    color: var(--color-fg);
+    margin: 0;
+  }
+
+  .t-headline-lg {
+    font-family: var(--font-sans);
+    font-size: var(--text-headline-lg-size);
+    font-weight: var(--text-headline-lg-weight);
+    letter-spacing: var(--text-headline-lg-tracking);
+    line-height: var(--text-headline-lg-leading);
+    color: var(--color-fg);
+    margin: 0;
+  }
+
+  .t-headline-md {
+    font-family: var(--font-sans);
+    font-size: var(--text-headline-md-size);
+    font-weight: var(--text-headline-md-weight);
+    letter-spacing: var(--text-headline-md-tracking);
+    line-height: var(--text-headline-md-leading);
+    color: var(--color-fg);
+    margin: 0;
+  }
+
+  .t-title-md {
+    font-family: var(--font-sans);
+    font-size: var(--text-title-md-size);
+    font-weight: var(--text-title-md-weight);
+    letter-spacing: var(--text-title-md-tracking);
+    line-height: var(--text-title-md-leading);
+    color: var(--color-fg);
+    margin: 0;
+  }
+
+  .t-body-md {
+    font-family: var(--font-sans);
+    font-size: var(--text-body-md-size);
+    font-weight: var(--text-body-md-weight);
+    letter-spacing: var(--text-body-md-tracking);
+    line-height: var(--text-body-md-leading);
+    color: var(--color-fg-muted);
+    margin: 0;
+  }
+
+  .t-body-sm {
+    font-family: var(--font-sans);
+    font-size: var(--text-body-sm-size);
+    font-weight: var(--text-body-sm-weight);
+    letter-spacing: var(--text-body-sm-tracking);
+    line-height: var(--text-body-sm-leading);
+    color: var(--color-fg-muted);
+    margin: 0;
+  }
+
+  .t-label-sm {
+    font-family: var(--font-sans);
+    font-size: var(--text-label-sm-size);
+    font-weight: var(--text-label-sm-weight);
+    letter-spacing: var(--text-label-sm-tracking);
+    line-height: var(--text-label-sm-leading);
+    color: var(--color-fg-muted);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .t-mono-sm {
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-sm-size);
+    font-weight: var(--text-mono-sm-weight);
+    letter-spacing: var(--text-mono-sm-tracking);
+    line-height: var(--text-mono-sm-leading);
+    color: var(--color-fg);
+    font-variant-numeric: tabular-nums;
+    margin: 0;
+  }
+
+  .t-metric {
+    font-family: var(--font-mono);
+    font-size: var(--text-metric-size);
+    font-weight: var(--text-metric-weight);
+    letter-spacing: var(--text-metric-tracking);
+    line-height: var(--text-metric-leading);
+    color: var(--color-fg);
+    font-variant-numeric: tabular-nums;
+    margin: 0;
+  }
+}

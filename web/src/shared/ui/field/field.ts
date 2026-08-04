@@ -30,10 +30,10 @@ let 일련번호 = 0;
 @Component({
   selector: 'ui-field',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex flex-col gap-1.5' },
+  host: { class: 'flex flex-col gap-2' },
   template: `
     @if (label()) {
-      <label [attr.for]="controlId" class="text-label tracking-normal text-muted">
+      <label [attr.for]="controlId" class="t-label-sm">
         {{ label() }}
         @if (required()) {
           <span class="text-danger" aria-hidden="true">*</span>
@@ -43,10 +43,12 @@ let 일련번호 = 0;
 
     <ng-content />
 
+    <!-- 오류는 검증 후에 나타나므로 끼어들어 읽히는 것이 맞다. 힌트는 처음부터
+         있던 안내문이라 role을 주지 않는다. -->
     @if (error()) {
-      <p [id]="errorId" class="text-body-sm text-danger">{{ error() }}</p>
+      <p [id]="errorId" role="alert" class="t-body-sm text-danger">{{ error() }}</p>
     } @else if (hint()) {
-      <p [id]="hintId" class="text-body-sm text-subtle">{{ hint() }}</p>
+      <p [id]="hintId" class="t-body-sm text-fg-faint">{{ hint() }}</p>
     }
   `,
 })
