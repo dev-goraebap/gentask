@@ -45,9 +45,17 @@
 
 ### 에이전트 자산 (스킬·페르소나)
 
-- 정본은 `.agents/skills/` (Agent Skills 개방 표준 레이아웃). 다른 위치에 사본을 손으로 만들지 않는다.
+- 위치는 `.agents/skills/` (Agent Skills 개방 표준 레이아웃). 다른 위치에 사본을 손으로 만들지 않는다.
 - 스킬의 `name`과 폴더명은 영문(스펙상 소문자+하이픈 ASCII, 상호 일치 필수). description과 본문은 한국어 — 내용 자체가 사람이 읽는 문서를 겸하기 때문.
-- 검토 페르소나 4종: `qa-auditor`(DoD 심사), `release-auditor`(형상감사·측정), `doc-sync`(문서 정합), `security-reviewer`(보안).
+- **자산은 두 갈래이고 정본의 위치가 다르다.**
+  - **저장소 고유 — 검토 페르소나 4종**: `qa-auditor`(DoD 심사), `release-auditor`(형상감사·측정),
+    `doc-sync`(문서 정합), `security-reviewer`(보안). **정본이 여기 있다.** 여기서 고친다.
+  - **외부 조달**: `skills-lock.json`에 출처와 해시로 고정된 것들(`krill-design-system`,
+    `angular-developer`, `feature-sliced-design`, `foundation`, `completeness`, `responsive-app`).
+    **정본은 업스트림 저장소이고 `.agents/skills/`의 것은 고정된 사본이다.** 손으로 고치지 않고
+    업스트림에 반영한 뒤 다시 받는다 — 고치면 다음 갱신에 덮인다.
+- 외부 스킬이 우리 판단과 부딪히면 **벗어난 지점을 우리 파일에 모은다**(예: Krill 토큰 오버라이드는
+  `web/src/styles.css`에 둔다, 결정-0024).
 - **검토 페르소나는 구현 컨텍스트와 분리된 별도 컨텍스트(서브에이전트)에서 해당 SKILL.md를 읽어 수행한다.** 심사자가 자기 작업을 심사하는 순환을 막기 위함이다.
 - 특정 에이전트에만 필요한 보정(예: Claude의 스킬 폴더 동기화)은 법전이 아니라 그 에이전트의 진입 파일(CLAUDE.md 등)에 둔다.
 
@@ -63,7 +71,8 @@
 
 ### 형상 항목 (통제 대상 산출물)
 
-소스코드(`web/`, `server/`) · DB 스키마/마이그레이션 · API 계약 · `docs/` 전체 · `CHANGELOG.md` · CI 설정 · 린터 설정 · 이 문서.
+소스코드(`web/`, `server/`) · DB 스키마/마이그레이션 · API 계약 · `docs/` 전체 · `CHANGELOG.md` · CI 설정 · 린터 설정 ·
+에이전트 자산(`.agents/skills/`)과 그 버전 고정 파일(`skills-lock.json`) · 이 문서.
 이 목록에 없는 것(빌드 산출물, 로컬 설정)은 통제 대상이 아니다.
 
 ### 베이스라인(태그) 정책

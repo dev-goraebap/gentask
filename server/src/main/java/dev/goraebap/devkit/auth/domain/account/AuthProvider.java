@@ -11,8 +11,7 @@ import java.util.Locale;
 public enum AuthProvider {
     CREDENTIAL,
     GOOGLE,
-    KAKAO,
-    NAVER;
+    KAKAO;
 
     public String value() {
         return name().toLowerCase(Locale.ROOT);

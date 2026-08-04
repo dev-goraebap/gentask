@@ -47,7 +47,7 @@ class PendingSocialTicketCodecTest {
     }
 
     @Test
-    @DisplayName("AUTH-02 표는 10분이면 만료된다 — 제공자 인증 한 번을 오래 우려먹을 수 없다")
+    @DisplayName("AUTH-03 카카오 표도 10분이면 만료된다 — 제공자 인증 한 번을 오래 우려먹을 수 없다")
     void 만료된_표를_거부한다() {
         String ticket = codec.encode(AuthProvider.KAKAO, "kakao-1");
         clock.advance(PendingSocialTicketCodec.TTL.plus(Duration.ofSeconds(1)));
@@ -84,7 +84,7 @@ class PendingSocialTicketCodecTest {
     }
 
     @Test
-    @DisplayName("AUTH-02 빈 제공자 식별자도 만료시각과 섞이지 않는다")
+    @DisplayName("AUTH-03 카카오의 빈 제공자 식별자도 만료시각과 섞이지 않는다")
     void 빈_식별자도_경계를_지킨다() {
         String ticket = codec.encode(AuthProvider.KAKAO, "");
 
