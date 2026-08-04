@@ -7,6 +7,7 @@ import java.net.URI;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -46,6 +47,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     ProblemDetail handleIllegalArgument(IllegalArgumentException e, HttpServletRequest request) {
         return commonProblem(CommonErrorCode.COMMON_INVALID_REQUEST, "요청 값이 올바르지 않습니다", request.getRequestURI());
+    }
+
+    /**
+     * DB 유일성 제약이 막은 동시 생성 (보안 검토 F4).
+     *
+     * <p>서비스가 사전 확인으로 대부분을 걸러내지만, 같은 자원을 만들려는 두 요청이 <b>같은 순간</b>에
+     * 확인을 통과하면 최종 방어선은 제약뿐이다. 그것이 정상 동작인데도 500으로 나가면 진짜 장애와
+     * 구분되지 않아 로그가 오염된다. 충돌은 충돌로 알린다.
+     *
+     * <p>어떤 제약이 걸렸는지는 응답에 싣지 않는다 — 제약 이름이 곧 스키마 정보다.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ProblemDetail handleConflict(DataIntegrityViolationException e, HttpServletRequest request) {
+        log.warn("유일성 제약 충돌 (traceId={})", MDC.get(TraceIdFilter.MDC_KEY), e);
+        return commonProblem(CommonErrorCode.COMMON_CONFLICT, "요청이 다른 작업과 충돌했습니다. 다시 시도해 주세요", request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)

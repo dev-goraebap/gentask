@@ -26,9 +26,8 @@ create table accounts (
     provider            varchar(20) not null,
     provider_account_id varchar(255) not null,
     password_hash       varchar(100),
-    access_token        varchar(2048),
-    refresh_token       varchar(2048),
-    token_expires_at    timestamp with time zone,
+    -- 제공자(구글·카카오)가 발급한 토큰은 보관하지 않는다 (결정-0022).
+    -- 로그인에 필요한 것은 신원 확인뿐이고, 위임 API 호출은 이 키트의 책임 범위가 아니다.
     created_at          timestamp with time zone not null,
     updated_at          timestamp with time zone not null,
 

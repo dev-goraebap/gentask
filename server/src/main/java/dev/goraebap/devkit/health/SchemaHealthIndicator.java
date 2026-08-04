@@ -2,6 +2,7 @@ package dev.goraebap.devkit.health;
 
 import static dev.goraebap.devkit.jooq.Tables.HEALTH_CHECK;
 
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
@@ -14,13 +15,10 @@ import org.springframework.stereotype.Component;
  * 실제 조회한다 — 마이그레이션·코드 생성·조회 경로가 런타임에 이어져 있음을 확인한다.
  */
 @Component
+@RequiredArgsConstructor
 public class SchemaHealthIndicator implements HealthIndicator {
 
     private final DSLContext dsl;
-
-    public SchemaHealthIndicator(DSLContext dsl) {
-        this.dsl = dsl;
-    }
 
     @Override
     public Health health() {

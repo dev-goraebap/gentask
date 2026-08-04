@@ -18,7 +18,8 @@ public enum AuthErrorCode implements ErrorCode {
     AUTH_OTP_RATE_LIMITED(429, "요청이 너무 잦습니다"),
     AUTH_TOO_MANY_ATTEMPTS(429, "시도가 너무 잦습니다"),
     AUTH_EMAIL_ALREADY_USED(409, "이미 가입된 이메일입니다"),
-    AUTH_SESSION_NOT_FOUND(404, "세션을 찾을 수 없습니다");
+    AUTH_SESSION_NOT_FOUND(404, "세션을 찾을 수 없습니다"),
+    AUTH_SOCIAL_TICKET_INVALID(400, "소셜 로그인을 다시 시작해 주세요");
 
     private final int status;
     private final String title;

@@ -22,6 +22,7 @@ class HmacTokenHasher implements TokenHasher {
 
     private final SecretKeySpec key;
 
+    // 생성자를 손으로 둔다 (결정-0023의 예외): 받은 값을 그대로 담지 않고 키를 만들어 담는다.
     HmacTokenHasher(AuthProperties properties) {
         this.key = new SecretKeySpec(properties.secret().getBytes(StandardCharsets.UTF_8), ALGORITHM);
     }

@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.Clock;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,18 +25,12 @@ import org.springframework.web.bind.annotation.RestController;
  * </ul>
  */
 @RestController
+@RequiredArgsConstructor
 public class RegistrationController {
 
     private final RegistrationService registrationService;
     private final SessionCookieFactory cookieFactory;
     private final Clock clock;
-
-    public RegistrationController(
-            RegistrationService registrationService, SessionCookieFactory cookieFactory, Clock clock) {
-        this.registrationService = registrationService;
-        this.cookieFactory = cookieFactory;
-        this.clock = clock;
-    }
 
     @PostMapping("/api/v1/email-verifications")
     public ResponseEntity<EmailVerificationResponse> issue(

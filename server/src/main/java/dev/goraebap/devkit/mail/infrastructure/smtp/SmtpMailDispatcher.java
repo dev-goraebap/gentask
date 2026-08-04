@@ -1,6 +1,7 @@
 package dev.goraebap.devkit.mail.infrastructure.smtp;
 
 import dev.goraebap.devkit.mail.MailMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
@@ -16,17 +17,13 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 class SmtpMailDispatcher {
 
     private static final int MAX_ATTEMPTS = 2;
 
     private final JavaMailSender javaMailSender;
     private final MailFromProperties properties;
-
-    SmtpMailDispatcher(JavaMailSender javaMailSender, MailFromProperties properties) {
-        this.javaMailSender = javaMailSender;
-        this.properties = properties;
-    }
 
     @Async("mailExecutor")
     public void dispatch(MailMessage message) {

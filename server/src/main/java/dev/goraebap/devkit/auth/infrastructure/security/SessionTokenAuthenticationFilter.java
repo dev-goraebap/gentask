@@ -16,6 +16,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +29,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * 유효하면 슬라이딩 연장을 시도하고 SecurityContext에 주체를 싣는다. 무효하면 인증 없이
  * 통과시킨다 — 거부는 인가 계층(deny-by-default)의 몫이다.
  */
+@RequiredArgsConstructor
 class SessionTokenAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
@@ -36,14 +38,6 @@ class SessionTokenAuthenticationFilter extends OncePerRequestFilter {
     private final TokenHasher tokenHasher;
     private final AuthProperties properties;
     private final Clock clock;
-
-    SessionTokenAuthenticationFilter(
-            SessionRepository sessionRepository, TokenHasher tokenHasher, AuthProperties properties, Clock clock) {
-        this.sessionRepository = sessionRepository;
-        this.tokenHasher = tokenHasher;
-        this.properties = properties;
-        this.clock = clock;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)

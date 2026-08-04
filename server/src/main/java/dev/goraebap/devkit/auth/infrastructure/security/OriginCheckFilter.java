@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -22,17 +23,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * <p>Bearer 경로는 해당 없다 — 공격 페이지는 피해자의 토큰을 헤더에 실을 수 없다.
  */
+@RequiredArgsConstructor
 class OriginCheckFilter extends OncePerRequestFilter {
 
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS", "TRACE");
 
     private final AuthProperties properties;
     private final ProblemResponseWriter problemWriter;
-
-    OriginCheckFilter(AuthProperties properties, ProblemResponseWriter problemWriter) {
-        this.properties = properties;
-        this.problemWriter = problemWriter;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)

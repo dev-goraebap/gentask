@@ -12,20 +12,17 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Component;
 
 /** 조회 어댑터 — SQL은 여기서만 보인다 (설계/서버.md §5.1). */
 @Component
+@RequiredArgsConstructor
 class JooqSessionQueries implements SessionQueries {
 
     private final DSLContext dsl;
     private final Clock clock;
-
-    JooqSessionQueries(DSLContext dsl, Clock clock) {
-        this.dsl = dsl;
-        this.clock = clock;
-    }
 
     @Override
     public Optional<CurrentSessionView> findCurrentSession(UUID sessionId) {

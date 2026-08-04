@@ -1,0 +1,23 @@
+{
+  // Java 포맷의 단일 소스는 Spotless(palantir-java-format)다 — server/build.gradle 참조.
+  // VSCode 자바 확장(Red Hat)은 Eclipse 포매터를 내장하고 있고 규칙이 palantir와 다르다.
+  // 켜 두면 저장할 때마다 파일 전체가 재포맷돼 한 줄 고친 diff가 파일 전체로 번지고,
+  // CI의 spotlessCheck에서 떨어진다. 그래서 편집기 쪽 포매터를 끈다.
+  //
+  // 포맷은 커밋 전에 `./gradlew spotlessApply`로 맞춘다 (터미널 > 작업 실행 > "server: 포맷 적용").
+  "java.format.enabled": false,
+  "[java]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false
+  },
+
+  // web/은 Prettier가 정본이라 저장 시 포맷을 그대로 쓴다.
+  "[typescript]": { "editor.formatOnSave": true },
+  "[html]": { "editor.formatOnSave": true },
+  "[css]": { "editor.formatOnSave": true },
+
+  // .editorconfig와 어긋나지 않게 맞춘다
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.eol": "\n"
+}

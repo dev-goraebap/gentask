@@ -11,17 +11,15 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@RequiredArgsConstructor
 class JooqAccountRepository implements AccountRepository {
 
     private final DSLContext dsl;
-
-    JooqAccountRepository(DSLContext dsl) {
-        this.dsl = dsl;
-    }
 
     @Override
     public void save(Account account) {
@@ -31,17 +29,11 @@ class JooqAccountRepository implements AccountRepository {
                 .set(ACCOUNTS.PROVIDER, account.provider().value())
                 .set(ACCOUNTS.PROVIDER_ACCOUNT_ID, account.providerAccountId())
                 .set(ACCOUNTS.PASSWORD_HASH, account.passwordHash())
-                .set(ACCOUNTS.ACCESS_TOKEN, account.accessToken())
-                .set(ACCOUNTS.REFRESH_TOKEN, account.refreshToken())
-                .set(ACCOUNTS.TOKEN_EXPIRES_AT, offset(account.tokenExpiresAt()))
                 .set(ACCOUNTS.CREATED_AT, offset(account.createdAt()))
                 .set(ACCOUNTS.UPDATED_AT, offset(account.updatedAt()))
                 .onConflict(ACCOUNTS.ID)
                 .doUpdate()
                 .set(ACCOUNTS.PASSWORD_HASH, account.passwordHash())
-                .set(ACCOUNTS.ACCESS_TOKEN, account.accessToken())
-                .set(ACCOUNTS.REFRESH_TOKEN, account.refreshToken())
-                .set(ACCOUNTS.TOKEN_EXPIRES_AT, offset(account.tokenExpiresAt()))
                 .set(ACCOUNTS.UPDATED_AT, offset(account.updatedAt()))
                 .execute();
     }
@@ -69,18 +61,11 @@ class JooqAccountRepository implements AccountRepository {
                 AuthProvider.fromValue(record.getProvider()),
                 record.getProviderAccountId(),
                 record.getPasswordHash(),
-                record.getAccessToken(),
-                record.getRefreshToken(),
-                instant(record.getTokenExpiresAt()),
                 record.getCreatedAt().toInstant(),
                 record.getUpdatedAt().toInstant());
     }
 
     private static OffsetDateTime offset(Instant instant) {
         return instant == null ? null : OffsetDateTime.ofInstant(instant, ZoneOffset.UTC);
-    }
-
-    private static Instant instant(OffsetDateTime value) {
-        return value == null ? null : value.toInstant();
     }
 }

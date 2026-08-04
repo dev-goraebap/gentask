@@ -12,17 +12,15 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@RequiredArgsConstructor
 class JooqVerificationRepository implements VerificationRepository {
 
     private final DSLContext dsl;
-
-    JooqVerificationRepository(DSLContext dsl) {
-        this.dsl = dsl;
-    }
 
     @Override
     public void save(Verification verification) {
