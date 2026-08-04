@@ -1,6 +1,7 @@
 package dev.goraebap.devkit.auth.domain.verification;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -75,5 +76,42 @@ class VerificationTest {
 
         assertThat(verification.targetEmailRaw()).isEqualTo("User@Example.com");
         assertThat(verification.targetEmail()).isEqualTo("user@example.com");
+    }
+
+    @Test
+    @DisplayName("AUTH-07 이메일 변경에는 미끼를 만들 수 없다 — 재설정의 대기 코드 취소가 놓칠 행이 없어야 한다 (검토 #32-3)")
+    void 이메일_변경_미끼를_거부한다() {
+        // 비밀번호 재설정은 대기 중인 EMAIL_CHANGE를 user_id 기준으로 지운다. userId 없는
+        // EMAIL_CHANGE 레코드가 만들어질 수 있으면 그 삭제가 0건을 지우고 성공하고,
+        // 공격자가 걸어둔 이메일 변경이 재설정을 넘어 살아남는다(pre-hijacking 변종 4).
+        //
+        // 이 가드가 서면 EMAIL_CHANGE를 만드는 경로는 issueForUser 하나뿐이고 그것은
+        // userId를 requireNonNull로 받는다 — 놓칠 수 있는 행이 존재할 수 없다.
+        assertThatThrownBy(() -> Verification.issueDecoy(
+                        UUID.randomUUID(),
+                        VerificationPurpose.EMAIL_CHANGE,
+                        "User@Example.com",
+                        "user@example.com",
+                        "unmatchable",
+                        NOW))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("AUTH-07 이메일 변경 대기 레코드에는 반드시 사용자가 있다")
+    void 이메일_변경에는_사용자가_있다() {
+        UUID userId = UUID.randomUUID();
+
+        Verification verification = Verification.issueForUser(
+                UUID.randomUUID(),
+                VerificationPurpose.EMAIL_CHANGE,
+                userId,
+                "New@Example.com",
+                "new@example.com",
+                "hash-ok",
+                NOW);
+
+        assertThat(verification.userId()).isEqualTo(userId);
+        assertThat(verification.isDecoy()).isFalse();
     }
 }

@@ -142,8 +142,10 @@ public class RecoveryService {
         UUID userId = verification.userId();
         Instant now = clock.instant();
 
+        // 잠그고 읽는다 — 이 트랜잭션이 도는 동안 같은 계정으로 로그인이 통과해
+        // 아래 세션 삭제를 피해 가는 경합을 막는다 (검토 #32-1)
         Account credential = accountRepository
-                .findByUserIdAndProvider(userId, AuthProvider.CREDENTIAL)
+                .findByUserIdAndProviderForUpdate(userId, AuthProvider.CREDENTIAL)
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.AUTH_OTP_INVALID, "확인 코드를 다시 확인해 주세요"));
         credential.changePassword(passwordHasher.hash(newPassword), now);
         accountRepository.save(credential);

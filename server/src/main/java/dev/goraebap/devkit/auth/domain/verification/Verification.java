@@ -184,6 +184,16 @@ public final class Verification {
         if (purpose == VerificationPurpose.EMAIL_SIGNUP) {
             throw new IllegalArgumentException("가입 흐름은 미끼가 필요 없다 — 계정 유무와 무관하게 레코드를 만든다");
         }
+        if (purpose == VerificationPurpose.EMAIL_CHANGE) {
+            // 이메일 변경은 이미 있는 계정에만 성립한다 — "계정이 없어 미끼를 남긴다"는 분기가
+            // 애초에 존재하지 않는다. 허용하면 userId 없는 EMAIL_CHANGE 레코드가 생길 수 있고,
+            // 그러면 비밀번호 재설정의 대기 코드 취소(user_id 기준)가 그것을 놓친다 — 공격자가
+            // 걸어둔 이메일 변경이 재설정을 넘어 살아남는 pre-hijacking 변종 4다 (검토 #32-3).
+            //
+            // 이 가드가 서는 순간 EMAIL_CHANGE를 만드는 경로는 issueForUser 하나뿐이고,
+            // 그것은 userId를 requireNonNull로 받는다. 즉 취소가 놓칠 수 있는 행이 존재할 수 없다.
+            throw new IllegalArgumentException("이메일 변경에는 미끼가 없다 — 대상 계정이 반드시 있다");
+        }
         return new Verification(
                 id,
                 purpose,
