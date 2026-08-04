@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import dev.goraebap.devkit.auth.application.session.SessionService;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
+import dev.goraebap.devkit.auth.application.shared.HmacPurpose;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
 import dev.goraebap.devkit.auth.domain.account.Account;
 import dev.goraebap.devkit.auth.domain.account.AuthProvider;
@@ -128,7 +129,7 @@ class RecoveryServiceTest {
                 userId,
                 "attacker@example.com",
                 "attacker@example.com",
-                "hmac(999999)",
+                FakeCrypto.해시(HmacPurpose.OTP, "999999"),
                 clock.instant());
         verifications.save(pendingEmailChange);
 
@@ -260,7 +261,8 @@ class RecoveryServiceTest {
 
         assertThat(result.userId()).isEqualTo(userId);
         assertThat(result.session().token()).isNotBlank();
-        assertThat(sessions.findByTokenHash("hmac(" + result.session().token() + ")"))
+        assertThat(sessions.findByTokenHash(
+                        FakeCrypto.해시(HmacPurpose.SESSION, result.session().token())))
                 .isPresent();
         assertThat(result.hasPassword()).as("비밀번호가 없으므로 설정을 안내해야 한다").isFalse();
     }

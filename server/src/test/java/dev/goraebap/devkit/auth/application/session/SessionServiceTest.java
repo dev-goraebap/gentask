@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
+import dev.goraebap.devkit.auth.application.shared.HmacPurpose;
 import dev.goraebap.devkit.auth.application.shared.PasswordHasher;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
 import dev.goraebap.devkit.auth.domain.account.Account;
@@ -65,7 +66,8 @@ class SessionServiceTest {
 
         assertThat(issued.userId()).isEqualTo(userId);
         assertThat(issued.token()).isNotBlank();
-        assertThat(sessions.findByTokenHash("hmac(" + issued.token() + ")")).isPresent();
+        assertThat(sessions.findByTokenHash(FakeCrypto.해시(HmacPurpose.SESSION, issued.token())))
+                .isPresent();
     }
 
     @Test
@@ -194,7 +196,8 @@ class SessionServiceTest {
         service.logout(issued.sessionId());
 
         assertThat(sessions.rows).isEmpty();
-        assertThat(sessions.findByTokenHash("hmac(" + issued.token() + ")")).isEmpty();
+        assertThat(sessions.findByTokenHash(FakeCrypto.해시(HmacPurpose.SESSION, issued.token())))
+                .isEmpty();
     }
 
     @Test
@@ -205,8 +208,9 @@ class SessionServiceTest {
 
         service.revokeSession(first.sessionId(), userId);
 
-        assertThat(sessions.findByTokenHash("hmac(" + first.token() + ")")).isEmpty();
-        assertThat(sessions.findByTokenHash("hmac(" + second.token() + ")"))
+        assertThat(sessions.findByTokenHash(FakeCrypto.해시(HmacPurpose.SESSION, first.token())))
+                .isEmpty();
+        assertThat(sessions.findByTokenHash(FakeCrypto.해시(HmacPurpose.SESSION, second.token())))
                 .as("다른 세션은 살아 있어야 한다")
                 .isPresent();
     }
@@ -224,7 +228,7 @@ class SessionServiceTest {
         assertThat(othersSession.getMessage())
                 .as("남의 세션과 없는 세션의 응답이 같아야 존재가 새지 않는다")
                 .isEqualTo(missingSession.getMessage());
-        assertThat(sessions.findByTokenHash("hmac(" + victim.token() + ")"))
+        assertThat(sessions.findByTokenHash(FakeCrypto.해시(HmacPurpose.SESSION, victim.token())))
                 .as("피해자 세션은 그대로여야 한다")
                 .isPresent();
     }

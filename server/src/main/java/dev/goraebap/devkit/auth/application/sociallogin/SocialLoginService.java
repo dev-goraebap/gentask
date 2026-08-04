@@ -7,6 +7,7 @@ import dev.goraebap.devkit.auth.application.shared.AttemptRateLimiter;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.AuthProperties;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
+import dev.goraebap.devkit.auth.application.shared.HmacPurpose;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
 import dev.goraebap.devkit.auth.application.shared.TokenHasher;
 import dev.goraebap.devkit.auth.domain.account.Account;
@@ -124,7 +125,7 @@ public class SocialLoginService {
                 pending.providerAccountId(),
                 address.raw(),
                 address.normalized(),
-                tokenHasher.hmac(code),
+                tokenHasher.hmac(HmacPurpose.OTP, code),
                 clock.instant());
         verificationRepository.save(verification);
 
@@ -158,7 +159,7 @@ public class SocialLoginService {
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.AUTH_OTP_INVALID, "확인 코드를 다시 확인해 주세요"));
 
         Instant now = clock.instant();
-        VerificationCheck check = verification.attempt(tokenHasher.hmac(code), now);
+        VerificationCheck check = verification.attempt(tokenHasher.hmac(HmacPurpose.OTP, code), now);
         verificationRepository.save(verification);
         rejectUnless(check, verification);
 

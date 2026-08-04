@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import dev.goraebap.devkit.auth.application.session.SessionService;
 import dev.goraebap.devkit.auth.application.shared.AuthErrorCode;
 import dev.goraebap.devkit.auth.application.shared.ClientInfo;
+import dev.goraebap.devkit.auth.application.shared.HmacPurpose;
 import dev.goraebap.devkit.auth.application.shared.SecureTokenGenerator;
 import dev.goraebap.devkit.auth.domain.account.Account;
 import dev.goraebap.devkit.auth.domain.account.AuthProvider;
@@ -97,7 +98,8 @@ class SocialLoginServiceTest {
 
         assertThat(outcome.status()).isEqualTo(SocialLoginOutcome.Status.SIGNED_IN);
         assertThat(outcome.userId()).isEqualTo(user.id());
-        assertThat(sessions.findByTokenHash("hmac(" + outcome.session().token() + ")"))
+        assertThat(sessions.findByTokenHash(
+                        FakeCrypto.해시(HmacPurpose.SESSION, outcome.session().token())))
                 .isPresent();
     }
 
@@ -184,7 +186,11 @@ class SocialLoginServiceTest {
     @DisplayName("AUTH-06 이메일/비밀번호 가입용 코드는 소셜 완료에 통과하지 않는다")
     void 소셜이_아닌_대기_레코드는_통과하지_않는다() {
         Verification plainSignup = Verification.issueSignup(
-                UUID.randomUUID(), "plain@example.com", "plain@example.com", "hmac(123456)", clock.instant());
+                UUID.randomUUID(),
+                "plain@example.com",
+                "plain@example.com",
+                FakeCrypto.해시(HmacPurpose.OTP, "123456"),
+                clock.instant());
         verifications.save(plainSignup);
 
         assertThatThrownBy(() -> service.completeSignup(plainSignup.id(), "123456", CLIENT))
