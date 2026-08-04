@@ -20,6 +20,7 @@
        baseUrl 없이 쓰면 paths가 이 파일 위치 기준으로 해석된다. */
     "paths": {
       "@/shared/*": ["./src/shared/*"],
+      "@/pages/*": ["./src/pages/*"],
       "@/app/*": ["./src/app/*"]
     }
   },
