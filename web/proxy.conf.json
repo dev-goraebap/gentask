@@ -1,0 +1,29 @@
+// dev-server 프록시 — 개발 중에 web(4200)과 server(8080)를 한 오리진으로 흉내낸다
+// (설계/인프라.md §2). 프로덕션은 리버스 프록시가 같은 일을 하므로 이 파일은 개발 전용이다.
+//
+// 규칙은 설계/인프라.md §2.2의 표를 그대로 옮긴 것이다. `/auth/` 아래에는 서버로 갈 것과
+// 화면(SPA)이 처리할 것이 섞여 있으므로 접두사를 넓게 잡지 않는다 — `/auth`를 통째로 넘기면
+// `/auth/social/email`이 서버에 도달해 401 JSON이 사용자 화면에 그대로 나온다.
+//
+// **changeOrigin을 켜지 마라.** 기본값(false)이라 Host 헤더가 `localhost:4200`으로 유지되고,
+// 서버의 Origin 검증 필터(OriginCheckFilter)가 요청 자신의 출처를 그 Host에서 계산하므로
+// 브라우저가 보낸 `Origin: http://localhost:4200`과 일치한다. 켜면 Host가 `localhost:8080`이
+// 되어 모든 상태 변경 요청이 AUTH_FORBIDDEN_ORIGIN으로 거부된다.
+{
+  // REST API 전부 (설계/서버.md §1.2 — 모든 API는 /api/v1 아래에 있다)
+  "/api": {
+    "target": "http://localhost:8080"
+  },
+
+  // 제공자로 보내는 시작 경로 (AUTH-02·03)
+  "/oauth2/authorization": {
+    "target": "http://localhost:8080"
+  },
+
+  // 제공자가 인가 코드를 돌려주는 콜백. 제공자 콘솔에 등록된 주소도 이것이며,
+  // 프론트 오리진 기준이라(auth.oauth.redirect-base) 반드시 여기서 서버로 넘겨야 한다.
+  // 형제 경로인 /auth/social/email·/auth/complete·/auth/error는 화면이 처리한다.
+  "/auth/callback": {
+    "target": "http://localhost:8080"
+  }
+}
