@@ -77,6 +77,15 @@ public final class InMemoryAuthRepositories {
                     .findFirst();
         }
 
+        /**
+         * 단일 스레드 단위 테스트에는 잠글 것이 없다. 잠금이 실제로 경합을 막는지는 진짜 DB가
+         * 필요하므로 {@code PasswordResetRaceTest}(통합)가 검증한다.
+         */
+        @Override
+        public Optional<Account> findByUserIdAndProviderForUpdate(UUID userId, AuthProvider provider) {
+            return findByUserIdAndProvider(userId, provider);
+        }
+
         @Override
         public Optional<Account> findByProviderAndProviderAccountId(AuthProvider provider, String providerAccountId) {
             return rows.values().stream()

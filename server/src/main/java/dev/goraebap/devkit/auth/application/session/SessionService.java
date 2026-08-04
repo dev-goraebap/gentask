@@ -99,8 +99,10 @@ public class SessionService {
     public IssuedSession login(String email, String rawPassword, ClientInfo client) {
         String accountKey = rejectIfTooManyAttempts(email, client);
         Optional<User> user = findUser(email);
+        // 잠그고 읽는다 — 비밀번호 재설정이 도는 중이면 그것이 끝난 뒤 새 해시를 보게 된다.
+        // 잠그지 않으면 옛 해시로 검증을 통과한 세션이 재설정의 세션 삭제를 피해 살아남는다 (검토 #32-1)
         Optional<Account> account =
-                user.flatMap(u -> accountRepository.findByUserIdAndProvider(u.id(), AuthProvider.CREDENTIAL));
+                user.flatMap(u -> accountRepository.findByUserIdAndProviderForUpdate(u.id(), AuthProvider.CREDENTIAL));
 
         String hashToCompare = account.map(Account::passwordHash).orElse(timingEqualizerHash);
         boolean passwordMatches = passwordHasher.matches(rawPassword, hashToCompare);

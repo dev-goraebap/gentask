@@ -47,6 +47,15 @@ class JooqAccountRepository implements AccountRepository {
     }
 
     @Override
+    public Optional<Account> findByUserIdAndProviderForUpdate(UUID userId, AuthProvider provider) {
+        return dsl.selectFrom(ACCOUNTS)
+                .where(ACCOUNTS.USER_ID.eq(userId).and(ACCOUNTS.PROVIDER.eq(provider.value())))
+                .forUpdate()
+                .fetchOptional()
+                .map(JooqAccountRepository::toDomain);
+    }
+
+    @Override
     public Optional<Account> findByProviderAndProviderAccountId(AuthProvider provider, String providerAccountId) {
         return dsl.selectFrom(ACCOUNTS)
                 .where(ACCOUNTS.PROVIDER.eq(provider.value()).and(ACCOUNTS.PROVIDER_ACCOUNT_ID.eq(providerAccountId)))
