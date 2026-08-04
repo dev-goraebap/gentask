@@ -3,8 +3,9 @@ import { Directive } from '@angular/core';
 /**
  * 텍스트 링크.
  *
- * 잉크(`accent-ink`)를 쓴다 — 채움(`accent`)은 캔버스 위 텍스트로 쓰면 대비가
- * 부족하다(디자인시스템.md §2.2).
+ * `text-primary`를 쓴다. Krill의 primary는 명도가 <b>표면 위 텍스트와 soft 배경
+ * 위 칩을 동시에 4.5:1로 만드는 값</b>으로 잡혀 있어, 채움과 잉크를 나누지 않고
+ * 하나로 쓴다(결정-0024). 이 전제는 대비 테스트가 지킨다.
  *
  * 밑줄을 기본으로 둔다. 본문 안의 링크를 색으로만 구분하면 색각 이상 사용자가
  * 찾을 수 없다(WCAG 1.4.1 — 색만으로 정보를 전달하지 않는다). 목록이나
@@ -15,8 +16,8 @@ import { Directive } from '@angular/core';
   selector: 'a[ui-link]',
   host: {
     class:
-      'text-accent-ink underline decoration-1 underline-offset-2 transition-colors ' +
-      'duration-150 ease-standard hover:decoration-2 rounded-tight',
+      'text-primary underline decoration-1 underline-offset-2 transition-colors ' +
+      'hover:decoration-2 rounded-sm',
   },
 })
 export class UiLink {}

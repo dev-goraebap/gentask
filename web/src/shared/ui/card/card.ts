@@ -3,8 +3,10 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 /**
  * 표면 컨테이너.
  *
- * 정적 카드에는 그림자를 얹지 않는다(디자인시스템.md §5) — 반경과 헤어라인으로
- * 충분하다. `elevated`는 모달·팝오버처럼 실제로 떠 있는 것에만 쓴다.
+ * <b>깊이는 선이 낸다</b>(Krill, 결정-0024). 같은 평면에서 영역을 가르는 것은
+ * 헤어라인 보더이고, 그림자는 <b>실제로 떠 있는 것</b>(모달·팝오버·드롭다운)
+ * 에만 쓴다. 정적 카드에 그림자를 얹으면 "떠 있음"이라는 신호가 값싸져서
+ * 진짜 떠 있는 것과 구분되지 않는다.
  *
  * 제목을 입력으로 받지 않는다. 카드 안의 제목이 `h2`인지 `h3`인지는 그 카드가
  * 놓인 문서 구조가 결정하므로, 컴포넌트가 정하면 heading 순서가 깨진다.
@@ -21,8 +23,11 @@ export class UiCard {
   readonly padding = input<'none' | 'md' | 'lg'>('md');
 
   protected readonly classes = computed(() => {
-    const 표면 = this.surface() === 'elevated' ? 'bg-elevated shadow-floating' : 'bg-surface';
-    const 여백 = { none: '', md: 'p-5', lg: 'p-7' }[this.padding()];
-    return `flex flex-col gap-4 rounded-surface border border-line ${표면} ${여백}`;
+    const 표면 =
+      this.surface() === 'elevated'
+        ? 'border-border-strong bg-elevated shadow-md'
+        : 'border-border bg-elevated hover:border-border-strong';
+    const 여백 = { none: '', md: 'p-6', lg: 'p-8' }[this.padding()];
+    return `relative flex flex-col gap-4 rounded-lg border transition-colors ${표면} ${여백}`;
   });
 }

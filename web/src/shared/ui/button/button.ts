@@ -10,25 +10,30 @@ import {
 import { UiSpinner } from '../spinner/spinner';
 
 /**
- * 변형별 표현. 문자열을 리터럴로 두는 이유는 Tailwind가 소스를 훑어
- * 유틸리티를 생성하기 때문이다 — 조립해서 만들면 클래스가 생성되지 않는다.
+ * 변형별 표현 (Krill 컴포넌트 카탈로그, 결정-0024). 문자열을 리터럴로 두는
+ * 이유는 Tailwind가 소스를 훑어 유틸리티를 생성하기 때문이다 — 조립해서
+ * 만들면 클래스가 생성되지 않는다.
  */
 const 변형 = {
   /** 화면에서 가장 중요한 동작 하나. 한 화면에 둘 이상 두지 않는다. */
-  primary:
-    'bg-accent text-on-accent border-transparent hover:bg-accent-hover active:bg-accent-pressed',
-  /** 기본값. 대부분의 동작이 여기 해당한다. */
-  secondary: 'bg-surface text-foreground border-line hover:bg-elevated hover:border-line-strong',
+  primary: 'bg-primary text-primary-fg hover:bg-primary-hover active:bg-primary-pressed',
+  /**
+   * 기본값. 대부분의 동작이 여기 해당한다.
+   *
+   * 테두리에 `border-border-control`을 쓴다 — 장식선(`border-border`)이 아니라
+   * **여기가 버튼임을 알리는 유일한 단서**라서 WCAG 1.4.11의 3:1 대상이다.
+   */
+  secondary: 'bg-surface text-fg border border-border-control hover:bg-muted',
   /** 테두리 없는 동작. 목록 안의 부가 동작이나 취소에 쓴다. */
-  quiet: 'bg-transparent text-muted border-transparent hover:bg-accent-soft hover:text-foreground',
+  tertiary: 'bg-transparent text-fg-muted hover:bg-muted hover:text-fg',
   /** 되돌릴 수 없는 동작. 확인 단계와 함께 쓴다. */
-  danger: 'bg-danger-fill text-on-danger border-transparent hover:bg-danger-fill-hover',
+  danger: 'bg-danger text-fg-inverse hover:brightness-105',
 } as const;
 
 const 크기 = {
-  sm: 'h-8 gap-1.5 px-3 text-body-sm',
-  md: 'h-10 gap-2 px-4 text-body',
-  lg: 'h-12 gap-2 px-5 text-body',
+  sm: 'h-8 px-3 text-[0.8125rem]',
+  md: 'h-10 px-[18px] text-sm',
+  lg: 'h-12 px-[22px] text-[0.9375rem]',
 } as const;
 
 const 아이콘크기 = {
@@ -38,9 +43,11 @@ const 아이콘크기 = {
 } as const;
 
 const 기본 =
-  'inline-flex select-none items-center justify-center whitespace-nowrap rounded-control border ' +
-  'font-medium transition-colors duration-150 ease-standard active:translate-y-px ' +
-  'disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50';
+  'inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-md ' +
+  'font-sans font-medium cursor-pointer transition-colors ' +
+  'disabled:pointer-events-none disabled:opacity-40 ' +
+  // `<a>`에는 네이티브 disabled가 없어 aria-disabled로 같은 표현을 만든다
+  'aria-disabled:pointer-events-none aria-disabled:opacity-40';
 
 /**
  * 버튼.

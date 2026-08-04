@@ -1,16 +1,18 @@
 import { Directive, ElementRef, computed, inject, signal } from '@angular/core';
 
 const 기본 =
-  'block w-full rounded-control border border-line bg-surface text-foreground ' +
-  'transition-colors duration-150 ease-standard ' +
-  'placeholder:text-subtle ' +
-  'hover:border-line-strong ' +
-  'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line ' +
+  'block w-full rounded-md border bg-surface px-3.5 font-sans text-[0.9375rem] text-fg ' +
+  'placeholder:text-fg-faint transition-colors focus:outline-none ' +
+  // 폼 컨트롤의 테두리는 "여기가 입력란"임을 알리는 유일한 시각 정보다.
+  // 장식선(border-border)이 아니라 3:1을 만족하는 border-control을 쓴다 (WCAG 1.4.11).
+  'border-border-control hover:border-fg-faint ' +
+  'focus:border-primary focus:shadow-[0_0_0_3px_var(--focus-ring-color)] ' +
+  'disabled:pointer-events-none disabled:opacity-40 ' +
   // 오류 표현을 aria-invalid에 묶는다 — 접근성 속성과 시각 표현이 갈라질 수
   // 없게 된다. Field가 aria-invalid를 붙이면 테두리가 따라온다.
-  'aria-invalid:border-danger aria-invalid:hover:border-danger';
+  'aria-invalid:border-danger aria-invalid:shadow-[0_0_0_3px_var(--color-danger-soft)]';
 
-const 크기 = 'h-10 px-3.5 text-body';
+const 크기 = 'h-10';
 
 /**
  * 입력.
@@ -47,6 +49,6 @@ export class UiInput {
   readonly invalid = signal(false);
 
   protected readonly classes = computed(
-    () => `${기본} ${this.여러줄 ? 'min-h-24 px-3.5 py-2.5 text-body' : 크기}`,
+    () => `${기본} ${this.여러줄 ? 'min-h-24 py-3 leading-relaxed resize-y' : 크기}`,
   );
 }

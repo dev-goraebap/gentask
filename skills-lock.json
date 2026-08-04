@@ -21,6 +21,11 @@
       "sourceType": "github",
       "computedHash": "6fd372390321a5335e7229fd76d009f76e8171b47bd06c97f751b27d6e018ebb"
     },
+    "krill-design-system": {
+      "source": "dev-goraebap/krill",
+      "sourceType": "github",
+      "computedHash": "878f39a58ca61724d972985271c264f869c079f59988b06ac33a3cedf185e168"
+    },
     "responsive-app": {
       "source": "dev-goraebap/wellmade-web",
       "sourceType": "github",
