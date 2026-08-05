@@ -67,6 +67,14 @@ import { UiAlert, UiButton, UiCard, UiField, UiInput, UiLink } from '@/shared/ui
         </button>
       </form>
 
+      <!-- 로그인할 수 없는 사람이 여기서 길을 잃지 않게 두 복구 경로를 함께 둔다(AUTH-07·08).
+           둘의 차이는 "비밀번호를 잊었나"와 "인증 수단 자체를 잃었나"다. -->
+      <p class="t-body-sm text-fg-muted">
+        <a ui-link routerLink="/password-reset">비밀번호를 잊으셨나요?</a>
+        ·
+        <a ui-link routerLink="/account-recovery">로그인 수단을 잃으셨나요?</a>
+      </p>
+
       <div class="flex items-center gap-3">
         <span class="h-px flex-1 bg-border"></span>
         <span class="t-body-sm text-fg-faint">또는</span>

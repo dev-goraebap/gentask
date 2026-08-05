@@ -4,7 +4,13 @@ import { firstValueFrom } from 'rxjs';
 
 import { API_V1 } from '@/shared/api';
 
-import type { CurrentSession, EmailVerification, IssuedSession, SignupResult } from './session';
+import type {
+  CurrentSession,
+  EmailVerification,
+  IssuedSession,
+  RecoveryLogin,
+  SignupResult,
+} from './session';
 
 /**
  * 인증 API 호출 (AUTH-01, 설계/서버.md §1.5·§1.6).
@@ -59,6 +65,51 @@ export class SessionApi {
   confirmSocialSignup(verificationId: string, code: string): Promise<void> {
     return firstValueFrom(
       this.http.post<void>(`${API_V1}/social-logins/confirm`, { verificationId, code }),
+    );
+  }
+
+  /**
+   * 비밀번호 재설정 코드 발급 (AUTH-07).
+   *
+   * 계정이 없어도 식별자가 돌아온다 — 응답만으로는 두 경우를 구분할 수 없다. 화면이 그 구분을
+   * 만들어내지 않는 것이 이 설계를 잇는 일이다.
+   */
+  issuePasswordReset(email: string): Promise<EmailVerification> {
+    return firstValueFrom(
+      this.http.post<EmailVerification>(`${API_V1}/password-resets`, { email }),
+    );
+  }
+
+  /**
+   * 새 비밀번호 설정 (AUTH-07).
+   *
+   * **성공하면 그 사용자의 모든 세션이 무효화된다** — 이 요청을 보낸 세션까지 포함이다.
+   * 화면은 그 사실을 사용자에게 알리고 다시 로그인시켜야 한다.
+   */
+  confirmPasswordReset(verificationId: string, code: string, newPassword: string): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(`${API_V1}/password-resets/confirm`, {
+        verificationId,
+        code,
+        newPassword,
+      }),
+    );
+  }
+
+  /** 계정 복구 코드 발급 (AUTH-08). */
+  issueAccountRecovery(email: string): Promise<EmailVerification> {
+    return firstValueFrom(
+      this.http.post<EmailVerification>(`${API_V1}/account-recoveries`, { email }),
+    );
+  }
+
+  /** 복구 로그인 (AUTH-08) — 세션이 새로 발급되고 본인에게 알림 메일이 간다. */
+  confirmAccountRecovery(verificationId: string, code: string): Promise<RecoveryLogin> {
+    return firstValueFrom(
+      this.http.post<RecoveryLogin>(`${API_V1}/account-recoveries/confirm`, {
+        verificationId,
+        code,
+      }),
     );
   }
 

@@ -37,3 +37,18 @@ export interface SignupResult {
   readonly email: string;
   readonly sessionExpiresAt: string;
 }
+
+/** `POST /api/v1/account-recoveries/confirm` (AUTH-08). */
+export interface RecoveryLogin {
+  readonly userId: string;
+  readonly sessionExpiresAt: string;
+
+  /**
+   * 비밀번호가 없는 계정이라는 뜻.
+   *
+   * 인증 수단을 잃어 들어온 사용자가 그대로 나가면 다음에 또 복구를 해야 하므로, 화면이
+   * 비밀번호 설정을 권한다. **다만 설정 기능(PROF-03)은 아직 없다** — 안내는 하되 없는 경로를
+   * 약속하지 않는다.
+   */
+  readonly shouldSetPassword: boolean;
+}
