@@ -15,3 +15,4 @@ export {
   resolveCurrentSession,
 } from './session-guard';
 export type { CurrentSession, EmailVerification, IssuedSession, SignupResult } from './session';
+export { SOCIAL_PROVIDERS, socialLoginStartUrl, type SocialProvider } from './social-provider';

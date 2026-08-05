@@ -3,13 +3,18 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { toApiError } from '@/shared/api';
-import { REASON_UNAVAILABLE, SessionApi, SessionStore } from '@/shared/auth';
+import {
+  REASON_UNAVAILABLE,
+  SOCIAL_PROVIDERS,
+  SessionApi,
+  SessionStore,
+  type SocialProvider,
+  socialLoginStartUrl,
+} from '@/shared/auth';
 import { UiAlert, UiButton, UiCard, UiField, UiInput, UiLink } from '@/shared/ui';
 
 /**
- * 로그인 (AUTH-01).
- *
- * 소셜 로그인 버튼은 여기 없다 — 2차 작업(#42 후속)의 몫이다.
+ * 로그인 (AUTH-01) + 제공자 버튼 (AUTH-02·03).
  *
  * 실패 문구를 서버가 준 그대로 쓴다. 서버는 "이메일이 없음"과 "비밀번호가 틀림"을 구분해
  * 노출하지 않으므로(AUTH-01 인수조건), 화면이 친절을 더하려고 사유를 추측하면 그 순간
@@ -62,6 +67,18 @@ import { UiAlert, UiButton, UiCard, UiField, UiInput, UiLink } from '@/shared/ui
         </button>
       </form>
 
+      <div class="flex items-center gap-3">
+        <span class="h-px flex-1 bg-border"></span>
+        <span class="t-body-sm text-fg-faint">또는</span>
+        <span class="h-px flex-1 bg-border"></span>
+      </div>
+
+      <!-- routerLink가 아니라 href다. SPA 안에서 라우팅하면 서버에 도달하지 않아 아무 일도
+           일어나지 않는다 — 제공자로 가는 302를 브라우저가 따라가야 한다. -->
+      @for (provider of providers; track provider.id) {
+        <a ui-button size="lg" [href]="startUrl(provider)">{{ provider.label }}</a>
+      }
+
       <p class="t-body-sm text-fg-muted">
         계정이 없으신가요? <a ui-link routerLink="/signup">회원가입</a>
       </p>
@@ -81,6 +98,8 @@ export class LoginPage {
   readonly reason = input<string>();
 
   protected readonly REASON_UNAVAILABLE = REASON_UNAVAILABLE;
+  protected readonly providers: readonly SocialProvider[] = SOCIAL_PROVIDERS;
+  protected readonly startUrl = socialLoginStartUrl;
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

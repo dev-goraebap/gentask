@@ -15,6 +15,12 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'login', renderMode: RenderMode.Prerender },
   { path: 'signup', renderMode: RenderMode.Prerender },
 
+  // 소셜 로그인 랜딩 3종 (AUTH-02·03). 사용자별 데이터가 없어 공개 규칙을 따른다 —
+  // 세션 확인은 하이드레이션 이후 브라우저에서 일어난다
+  { path: 'auth/social/email', renderMode: RenderMode.Prerender },
+  { path: 'auth/complete', renderMode: RenderMode.Prerender },
+  { path: 'auth/error', renderMode: RenderMode.Prerender },
+
   // 인증 이후 — SEO 불필요, 인터랙티브. 서버는 껍데기만 내려보낸다.
   // `app`과 `app/**`를 함께 적는 것은 하위 경로가 생겨도 규칙이 따라오게 하기 위함이다.
   { path: 'app', renderMode: RenderMode.Client },

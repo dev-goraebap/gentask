@@ -3,7 +3,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { ApiError, toApiError } from '@/shared/api';
-import { SessionApi, SessionStore } from '@/shared/auth';
+import {
+  SOCIAL_PROVIDERS,
+  SessionApi,
+  SessionStore,
+  type SocialProvider,
+  socialLoginStartUrl,
+} from '@/shared/auth';
 import { UiAlert, UiButton, UiCard, UiField, UiInput, UiLink, UiOtpInput } from '@/shared/ui';
 
 /** OTP 실패를 뜻하는 서버 코드. 이 경우에만 코드 입력 단계로 되돌린다. */
@@ -133,6 +139,20 @@ const OTP_오류코드 = new Set([
         }
       }
 
+      <!-- 제공자 가입은 첫 단계에서만 권한다. 코드·비밀번호를 입력하는 중에 다른 경로를
+           보여주면 지금 하던 것을 버리라는 신호가 된다. -->
+      @if (step() === 'email') {
+        <div class="flex items-center gap-3">
+          <span class="h-px flex-1 bg-border"></span>
+          <span class="t-body-sm text-fg-faint">또는</span>
+          <span class="h-px flex-1 bg-border"></span>
+        </div>
+
+        @for (provider of providers; track provider.id) {
+          <a ui-button size="lg" [href]="startUrl(provider)">{{ provider.label }}</a>
+        }
+      }
+
       <p class="t-body-sm text-fg-muted">
         이미 계정이 있으신가요? <a ui-link routerLink="/login">로그인</a>
       </p>
@@ -147,6 +167,9 @@ export class SignupPage {
 
   /** 대기 레코드 식별자. 인증 자격이 아니라 검증 호출의 핸들이다(설계/서버.md §1.6). */
   private verificationId = '';
+
+  protected readonly providers: readonly SocialProvider[] = SOCIAL_PROVIDERS;
+  protected readonly startUrl = socialLoginStartUrl;
 
   protected readonly step = signal<'email' | 'code' | 'password'>('email');
   protected readonly busy = signal(false);

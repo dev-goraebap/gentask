@@ -123,6 +123,17 @@ describe('LoginPage', () => {
     }
   });
 
+  it('AUTH-02·03 제공자 버튼은 서버로 가는 전체 페이지 이동이다', async () => {
+    // routerLink로 두면 SPA 안에서 라우팅되어 서버에 도달하지 않는다 — 아무 일도 일어나지 않는
+    // 버튼이 된다. href여야 브라우저가 제공자로 가는 302를 따라간다.
+    const links = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLAnchorElement>('a[href]'),
+    ).map((a) => a.getAttribute('href'));
+
+    expect(links).toContain('/oauth2/authorization/google');
+    expect(links).toContain('/oauth2/authorization/kakao');
+  });
+
   it('세션 확인 실패로 되돌아온 경우에만 그 사유를 안내한다', async () => {
     expect(본문()).not.toContain('세션을 확인하지 못했습니다');
 

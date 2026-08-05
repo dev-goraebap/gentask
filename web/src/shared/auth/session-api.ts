@@ -39,6 +39,29 @@ export class SessionApi {
     return firstValueFrom(this.http.post<IssuedSession>(`${API_V1}/sessions`, { email, password }));
   }
 
+  /**
+   * 소셜 최초 로그인 2단계 앞부분 — 이메일을 보내 OTP를 받는다 (AUTH-02·03·05).
+   *
+   * **중간 표를 보내지 않는다.** 표는 제공자 인증 직후 심어진 `HttpOnly` 쿠키로만 오가며
+   * 자바스크립트는 그 값을 볼 수도 만질 수도 없다(설계/서버.md §1.6, 보안 검토 F1).
+   * 쿠키는 같은 오리진이라 자동으로 실린다.
+   *
+   * **서버가 이 호출에서 표 쿠키를 지운다.** 그래서 같은 표로 두 번 부를 수 없고,
+   * 화면에 "코드 다시 받기"를 둘 수 없다 — 재시도는 제공자 인증부터 다시다.
+   */
+  requestSocialEmail(email: string): Promise<EmailVerification> {
+    return firstValueFrom(
+      this.http.post<EmailVerification>(`${API_V1}/social-logins/email`, { email }),
+    );
+  }
+
+  /** 소셜 최초 로그인 2단계 뒷부분 — 코드를 확인하면 user·account가 함께 생기고 세션이 발급된다. */
+  confirmSocialSignup(verificationId: string, code: string): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(`${API_V1}/social-logins/confirm`, { verificationId, code }),
+    );
+  }
+
   currentSession(): Promise<CurrentSession> {
     return firstValueFrom(this.http.get<CurrentSession>(`${API_V1}/sessions/current`));
   }
