@@ -25,6 +25,23 @@ export const routes: Routes = [
     canActivate: [requireGuest],
     loadComponent: () => import('@/pages/signup').then((m) => m.SignupPage),
   },
+  // 소셜 로그인 (AUTH-02·03·05). 서버가 제공자 인증을 마친 뒤 이 세 주소로 리다이렉트한다
+  // (설계/인프라.md §2.2 — 이들은 프록시가 서버로 넘기지 않고 화면이 처리한다).
+  {
+    path: 'auth/social/email',
+    canActivate: [requireGuest],
+    loadComponent: () => import('@/pages/social-email').then((m) => m.SocialEmailPage),
+  },
+  {
+    // 가드를 걸지 않는다 — 이 화면의 일이 곧 "세션이 생겼는지 확인하는 것"이라
+    // requireGuest를 걸면 성공한 사용자를 가드가 먼저 낚아채 화면이 하는 일이 사라진다
+    path: 'auth/complete',
+    loadComponent: () => import('@/pages/social-complete').then((m) => m.SocialCompletePage),
+  },
+  {
+    path: 'auth/error',
+    loadComponent: () => import('@/pages/social-error').then((m) => m.SocialErrorPage),
+  },
   {
     path: 'app',
     canActivate: [requireSession],
