@@ -12,6 +12,7 @@ export {
   RETURN_URL_PARAM,
   requireGuest,
   requireSession,
+  resolveActiveSessions,
   resolveCurrentSession,
 } from './session-guard';
 export type {
@@ -20,5 +21,6 @@ export type {
   IssuedSession,
   RecoveryLogin,
   SignupResult,
+  UserSession,
 } from './session';
 export { SOCIAL_PROVIDERS, socialLoginStartUrl, type SocialProvider } from './social-provider';

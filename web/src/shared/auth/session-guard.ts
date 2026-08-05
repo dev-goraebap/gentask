@@ -1,7 +1,8 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, ResolveFn, Router } from '@angular/router';
 
-import type { CurrentSession } from './session';
+import type { CurrentSession, UserSession } from './session';
+import { SessionApi } from './session-api';
 import { SessionStore } from './session-store';
 
 /** 로그인 화면이 읽는 쿼리 파라미터. 이름을 한 곳에 두어 화면과 가드가 어긋나지 않게 한다. */
@@ -58,6 +59,15 @@ export const requireGuest: CanActivateFn = async () => {
  */
 export const resolveCurrentSession: ResolveFn<CurrentSession | null> = () =>
   inject(SessionStore).ensureLoaded();
+
+/**
+ * 기기 목록의 진입 데이터 (AUTH-06).
+ *
+ * 화면 안에서 가져오지 않고 리졸버에 두는 이유: **이 목록이 곧 화면의 뼈대**라서, 없으면
+ * 그릴 것이 없다(웹.md §6.2의 "필수 데이터만 리졸버에" 기준을 충족한다).
+ */
+export const resolveActiveSessions: ResolveFn<UserSession[]> = () =>
+  inject(SessionApi).activeSessions();
 
 function 로그인으로(router: Router, 원래경로: string, 사유?: string) {
   return router.createUrlTree(['/login'], {

@@ -38,6 +38,26 @@ export interface SignupResult {
   readonly sessionExpiresAt: string;
 }
 
+/**
+ * `GET /api/v1/sessions`의 한 줄 — 로그인된 기기 하나 (AUTH-06).
+ *
+ * **`ipAddress`·`userAgent`는 공격자 통제 값이다**(설계/서버.md §1.6.1). 자기 로그인 요청에
+ * 임의의 User-Agent를 넣을 수 있고 서버는 그것을 원문 그대로 내려준다. 서버는 이 값을 인증
+ * 판단에 쓰지 않으므로 서버 결함이 아니며, **이스케이프는 화면의 책임**이다.
+ * Angular의 보간과 속성 바인딩은 기본으로 안전하다 — 이 값에 `innerHTML`·
+ * `bypassSecurityTrustHtml`을 쓰지 않는다.
+ */
+export interface UserSession {
+  readonly id: string;
+  readonly ipAddress: string | null;
+  readonly userAgent: string | null;
+  readonly lastUsedAt: string;
+  readonly createdAt: string;
+
+  /** 지금 이 요청을 보낸 세션인가. 실수로 자기 기기를 끊지 않도록 화면이 구분해 보여준다. */
+  readonly current: boolean;
+}
+
 /** `POST /api/v1/account-recoveries/confirm` (AUTH-08). */
 export interface RecoveryLogin {
   readonly userId: string;
