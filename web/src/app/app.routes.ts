@@ -25,6 +25,16 @@ export const routes: Routes = [
     canActivate: [requireGuest],
     loadComponent: () => import('@/pages/signup').then((m) => m.SignupPage),
   },
+  // 복구 흐름 (AUTH-07·08) — 로그인할 수 없는 사용자를 위한 경로다. 가드를 걸지 않는다:
+  // requireGuest를 걸면 다른 기기에서 로그인해 둔 사용자가 재설정 화면에 들어오지 못한다.
+  {
+    path: 'password-reset',
+    loadComponent: () => import('@/pages/password-reset').then((m) => m.PasswordResetPage),
+  },
+  {
+    path: 'account-recovery',
+    loadComponent: () => import('@/pages/account-recovery').then((m) => m.AccountRecoveryPage),
+  },
   // 소셜 로그인 (AUTH-02·03·05). 서버가 제공자 인증을 마친 뒤 이 세 주소로 리다이렉트한다
   // (설계/인프라.md §2.2 — 이들은 프록시가 서버로 넘기지 않고 화면이 처리한다).
   {

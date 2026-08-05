@@ -15,6 +15,10 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'login', renderMode: RenderMode.Prerender },
   { path: 'signup', renderMode: RenderMode.Prerender },
 
+  // 복구 흐름 (AUTH-07·08)
+  { path: 'password-reset', renderMode: RenderMode.Prerender },
+  { path: 'account-recovery', renderMode: RenderMode.Prerender },
+
   // 소셜 로그인 랜딩 3종 (AUTH-02·03). 사용자별 데이터가 없어 공개 규칙을 따른다 —
   // 세션 확인은 하이드레이션 이후 브라우저에서 일어난다
   { path: 'auth/social/email', renderMode: RenderMode.Prerender },
