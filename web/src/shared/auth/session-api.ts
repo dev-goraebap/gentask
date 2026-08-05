@@ -10,6 +10,7 @@ import type {
   IssuedSession,
   RecoveryLogin,
   SignupResult,
+  UserSession,
 } from './session';
 
 /**
@@ -115,6 +116,26 @@ export class SessionApi {
 
   currentSession(): Promise<CurrentSession> {
     return firstValueFrom(this.http.get<CurrentSession>(`${API_V1}/sessions/current`));
+  }
+
+  /**
+   * 로그인된 기기 목록 (AUTH-06).
+   *
+   * 대상은 인증 주체에서 오므로 사용자 식별자를 보내지 않는다 — 남의 목록을 요청할 방법이
+   * 계약에 없다.
+   */
+  activeSessions(): Promise<UserSession[]> {
+    return firstValueFrom(this.http.get<UserSession[]>(`${API_V1}/sessions`));
+  }
+
+  /**
+   * 특정 기기 로그아웃 (AUTH-06).
+   *
+   * 지금 쓰는 세션을 지목하면 스스로 로그아웃된다 — 그때 서버가 쿠키까지 지우므로 화면도
+   * 로그인 상태를 유지해서는 안 된다.
+   */
+  revokeSession(sessionId: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`${API_V1}/sessions/${sessionId}`));
   }
 
   /** 로그아웃 — 세션은 서버에서 즉시 무효화되고 쿠키는 만료된 값으로 덮인다. */

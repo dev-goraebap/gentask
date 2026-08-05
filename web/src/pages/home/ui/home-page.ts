@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { type CurrentSession, SessionStore } from '@/shared/auth';
 import { UiButton, UiCard } from '@/shared/ui';
@@ -18,7 +18,7 @@ import { UiButton, UiCard } from '@/shared/ui';
 @Component({
   selector: 'app-home-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, UiButton, UiCard],
+  imports: [DatePipe, RouterLink, UiButton, UiCard],
   host: { class: 'flex min-h-dvh items-center justify-center bg-background p-4' },
   template: `
     <ui-card class="w-full max-w-120">
@@ -40,7 +40,12 @@ import { UiButton, UiCard } from '@/shared/ui';
         </dl>
       }
 
-      <button ui-button type="button" [loading]="signingOut()" (click)="signOut()">로그아웃</button>
+      <div class="flex flex-wrap gap-2">
+        <a ui-button routerLink="/app/devices">로그인된 기기</a>
+        <button ui-button type="button" [loading]="signingOut()" (click)="signOut()">
+          로그아웃
+        </button>
+      </div>
     </ui-card>
   `,
 })

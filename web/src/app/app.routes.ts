@@ -1,6 +1,11 @@
 import { Routes } from '@angular/router';
 
-import { requireGuest, requireSession, resolveCurrentSession } from '@/shared/auth';
+import {
+  requireGuest,
+  requireSession,
+  resolveActiveSessions,
+  resolveCurrentSession,
+} from '@/shared/auth';
 
 /**
  * 라우트 정의는 `app/`이 소유하고, 각 라우트는 `pages/` 슬라이스를 지연 로딩한다
@@ -58,6 +63,14 @@ export const routes: Routes = [
     // 진입 데이터는 리졸버가 확보한다 — 페이지 안에 로딩 분기가 없다(설계/웹.md §6.1)
     resolve: { session: resolveCurrentSession },
     loadComponent: () => import('@/pages/home').then((m) => m.HomePage),
+  },
+  {
+    // 인증 후 영역이라 렌더링 모드는 `app/**`가 이미 정해 두었다 —
+    // app.routes.server.ts를 건드리지 않는다(설계/웹.md §5)
+    path: 'app/devices',
+    canActivate: [requireSession],
+    resolve: { sessions: resolveActiveSessions },
+    loadComponent: () => import('@/pages/devices').then((m) => m.DevicesPage),
   },
   {
     // 전용 404 화면은 아직 없다(설계/웹.md §6.4). 없는 주소를 빈 화면으로 두는 것보다
