@@ -41,7 +41,7 @@ export const routes: Routes = [
     loadComponent: () => import('@/pages/account-recovery').then((m) => m.AccountRecoveryPage),
   },
   // 소셜 로그인 (AUTH-02·03·05). 서버가 제공자 인증을 마친 뒤 이 세 주소로 리다이렉트한다
-  // (설계/인프라.md §2.2 — 이들은 프록시가 서버로 넘기지 않고 화면이 처리한다).
+  // (설계/아키텍처.md §2.2 — 이들은 프록시가 서버로 넘기지 않고 화면이 처리한다).
   {
     path: 'auth/social/email',
     canActivate: [requireGuest],

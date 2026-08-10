@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 이메일 가입 (AUTH-01, 설계/서버.md §1.6).
+ * 이메일 가입 (AUTH-01, docs/references/API-설계.md §6).
  *
  * <ul>
  *   <li>{@code POST /api/v1/email-verifications} — OTP 발급 (이메일 → 대기 레코드 식별자)

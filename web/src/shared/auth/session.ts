@@ -1,5 +1,5 @@
 /**
- * 인증 계약의 클라이언트 측 타입 (설계/서버.md §1.5·§1.6).
+ * 인증 계약의 클라이언트 측 타입 (server/docs/references/API-설계.md §5·§6).
  *
  * 서버의 응답 record와 1:1로 맞춘다. 서버가 계약을 바꾸면 여기가 함께 바뀌어야 하며,
  * 그 사실을 잊지 않도록 필드 이름을 서버와 똑같이 둔다 — 중간에서 이름을 바꾸면
@@ -19,7 +19,7 @@ export interface CurrentSession {
  * `POST /api/v1/email-verifications`.
  *
  * `verificationId`는 **인증 자격이 아니다.** 이것으로 세션을 얻을 수 없고, 검증 호출에
- * 필요한 핸들일 뿐이다(설계/서버.md §1.6). 응답 형태는 계정 존재 여부와 무관하게 동일하다.
+ * 필요한 핸들일 뿐이다(server/docs/references/API-설계.md §6). 응답 형태는 계정 존재 여부와 무관하게 동일하다.
  */
 export interface EmailVerification {
   readonly verificationId: string;
@@ -41,7 +41,7 @@ export interface SignupResult {
 /**
  * `GET /api/v1/sessions`의 한 줄 — 로그인된 기기 하나 (AUTH-06).
  *
- * **`ipAddress`·`userAgent`는 공격자 통제 값이다**(설계/서버.md §1.6.1). 자기 로그인 요청에
+ * **`ipAddress`·`userAgent`는 공격자 통제 값이다**(server/docs/references/API-설계.md §6.1). 자기 로그인 요청에
  * 임의의 User-Agent를 넣을 수 있고 서버는 그것을 원문 그대로 내려준다. 서버는 이 값을 인증
  * 판단에 쓰지 않으므로 서버 결함이 아니며, **이스케이프는 화면의 책임**이다.
  * Angular의 보간과 속성 바인딩은 기본으로 안전하다 — 이 값에 `innerHTML`·

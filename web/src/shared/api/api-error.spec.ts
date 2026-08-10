@@ -19,7 +19,7 @@ describe('toApiError', () => {
   });
 
   it('AUTH-01 서버 코드에 대응하는 우리 문구를 쓴다', () => {
-    // 서버의 title·detail은 바뀔 수 있고 계약인 것은 code뿐이다(설계/서버.md §1.4).
+    // 서버의 title·detail은 바뀔 수 있고 계약인 것은 code뿐이다(server/docs/references/API-설계.md §4).
     const error = toApiError(
       응답(401, {
         code: 'AUTH_INVALID_CREDENTIALS',

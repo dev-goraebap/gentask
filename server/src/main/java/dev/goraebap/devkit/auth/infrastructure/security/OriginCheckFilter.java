@@ -77,7 +77,7 @@ class OriginCheckFilter extends OncePerRequestFilter {
             return properties.allowedOrigins().stream()
                     .anyMatch(allowed -> allowed.toLowerCase(Locale.ROOT).equals(normalized));
         }
-        // 허용 목록이 비어 있으면 same-origin 배포 전제(설계/인프라.md)에 따라 요청 자신의 출처와 비교한다
+        // 허용 목록이 비어 있으면 same-origin 배포 전제(설계/아키텍처.md)에 따라 요청 자신의 출처와 비교한다
         return normalized.equals(requestOrigin(request));
     }
 

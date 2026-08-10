@@ -24,7 +24,7 @@ const OTP_오류코드 = new Set([
  *
  * **코드를 따로 검증하는 호출이 없다.** 서버 계약은 발급(`POST /email-verifications`)과
  * 완료(`POST /users`) 두 번이고, 코드는 비밀번호와 함께 완료 호출에서 검증된다
- * (설계/서버.md §1.6). 그래서 코드가 틀렸다는 사실은 마지막 단계에서야 알 수 있고,
+ * (server/docs/references/API-설계.md §6). 그래서 코드가 틀렸다는 사실은 마지막 단계에서야 알 수 있고,
  * 그때 코드 입력 단계로 되돌린다 — 사용자가 방금 정한 비밀번호는 그대로 남긴다.
  *
  * 단계를 셋으로 나눈 이유는 화면 하나에 다 담으면 "코드를 아직 못 받았는데 비밀번호까지
@@ -165,7 +165,7 @@ export class SignupPage {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
 
-  /** 대기 레코드 식별자. 인증 자격이 아니라 검증 호출의 핸들이다(설계/서버.md §1.6). */
+  /** 대기 레코드 식별자. 인증 자격이 아니라 검증 호출의 핸들이다(server/docs/references/API-설계.md §6). */
   private verificationId = '';
 
   protected readonly providers: readonly SocialProvider[] = SOCIAL_PROVIDERS;

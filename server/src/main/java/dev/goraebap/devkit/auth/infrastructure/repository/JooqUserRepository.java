@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
-/** jOOQ에는 변경 감지가 없다 — 저장은 항상 명시적 {@code save} 호출이다 (설계/서버.md §5.3). */
+/** jOOQ에는 변경 감지가 없다 — 저장은 항상 명시적 {@code save} 호출이다 (docs/references/조회와-명령.md §3). */
 @Repository
 @RequiredArgsConstructor
 class JooqUserRepository implements UserRepository {

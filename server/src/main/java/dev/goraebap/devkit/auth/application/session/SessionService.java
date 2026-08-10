@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 세션 발급·로그인·로그아웃 (AUTH-01, 결정-0014).
  *
  * <p>세션 발급은 이 피쳐가 소유하고 registration(가입 완료 시 자동 로그인)이 의존한다 —
- * 설계/서버.md §4의 "조율 공유" 처방이다.
+ * docs/아키텍처.md §4의 "조율 공유" 처방이다.
  */
 @Service
 public class SessionService {

@@ -93,7 +93,7 @@ describe('DevicesPage', () => {
   });
 
   it('AUTH-06 공격자 통제 값인 userAgent를 마크업으로 해석하지 않는다', async () => {
-    // 자기 로그인 요청에 임의의 User-Agent를 넣을 수 있다(설계/서버.md §1.6.1).
+    // 자기 로그인 요청에 임의의 User-Agent를 넣을 수 있다(server/docs/references/API-설계.md §6.1).
     // innerHTML을 쓰면 이 자리에서 자기 화면 한정 XSS가 된다.
     const 공격 = '<img src=x onerror="alert(1)">';
     await 화면([세션({ userAgent: 공격 })]);

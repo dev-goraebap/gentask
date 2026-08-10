@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * 요청 추적 키를 부여한다 (설계/서버.md §7).
+ * 요청 추적 키를 부여한다 (docs/references/예외-에러코드-로깅.md).
  *
  * <p>traceId를 MDC에 실어 로그와 응답({@code X-Trace-Id} 헤더, 에러 응답의 {@code traceId} 필드)을
  * 대조할 수 있게 한다. 보안 필터 체인보다 먼저 실행되어야 401 응답에도 traceId가 실린다.

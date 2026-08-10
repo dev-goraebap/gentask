@@ -3,7 +3,7 @@ package dev.goraebap.devkit.auth.application.shared;
 import dev.goraebap.devkit.common.ErrorCode;
 
 /**
- * auth 모듈의 에러 코드 (설계/서버.md §1.4·§1.6).
+ * auth 모듈의 에러 코드 (docs/references/API-설계.md §4·§6).
  *
  * <p>OTP 오류는 사유를 구분하되 열거 가능성을 만들지 않는다 — 존재하지 않는 대기 레코드와 틀린
  * 코드는 같은 {@code AUTH_OTP_INVALID}다.

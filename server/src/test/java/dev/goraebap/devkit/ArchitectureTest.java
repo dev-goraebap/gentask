@@ -17,7 +17,7 @@ import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition;
 import java.util.Set;
 
 /**
- * 설계/서버.md §10의 구조 규칙을 강제한다. 위반은 빌드 실패다.
+ * docs/아키텍처.md §10의 구조 규칙을 강제한다. 위반은 빌드 실패다.
  *
  * <p>아직 해당 코드가 없는 규칙은 통과하지만(모듈이 추가되면 즉시 적용된다), 규칙을 먼저 두는 것이
  * 목적이다 — 강제 장치 없는 구조는 반드시 부패한다.
@@ -29,7 +29,7 @@ class ArchitectureTest {
 
     /**
      * 모듈이 아닌 패키지. jOOQ 생성 산출물은 우리 구조 규칙의 대상이 아니고, {@code common}은
-     * 모듈이 아니라 모든 모듈이 딛는 바닥이다(설계/서버.md §2).
+     * 모듈이 아니라 모든 모듈이 딛는 바닥이다(docs/references/패키지-배치와-참조-규칙.md §1).
      */
     private static final Set<String> NOT_MODULES = Set.of("jooq", "config", "common");
 
@@ -126,7 +126,7 @@ class ArchitectureTest {
             })
             .allowEmptyShould(true);
 
-    // 7. 명령 서비스는 조회 포트를 의존하지 않는다 (설계/서버.md §5.3·§5.4)
+    // 7. 명령 서비스는 조회 포트를 의존하지 않는다 (docs/references/조회와-명령.md §3·§4)
     @ArchTest
     static final ArchRule 명령서비스는_조회포트를_의존하지_않는다 = noClasses()
             .that()

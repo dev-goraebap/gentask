@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Component;
 
-/** 조회 어댑터 — SQL은 여기서만 보인다 (설계/서버.md §5.1). */
+/** 조회 어댑터 — SQL은 여기서만 보인다 (docs/references/조회와-명령.md §1). */
 @Component
 @RequiredArgsConstructor
 class JooqSessionQueries implements SessionQueries {

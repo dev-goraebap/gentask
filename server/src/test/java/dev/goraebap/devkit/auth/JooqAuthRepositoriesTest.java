@@ -28,7 +28,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/** 저장소 어댑터의 왕복(도메인 ↔ jOOQ 레코드) 검증 (설계/서버.md §9 — 통합 테스트 대상). */
+/** 저장소 어댑터의 왕복(도메인 ↔ jOOQ 레코드) 검증 (docs/references/테스트.md §1 — 통합 테스트 대상). */
 class JooqAuthRepositoriesTest extends IntegrationTestSupport {
 
     private static final Instant NOW = Instant.parse("2026-07-28T09:00:00Z");

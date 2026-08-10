@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** session 피쳐의 조회 포트 (설계/서버.md §5.1). 어댑터는 infrastructure/query. */
+/** session 피쳐의 조회 포트 (docs/references/조회와-명령.md §1). 어댑터는 infrastructure/query. */
 public interface SessionQueries {
 
     Optional<CurrentSessionView> findCurrentSession(UUID sessionId);

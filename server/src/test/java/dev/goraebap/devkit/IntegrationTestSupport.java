@@ -8,7 +8,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 /**
  * 통합 테스트 기반 클래스.
  *
- * <p>공유 개발 DB를 쓰지 않고 1회용 PostgreSQL 컨테이너를 띄운다(설계/서버.md §9). Flyway는
+ * <p>공유 개발 DB를 쓰지 않고 1회용 PostgreSQL 컨테이너를 띄운다(docs/references/테스트.md §1). Flyway는
  * 애플리케이션 기동 시 이 컨테이너에 마이그레이션을 적용한다.
  *
  * <p>컨테이너는 <b>싱글턴 패턴</b>으로 직접 기동한다 — JUnit의 {@code @Testcontainers} 확장은

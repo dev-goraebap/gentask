@@ -22,11 +22,11 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 /**
- * 인증 필터체인 (설계/서버.md §8) — 기본 거부(deny-by-default). 보호가 필요한 리소스를 기본으로
+ * 인증 필터체인 (docs/references/보안.md) — 기본 거부(deny-by-default). 보호가 필요한 리소스를 기본으로
  * 막고 예외적으로 연다.
  *
  * <p>앱 전체를 보호하지만 auth 모듈의 internal에 의존하므로 여기 있다 — 인증·인가는 auth 모듈이
- * 앱에 제공하는 능력이다 (설계/서버.md §3).
+ * 앱에 제공하는 능력이다 (docs/references/패키지-배치와-참조-규칙.md §2).
  *
  * <p>Spring의 CSRF 토큰 방식 대신 {@link OriginCheckFilter}(Origin 검증) + {@code SameSite=Lax}
  * 쿠키를 쓴다 — 세션을 서버 렌더 폼 없이 API로만 쓰므로 토큰 왕복이 필요 없다.

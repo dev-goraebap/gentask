@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
 
-/** 명령 서비스 단위 테스트용 인메모리 저장소 (설계/서버.md §9). */
+/** 명령 서비스 단위 테스트용 인메모리 저장소 (docs/references/테스트.md §1). */
 public final class InMemoryAuthRepositories {
 
     private InMemoryAuthRepositories() {}

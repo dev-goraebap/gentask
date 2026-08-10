@@ -21,7 +21,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
- * 모든 에러를 RFC 7807({@code application/problem+json}) 단일 형식으로 변환한다 (설계/서버.md §1.3).
+ * 모든 에러를 RFC 7807({@code application/problem+json}) 단일 형식으로 변환한다 (docs/references/API-설계.md §3).
  *
  * <p>{@link ResponseEntityExceptionHandler}를 상속해 Spring MVC 표준 예외(404·405·본문 해석 실패
  * 등)의 상태 코드를 보존하고, 모든 응답에 {@code code}·{@code traceId}를 얹는다.

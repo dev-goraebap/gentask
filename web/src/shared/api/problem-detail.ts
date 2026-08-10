@@ -1,5 +1,5 @@
 /**
- * 서버의 에러 응답 형식 — RFC 7807 `application/problem+json` (설계/서버.md §1.3).
+ * 서버의 에러 응답 형식 — RFC 7807 `application/problem+json` (server/docs/references/API-설계.md §3).
  *
  * 서버는 성공 응답을 봉투로 감싸지 않으므로 이 타입은 실패 경로에만 등장한다.
  */

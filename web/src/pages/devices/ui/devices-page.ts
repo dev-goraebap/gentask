@@ -9,7 +9,7 @@ import { UiAlert, UiButton, UiCard, UiLink } from '@/shared/ui';
 /**
  * 기기 관리 (AUTH-06) — 로그인된 세션 목록과 개별 로그아웃.
  *
- * **여기 보이는 `userAgent`·`ipAddress`는 공격자가 통제하는 값이다**(설계/서버.md §1.6.1).
+ * **여기 보이는 `userAgent`·`ipAddress`는 공격자가 통제하는 값이다**(server/docs/references/API-설계.md §6.1).
  * 자기 로그인 요청에 임의의 User-Agent를 넣을 수 있고 서버는 그것을 원문 그대로 내려준다.
  * Angular의 보간은 기본으로 이스케이프하므로 **그대로 쓰면 안전하고**, 이 값에
  * `innerHTML`·`bypassSecurityTrustHtml`을 쓰는 순간 자기 화면 한정 XSS가 된다.

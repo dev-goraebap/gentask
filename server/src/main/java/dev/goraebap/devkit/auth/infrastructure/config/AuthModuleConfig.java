@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
-/** auth 모듈의 빈 조립 (설계/서버.md §3 — 모듈 config는 모듈 안에 둔다). */
+/** auth 모듈의 빈 조립 (docs/references/패키지-배치와-참조-규칙.md §2 — 모듈 config는 모듈 안에 둔다). */
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties(AuthProperties.class)

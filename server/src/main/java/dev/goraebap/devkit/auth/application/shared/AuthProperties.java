@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * auth 모듈 설정. 시크릿은 환경변수 {@code AUTH_SECRET}으로 주입한다 (설계/서버.md §8) —
+ * auth 모듈 설정. 시크릿은 환경변수 {@code AUTH_SECRET}으로 주입한다 (docs/references/보안.md) —
  * 저장소에 기본값을 두지 않으며, 주입이 없으면 기동에 실패한다.
  *
  * <p>OTP의 만료·시도 한도는 여기 없다 — 보안 파라미터로서 도메인 상수다

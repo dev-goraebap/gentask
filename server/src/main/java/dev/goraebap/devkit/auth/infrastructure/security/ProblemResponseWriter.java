@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * 필터 단계의 에러도 RFC 7807 형식으로 응답한다 (설계/서버.md §1.3) — 예외 핸들러는 컨트롤러
+ * 필터 단계의 에러도 RFC 7807 형식으로 응답한다 (docs/references/API-설계.md §3) — 예외 핸들러는 컨트롤러
  * 이후만 담당하므로 보안 필터는 직접 쓴다.
  */
 @Component
