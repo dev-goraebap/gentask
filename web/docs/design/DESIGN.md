@@ -8,7 +8,7 @@ colors:
   foreground: 'light-dark(oklch(0.218 0 89.9), oklch(0.967 0.001 286.4))'
   foreground-secondary: 'light-dark(oklch(0.409 0 89.9), oklch(0.712 0.013 286.1))'
   muted: 'light-dark(oklch(0.958 0.001 286.4), oklch(0.237 0.008 285.8))'
-  muted-foreground: 'light-dark(oklch(0.552 0.016 285.938), oklch(0.705 0.015 286.067))'
+  muted-foreground: 'light-dark(oklch(0.48 0.014 285.9), oklch(0.705 0.015 286.067))'
   card: 'light-dark(oklch(0.997 0 89.9), oklch(0.274 0.005 286))'
   card-foreground: 'light-dark(oklch(0.218 0 89.9), oklch(0.967 0.001 286.4))'
   popover: 'light-dark(oklch(0.997 0 89.9), oklch(0.274 0.005 286))'
@@ -24,7 +24,7 @@ colors:
   info: 'light-dark(oklch(0.52 0.17 255), oklch(0.75 0.13 240))'
   success: 'light-dark(oklch(0.52 0.15 150), oklch(0.75 0.15 155))'
   border: 'light-dark(oklch(0.92 0.004 286.3), oklch(0.37 0.012 285.8))'
-  input: 'light-dark(oklch(0.92 0.004 286.3), oklch(0.37 0.012 285.8))'
+  input: 'light-dark(oklch(0.63 0.012 286.3), oklch(0.56 0.014 285.8))'
   ring: 'light-dark(oklch(0.546 0.215 262.9), oklch(0.714 0.143 254.6))'
   toolbar: 'light-dark(color-mix(in srgb, oklch(0.997 0 89.9) 65%, transparent), color-mix(in srgb, oklch(0.21 0.006 285.9) 85%, transparent))'
   mark: 'light-dark(oklch(0.87 0.075 262.9), oklch(0.42 0.1 254.6))'
@@ -35,9 +35,6 @@ typography:
     fontFamily: "'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
   code:
     fontFamily: "'JetBrains Mono Variable', 'Pretendard Variable', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
-  logo:
-    fontFamily: "'Caveat', cursive"
-    fontWeight: 500
 
 rounded:
   sm: 9.6px
@@ -103,17 +100,20 @@ omitted:
 
 `toolbar`는 상단 바 전용의 반투명 표면입니다. **알파 유틸리티(`bg-background/85`)로 대신하지 않습니다.** 그렇게 하면 라이트와 다크에 같은 불투명도가 걸리는데, 뒤로 지나가는 요소가 비쳐 보이는 정도는 배경과의 밝기 차이에 비례합니다. 다크에서 흰 요소가 지나갈 때 툴바 밝기는 불투명도 75%면 800%, 85%면 약 370% 오릅니다. 그래서 라이트 65%, 다크 85%로 나눠 둡니다. **이 제약은 앞으로 모든 반투명 표면에 동일하게 적용됩니다.**
 
-대비 기준은 본문·보조 텍스트 4.5:1, 비활성·경계선·채움 3:1이며 라이트와 다크 **양쪽에서** 충족해야 합니다. 이것은 서술이 아니라 테스트가 판정합니다.
+**경계선은 두 종류이고 기준이 다릅니다.** `border` 는 면을 가르는 장식선이며 헤어라인으로 남습니다 — 대비 하한을 요구하지 않습니다. `input` 은 "여기가 입력란"임을 알리는 유일한 단서이므로 3:1 을 넘기며, 그래서 장식선보다 눈에 띄게 진합니다. 이 차이는 의도된 것이고 판정 근거는 아키텍처 쪽이 갖습니다.
+
+대비 기준은 텍스트 4.5:1, 폼 컨트롤 경계와 포커스 링 3:1 이며 라이트와 다크 **양쪽에서** 충족해야 합니다. 이것은 서술이 아니라 테스트가 판정합니다.
 
 ## Typography
 
-서체는 **두 종에 로고 하나의 예외**입니다.
+서체는 **두 종으로 고정합니다.**
 
 | 용도 | 서체 | 사유 |
 | :--- | :--- | :--- |
 | **본문** | Pretendard Variable | 한글과 라틴을 함께 담고 라틴이 한글과 어울리도록 조정되어 있습니다 |
 | **코드** | JetBrains Mono Variable | 라틴 식별자의 가독성을 우선했습니다. 한글은 본문 서체로 떨어집니다 |
-| **로고** | Caveat 500 | 상단 바의 사이트 이름 하나. 이 이름은 서체가 곧 내용의 일부입니다 |
+
+제목에 별도 서체를 두지 않습니다. 화면마다 서체가 갈리는 것을 막는 것이 두 종 고정의 목적이며, 예외는 서체 자체가 내용의 일부인 경우(고유한 로고 활자 등)에만 두고 그때 사용처를 한 곳으로 한정합니다.
 
 **본문에 영문 전용 폰트를 겹치지 않습니다.** Pretendard가 라틴 글리프를 이미 다듬어 갖고 있으므로, 다른 영문 폰트를 앞에 두면 그 조정이 무효가 되고 한 문장 안에서 x-height와 획 두께가 어긋납니다.
 

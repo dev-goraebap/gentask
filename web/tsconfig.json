@@ -3,6 +3,14 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    /*
+     * 계층 간 임포트는 항상 이 별칭을 씁니다. baseUrl 은 지정하지 않습니다 —
+     * TypeScript 6 에서 폐기 예정이라 지정하면 TS5101 로 빌드가 실패합니다.
+     * 근거는 docs/architecture/references/02-package-structure.md 7.3절입니다.
+     */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
