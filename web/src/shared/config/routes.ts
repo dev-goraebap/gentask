@@ -11,4 +11,5 @@
 export const ROUTES = {
   home: () => '/',
   taskList: () => '/tasks',
+  taskDetail: (id: string) => `/tasks/${id}`,
 } as const;

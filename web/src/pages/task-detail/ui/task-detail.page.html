@@ -1,0 +1,50 @@
+<section class="mx-auto w-full max-w-[40rem] px-4 py-8 md:py-12">
+  @if (task(); as current) {
+    <nav class="mb-6">
+      <a hlmBtn variant="ghost" size="sm" [routerLink]="routes.taskList()">목록으로</a>
+    </nav>
+
+    <!-- novalidate 가 없으면 브라우저 기본 검증이 제출을 가로챕니다. 12-forms.md 1절. -->
+    <form novalidate [formRoot]="editForm" (submit)="save($event)" class="flex flex-col gap-6">
+      <!--
+        필드 래퍼가 레이블 연결과 오류 표시 자리를 제공합니다. 날것의 div 로 조립하면
+        그 배선을 매번 직접 해야 합니다. 12-forms.md 7.1절.
+      -->
+      <div hlmField>
+        <label hlmFieldLabel for="task-title">제목</label>
+        <input hlmInput id="task-title" [formField]="editForm.title" autocomplete="off" />
+        @for (error of editForm.title().errors(); track error.kind) {
+          <!--
+            forceShow 를 넘기는 이유는 이 컴포넌트가 부모 필드의 NgControl 로 표시 조건을
+            판정하는데 Signal Forms 에는 그것이 없어 조건이 서지 않기 때문입니다.
+            표시 여부는 화면이 정하고 접근성 배선만 빌려 씁니다. 12-forms.md 7.1절.
+          -->
+          <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
+        }
+      </div>
+
+      <div hlmField>
+        <label hlmFieldLabel for="task-note">메모</label>
+        <textarea
+          hlmTextarea
+          id="task-note"
+          rows="6"
+          [formField]="editForm.note"
+          placeholder="맥락이나 준비물을 적어 두세요"
+        ></textarea>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button hlmBtn type="submit">저장</button>
+        <a hlmBtn variant="ghost" [routerLink]="routes.taskList()">취소</a>
+      </div>
+    </form>
+  } @else {
+    <p class="text-foreground-secondary py-12 text-center text-sm">
+      찾을 수 없는 할 일입니다.
+      <a class="text-primary underline-offset-4 hover:underline" [routerLink]="routes.taskList()">
+        목록으로 돌아가기
+      </a>
+    </p>
+  }
+</section>

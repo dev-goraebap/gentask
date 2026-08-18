@@ -7,9 +7,13 @@
 
   <!-- novalidate 가 없으면 브라우저 기본 검증이 제출을 가로채 핸들러가 실행되지 않습니다. 12-forms.md 1절. -->
   <form novalidate [formRoot]="addForm" (submit)="add($event)" class="mt-6 flex items-start gap-2">
-    <div class="flex-1">
+    <!--
+      필드 래퍼가 레이블 연결과 오류 표시 자리를 제공합니다. 날것의 div 로 조립하면
+      그 배선을 매번 직접 해야 합니다. 12-forms.md 7.1절.
+    -->
+    <div hlmField class="flex-1">
       <!-- placeholder 는 이름이 아닙니다. 레이블을 두고 화면에서만 감춥니다. 13-accessibility.md 3절. -->
-      <label for="new-task-title" class="sr-only">할 일</label>
+      <label hlmFieldLabel for="new-task-title" class="sr-only">할 일</label>
       <input
         hlmInput
         id="new-task-title"
@@ -18,7 +22,8 @@
         autocomplete="off"
       />
       @for (error of addForm.title().errors(); track error.kind) {
-        <p class="text-destructive mt-1.5 text-sm">{{ error.message }}</p>
+        <!-- forceShow 를 넘기는 사유는 12-forms.md 7.1절에 있습니다. -->
+        <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
       }
     </div>
     <button hlmBtn type="submit">추가</button>
@@ -27,12 +32,25 @@
   <!-- 목록 갱신을 시각 외의 방법으로도 알립니다. 13-accessibility.md 7절. -->
   <p class="sr-only" aria-live="polite">남은 할 일 {{ groups().active.length }}개</p>
 
-  <ul class="divide-border mt-8 divide-y border-y border-border">
+  <ul class="divide-border border-border mt-8 divide-y border-y">
     @for (task of groups().active; track task.id) {
       <li class="flex items-center gap-3 py-3">
-        <hlm-checkbox [checked]="false" [aria-labelledby]="'task-' + task.id"
-          (checkedChange)="setCompleted(task, $event)" />
-        <span [id]="'task-' + task.id" class="text-sm">{{ task.title }}</span>
+        <hlm-checkbox
+          [checked]="false"
+          [aria-labelledby]="'task-' + task.id"
+          (checkedChange)="setCompleted(task, $event)"
+        />
+        <!--
+          제목은 상세로 가는 이동이므로 링크입니다. 동작이 아니라 이동이라 사용자가
+          새 탭으로 열거나 주소를 복사할 수 있어야 합니다. 13-accessibility.md 2절.
+        -->
+        <a
+          [id]="'task-' + task.id"
+          [routerLink]="routes.taskDetail(task.id)"
+          class="flex-1 text-sm underline-offset-4 hover:underline"
+        >
+          {{ task.title }}
+        </a>
       </li>
     } @empty {
       <li class="text-foreground-secondary py-8 text-center text-sm">
@@ -63,14 +81,21 @@
       </button>
 
       @if (done()) {
-        <ul id="completed-tasks" class="divide-border mt-2 divide-y border-y border-border">
+        <ul id="completed-tasks" class="divide-border border-border mt-2 divide-y border-y">
           @for (task of groups().completed; track task.id) {
             <li class="flex items-center gap-3 py-3">
-              <hlm-checkbox [checked]="true" [aria-labelledby]="'done-' + task.id"
-                (checkedChange)="setCompleted(task, $event)" />
-              <span [id]="'done-' + task.id" class="text-foreground-secondary text-sm line-through">
+              <hlm-checkbox
+                [checked]="true"
+                [aria-labelledby]="'done-' + task.id"
+                (checkedChange)="setCompleted(task, $event)"
+              />
+              <a
+                [id]="'done-' + task.id"
+                [routerLink]="routes.taskDetail(task.id)"
+                class="text-foreground-secondary flex-1 text-sm line-through underline-offset-4 hover:underline"
+              >
                 {{ task.title }}
-              </span>
+              </a>
             </li>
           }
         </ul>

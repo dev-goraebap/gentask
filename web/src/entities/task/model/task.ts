@@ -13,6 +13,9 @@ export type Task = {
   readonly title: string;
   readonly createdAt: string;
   readonly completedAt: string | null;
+
+  /** 제목만으로는 담기지 않는 맥락입니다. 비어 있는 것이 기본 상태입니다. */
+  readonly note: string;
 };
 
 export function isCompleted(task: Task): boolean {

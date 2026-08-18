@@ -19,7 +19,25 @@ export interface TaskStore {
   add(title: string): Promise<void>;
 
   setCompleted(id: string, completed: boolean): Promise<void>;
+
+  /**
+   * 편집 가능한 필드만 받습니다. 완료 여부는 setCompleted 가 소유하며, 목록의 체크와
+   * 상세의 저장이 같은 값을 서로 다른 경로로 바꾸면 어느 쪽이 이겼는지 알 수 없게 됩니다.
+   */
+  update(id: string, patch: TaskDraft): Promise<void>;
 }
+
+/**
+ * 사용자가 상세 화면에서 고칠 수 있는 부분입니다.
+ *
+ * 필드에 readonly 를 붙이지 않는 이유는 이 타입이 폼의 모델이기도 하기 때문입니다.
+ * Signal Forms 는 읽기 전용 속성에 경로를 만들지 못합니다. 저장된 값의 불변성은
+ * Task 가 지키며 이 타입은 편집 중인 사본입니다.
+ */
+export type TaskDraft = {
+  title: string;
+  note: string;
+};
 
 /**
  * 구현을 상위 계층이 제공합니다. 화면 범위 서비스이므로 라우트 정의의 providers 에

@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import type { Task } from '../model/task';
-import type { TaskStore } from './task-store';
+import type { TaskDraft, TaskStore } from './task-store';
 
 /**
  * 프로토타입 구간의 구현입니다. 서버가 없는 동안 이 클래스가 원본을 소유합니다.
@@ -25,8 +25,17 @@ export class MockTaskStore implements TaskStore {
       title: title.trim(),
       createdAt: now,
       completedAt: null,
+      note: '',
     };
     this.state.update((tasks) => [...tasks, task]);
+  }
+
+  async update(id: string, patch: TaskDraft): Promise<void> {
+    this.state.update((tasks) =>
+      tasks.map((task) =>
+        task.id === id ? { ...task, title: patch.title.trim(), note: patch.note } : task,
+      ),
+    );
   }
 
   async setCompleted(id: string, completed: boolean): Promise<void> {
@@ -47,17 +56,20 @@ const SEED: readonly Task[] = [
     title: '장 보기',
     createdAt: '2026-08-17T09:00:00.000Z',
     completedAt: null,
+    note: '',
   },
   {
     id: 'seed-2',
     title: '전기요금 납부',
     createdAt: '2026-08-17T10:30:00.000Z',
     completedAt: null,
+    note: '',
   },
   {
     id: 'seed-3',
     title: '자전거 공기압 확인',
     createdAt: '2026-08-16T18:00:00.000Z',
     completedAt: '2026-08-17T08:10:00.000Z',
+    note: '앞바퀴만 확인했다. 뒷바퀴는 다음에.',
   },
 ];

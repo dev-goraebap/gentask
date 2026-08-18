@@ -4,12 +4,15 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/shared/ui/button": ["./src/shared/ui/button/src/index.ts"],
-      "@/pages/task-list/providers": ["./src/pages/task-list/api/provide-task-list.ts"],
+      "@/entities/task/providers": ["./src/entities/task/api/provide-task.ts"],
       "@/shared/ui/icon": ["./src/shared/ui/icon/src/index.ts"],
       "@/shared/ui/utils": ["./src/shared/ui/utils/src/index.ts"],
       "@/shared/ui/input": ["./src/shared/ui/input/src/index.ts"],
       "@/shared/ui/checkbox": ["./src/shared/ui/checkbox/src/index.ts"],
-      "@/shared/ui/separator": ["./src/shared/ui/separator/src/index.ts"]
+      "@/shared/ui/separator": ["./src/shared/ui/separator/src/index.ts"],
+      "@/shared/ui/label": ["./src/shared/ui/label/src/index.ts"],
+      "@/shared/ui/field": ["./src/shared/ui/field/src/index.ts"],
+      "@/shared/ui/textarea": ["./src/shared/ui/textarea/src/index.ts"]
     },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,

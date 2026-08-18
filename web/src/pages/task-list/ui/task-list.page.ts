@@ -1,14 +1,15 @@
 import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import { lucideChevronRight } from '@ng-icons/lucide';
+import { ROUTES } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
+import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
-import { TASK_STORE } from '../api/task-store';
-import { isAddableTitle, splitByCompletion, type Task } from '../model/task';
+import { isAddableTitle, splitByCompletion, TASK_STORE, type Task } from '@/entities/task';
 
 /**
  * 할일 목록 화면입니다. 요구사항 1(빠르게 적어 둔다)과 2(해낸 것을 표시하고 되돌린다)를 담습니다.
@@ -18,7 +19,10 @@ import { isAddableTitle, splitByCompletion, type Task } from '../model/task';
  */
 @Component({
   selector: 'app-task-list',
-  imports: [FormRoot, FormField, HlmButton, HlmInput, HlmCheckbox, AppIcon],
+  imports: [
+    FormRoot, FormField, RouterLink,
+    HlmButton, HlmInput, HlmCheckbox, AppIcon, HlmField, HlmFieldLabel, HlmFieldError,
+  ],
   providers: [provideIcons({ lucideChevronRight })],
   templateUrl: './task-list.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +33,8 @@ export class TaskListPage {
    * 별도 구현 없이 동작합니다. 08-routing.md 3절.
    */
   readonly done = input(false, { transform: booleanAttribute });
+
+  protected readonly routes = ROUTES;
 
   private readonly store = inject(TASK_STORE);
   private readonly router = inject(Router);
