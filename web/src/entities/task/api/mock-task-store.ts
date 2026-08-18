@@ -41,6 +41,17 @@ export class MockTaskStore implements TaskStore {
     );
   }
 
+  async remove(id: string): Promise<void> {
+    this.state.update((tasks) => tasks.filter((task) => task.id !== id));
+  }
+
+  async restore(task: Task): Promise<void> {
+    // 같은 식별자가 이미 있으면 더하지 않습니다. 되돌리기를 두 번 누르면 항목이 겹칩니다.
+    this.state.update((tasks) =>
+      tasks.some((existing) => existing.id === task.id) ? tasks : [...tasks, task],
+    );
+  }
+
   async setCompleted(id: string, completed: boolean): Promise<void> {
     const now = completed ? new Date().toISOString() : null;
     this.state.update((tasks) =>

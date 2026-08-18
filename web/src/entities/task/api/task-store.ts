@@ -25,6 +25,18 @@ export interface TaskStore {
    * 상세의 저장이 같은 값을 서로 다른 경로로 바꾸면 어느 쪽이 이겼는지 알 수 없게 됩니다.
    */
   update(id: string, patch: TaskDraft): Promise<void>;
+
+  remove(id: string): Promise<void>;
+
+  /**
+   * 지운 항목을 같은 식별자로 되살립니다. 목록의 자리는 `createdAt` 과 `completedAt` 이
+   * 정하므로 순서를 따로 넘기지 않습니다.
+   *
+   * 되살릴 값을 저장소가 보관하지 않는 이유는 그 보관 기간이 되돌리기 안내의 수명과
+   * 같아야 하는데, 그 수명을 아는 것은 화면이기 때문입니다. 저장소가 들고 있으면
+   * 화면이 안내를 거두는 시점과 저장소가 값을 버리는 시점이 따로 놀게 됩니다.
+   */
+  restore(task: Task): Promise<void>;
 }
 
 /**

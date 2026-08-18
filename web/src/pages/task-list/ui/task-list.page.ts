@@ -2,13 +2,14 @@ import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject,
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideChevronRight } from '@ng-icons/lucide';
+import { lucideChevronRight, lucideTrash2 } from '@ng-icons/lucide';
 import { ROUTES } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
+import { HlmToaster, toast } from '@/shared/ui/sonner';
 import {
   formatDueDate,
   isAddableTitle,
@@ -20,7 +21,7 @@ import {
 } from '@/entities/task';
 
 /**
- * 할일 목록 화면입니다. 요구사항 1(빠르게 적어 둔다)과 2(해낸 것을 표시하고 되돌린다)를 담습니다.
+ * 할일 목록 화면입니다. 요구사항 1(빠르게 적어 둔다)·2(해낸 것을 표시하고 되돌린다)·4(지운다)를 담습니다.
  *
  * 데이터는 TASK_STORE 인터페이스 뒤에서만 접근합니다. 목데이터를 여기 박지 않는 이유는
  * 백엔드 연결을 프로바이더 교체로 축소하기 위함입니다. 09-state.md 2절.
@@ -29,9 +30,9 @@ import {
   selector: 'app-task-list',
   imports: [
     FormRoot, FormField, RouterLink,
-    HlmButton, HlmInput, HlmCheckbox, AppIcon, HlmField, HlmFieldLabel, HlmFieldError,
+    HlmButton, HlmInput, HlmCheckbox, AppIcon, HlmField, HlmFieldLabel, HlmFieldError, HlmToaster,
   ],
-  providers: [provideIcons({ lucideChevronRight })],
+  providers: [provideIcons({ lucideChevronRight, lucideTrash2 })],
   templateUrl: './task-list.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -93,6 +94,25 @@ export class TaskListPage {
 
   protected async setCompleted(task: Task, completed: boolean): Promise<void> {
     await this.store.setCompleted(task.id, completed);
+  }
+
+  /**
+   * 지우고 되돌릴 수단을 함께 냅니다. 요구사항 4.
+   *
+   * 확인 대화 대신 실행 취소를 고른 것은, 지우기가 반복되는 조작이라 매번 막으면 흐름이
+   * 끊기기 때문입니다. 부록 B 의 `삭제 복구` 가 미해결이므로 이 화면이 그 자리를 임시로
+   * 채우며, 되돌릴 값은 여기서 들고 있다가 저장소에 되돌립니다.
+   *
+   * 한계는 안내가 사라지면 되돌릴 수 없다는 것입니다. 새로고침이나 화면 이동도 같습니다.
+   * 영구적인 복구가 필요한지는 스펙 심화에서 정합니다.
+   */
+  protected async remove(task: Task): Promise<void> {
+    await this.store.remove(task.id);
+
+    toast('할 일을 지웠습니다', {
+      description: task.title,
+      action: { label: '되돌리기', onClick: () => void this.store.restore(task) },
+    });
   }
 
   /**

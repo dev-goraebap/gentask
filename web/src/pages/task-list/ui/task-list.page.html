@@ -63,10 +63,28 @@
               [class.text-warning]="isOverdue(task)"
               [class.text-foreground-secondary]="!isOverdue(task)"
             >
-              {{ formatDueDate(due) }}@if (isOverdue(task)) {<span> · 지남</span>}
+              {{ formatDueDate(due) }}
+              @if (isOverdue(task)) {
+                <span> · 지남</span>
+              }
             </p>
           }
         </div>
+        <!--
+          지우기는 파괴적 액션이라 완료 체크와 붙여 두지 않습니다. 07-adaptive-ui.md 7절.
+          호버로만 드러내지 않는 것도 같은 절이 정합니다. 터치에는 호버가 없습니다.
+        -->
+        <button
+          hlmBtn
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          class="text-foreground-secondary hover:text-warning shrink-0"
+          [attr.aria-label]="task.title + ' 지우기'"
+          (click)="remove(task)"
+        >
+          <app-icon name="lucideTrash2" />
+        </button>
       </li>
     } @empty {
       <li class="text-foreground-secondary py-8 text-center text-sm">
@@ -112,10 +130,35 @@
               >
                 {{ task.title }}
               </a>
+              <!--
+          지우기는 파괴적 액션이라 완료 체크와 붙여 두지 않습니다. 07-adaptive-ui.md 7절.
+          호버로만 드러내지 않는 것도 같은 절이 정합니다. 터치에는 호버가 없습니다.
+        -->
+              <button
+                hlmBtn
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                class="text-foreground-secondary hover:text-warning shrink-0"
+                [attr.aria-label]="task.title + ' 지우기'"
+                (click)="remove(task)"
+              >
+                <app-icon name="lucideTrash2" />
+              </button>
             </li>
           }
         </ul>
       }
     </div>
   }
+
+  <!--
+    토스트를 이 화면이 소유합니다. 셸에 두면 초기 번들에 들어가 예산을 넘겼습니다.
+    실측은 셸 배치 521.51kB, 이 화면 배치 473.84kB 이며 경고선은 500kB 입니다.
+    18-performance.md 3절.
+
+    위치를 폭으로 가르지 않습니다. 하단 고정은 되돌리기 안내의 관례이고, 좁은 화면에서는
+    sonner 가 스스로 전체 폭으로 눕습니다. 분기를 없앨 수 있으면 없앱니다. 07-adaptive-ui.md 5.1절.
+  -->
+  <hlm-toaster position="bottom-right" [duration]="8000" />
 </section>

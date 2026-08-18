@@ -33,6 +33,8 @@ describe('TaskDetailPage', () => {
       tasks,
       add: async () => {},
       setCompleted: async () => {},
+      remove: async () => {},
+      restore: async () => {},
       update: update as unknown as (id: string, patch: TaskDraft) => Promise<void>,
     };
 

@@ -7,9 +7,7 @@
       "@/entities/task/providers": ["./src/entities/task/api/provide-task.ts"],
       "@/shared/ui/icon": ["./src/shared/ui/icon/src/index.ts"],
       "@/shared/ui/utils": ["./src/shared/ui/utils/src/index.ts"],
-      "@/shared/ui/utils/providers": [
-        "./src/shared/ui/utils/src/lib/provide-spartan-hlm.ts"
-      ],
+      "@/shared/ui/utils/providers": ["./src/shared/ui/utils/src/lib/provide-spartan-hlm.ts"],
       "@/shared/ui/input": ["./src/shared/ui/input/src/index.ts"],
       "@/shared/ui/checkbox": ["./src/shared/ui/checkbox/src/index.ts"],
       "@/shared/ui/separator": ["./src/shared/ui/separator/src/index.ts"],
@@ -20,7 +18,8 @@
       "@/shared/ui/calendar": ["./src/shared/ui/calendar/src/index.ts"],
       "@/shared/ui/select": ["./src/shared/ui/select/src/index.ts"],
       "@/shared/ui/popover": ["./src/shared/ui/popover/src/index.ts"],
-      "@/shared/ui/input-group": ["./src/shared/ui/input-group/src/index.ts"]
+      "@/shared/ui/input-group": ["./src/shared/ui/input-group/src/index.ts"],
+      "@/shared/ui/sonner": ["./src/shared/ui/sonner/src/index.ts"]
     },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
