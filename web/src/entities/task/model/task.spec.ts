@@ -5,8 +5,11 @@ import {
   isAddableTitle,
   isCompleted,
   isOverdue,
+  sortActive,
+  sortCompleted,
   splitByCompletion,
   toDateKey,
+  toTaskSort,
   type Task,
 } from './task';
 
@@ -35,24 +38,54 @@ describe('splitByCompletion', () => {
     expect(active.map((t) => t.id)).toEqual(['a']);
     expect(completed.map((t) => t.id)).toEqual(['b']);
   });
+});
 
-  it('미완료는 최근에 적은 것이 위로 온다', () => {
-    const { active } = splitByCompletion([
-      task({ id: 'old', createdAt: '2026-08-01T00:00:00.000Z' }),
-      task({ id: 'new', createdAt: '2026-08-03T00:00:00.000Z' }),
-      task({ id: 'mid', createdAt: '2026-08-02T00:00:00.000Z' }),
-    ]);
+describe('sortActive', () => {
+  it('추가순은 최근에 적은 것이 위로 온다', () => {
+    const sorted = sortActive(
+      [
+        task({ id: 'old', createdAt: '2026-08-01T00:00:00.000Z' }),
+        task({ id: 'new', createdAt: '2026-08-03T00:00:00.000Z' }),
+        task({ id: 'mid', createdAt: '2026-08-02T00:00:00.000Z' }),
+      ],
+      'created',
+    );
 
-    expect(active.map((t) => t.id)).toEqual(['new', 'mid', 'old']);
+    expect(sorted.map((t) => t.id)).toEqual(['new', 'mid', 'old']);
   });
 
-  it('완료는 최근에 해낸 것이 위로 온다', () => {
-    const { completed } = splitByCompletion([
-      task({ id: 'first', completedAt: '2026-08-01T00:00:00.000Z' }),
-      task({ id: 'last', completedAt: '2026-08-03T00:00:00.000Z' }),
-    ]);
+  it('마감일순은 가까운 것이 위로 온다', () => {
+    const sorted = sortActive(
+      [
+        task({ id: 'late', dueDate: '2026-09-01' }),
+        task({ id: 'soon', dueDate: '2026-08-20' }),
+      ],
+      'due',
+    );
 
-    expect(completed.map((t) => t.id)).toEqual(['last', 'first']);
+    expect(sorted.map((t) => t.id)).toEqual(['soon', 'late']);
+  });
+
+  it('마감일순에서 정하지 않은 항목은 뒤로 간다', () => {
+    // 마감일이 없는 것은 늦은 것이 아니라 기한이 없는 것입니다.
+    const sorted = sortActive(
+      [task({ id: 'none' }), task({ id: 'far', dueDate: '2099-12-31' })],
+      'due',
+    );
+
+    expect(sorted.map((t) => t.id)).toEqual(['far', 'none']);
+  });
+
+  it('마감일이 같으면 추가순을 따른다', () => {
+    const sorted = sortActive(
+      [
+        task({ id: 'first', dueDate: '2026-08-20', createdAt: '2026-08-01T00:00:00.000Z' }),
+        task({ id: 'later', dueDate: '2026-08-20', createdAt: '2026-08-03T00:00:00.000Z' }),
+      ],
+      'due',
+    );
+
+    expect(sorted.map((t) => t.id)).toEqual(['later', 'first']);
   });
 
   it('입력 배열을 바꾸지 않는다', () => {
@@ -61,9 +94,30 @@ describe('splitByCompletion', () => {
       task({ id: 'b', createdAt: '2026-08-03T00:00:00.000Z' }),
     ];
 
-    splitByCompletion(input);
+    sortActive(input, 'created');
 
     expect(input.map((t) => t.id)).toEqual(['a', 'b']);
+  });
+});
+
+describe('sortCompleted', () => {
+  it('최근에 해낸 것이 위로 온다', () => {
+    const sorted = sortCompleted([
+      task({ id: 'first', completedAt: '2026-08-01T00:00:00.000Z' }),
+      task({ id: 'last', completedAt: '2026-08-03T00:00:00.000Z' }),
+    ]);
+
+    expect(sorted.map((t) => t.id)).toEqual(['last', 'first']);
+  });
+});
+
+describe('toTaskSort', () => {
+  it('아는 값만 받고 나머지는 기본값으로 되돌린다', () => {
+    expect(toTaskSort('due')).toBe('due');
+    expect(toTaskSort('created')).toBe('created');
+    expect(toTaskSort(undefined)).toBe('created');
+    // 사용자가 주소를 직접 고친 경우입니다. 화면이 비는 대신 기본 정렬로 뜹니다.
+    expect(toTaskSort('없는값')).toBe('created');
   });
 });
 

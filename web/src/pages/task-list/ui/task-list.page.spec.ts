@@ -36,8 +36,17 @@ describe('TaskListPage', () => {
     dueDate: '2026-08-25',
   };
 
+  const 건강검진: Task = {
+    id: 'seed-3',
+    title: '건강검진 예약',
+    createdAt: '2026-08-15T11:00:00.000Z',
+    completedAt: null,
+    note: '',
+    dueDate: '2026-08-14',
+  };
+
   beforeEach(() => {
-    tasks = signal<readonly Task[]>([장보기, 전기요금]);
+    tasks = signal<readonly Task[]>([장보기, 전기요금, 건강검진]);
 
     remove = vi.fn(async (id: string) => {
       tasks.update((current) => current.filter((task) => task.id !== id));
@@ -59,10 +68,21 @@ describe('TaskListPage', () => {
     });
   });
 
-  function render(): ComponentFixture<TaskListPage> {
+  function render(sort?: 'created' | 'due'): ComponentFixture<TaskListPage> {
     const fixture = TestBed.createComponent(TaskListPage);
+    if (sort) fixture.componentRef.setInput('sort', sort);
     fixture.detectChanges();
     return fixture;
+  }
+
+  function sortButton(fixture: ComponentFixture<TaskListPage>, label: string): HTMLButtonElement {
+    const host = fixture.nativeElement as HTMLElement;
+    const group = host.querySelector('[role="group"][aria-label="정렬 기준"]');
+    const button = [...(group?.querySelectorAll('button') ?? [])].find(
+      (candidate) => candidate.textContent?.trim() === label,
+    );
+    if (!button) throw new Error(`${label} 버튼을 찾지 못했습니다`);
+    return button;
   }
 
   function titles(fixture: ComponentFixture<TaskListPage>): string[] {
@@ -94,7 +114,23 @@ describe('TaskListPage', () => {
     fixture.detectChanges();
 
     expect(remove).toHaveBeenCalledWith('seed-1');
-    expect(titles(fixture)).toEqual(['전기요금 납부']);
+    expect(titles(fixture)).toEqual(['전기요금 납부', '건강검진 예약']);
+  });
+
+  it('고른 정렬 기준을 aria-pressed 로 알린다', () => {
+    const fixture = render();
+
+    // 색만으로 알리면 색각 이상과 흑백 출력에서 전달되지 않습니다. 13-accessibility.md 4절.
+    expect(sortButton(fixture, '추가순').getAttribute('aria-pressed')).toBe('true');
+    expect(sortButton(fixture, '마감일순').getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('기본 정렬은 최근에 적은 것이 위로 온다', () => {
+    expect(titles(render())).toEqual(['전기요금 납부', '장 보기', '건강검진 예약']);
+  });
+
+  it('마감일순은 가까운 것이 위로 오고 정하지 않은 것이 뒤로 간다', () => {
+    expect(titles(render('due'))).toEqual(['건강검진 예약', '전기요금 납부', '장 보기']);
   });
 
   it('되돌리면 원래 자리로 돌아온다', async () => {

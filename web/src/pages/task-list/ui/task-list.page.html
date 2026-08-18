@@ -32,7 +32,26 @@
   <!-- 목록 갱신을 시각 외의 방법으로도 알립니다. 13-accessibility.md 7절. -->
   <p class="sr-only" aria-live="polite">남은 할 일 {{ groups().active.length }}개</p>
 
-  <ul class="divide-border border-border mt-8 divide-y border-y">
+  <!--
+    정렬 기준입니다. 두 개뿐이라 목록을 여는 대신 나란히 둡니다. 고른 값은
+    aria-pressed 가 전달하며 색만으로 알리지 않습니다. 13-accessibility.md 4절.
+  -->
+  <div role="group" aria-label="정렬 기준" class="mt-6 flex items-center gap-1">
+    @for (option of sortOptions; track option.value) {
+      <button
+        hlmBtn
+        type="button"
+        size="sm"
+        [variant]="sort() === option.value ? 'secondary' : 'ghost'"
+        [attr.aria-pressed]="sort() === option.value"
+        (click)="setSort(option.value)"
+      >
+        {{ option.label }}
+      </button>
+    }
+  </div>
+
+  <ul class="divide-border border-border mt-3 divide-y border-y">
     @for (task of groups().active; track task.id) {
       <li class="flex items-start gap-3 py-3">
         <hlm-checkbox

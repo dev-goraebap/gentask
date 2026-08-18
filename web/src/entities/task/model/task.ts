@@ -35,25 +35,73 @@ export function isCompleted(task: Task): boolean {
 }
 
 /**
- * 미완료와 완료를 갈라 각각의 표시 순서로 정렬합니다.
+ * 사용자가 고를 수 있는 미완료 목록의 정렬 기준입니다.
  *
- * 미완료는 최근에 적은 것이 위로 옵니다. 방금 적은 것이 목록 아래로 밀려나면
- * 적었는지 확인하러 스크롤해야 합니다.
- * 완료는 최근에 해낸 것이 위로 옵니다.
+ * 방향을 함께 두지 않습니다. 기준마다 쓸모 있는 방향이 하나로 정해지기 때문입니다.
+ * 마감일은 가까운 것부터 봐야 하고, 추가한 순서는 방금 적은 것부터 봐야 합니다.
+ * 뒤집을 수단이 필요해지면 그때 08-routing.md 3절에 따라 방향도 주소에 둡니다.
+ */
+export type TaskSort = 'created' | 'due';
+
+/**
+ * 주소에서 온 값을 정렬 기준으로 좁힙니다.
+ *
+ * 알 수 없는 값은 기본값으로 되돌립니다. 사용자가 주소를 직접 고쳤을 때 화면이 비거나
+ * 깨지는 대신 기본 정렬로 뜨는 편이 낫습니다.
+ */
+export function toTaskSort(raw: string | undefined | null): TaskSort {
+  return raw === 'due' ? 'due' : 'created';
+}
+
+/**
+ * 완료 여부로만 가릅니다. 순서는 정렬 함수가 정합니다.
+ *
+ * 분류와 정렬을 나눈 이유는 정렬 기준이 사용자가 고르는 값이 되었기 때문입니다.
+ * 한 함수가 둘을 다 가지면 기준이 늘 때마다 분류 코드까지 다시 읽어야 합니다.
  */
 export function splitByCompletion(tasks: readonly Task[]): {
   readonly active: readonly Task[];
   readonly completed: readonly Task[];
 } {
-  const active = tasks.filter((task) => !isCompleted(task));
-  const completed = tasks.filter(isCompleted);
-
   return {
-    active: [...active].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    completed: [...completed].sort((a, b) =>
-      (b.completedAt ?? '').localeCompare(a.completedAt ?? ''),
-    ),
+    active: tasks.filter((task) => !isCompleted(task)),
+    completed: tasks.filter(isCompleted),
   };
+}
+
+/**
+ * 미완료 목록의 순서를 정합니다.
+ *
+ * 마감일 기준에서 정하지 않은 항목은 뒤로 보냅니다. 마감일이 없는 것은 늦은 것이 아니라
+ * 기한이 없는 것이므로 가장 먼 날짜로 취급하면 어긋납니다. 그 안에서는 기본 기준인
+ * 추가 순서를 따릅니다.
+ *
+ * 사전순 비교가 곧 시간순 비교입니다. `createdAt` 은 ISO 8601 이고 `dueDate` 는 그
+ * 날짜 부분이라 둘 다 별도 변환이 필요 없습니다.
+ */
+export function sortActive(tasks: readonly Task[], by: TaskSort): readonly Task[] {
+  const byCreated = (a: Task, b: Task) => b.createdAt.localeCompare(a.createdAt);
+
+  if (by === 'created') return [...tasks].sort(byCreated);
+
+  return [...tasks].sort((a, b) => {
+    if (a.dueDate === null && b.dueDate === null) return byCreated(a, b);
+    if (a.dueDate === null) return 1;
+    if (b.dueDate === null) return -1;
+
+    const byDue = a.dueDate.localeCompare(b.dueDate);
+    return byDue !== 0 ? byDue : byCreated(a, b);
+  });
+}
+
+/**
+ * 완료 목록의 순서입니다. 최근에 해낸 것이 위로 옵니다.
+ *
+ * 사용자가 고르지 않습니다. 완료 목록은 해낸 것을 확인하는 자리라 시간 역순 외의
+ * 기준이 쓸모를 갖지 않습니다.
+ */
+export function sortCompleted(tasks: readonly Task[]): readonly Task[] {
+  return [...tasks].sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
 }
 
 /** 제목만 있으면 추가할 수 있습니다. 공백만 입력한 것은 제목이 아닙니다. */
