@@ -19,7 +19,7 @@ import {
 } from '@spartan-ng/brain/date-picker';
 import { BrnFieldControl, BrnFieldControlDescribedBy } from '@spartan-ng/brain/field';
 import { BrnOverlayTrigger } from '@spartan-ng/brain/overlay';
-import { injectInteractionMode } from '@/shared/lib';
+import { injectViewportClass } from '@/shared/lib';
 import { ButtonVariants, HlmButtonImports } from '@/shared/ui/button';
 import { hlm } from '@/shared/ui/utils';
 import { ClassValue } from 'clsx';
@@ -108,7 +108,7 @@ export class HlmDatePickerTrigger implements BrnDatePickerTriggerBase {
   protected readonly _disabled = this._datePicker.disabledState;
   protected readonly _formattedDate = this._datePicker.formattedDate;
 
-  private readonly _mode = injectInteractionMode();
+  private readonly _viewport = injectViewportClass();
   private readonly _button = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
 
   constructor() {
@@ -123,7 +123,7 @@ export class HlmDatePickerTrigger implements BrnDatePickerTriggerBase {
      * 이미 쓰이고 있습니다.
      */
     effect(() => {
-      const origin = this._mode() === 'touch' ? null : this._button().nativeElement;
+      const origin = this._viewport() === 'compact' ? null : this._button().nativeElement;
       this._popover().setOrigin(origin);
     });
   }

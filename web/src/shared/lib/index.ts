@@ -1,1 +1,1 @@
-export { injectInteractionMode } from './adaptive/interaction-mode';
+export { injectViewportClass } from './adaptive/viewport-class';

@@ -58,7 +58,7 @@ export const HLM_DATE_RANGE_PICKER_VALUE_ACCESSOR = {
 
       <div
         *hlmPopoverPortal="let ctx"
-        data-slot="date-picker-content"
+        data-slot="popover-content"
         [class]="_presentation.surfaceClass()"
         [attr.data-state]="_popoverState() ?? 'closed'"
       >
@@ -82,14 +82,19 @@ export const HLM_DATE_RANGE_PICKER_VALUE_ACCESSOR = {
 export class HlmDateRangePicker<T> implements BrnDatePickerBase<[T, T]>, ControlValueAccessor {
   private readonly _config = injectHlmDateRangePickerConfig<T>();
 
-  /** pointer 는 트리거 옆 팝오버, touch 는 하단 바텀시트입니다. 07-adaptive-ui.md 5절. */
+  /** wide 는 트리거 옆 팝오버, compact 는 하단 바텀시트입니다. 07-adaptive-ui.md 5절. */
   protected readonly _presentation = injectHlmDatePickerPresentation();
 
   public readonly popover = viewChild.required(BrnPopover);
 
   private readonly _trigger = contentChild(BrnDatePickerTriggerToken);
 
-  public readonly align = input<BrnPopoverAlign>('center');
+  /*
+   * 필드에 붙는 오버레이는 필드의 시작 모서리에 맞춥니다. 캘린더는 일곱 열이라 대개
+   * 트리거보다 넓은데, 가운데로 맞추면 양쪽으로 삐져나와 어느 필드에 딸린 것인지
+   * 흐려집니다. brain 기본값은 center 이며 여기서 바꿉니다.
+   */
+  public readonly align = input<BrnPopoverAlign>('start');
 
   /** Show dropdowns to navigate between months or years. */
   public readonly captionLayout = input<

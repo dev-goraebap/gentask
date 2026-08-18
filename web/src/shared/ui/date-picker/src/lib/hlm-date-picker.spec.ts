@@ -8,7 +8,7 @@ import { HlmDatePicker } from './hlm-date-picker';
 import { HlmDatePickerTrigger } from './hlm-date-picker-trigger';
 
 /*
- * 적응형 컴포넌트라 두 모드를 각각 고정합니다. 한쪽만 검증하면 다른 쪽은 실기기에서만
+ * 적응형 컴포넌트라 두 폭을 각각 고정합니다. 한쪽만 검증하면 다른 쪽은 실제 화면에서만
  * 드러납니다. 07-adaptive-ui.md 9절, 17-testing.md 3.1절.
  *
  * 위치 전략은 사용자가 보는 결과이지만 역할이나 접근 가능한 이름으로는 드러나지
@@ -20,8 +20,8 @@ describe('HlmDatePicker', () => {
     TestBed.inject(OverlayContainer).ngOnDestroy();
   });
 
-  it('pointer 에서는 트리거에 연결된 팝오버로 연다', async () => {
-    const overlay = await open('pointer');
+  it('wide 에서는 트리거에 연결된 팝오버로 연다', async () => {
+    const overlay = await open('wide');
 
     expect(overlay.querySelector('hlm-calendar')).not.toBeNull();
     expect(overlay.querySelector('.cdk-overlay-connected-position-bounding-box')).not.toBeNull();
@@ -30,8 +30,8 @@ describe('HlmDatePicker', () => {
     expect(globalWrapper(overlay)).toBeNull();
   });
 
-  it('touch 에서는 화면 하단의 바텀시트로 연다', async () => {
-    const overlay = await open('touch');
+  it('compact 에서는 화면 하단의 바텀시트로 연다', async () => {
+    const overlay = await open('compact');
     const wrapper = globalWrapper(overlay);
 
     expect(overlay.querySelector('hlm-calendar')).not.toBeNull();
@@ -41,13 +41,17 @@ describe('HlmDatePicker', () => {
     expect(overlay.querySelector('.cdk-overlay-connected-position-bounding-box')).toBeNull();
   });
 
-  it('주 포인터가 coarse 여도 마우스가 있으면 팝오버로 연다', async () => {
-    // 터치스크린이 달린 Windows 데스크탑의 실제 값입니다. 07-adaptive-ui.md 2절.
+  it('포인터 쿼리가 모두 false 여도 넓으면 팝오버로 연다', async () => {
+    /*
+     * 마우스가 연결되어 동작하는데도 브라우저가 포인터 축을 전부 false 로 보고한
+     * 실측 환경입니다. 그 값을 판정에 쓰면 데스크탑에 시트가 뜹니다. 07-adaptive-ui.md 2절.
+     */
     const overlay = await open({
-      '(pointer: coarse)': true,
-      '(hover: none)': true,
-      '(any-pointer: fine)': true,
-      '(any-hover: hover)': true,
+      '(min-width: 48rem)': true,
+      '(pointer: fine)': false,
+      '(hover: hover)': false,
+      '(any-pointer: fine)': false,
+      '(any-hover: hover)': false,
     });
 
     expect(overlay.querySelector('.cdk-overlay-connected-position-bounding-box')).not.toBeNull();
@@ -55,7 +59,7 @@ describe('HlmDatePicker', () => {
   });
 
   it('다시 누르면 닫는다', async () => {
-    const { fixture, trigger } = await render('pointer');
+    const { fixture, trigger } = await render('wide');
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
 
     trigger.click();
@@ -67,7 +71,7 @@ describe('HlmDatePicker', () => {
 
   it('트리거가 지정한 id 와 오버레이 연결을 유지한다', async () => {
     // 레이블이 이 id 를 가리킵니다. brain 트리거를 바꿔 끼울 때 가장 먼저 깨지는 배선입니다.
-    const { fixture, trigger } = await render('pointer', 'task-due');
+    const { fixture, trigger } = await render('wide', 'task-due');
     fixture.detectChanges();
 
     expect(trigger.id).toBe('task-due');
@@ -89,32 +93,38 @@ class Host {
   buttonId = 'hlm-date-picker-spec';
 }
 
-type Mode = 'pointer' | 'touch';
+type Viewport = 'wide' | 'compact';
 
-/** 17-testing.md 3.2절의 대체 구현입니다. */
-function withInteractionMode(mode: Mode | Record<string, boolean>) {
+/**
+ * 17-testing.md 3.2절의 대체 구현입니다.
+ *
+ * 쿼리별 응답을 맵으로 받는 이유는 판정이 어느 쿼리를 보는지까지 고정하기 위해서입니다.
+ * 폭만 참으로 두고 포인터 축을 전부 거짓으로 두면, 판정이 포인터를 보는 순간 실패합니다.
+ */
+function withViewportClass(source: Viewport | Record<string, boolean>) {
   const breakpoints =
-    typeof mode === 'string'
-      ? { '(any-pointer: fine)': mode === 'pointer', '(any-hover: hover)': mode === 'pointer' }
-      : mode;
+    typeof source === 'string' ? { '(min-width: 48rem)': source === 'wide' } : source;
 
   return {
     provide: BreakpointObserver,
     useValue: {
-      observe: () => of({ matches: Object.values(breakpoints).some(Boolean), breakpoints }),
+      observe: (query: string | readonly string[]) => {
+        const queries = typeof query === 'string' ? [query] : query;
+        return of({ matches: queries.some((q) => breakpoints[q] === true), breakpoints });
+      },
     },
   };
 }
 
 async function render(
-  mode: Mode | Record<string, boolean>,
+  source: Viewport | Record<string, boolean>,
   buttonId?: string,
 ): Promise<{
   fixture: ComponentFixture<Host>;
   trigger: HTMLButtonElement;
 }> {
   TestBed.resetTestingModule();
-  TestBed.configureTestingModule({ providers: [withInteractionMode(mode)] });
+  TestBed.configureTestingModule({ providers: [withViewportClass(source)] });
 
   const fixture = TestBed.createComponent(Host);
   if (buttonId) fixture.componentInstance.buttonId = buttonId;
@@ -131,8 +141,8 @@ async function render(
   return { fixture, trigger };
 }
 
-async function open(mode: Mode | Record<string, boolean>): Promise<HTMLElement> {
-  await render(mode);
+async function open(source: Viewport | Record<string, boolean>): Promise<HTMLElement> {
+  await render(source);
   return TestBed.inject(OverlayContainer).getContainerElement();
 }
 
