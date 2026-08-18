@@ -1,11 +1,28 @@
-<section class="mx-auto w-full max-w-[40rem] px-4 py-8 md:py-12">
+<!--
+  패널은 목록 곁에 섭니다. 넓은 화면에서는 스크롤과 함께 따라오도록 위에 붙이고,
+  좁은 화면에서는 목록을 덮은 채 화면 전체를 씁니다. DOM 이 같고 레이아웃만 바뀌므로
+  런타임 분기가 아니라 CSS 로 풉니다. 07-adaptive-ui.md 1절.
+-->
+<section
+  class="border-border bg-card md:sticky md:top-20 w-full rounded-xl border p-4 md:w-[22rem] md:shrink-0"
+>
   @if (task(); as current) {
-    <nav class="mb-6">
-      <a hlmBtn variant="ghost" size="sm" [routerLink]="routes.taskList()">목록으로</a>
-    </nav>
+    <div class="mb-4 flex items-center justify-between gap-2">
+      <h2 class="text-sm font-medium">할 일 편집</h2>
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        aria-label="편집 닫기"
+        (click)="close()"
+      >
+        <app-icon name="lucideX" />
+      </button>
+    </div>
 
     <!-- novalidate 가 없으면 브라우저 기본 검증이 제출을 가로챕니다. 12-forms.md 1절. -->
-    <form novalidate [formRoot]="editForm" (submit)="save($event)" class="flex flex-col gap-6">
+    <form novalidate [formRoot]="editForm" (submit)="save($event)" class="flex flex-col gap-5">
       <!--
         필드 래퍼가 레이블 연결과 오류 표시 자리를 제공합니다. 날것의 div 로 조립하면
         그 배선을 매번 직접 해야 합니다. 12-forms.md 7.1절.
@@ -33,7 +50,7 @@
           -->
           <hlm-date-picker [date]="dueDate()" (dateChange)="setDueDate($event)">
             <!-- 레이블이 가리킬 id 를 지정합니다. 지정하지 않으면 생성기가 붙인 일련번호가 됩니다. -->
-            <hlm-date-picker-trigger buttonId="task-due" class="w-48">
+            <hlm-date-picker-trigger buttonId="task-due" class="w-full">
               정하지 않음
             </hlm-date-picker-trigger>
           </hlm-date-picker>
@@ -52,7 +69,7 @@
         <textarea
           hlmTextarea
           id="task-note"
-          rows="6"
+          rows="5"
           [formField]="editForm.note"
           placeholder="맥락이나 준비물을 적어 두세요"
         ></textarea>
@@ -60,15 +77,15 @@
 
       <div class="flex items-center gap-2">
         <button hlmBtn type="submit">저장</button>
-        <a hlmBtn variant="ghost" [routerLink]="routes.taskList()">취소</a>
+        <button hlmBtn type="button" variant="ghost" (click)="close()">취소</button>
       </div>
     </form>
   } @else {
-    <p class="text-foreground-secondary py-12 text-center text-sm">
+    <p class="text-foreground-secondary py-8 text-center text-sm">
       찾을 수 없는 할 일입니다.
-      <a class="text-primary underline-offset-4 hover:underline" [routerLink]="routes.taskList()">
-        목록으로 돌아가기
-      </a>
+      <button hlmBtn type="button" variant="link" size="sm" class="px-1" (click)="close()">
+        닫기
+      </button>
     </p>
   }
 </section>

@@ -133,6 +133,31 @@ describe('TaskListPage', () => {
     expect(titles(render('due'))).toEqual(['건강검진 예약', '전기요금 납부', '장 보기']);
   });
 
+  it('제목은 패널을 여는 링크이며 경로를 바꾸지 않는다', () => {
+    const fixture = render();
+    const host = fixture.nativeElement as HTMLElement;
+    const link = host.querySelector<HTMLAnchorElement>('#task-seed-1');
+
+    // 경로가 바뀌면 라우터가 목록을 언마운트해 곁에 둘 수 없습니다. 부록 A.
+    expect(link?.getAttribute('href')).toBe('/tasks?task=seed-1');
+  });
+
+  it('열린 항목이 없으면 패널을 그리지 않는다', () => {
+    const host = render().nativeElement as HTMLElement;
+
+    expect(host.querySelector('app-task-detail-panel')).toBeNull();
+  });
+
+  it('열린 항목이 있으면 그 항목의 패널을 그린다', () => {
+    const fixture = TestBed.createComponent(TaskListPage);
+    fixture.componentRef.setInput('task', 'seed-1');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('app-task-detail-panel')).not.toBeNull();
+    expect(host.querySelector<HTMLInputElement>('#task-title')?.value).toBe('장 보기');
+  });
+
   it('되돌리면 원래 자리로 돌아온다', async () => {
     const fixture = render();
     const before = titles(fixture);

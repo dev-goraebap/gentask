@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   formatDueDate,
   fromDateKey,
@@ -10,7 +10,7 @@ import {
   type Task,
   type TaskDraft,
 } from '@/entities/task';
-import { ROUTES } from '@/shared/config';
+import { TASK_PANEL } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
 import {
   HlmDatePicker,
@@ -18,11 +18,18 @@ import {
   provideHlmDatePickerConfig,
 } from '@/shared/ui/date-picker';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
+import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmTextarea } from '@/shared/ui/textarea';
+import { provideIcons } from '@ng-icons/core';
+import { lucideX } from '@ng-icons/lucide';
 
 /**
- * 할일 하나의 내용을 채우는 화면입니다. 요구사항 3을 담습니다.
+ * 할일 하나의 내용을 채우는 패널입니다. 요구사항 3을 담습니다.
+ *
+ * 별도 화면이 아니라 목록 곁에 열리는 패널입니다. 경로가 바뀌면 라우터가 목록을
+ * 언마운트하고 전환 베일이 목록을 덮으므로, 열린 항목을 쿼리 파라미터에 둡니다.
+ * 기각한 대안은 specs/할일-해내기/requirements.md 부록 A 에 있습니다.
  *
  * 목록과 같은 저장소 인스턴스를 봅니다. 두 화면을 감싸는 라우트가 프로바이더를 갖기
  * 때문이며, 화면마다 따로 두면 목록에서 고친 것이 여기 보이지 않습니다.
@@ -32,13 +39,14 @@ import { HlmTextarea } from '@/shared/ui/textarea';
  * 가져갑니다. 09-state.md 3.1절.
  */
 @Component({
-  selector: 'app-task-detail',
+  selector: 'app-task-detail-panel',
   imports: [
-    FormRoot, FormField, RouterLink,
+    FormRoot, FormField, AppIcon,
     HlmButton, HlmInput, HlmTextarea, HlmField, HlmFieldLabel, HlmFieldError,
     HlmDatePicker, HlmDatePickerTrigger,
   ],
   providers: [
+    provideIcons({ lucideX }),
     /*
      * 달력이 다루는 값은 Date 이고 저장 형식은 날짜 문자열입니다. 표기를 이 자리에서
      * 정해 두면 목록과 상세가 같은 함수를 거치므로 두 화면의 날짜가 어긋나지 않습니다.
@@ -48,17 +56,15 @@ import { HlmTextarea } from '@/shared/ui/textarea';
       autoCloseOnSelect: true,
     }),
   ],
-  templateUrl: './task-detail.page.html',
+  templateUrl: './task-detail-panel.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TaskDetailPage {
-  /** 경로 파라미터입니다. withComponentInputBinding 이 묶어 줍니다. 08-routing.md 3.1절. */
+export class TaskDetailPanel {
+  /** 목록 화면이 쿼리 파라미터에서 받아 넘깁니다. */
   readonly id = input.required<string>();
 
   private readonly store = inject(TASK_STORE);
   private readonly router = inject(Router);
-
-  protected readonly routes = ROUTES;
 
   protected readonly task = computed<Task | undefined>(() =>
     this.store.tasks().find((candidate) => candidate.id === this.id()),
@@ -119,7 +125,22 @@ export class TaskDetailPage {
 
     await this.store.update(current.id, this.draft());
 
-    // 경로가 바뀌는 이동이라 전환 베일이 관여합니다. 10-loading.md 3.1절.
-    void this.router.navigate([ROUTES.taskList()]);
+    // 저장하면 닫습니다. 목록이 곁에 남아 있으므로 돌아갈 곳이 따로 없습니다.
+    this.close();
+  }
+
+  /**
+   * 패널을 닫습니다. 경로는 그대로 두고 쿼리 파라미터만 지웁니다.
+   *
+   * `replaceUrl` 로 항목을 덮는 이유는 닫기가 새로운 자리가 아니기 때문입니다. 쌓으면
+   * 닫은 뒤의 뒤로가기가 방금 닫은 패널을 다시 엽니다. 여는 것은 반대로 쌓아서
+   * 뒤로가기가 곧 닫기가 되게 합니다. 08-routing.md 3.2절.
+   */
+  protected close(): void {
+    void this.router.navigate([], {
+      queryParams: TASK_PANEL.close(),
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 }

@@ -29,12 +29,12 @@ export const routes: Routes = [
         providers: [...provideTask()],
         children: [
           {
+            /*
+             * 상세는 별도 라우트가 아니라 이 화면이 여는 패널입니다. 경로가 바뀌면 라우터가
+             * 목록을 언마운트해 곁에 둘 수 없습니다. 열린 항목은 쿼리 파라미터가 갖습니다.
+             */
             path: '',
             loadComponent: () => import('@/pages/task-list').then((m) => m.TaskListPage),
-          },
-          {
-            path: ':id',
-            loadComponent: () => import('@/pages/task-detail').then((m) => m.TaskDetailPage),
           },
         ],
       },

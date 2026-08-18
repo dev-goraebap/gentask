@@ -1,1 +1,1 @@
-export { ROUTES } from './routes';
+export { ROUTES, TASK_PANEL } from './routes';

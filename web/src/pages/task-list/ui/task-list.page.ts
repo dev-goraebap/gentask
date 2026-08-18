@@ -3,13 +3,14 @@ import { form, FormField, FormRoot, requiredError, validate } from '@angular/for
 import { Router, RouterLink } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import { lucideChevronRight, lucideTrash2 } from '@ng-icons/lucide';
-import { ROUTES } from '@/shared/config';
+import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmToaster, toast } from '@/shared/ui/sonner';
+import { TaskDetailPanel } from './task-detail-panel';
 import {
   formatDueDate,
   isAddableTitle,
@@ -25,7 +26,7 @@ import {
 } from '@/entities/task';
 
 /**
- * 할일 목록 화면입니다. 요구사항 1(빠르게 적어 둔다)·2(해낸 것을 표시하고 되돌린다)·4(지운다)·5(좁혀 본다)를 담습니다.
+ * 할일 목록 화면입니다. 요구사항 1(빠르게 적어 둔다)·2(해낸 것을 표시하고 되돌린다)·3(내용을 채운다)·4(지운다)·5(좁혀 본다)를 담습니다.
  *
  * 데이터는 TASK_STORE 인터페이스 뒤에서만 접근합니다. 목데이터를 여기 박지 않는 이유는
  * 백엔드 연결을 프로바이더 교체로 축소하기 위함입니다. 09-state.md 2절.
@@ -34,7 +35,7 @@ import {
   selector: 'app-task-list',
   imports: [
     FormRoot, FormField, RouterLink,
-    HlmButton, HlmInput, HlmCheckbox, AppIcon, HlmField, HlmFieldLabel, HlmFieldError, HlmToaster,
+    HlmButton, HlmInput, HlmCheckbox, AppIcon, HlmField, HlmFieldLabel, HlmFieldError, HlmToaster, TaskDetailPanel,
   ],
   providers: [provideIcons({ lucideChevronRight, lucideTrash2 })],
   templateUrl: './task-list.page.html',
@@ -52,6 +53,14 @@ export class TaskListPage {
    * 새로고침 복원과 링크 공유가 별도 구현 없이 동작합니다.
    */
   readonly sort = input<TaskSort, string | undefined>('created', { transform: toTaskSort });
+
+  /**
+   * 상세 패널이 열어 둔 항목입니다. 이름은 TASK_PANEL.param 과 같아야 입력 바인딩이 묶입니다.
+   *
+   * 경로가 아니라 쿼리 파라미터인 이유는 목록을 곁에 두기 위해서입니다. 경로가 바뀌면
+   * 라우터가 목록을 언마운트하고 전환 베일이 목록을 덮습니다.
+   */
+  readonly task = input<string | undefined>(undefined);
 
   protected readonly routes = ROUTES;
 
@@ -76,6 +85,18 @@ export class TaskListPage {
   });
 
   protected readonly sortOptions = SORT_OPTIONS;
+
+  protected readonly panel = TASK_PANEL;
+
+  /**
+   * 좁은 화면에서는 패널이 목록을 덮습니다. 나란히 놓을 폭이 없기 때문입니다.
+   *
+   * 폭을 재는 것은 CSS 이고 이 값은 패널이 열렸는지만 말합니다. 런타임 분기가 아니라
+   * 조건부 클래스이므로 07-adaptive-ui.md 1절의 반응형에 해당합니다.
+   */
+  protected readonly listClass = computed(() =>
+    this.task() ? 'w-full max-w-[40rem] max-md:hidden' : 'w-full max-w-[40rem]',
+  );
 
   /**
    * 지난 마감일 판정의 기준일입니다. 화면이 서 있는 동안 자정을 넘기면 낡은 값이 되지만,

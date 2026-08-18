@@ -11,5 +11,20 @@
 export const ROUTES = {
   home: () => '/',
   taskList: () => '/tasks',
-  taskDetail: (id: string) => `/tasks/${id}`,
+} as const;
+
+/**
+ * 상세 패널이 여는 항목의 쿼리 파라미터입니다.
+ *
+ * 경로가 아니라 쿼리 파라미터인 이유는 목록을 곁에 두어야 하기 때문입니다. 경로가 바뀌면
+ * 라우터가 목록을 언마운트하고 전환 베일이 목록을 덮습니다. 기각한 대안과 사유는
+ * specs/할일-해내기/requirements.md 의 부록 A 에 있습니다.
+ *
+ * 파라미터 이름을 이 자리에 모아 두면 여는 쪽과 닫는 쪽이 같은 문자열을 각자 적지 않습니다.
+ */
+export const TASK_PANEL = {
+  /** 화면이 읽는 이름입니다. 라우트 입력 바인딩의 속성명과 같아야 합니다. */
+  param: 'task',
+  open: (id: string) => ({ task: id }),
+  close: () => ({ task: null }),
 } as const;

@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TASK_STORE, type Task, type TaskDraft, type TaskStore } from '@/entities/task';
-import { TaskDetailPage } from './task-detail.page';
+import { TaskDetailPanel } from './task-detail-panel';
 
 /*
  * 조건부 표시와 폼을 검증합니다. 대상이 없을 때의 분기, 검증 실패 시의 거부,
@@ -12,7 +12,7 @@ import { TaskDetailPage } from './task-detail.page';
  * 제출은 이벤트 디스패치가 아니라 버튼 클릭으로 확인합니다. 디스패치는 브라우저 기본
  * 검증을 건너뛰어 novalidate 누락 같은 결함을 놓칩니다. 17-testing.md 3.3절.
  */
-describe('TaskDetailPage', () => {
+describe('TaskDetailPanel', () => {
   let tasks: ReturnType<typeof signal<readonly Task[]>>;
   let update: ReturnType<typeof vi.fn>;
 
@@ -44,8 +44,8 @@ describe('TaskDetailPage', () => {
     });
   });
 
-  function render(id: string): ComponentFixture<TaskDetailPage> {
-    const fixture = TestBed.createComponent(TaskDetailPage);
+  function render(id: string): ComponentFixture<TaskDetailPanel> {
+    const fixture = TestBed.createComponent(TaskDetailPanel);
     fixture.componentRef.setInput('id', id);
     fixture.detectChanges();
     return fixture;
@@ -88,7 +88,7 @@ describe('TaskDetailPage', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('제목을 입력해 주세요');
   });
 
-  it('저장하면 고친 값을 넘기고 목록으로 돌아간다', async () => {
+  it('저장하면 고친 값을 넘기고 패널을 닫는다', async () => {
     const fixture = render('seed-1');
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
@@ -105,7 +105,12 @@ describe('TaskDetailPage', () => {
       note: '두부도 사기',
       dueDate: null,
     });
-    expect(navigate).toHaveBeenCalledWith(['/tasks']);
+    // 경로는 그대로 두고 쿼리 파라미터만 지웁니다. 목록이 곁에 남아 있어 돌아갈 곳이 없습니다.
+    expect(navigate).toHaveBeenCalledWith([], {
+      queryParams: { task: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   });
 
   it('3: 마감일이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
