@@ -24,6 +24,7 @@ import type { BrnOverlayState } from '@spartan-ng/brain/overlay';
 import { BrnPopover, type BrnPopoverAlign } from '@spartan-ng/brain/popover';
 import { HlmCalendarImports } from '@/shared/ui/calendar';
 import { HlmPopoverImports } from '@/shared/ui/popover';
+import { injectHlmDatePickerPresentation } from './hlm-date-picker-presentation';
 import { injectHlmMonthYearPickerConfig } from './hlm-month-year-picker.token';
 
 export const HLM_MONTH_YEAR_PICKER_VALUE_ACCESSOR = {
@@ -47,11 +48,18 @@ export const HLM_MONTH_YEAR_PICKER_VALUE_ACCESSOR = {
       [align]="align()"
       sideOffset="5"
       [state]="_popoverState()"
+      [hasBackdrop]="_presentation.hasBackdrop()"
+      [positionStrategy]="_presentation.positionStrategy()"
       (stateChanged)="_onStateChange($event)"
     >
       <ng-content />
 
-      <hlm-popover-content class="w-fit p-0" *hlmPopoverPortal="let ctx">
+      <div
+        *hlmPopoverPortal="let ctx"
+        data-slot="date-picker-content"
+        [class]="_presentation.surfaceClass()"
+        [attr.data-state]="_popoverState() ?? 'closed'"
+      >
         <ng-content select="[hlmDatePickerHeader]" />
         <hlm-month-year-calendar
           class="rounded-none border-0"
@@ -63,12 +71,15 @@ export const HLM_MONTH_YEAR_PICKER_VALUE_ACCESSOR = {
           (dateChange)="_handleChange($event)"
         />
         <ng-content select="[hlmDatePickerFooter]" />
-      </hlm-popover-content>
+      </div>
     </hlm-popover>
   `,
 })
 export class HlmMonthYearPicker<T> implements BrnDatePickerBase<T>, ControlValueAccessor {
   private readonly _config = injectHlmMonthYearPickerConfig<T>();
+
+  /** pointer 는 트리거 옆 팝오버, touch 는 하단 바텀시트입니다. 07-adaptive-ui.md 5절. */
+  protected readonly _presentation = injectHlmDatePickerPresentation();
 
   public readonly popover = viewChild.required(BrnPopover);
 

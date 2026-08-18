@@ -4,8 +4,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
+  type ElementRef,
   inject,
   input,
+  viewChild,
 } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronDown } from '@ng-icons/lucide';
@@ -15,14 +18,15 @@ import {
   provideBrnDatePickerTrigger,
 } from '@spartan-ng/brain/date-picker';
 import { BrnFieldControl, BrnFieldControlDescribedBy } from '@spartan-ng/brain/field';
+import { BrnOverlayTrigger } from '@spartan-ng/brain/overlay';
+import { injectInteractionMode } from '@/shared/lib';
 import { ButtonVariants, HlmButtonImports } from '@/shared/ui/button';
-import { HlmPopoverTrigger } from '@/shared/ui/popover';
 import { hlm } from '@/shared/ui/utils';
 import { ClassValue } from 'clsx';
 
 @Component({
   selector: 'hlm-date-picker-trigger',
-  imports: [HlmButtonImports, HlmPopoverTrigger, NgIcon, BrnFieldControlDescribedBy],
+  imports: [HlmButtonImports, BrnOverlayTrigger, NgIcon, BrnFieldControlDescribedBy],
   providers: [
     provideIcons({ lucideChevronDown }),
     provideBrnDatePickerTrigger(HlmDatePickerTrigger),
@@ -31,8 +35,10 @@ import { ClassValue } from 'clsx';
   host: { 'data-slot': 'date-picker-trigger' },
   template: `
     <button
+      #trigger
       [id]="buttonId()"
       type="button"
+      aria-haspopup="dialog"
       [class]="_computedClass()"
       [disabled]="_disabled()"
       [attr.aria-invalid]="_ariaInvalid()"
@@ -42,8 +48,8 @@ import { ClassValue } from 'clsx';
       [attr.data-matches-spartan-invalid]="_spartanInvalid() ? 'true' : null"
       hlmBtn
       [variant]="variant()"
-      hlmPopoverTrigger
-      [hlmPopoverTriggerFor]="_popover()"
+      brnOverlayTrigger
+      [brnOverlayTriggerFor]="_popover()"
       brnFieldControlDescribedBy
       [attr.data-placeholder]="_isPlaceholder() ? '' : null"
     >
@@ -101,4 +107,24 @@ export class HlmDatePickerTrigger implements BrnDatePickerTriggerBase {
   protected readonly _popover = this._datePicker.popover;
   protected readonly _disabled = this._datePicker.disabledState;
   protected readonly _formattedDate = this._datePicker.formattedDate;
+
+  private readonly _mode = injectInteractionMode();
+  private readonly _button = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
+
+  constructor() {
+    /*
+     * 오리진을 트리거가 직접 관리합니다. `BrnPopoverTrigger` 를 쓰지 않는 이유는
+     * 그것이 클릭 시점에 자기 호스트를 오리진으로 심고, 오리진이 붙은 팝오버는
+     * `positionStrategy` 입력을 무시한 채 트리거 연결 전략만 쓰기 때문입니다.
+     * 바텀시트는 오리진이 비어 있어야 열립니다. 07-adaptive-ui.md 4.2절.
+     *
+     * ARIA·id·클릭 처리는 `BrnOverlayTrigger` 가 그대로 담당하며 여기서 직접
+     * 배선하는 것은 오리진 하나입니다. 같은 방식이 `HlmDatePickerAnchor` 에도
+     * 이미 쓰이고 있습니다.
+     */
+    effect(() => {
+      const origin = this._mode() === 'touch' ? null : this._button().nativeElement;
+      this._popover().setOrigin(origin);
+    });
+  }
 }
