@@ -46,7 +46,7 @@
 | `/tasks?page=1` → `?page=2` | 쿼리만 변경 | 인디케이터 |
 | `/tasks?keyword=a` → `?keyword=b` | 쿼리만 변경 | 인디케이터 |
 
-이 기준은 `NavigationStart` 시점에 현재 URL 과 대상 URL 의 경로 세그먼트를 비교해 계산합니다. **사람이 "이건 전환인가 갱신인가"를 판단하지 않습니다.**
+이 기준은 `NavigationStart` 시점에 현재 URL 과 대상 URL 의 경로 세그먼트를 비교해 계산합니다. **수동 분기 판단 없이 라우터 이벤트를 통해 결정론적으로 처리합니다.**
 
 필터·검색·정렬·페이지를 쿼리 파라미터에 두기로 한 결정([08. 라우팅](08-routing.md) 3절)이 이 판정을 성립시킵니다. 필터를 컴포넌트 상태에 두면 라우터가 관여하지 않아 이 규칙이 적용되지 않습니다.
 
@@ -62,7 +62,7 @@
 
 같은 라우트 설정으로 이동하면 Angular 라우터가 컴포넌트 인스턴스를 재사용합니다. 리졸버가 도는 동안 **이전 데이터가 화면에 그대로 남아 있고**, 완료되면 입력 시그널만 갱신되어 내용이 교체됩니다.
 
-이전 목록을 보관하는 코드를 작성할 필요가 없습니다. 라우터가 그 일을 대신합니다.
+이전 목록을 보관하는 상태 관리 코드를 별도로 작성할 필요가 없으며 라우터의 인스턴스 재사용 메커니즘을 활용합니다.
 
 ### 3.4 화면이 바뀌는 순간
 
@@ -107,7 +107,7 @@ export const taskListResolver: ResolveFn<TaskListResponse> = (route) =>
 // app/app.routes.ts
 {
   path: 'tasks',
-  loadComponent: () => import('@/pages/task-list').then((m) => m.TaskList),
+  loadComponent: () => import('@/pages/task-list').then((m) => m.TaskListPage),
   resolve: { tasks: taskListResolver },
   runGuardsAndResolvers: 'paramsOrQueryParamsChange',
 }
@@ -115,7 +115,7 @@ export const taskListResolver: ResolveFn<TaskListResponse> = (route) =>
 
 > **중요: `runGuardsAndResolvers` 지정이 필수입니다**
 >
-> 기본값은 `'paramsChange'` 이며 쿼리 파라미터 변경에는 리졸버가 다시 실행되지 않습니다. 필터·검색·정렬·페이지를 쿼리에 두기로 했으므로 `'paramsOrQueryParamsChange'` 를 지정하지 않으면 필터를 바꿔도 데이터가 갱신되지 않습니다. 이 누락은 조용히 실패하므로 발견이 늦습니다.
+> 기본값은 `'paramsChange'` 이며 쿼리 파라미터 변경에는 리졸버가 다시 실행되지 않습니다. 필터·검색·정렬·페이지를 쿼리에 두기로 했으므로 `'paramsOrQueryParamsChange'` 를 지정하지 않으면 필터를 바꿔도 데이터가 갱신되지 않습니다. 해당 옵션이 누락되면 오류 없이 데이터 갱신만 누락되어 결함 감지가 지연됩니다.
 
 ### 5.2 데이터 수신
 

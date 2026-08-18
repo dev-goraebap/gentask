@@ -45,11 +45,11 @@ pages/
 export const routes: Routes = [
   {
     path: 'tasks',
-    loadComponent: () => import('@/pages/task-list').then((m) => m.TaskList),
+    loadComponent: () => import('@/pages/task-list').then((m) => m.TaskListPage),
   },
   {
     path: 'tasks/:id',
-    loadComponent: () => import('@/pages/task-detail').then((m) => m.TaskDetail),
+    loadComponent: () => import('@/pages/task-detail').then((m) => m.TaskDetailPage),
     canActivate: [authGuard],
   },
 ];
@@ -101,7 +101,7 @@ provideRouter(routes, withComponentInputBinding())
 ```
 
 ```ts
-export class TaskDetail {
+export class TaskDetailPage {
   readonly id = input.required<string>();                     // 경로 파라미터
   readonly page = input(1, { transform: numberAttribute });   // 쿼리 파라미터
 }
@@ -178,7 +178,7 @@ export const authGuard: CanActivateFn = () => {
 ```ts
 {
   path: 'tasks',
-  loadComponent: () => import('@/pages/task-list').then((m) => m.TaskList),
+  loadComponent: () => import('@/pages/task-list').then((m) => m.TaskListPage),
   resolve: { tasks: taskListResolver },
   runGuardsAndResolvers: 'paramsOrQueryParamsChange',
 }
@@ -192,9 +192,9 @@ export const authGuard: CanActivateFn = () => {
 
 `app/ui/` 폴더명은 Steiger 의 `no-ui-in-app` 규칙에 걸리므로 `app/layout/` 등 목적을 드러내는 이름을 사용합니다.
 
-네비게이션 항목 목록은 `shared/config/` 에 데이터로 두고 레이아웃 컴포넌트가 이를 렌더링합니다. 항목을 템플릿에 하드코딩하면 권한별 노출 제어를 넣을 때 템플릿을 고쳐야 하고, 상단과 하단이 각자 배열을 가지면 한쪽에만 항목을 추가했을 때 그 기기에서 갈 길이 사라집니다.
+네비게이션 항목 목록은 `shared/config/` 에 데이터로 두고 레이아웃 컴포넌트가 이를 렌더링합니다. 항목을 템플릿에 하드코딩하면 권한별 노출 제어 추가 시 템플릿을 직접 수정해야 하며, 상단과 하단이 개별 배열을 가지면 특정 환경에서 네비게이션 항목이 누락될 수 있습니다.
 
-**전역 내비게이션은 하단 탭바를 쓸 경우 5개 이하로 제한합니다.** 엄지 도달 범위 안에서 주요 동선이 끝나야 합니다.
+**전역 네비게이션은 하단 탭바를 쓸 경우 5개 이하로 제한합니다.** 엄지 도달 범위 안에서 주요 동선이 끝나야 합니다.
 
 기기별 네비게이션 형태 전환(사이드바 ↔ 하단 탭)은 [07. 적응형 UI](07-adaptive-ui.md)의 대상입니다.
 
