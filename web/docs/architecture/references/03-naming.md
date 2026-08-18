@@ -100,7 +100,7 @@ Angular 스타일 가이드는 **2025년 개정판**을 기준으로 합니다.
 
 | 대상 | 형식 | 예시 |
 | :--- | :--- | :--- |
-| 주입 헬퍼 | `inject` 접두사 | `injectInteractionMode`, `injectTask` |
+| 주입 헬퍼 | `inject` 접두사 | `injectViewportClass`, `injectTask` |
 | 조회 요청 | `fetch` 접두사 | `fetchTasks` |
 | 변경 요청 | 동사 | `completeTask`, `deleteTask` |
 | 계산 | 동사 | `calculateProgress`, `formatDate` |

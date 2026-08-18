@@ -1,6 +1,6 @@
 # 07. 적응형 UI
 
-본 문서는 기기의 상호작용 특성에 따라 컴포넌트와 상호작용 모델을 교체하는 규칙을 정의합니다.
+본 문서는 뷰포트 폭에 따라 컴포넌트와 상호작용 모델을 교체하는 규칙을 정의합니다.
 
 ## 1. 반응형과 적응형의 구분
 
@@ -15,25 +15,58 @@
 
 **CSS 로 해결되면 반응형입니다.** 반응형으로 해결 가능한 것을 런타임 분기로 만드는 것을 **금지**합니다. 분기는 두 표현을 모두 유지해야 하고 테스트도 두 배가 됩니다.
 
+두 방식을 가르는 것은 **재는 값이 아니라 바뀌는 것**입니다. 2절이 정하듯 적응형도 뷰포트 폭을 재므로 재는 값은 같습니다. 같은 폭을 재더라도 레이아웃만 달라지면 반응형이고, 컴포넌트가 교체되면 적응형입니다.
+
 ## 2. 판정 축
 
-판정 축은 **화면 너비가 아닙니다.** 액션시트가 필요한 이유는 화면이 작아서가 아니라 손가락으로 조작하고 호버가 없기 때문입니다.
+판정 축은 **뷰포트 폭**입니다. Tailwind 의 `md` 경계인 `(min-width: 48rem)` 을 기준으로 `wide` 와 `compact` 를 가릅니다.
 
 | 미디어 쿼리 | 판정하는 것 | 역할 |
 | :--- | :--- | :--- |
-| `(pointer: coarse)` | 포인터가 부정확한가 | **1차 축** |
-| `(hover: none)` | 호버가 없는가 | **1차 축** |
-| `(min-width: ...)` | 화면이 넓은가 | 2차 축. 레이아웃 배치에만 사용 |
+| `(min-width: 48rem)` | 뷰포트가 넓은가 | **1차 축** |
+| `(any-pointer: fine)` · `(any-hover: hover)` | 정밀한 포인터나 호버가 있는가 | **사용을 금지합니다** |
+| `(pointer: ...)` · `(hover: ...)` | 주 포인터의 특성 | **사용을 금지합니다** |
 
-너비만으로 판정하면 다음이 오판됩니다.
+금지 대상은 **표현을 교체하는 런타임 판정**입니다. 치수를 키우는 CSS 변형(`pointer-coarse:`)은 DOM 을 교체하지 않고 오판의 대가가 컨트롤이 커지는 것으로 끝나므로 이 금지에 걸리지 않습니다. 규격은 [04. 디자인 시스템](04-design-system.md) 3.5절이 소유합니다.
 
-- **터치 노트북** — 넓지만 손가락으로 조작합니다
-- **태블릿 가로** — 임계값을 넘지만 호버가 없습니다
-- **좁게 줄인 데스크탑 창** — 마우스인데 터치용 UI 가 뜹니다
+**브레이크포인트는 Tailwind 기본 척도를 그대로 씁니다.** 별도 토큰을 두지 않으며, 임계값을 옮길 때도 척도 위의 다른 값으로만 옮깁니다.
 
-널리 쓰이는 `useMediaQuery("(min-width: 768px)")` 형태의 레시피는 편의를 위한 근사이며 본 표준은 채택하지 않습니다.
+### 2.1 포인터와 호버로 판정하지 않는 이유
 
-**브레이크포인트는 Tailwind 기본 척도를 그대로 씁니다.** 별도 토큰을 두지 않으며, 레이아웃 배치에만 사용하므로 커스터마이즈할 근거가 아직 없습니다.
+원리만 보면 포인터 특성이 더 정확한 축입니다. 바텀시트가 필요한 이유는 화면이 좁아서가 아니라 손가락으로 조작하고 호버가 없기 때문입니다. 그럼에도 채택하지 않는 것은 **브라우저가 이 값을 신뢰할 수 있게 보고하지 않기 때문**입니다.
+
+터치스크린이 달린 Windows 11 데스크탑에서 Chrome 151 로 측정한 값입니다. 측정 시점에 마우스가 연결되어 동작하고 있었으며, 페이지는 `pointerType: "mouse"` 인 포인터 이벤트를 실제로 수신했습니다.
+
+| 쿼리 | 값 |
+| :--- | :--- |
+| `(pointer: fine)` · `(hover: hover)` | false |
+| `(any-pointer: fine)` · `(any-hover: hover)` | **false** |
+| `(any-pointer: coarse)` | true |
+| `navigator.maxTouchPoints` | 10 |
+
+마우스가 동작하는 동안에도 `any-` 축까지 전부 false 였고, 마우스를 움직여도 미디어 쿼리는 한 번도 변경 이벤트를 내지 않았습니다. 이 기기에서 포인터 축은 마우스가 달린 데스크탑을 터치 기기로 판정하며, 애플리케이션 코드로 교정할 수단이 없습니다.
+
+> **주의: 포인터 판정의 오판은 예외가 아니라 화면으로만 드러납니다**
+>
+> 브라우저가 잘못된 값을 반환해도 오류는 발생하지 않습니다. 마우스 사용자에게 백드롭이 깔린 전체 폭 시트가 뜨는 것으로만 확인되며, 개발자의 기기가 그 값을 정상 보고하면 재현되지 않습니다. 이 침묵 때문에 판정 축을 세 차례 교체하는 동안 원인이 드러나지 않았습니다.
+
+두 축의 차이는 정확도가 아니라 **틀렸을 때 벌어지는 일**에 있습니다.
+
+| | 포인터 축 | 뷰포트 폭 축 |
+| :--- | :--- | :--- |
+| **입력값의 성격** | 브라우저가 추정한 값 | 브라우저가 아는 사실 |
+| **오판의 결과** | 마우스 사용자에게 모달 시트가 뜹니다 | 좁게 줄인 창의 마우스 사용자에게 시트가 뜹니다 |
+| **코드로 교정** | 불가능합니다 | 임계값을 옮깁니다 |
+| **확인 방법** | 해당 기기를 확보해야 합니다 | 창을 줄입니다 |
+
+### 2.2 폭으로 판정할 때 감수하는 것
+
+- **터치 노트북과 태블릿 가로** — 넓으므로 `wide` 로 판정되어 팝오버가 뜹니다. 7절의 44 × 44 최소 터치 타겟을 표현과 무관하게 지키면 손가락으로도 조작할 수 있습니다.
+- **좁게 줄인 데스크탑 창** — `compact` 로 판정되어 시트가 뜹니다. 마우스로도 조작에 지장이 없습니다.
+
+세 경우 모두 **양쪽 표현이 사용 가능한 상태로 끝납니다.** 오판의 대가가 이 수준에 머무른다는 점이 폭을 1차 축으로 두는 근거입니다.
+
+이 선택은 [결정 기록 목차](../decisions/index.md)의 발행 예정 항목 "적응형 판정 축"에 해당하며, 결정 기록은 참조 아키텍처를 이식할 때 발행합니다.
 
 ## 3. 감지
 
@@ -42,36 +75,38 @@
 컴포넌트가 미디어 쿼리 문자열을 직접 갖는 것을 **금지**합니다. `shared/lib/adaptive/` 의 의미 신호만 사용합니다.
 
 ```ts
-// shared/lib/adaptive/interaction-mode.ts
-export function injectInteractionMode(): Signal<'pointer' | 'touch'> {
+// shared/lib/adaptive/viewport-class.ts
+export function injectViewportClass(): Signal<'wide' | 'compact'> {
+  const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   const observer = inject(BreakpointObserver);
-  const state = toSignal(
-    observer.observe(['(pointer: coarse)', '(hover: none)']),
-    { initialValue: null },
-  );
+  const state = toSignal(observer.observe(WIDE), { initialValue: null });
+
   return computed(() => {
-    const s = state();
-    if (!s) return 'pointer';                     // 방어용. 3.2절 참조
-    return s.breakpoints['(pointer: coarse)'] && s.breakpoints['(hover: none)']
-      ? 'touch'
-      : 'pointer';
+    if (!isBrowser) return 'wide';                // 3.2절 참조
+    return state()?.matches ? 'wide' : 'compact';
   });
 }
+
+const WIDE = '(min-width: 48rem)';
 ```
 
 구현에는 CDK 의 `BreakpointObserver` 를 사용합니다. Spartan brain 이 CDK 를 요구하므로 이미 의존성에 있으며, 리스너 정리와 동일 쿼리 중복 구독 처리를 직접 만들 이유가 없습니다.
+
+**이름은 판정하는 대상을 가리켜야 합니다.** 반환값이 `'pointer' | 'touch'` 이면 읽는 사람은 기기의 입력 특성을 판정했다고 이해하며, 그 오해 위에서 포인터 전용 분기가 붙습니다. 폭을 재는 신호는 폭을 가리키는 이름을 갖습니다.
 
 규칙의 핵심은 구현 수단이 아니라 **래퍼의 존재**입니다. 판정 기준이 바뀌면 이 파일 하나만 고칩니다.
 
 ### 3.2 서버 기본값
 
-서버에는 포인터도 호버도 없으므로 판정 결과는 항상 `pointer` 입니다.
+서버에는 뷰포트가 없으므로 판정 결과는 항상 `wide` 입니다. 이 값은 코드가 비브라우저 환경에서 명시적으로 반환하는 것이며, 미디어 쿼리 결과를 그대로 쓴 것이 아닙니다.
 
-이 값이 `initialValue` 에서 오는 것이 **아니라는 점**이 중요합니다. CDK 는 비브라우저 환경에서 `MediaMatcher` 를 `noopMatchMedia` 로 대체하며, 이 구현은 모든 쿼리에 `matches: false` 를 담은 결과를 구독 즉시 동기로 방출합니다. 따라서 서버에서도 `state()` 는 null 이 아닌 실제 상태 객체를 갖고, 두 1차 축이 모두 false 이므로 `pointer` 로 판정됩니다. 위 코드의 null 분기는 방어용이며 서버 렌더 경로에서 도달하지 않습니다.
+그대로 쓰면 반대가 됩니다. CDK 는 비브라우저 환경에서 `MediaMatcher` 를 `noopMatchMedia` 로 대체하며, 이 구현은 `all` 과 빈 문자열을 제외한 모든 쿼리에 `matches: false` 를 담은 결과를 구독 즉시 동기로 방출합니다. `(min-width: 48rem)` 도 false 가 되므로 판정은 `compact` 로 떨어지고, 넓은 화면의 첫 페인트가 시트가 됩니다. 따라서 비브라우저 분기를 먼저 두어 `wide` 를 고정합니다.
+
+기본값을 `wide` 로 두는 것은 좁은 화면 쪽이 하이드레이션 후 교체되도록 선택한 결과입니다. 어느 쪽을 고르든 반대쪽은 깜빡이며, 6절이 정적 생성 경로에서 적응형 컴포넌트를 금지하는 이유가 그것입니다.
 
 > **주의: 서버의 오판은 예외로 드러나지 않습니다**
 >
-> 예외가 발생한다면 정적 생성 경로에서 적응형 컴포넌트를 쓴 실수가 빌드 실패로 잡힙니다. 실제로는 조용히 `pointer` 가 반환되므로 터치 기기에서 열었을 때만 표현이 교체되며 화면이 깜빡입니다. 이 침묵이 6절의 제약을 코드 리뷰로 확인해야 하는 이유입니다.
+> 정적 생성 경로에서 적응형 컴포넌트를 쓴 실수는 빌드 실패로 잡히지 않습니다. 조용히 `wide` 가 반환되므로 좁은 화면에서 열었을 때만 표현이 교체되며 화면이 깜빡입니다. 이 침묵이 6절의 제약을 코드 리뷰로 확인해야 하는 이유입니다.
 
 ## 4. 구현 패턴
 
@@ -96,52 +131,70 @@ export function injectInteractionMode(): Signal<'pointer' | 'touch'> {
 
 ### 4.2 패턴 A — 오버레이 위치 전략 교체
 
-드롭다운과 바텀시트의 차이가 표시 위치뿐인 경우입니다. 컨텐츠 DOM 을 유지하므로 컴포넌트를 두 벌 만들지 않습니다.
+드롭다운과 바텀시트, 날짜 선택 팝오버와 바텀시트의 차이가 표시 위치뿐인 경우입니다. 컨텐츠 DOM 을 유지하므로 컴포넌트를 두 벌 만들지 않습니다.
 
 ```ts
-const strategy = mode() === 'touch'
-  ? overlay.position().global().bottom('0').centerHorizontally()
-  : overlay.position().flexibleConnectedTo(trigger).withPositions([...]);
+// compact 에서만 값을 갖습니다. null 이면 brain 의 기본 전략이 그대로 쓰입니다.
+const positionStrategy = computed(() =>
+  viewport() === 'compact' ? positionBuilder.global().bottom('0').centerHorizontally() : null,
+);
 ```
 
-brain 이 이 교체를 허용합니다. `BrnOverlay` 가 `positionStrategy` 입력을 노출하며, 값이 주어지면 brain 의 기본 전략 대신 그것을 사용합니다.
+`BrnOverlay` 가 `positionStrategy` 입력을 노출하며, 값이 주어지면 brain 의 기본 전략 대신 그것을 사용합니다. **다만 `BrnPopover` 는 오리진이 붙어 있는 동안 이 입력을 읽지 않습니다.** `getPositionStrategy()` 가 오리진 유무를 먼저 보고, 붙어 있으면 그 요소에 연결한 전략을 만들어 반환합니다. 오리진은 `BrnPopoverTrigger` 가 클릭 시점에 자기 호스트 요소로 설정합니다.
+
+> **주의: 오리진이 붙은 채로는 바텀시트가 열리지 않습니다**
+>
+> 이 우선순위를 모른 채 `[positionStrategy]` 만 바꾸면 입력이 조용히 무시되고 팝오버가 그대로 뜹니다. 반대로 brain 의 `getPositionStrategy()` 를 재정의해 우회하면 오리진과 무관하게 전역 전략이 적용되어 `wide` 에서도 시트가 열립니다. 이 메서드는 `protected` 이므로 재정의를 **금지**합니다.
+
+해소 방법은 트리거를 갈아 끼우는 것입니다. `BrnPopoverTrigger` 의 상위 클래스인 `BrnOverlayTrigger` 는 id·`aria-expanded`·`aria-controls`·클릭 처리를 똑같이 제공하면서 오리진을 심지 않습니다. `BrnPopoverTrigger` 에만 있는 것은 `aria-haspopup="dialog"` 정적 속성이므로 마크업에 직접 적습니다. 어느 요소에 연결할지는 폭 판정을 아는 컴포넌트가 정합니다.
+
+```ts
+// wide 에서만 오리진을 붙입니다. compact 는 비워 두어야 전역 전략이 적용됩니다.
+effect(() => {
+  popover().setOrigin(viewport() === 'compact' ? null : button().nativeElement);
+});
+```
 
 | 수단 | 적용 범위 | 사용 시점 |
 | :--- | :--- | :--- |
-| `[positionStrategy]` 입력 | 해당 인스턴스 | 컴포넌트가 모드에 따라 전략을 바꿀 때 |
+| `[positionStrategy]` 입력 | 해당 인스턴스 | 컴포넌트가 폭에 따라 전략을 바꿀 때. 오리진이 비어 있어야 읽힙니다 |
+| `setOrigin()` | 해당 인스턴스 | 어느 요소에 연결할지, 연결하지 않을지를 정할 때 |
+| `[hasBackdrop]` 입력 | 해당 인스턴스 | 모달로 띄울 때. 시트는 켜고 팝오버는 끕니다 |
 | `provideBrnOverlayDefaultOptions()` | 주입 범위 전체 | 앱 전역 기본값을 바꿀 때 |
-| `[attachPositions]` 입력 | 해당 인스턴스 | 전략은 유지하고 연결 위치 후보만 조정할 때 |
+| `[attachPositions]` 입력 | 해당 인스턴스 | 전략은 유지하고 연결 위치 후보만 조정할 때. `BrnPopover` 는 `align` 과 `sideOffset` 으로 직접 계산하므로 이 입력을 읽지 않습니다 |
 
 전략을 바꾼 뒤 위치를 다시 계산해야 하면 `updatePosition()` 을 호출합니다.
 
-한계는 바텀시트 고유 제스처(드래그로 닫기, 스냅 포인트)와 백드롭 동작이 빠진다는 점입니다. 그 수준이 필요하면 패턴 B 로 올립니다.
+**표면 클래스도 함께 바꿉니다.** 위치만 옮기고 클래스를 그대로 두면 트리거 옆에 맞춰진 폭의 상자가 화면 하단에 뜹니다. 폭에 따라 바꾸려면 정적 `class` 속성이 아니라 바인딩이어야 하므로, 클래스를 `classes()` 로 고정하는 helm 표면 디렉티브 대신 컴포넌트가 표면 요소를 직접 갖습니다.
+
+남는 한계는 바텀시트 고유 제스처(드래그로 닫기, 스냅 포인트)입니다. 그 수준이 필요하면 패턴 B 로 올립니다.
 
 ### 4.3 패턴 B — 표현 컴포넌트 교체
 
 ```text
-shared/ui/date-picker/
-├── date-picker.ts
-├── date-picker-popover.ts
-├── date-picker-sheet.ts
+shared/ui/navigation/
+├── navigation.ts
+├── navigation-sidebar.ts
+├── navigation-bottom-tabs.ts
 └── index.ts
 ```
 
 | 파일 | 역할 |
 | :--- | :--- |
-| `date-picker.ts` | 공개 API. 값과 검증 상태만 소유합니다 |
-| `date-picker-popover.ts` | pointer 표현 |
-| `date-picker-sheet.ts` | touch 표현 |
-| `index.ts` | `date-picker` 만 내보냅니다 |
+| `navigation.ts` | 공개 API. 항목과 현재 위치만 소유합니다 |
+| `navigation-sidebar.ts` | `wide` 표현 |
+| `navigation-bottom-tabs.ts` | `compact` 표현 |
+| `index.ts` | `navigation` 만 내보냅니다 |
 
 ```html
-@if (mode() === 'touch') {
-  <app-date-picker-sheet [value]="value()" (valueChange)="value.set($event)" />
+@if (viewport() === 'compact') {
+  <app-navigation-bottom-tabs [items]="items()" (navigate)="go($event)" />
 } @else {
-  <app-date-picker-popover [value]="value()" (valueChange)="value.set($event)" />
+  <app-navigation-sidebar [items]="items()" (navigate)="go($event)" />
 }
 ```
 
-**표현 컴포넌트를 공개 API 로 내보내지 않습니다.** 외부는 `<app-date-picker>` 하나만 알며 어느 표현이 뜨는지 신경 쓰지 않습니다. FSD 의 슬라이스 공개 API 규칙이 이 캡슐화를 강제합니다.
+**표현 컴포넌트를 공개 API 로 내보내지 않습니다.** 외부는 `<app-navigation>` 하나만 알며 어느 표현이 뜨는지 신경 쓰지 않습니다. FSD 의 슬라이스 공개 API 규칙이 이 캡슐화를 강제합니다.
 
 두 표현은 **동일한 입출력 계약**을 갖습니다. 계약이 다르면 상위 컴포넌트가 분기를 알게 되어 캡슐화가 무너집니다.
 
@@ -153,17 +206,26 @@ shared/ui/date-picker/
 
 ## 5. 어댑터가 필요한 컴포넌트
 
-| 컴포넌트 | pointer | touch | 패턴 | 전환 사유 |
+| 컴포넌트 | `wide` | `compact` | 패턴 | 전환 사유 |
 | :--- | :--- | :--- | :---: | :--- |
-| **Select · Combobox** | 앵커 드롭다운 | 바텀시트 | A | 작은 항목을 손가락으로 선택할 수 없습니다 |
-| **Dropdown menu** | 앵커 팝오버 | 바텀시트 | A | 화면 밖으로 밀립니다 |
-| **Dialog** | 중앙 모달 | 풀스크린 또는 바텀시트 | B | 가상 키보드가 뜨면 중앙 모달이 가려집니다 |
-| **Date picker** | 팝오버 캘린더 | 풀스크린 | B | 날짜 셀이 최소 터치 타겟보다 작습니다 |
-| **Context menu** | 우클릭 | 롱프레스 → 액션시트 | B | 우클릭이 존재하지 않습니다 |
-| **Table** | 열 그리드 | 카드 리스트 | B | 가로 스크롤은 터치에서 조작이 어렵습니다 |
-| **Navigation** | 사이드바 | 하단 탭 또는 드로어 | B | 엄지 도달 범위 |
-| **Tooltip** | 호버 표시 | **사용하지 않음** | — | 호버 자체가 없습니다 |
-| **Toast** | 우상단 | 하단 (노치·홈바 회피) | A | |
+| **Select · Combobox** | 앵커 드롭다운 | 바텀시트 | A | 좁은 화면에서는 드롭다운이 뷰포트를 넘어 항목이 잘립니다 |
+| **Dropdown menu** | 앵커 팝오버 | 바텀시트 | A | 트리거가 가장자리에 있으면 화면 밖으로 밀립니다 |
+| **Dialog** | 중앙 모달 | 풀스크린 또는 바텀시트 | B | 좌우 여백이 남지 않으며 가상 키보드가 본문을 가립니다 |
+| **Date picker** | 팝오버 캘린더 | 바텀시트 | A | 캘린더 일곱 열이 트리거 옆 공간에 들어가지 않습니다 |
+| **Table** | 열 그리드 | 카드 리스트 | B | 좁은 화면에서 가로 스크롤이 발생합니다 |
+| **Navigation** | 사이드바 | 하단 탭 또는 드로어 | B | 사이드바가 본문 폭을 잠식합니다 |
+| **Toast** | 우상단 | 하단 (노치·홈바 회피) | A | 좁은 화면의 우상단은 엄지 도달 범위 밖입니다 |
+
+### 5.1 폭으로 판정하지 않는 항목
+
+Context menu 와 Tooltip 은 폭이 아니라 입력 능력의 문제입니다. 우클릭과 호버는 화면이 좁아서 없는 것이 아니라 손가락에 없는 것이며, 2절이 정하듯 그 능력은 미디어 쿼리로 신뢰성 있게 알 수 없습니다. 두 항목은 판정하지 않고 처리합니다.
+
+| 컴포넌트 | 처리 |
+| :--- | :--- |
+| **Context menu** | 우클릭과 롱프레스를 **함께** 지원합니다. 어느 입력이 오든 같은 액션시트를 엽니다 |
+| **Tooltip** | 보조 설명에만 사용하며 필수 정보를 담지 않습니다. 그러면 호버 가능 여부를 판정할 필요가 없습니다 |
+
+**판정을 없앨 수 있으면 없앱니다.** 양쪽 입력을 모두 받아들이는 구현은 분기보다 코드가 적고, 브라우저의 보고값에 의존하지 않으며, 테스트가 두 배로 늘지 않습니다.
 
 > **주의: 툴팁에만 담긴 정보는 터치 기기에서 소실됩니다**
 >
@@ -175,7 +237,7 @@ shared/ui/date-picker/
 
 정적 생성(`RenderMode.Prerender`) 경로에서 적응형 컴포넌트 사용을 **금지**합니다.
 
-빌드 시점에는 포인터를 판정할 수 없어 `injectInteractionMode()` 가 기본값 `pointer` 를 반환합니다. 터치 기기에서 열면 하이드레이션 직후 표현이 교체되며 화면이 깜빡입니다.
+빌드 시점에는 뷰포트를 알 수 없어 `injectViewportClass()` 가 기본값 `wide` 를 반환합니다. 좁은 화면에서 열면 하이드레이션 직후 표현이 교체되며 화면이 깜빡입니다.
 
 공개 경로에는 CSS 미디어 쿼리로 해결되는 반응형만 사용합니다. 인증 화면은 `RenderMode.Client` 이므로 이 제약을 받지 않습니다. 상세는 [05. 렌더링 전략](05-rendering.md)에 있습니다.
 
@@ -215,7 +277,7 @@ CSS 와 마크업 수준에서 지켜야 하는 항목입니다. 적응형 분�
 
 ## 9. 테스트
 
-적응형 컴포넌트는 **두 모드 각각에 대한 테스트를 갖습니다.** 한쪽만 검증하면 다른 쪽은 실기기에서만 발견됩니다.
+적응형 컴포넌트는 **`wide` 와 `compact` 각각에 대한 테스트를 갖습니다.** 한쪽만 검증하면 다른 쪽은 실제 화면에서만 발견됩니다.
 
 Vitest 에서 `BreakpointObserver` 를 대체 구현으로 주입해 두 경우를 검증합니다. 구현은 [17. 테스트](17-testing.md) 3.2절에 있습니다.
 
@@ -225,8 +287,9 @@ Vitest 에서 `BreakpointObserver` 를 대체 구현으로 주입해 두 경우�
 
 | 항목 | 확인할 내용 | 영향 |
 | :--- | :--- | :--- |
-| **helm 의 입력 전달** | 복사된 helm 컴포넌트가 `positionStrategy` 를 brain 으로 전달하는지 | 전달하지 않으면 helm 사본에 입력을 추가합니다 |
 | **`@defer` 와 컨텐츠 프로젝션** | 표현 컴포넌트에 `ng-content` 전달 시 제약 | 패턴 C 의 적용 범위 |
 | **가상 키보드 대응** | `env(keyboard-inset-height)` 의 지원 범위 | 바텀시트 입력 화면의 구현 방식 |
 
 brain 의 오버레이 확장점, 캘린더의 키보드와 ARIA 범위, `BreakpointObserver` 의 서버 동작은 확인을 마쳤습니다. 결과는 [01. 개발 환경](01-dev-environment.md) 7절이 원본입니다.
+
+helm 의 입력 전달도 확인을 마쳤습니다. `HlmPopover` 사본은 `positionStrategy` 와 `hasBackdrop` 을 brain 으로 전달하도록 입력 목록에 추가했으며, 전달만으로는 부족했던 오리진 우선순위는 4.2절에 있습니다.
