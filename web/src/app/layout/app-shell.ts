@@ -68,7 +68,7 @@ import { ThemeToggle } from './theme-toggle';
       </main>
 
       @if (aside.content(); as content) {
-        <aside class="border-border bg-background w-full shrink-0 border-l md:w-[24rem]">
+        <aside class="border-border bg-background w-full shrink-0 md:w-[24rem] md:border-l">
           <!--
             골격이 topbar 라 스크롤 컨테이너가 문서 전체입니다. sticky 기준이 뷰포트이므로
             상단 바 높이만큼 내려 답니다. 06-layout.md 4.5절.
