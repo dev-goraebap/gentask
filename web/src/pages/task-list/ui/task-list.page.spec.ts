@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TASK_STORE, type Task, type TaskStore } from '@/entities/task';
+import { AsideSlot } from '@/shared/lib';
 import { TaskListPage } from './task-list.page';
 
 /*
@@ -142,20 +143,34 @@ describe('TaskListPage', () => {
     expect(link?.getAttribute('href')).toBe('/tasks?task=seed-1');
   });
 
-  it('열린 항목이 없으면 패널을 그리지 않는다', () => {
-    const host = render().nativeElement as HTMLElement;
+  /*
+   * 상세는 이 화면의 DOM 이 아니라 셸의 aside 슬롯에 실립니다. 화면이 자기 레이아웃을
+   * 정하지 않기 때문이며, 검증 대상은 슬롯을 채웠는지입니다. 06-layout.md 3.1절.
+   */
+  it('열린 항목이 없으면 aside 슬롯을 채우지 않는다', () => {
+    render();
 
-    expect(host.querySelector('app-task-detail-panel')).toBeNull();
+    expect(TestBed.inject(AsideSlot).content()).toBeNull();
   });
 
-  it('열린 항목이 있으면 그 항목의 패널을 그린다', () => {
+  it('열린 항목이 있으면 aside 슬롯을 채운다', () => {
     const fixture = TestBed.createComponent(TaskListPage);
     fixture.componentRef.setInput('task', 'seed-1');
     fixture.detectChanges();
 
-    const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('app-task-detail-panel')).not.toBeNull();
-    expect(host.querySelector<HTMLInputElement>('#task-title')?.value).toBe('장 보기');
+    expect(TestBed.inject(AsideSlot).content()).not.toBeNull();
+    // 화면 자신의 DOM 에는 남지 않습니다.
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-task-detail-panel')).toBeNull();
+  });
+
+  it('열린 항목이 사라지면 슬롯을 거둔다', () => {
+    const fixture = TestBed.createComponent(TaskListPage);
+    fixture.componentRef.setInput('task', 'seed-1');
+    fixture.detectChanges();
+    fixture.componentRef.setInput('task', undefined);
+    fixture.detectChanges();
+
+    expect(TestBed.inject(AsideSlot).content()).toBeNull();
   });
 
   it('되돌리면 원래 자리로 돌아온다', async () => {

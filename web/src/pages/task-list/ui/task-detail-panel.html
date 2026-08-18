@@ -1,11 +1,8 @@
 <!--
-  패널은 목록 곁에 섭니다. 넓은 화면에서는 스크롤과 함께 따라오도록 위에 붙이고,
-  좁은 화면에서는 목록을 덮은 채 화면 전체를 씁니다. DOM 이 같고 레이아웃만 바뀌므로
-  런타임 분기가 아니라 CSS 로 풉니다. 07-adaptive-ui.md 1절.
+  자리와 폭은 셸의 aside 슬롯이 정합니다. 이 컴포넌트는 내용만 갖습니다.
+  화면이 자기 레이아웃을 정하는 것을 06-layout.md 9절이 금지합니다.
 -->
-<section
-  class="border-border bg-card md:sticky md:top-20 w-full rounded-xl border p-4 md:w-[22rem] md:shrink-0"
->
+<section>
   @if (task(); as current) {
     <div class="mb-4 flex items-center justify-between gap-2">
       <h2 class="text-sm font-medium">할 일 편집</h2>

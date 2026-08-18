@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import { lucideChevronRight, lucideTrash2 } from '@ng-icons/lucide';
 import { ROUTES, TASK_PANEL } from '@/shared/config';
+import { AsideOutlet } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
@@ -35,7 +36,7 @@ import {
   selector: 'app-task-list',
   imports: [
     FormRoot, FormField, RouterLink,
-    HlmButton, HlmInput, HlmCheckbox, AppIcon, HlmField, HlmFieldLabel, HlmFieldError, HlmToaster, TaskDetailPanel,
+    HlmButton, HlmInput, HlmCheckbox, AppIcon, HlmField, HlmFieldLabel, HlmFieldError, HlmToaster, TaskDetailPanel, AsideOutlet,
   ],
   providers: [provideIcons({ lucideChevronRight, lucideTrash2 })],
   templateUrl: './task-list.page.html',
@@ -87,16 +88,6 @@ export class TaskListPage {
   protected readonly sortOptions = SORT_OPTIONS;
 
   protected readonly panel = TASK_PANEL;
-
-  /**
-   * 좁은 화면에서는 패널이 목록을 덮습니다. 나란히 놓을 폭이 없기 때문입니다.
-   *
-   * 폭을 재는 것은 CSS 이고 이 값은 패널이 열렸는지만 말합니다. 런타임 분기가 아니라
-   * 조건부 클래스이므로 07-adaptive-ui.md 1절의 반응형에 해당합니다.
-   */
-  protected readonly listClass = computed(() =>
-    this.task() ? 'w-full max-w-[40rem] max-md:hidden' : 'w-full max-w-[40rem]',
-  );
 
   /**
    * 지난 마감일 판정의 기준일입니다. 화면이 서 있는 동안 자정을 넘기면 낡은 값이 되지만,
