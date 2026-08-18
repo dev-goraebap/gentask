@@ -1,15 +1,15 @@
-/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
-/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "compileOnSave": false,
   "compilerOptions": {
-    /*
-     * 계층 간 임포트는 항상 이 별칭을 씁니다. baseUrl 은 지정하지 않습니다 —
-     * TypeScript 6 에서 폐기 예정이라 지정하면 TS5101 로 빌드가 실패합니다.
-     * 근거는 docs/architecture/references/02-package-structure.md 7.3절입니다.
-     */
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/shared/ui/button": ["./src/shared/ui/button/src/index.ts"],
+      "@/pages/task-list/providers": ["./src/pages/task-list/api/provide-task-list.ts"],
+      "@/shared/ui/icon": ["./src/shared/ui/icon/src/index.ts"],
+      "@/shared/ui/utils": ["./src/shared/ui/utils/src/index.ts"],
+      "@/shared/ui/input": ["./src/shared/ui/input/src/index.ts"],
+      "@/shared/ui/checkbox": ["./src/shared/ui/checkbox/src/index.ts"],
+      "@/shared/ui/separator": ["./src/shared/ui/separator/src/index.ts"]
     },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,

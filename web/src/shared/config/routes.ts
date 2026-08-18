@@ -10,4 +10,5 @@
  */
 export const ROUTES = {
   home: () => '/',
+  taskList: () => '/tasks',
 } as const;
