@@ -47,6 +47,8 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 
 참조 문서 19건은 본문까지 작성되어 있습니다. 도입 순서와 각 문서의 자리는 [아키텍처 진입점](web/docs/architecture/index.md)에 있습니다.
 
-`web/` 은 Angular 22 + Tailwind CSS 4 위에 Spartan(brain + helm)과 FSD 를 얹은 상태이며, Steiger 와 ESLint 가 배치 규칙을 빌드에서 강제합니다. 화면은 할일 목록 하나가 목 데이터 위에 서 있습니다.
+`web/` 은 Angular 22 + Tailwind CSS 4 위에 Spartan(brain + helm)과 FSD 를 얹은 상태이며, Steiger 와 ESLint 가 배치 규칙을 빌드에서 강제합니다. 화면은 할일 목록과 상세 둘이 목 데이터 위에 서 있습니다.
 
-진행 중인 기능은 [할일 해내기](specs/할일-해내기/requirements.md)이며 상태는 Draft 입니다. 요구사항 1·2 가 화면으로 구현되었고 3~5 가 남았습니다.
+진행 중인 기능은 [할일 해내기](specs/할일-해내기/requirements.md)이며 상태는 Draft 입니다. 요구사항 1·2 가 화면으로 구현되었고, 3 은 마감일이 남았으며 4·5 는 미착수입니다. 상세를 목록 곁의 패널로 바꾸기로 한 결정이 문서에 들어가 있고 코드는 아직 별도 페이지입니다.
+
+[할일 관점별로 보기](specs/할일-관점별로-보기/requirements.md)는 Draft 로 열어 둔 상태이며 착수 전입니다. 계획된 일정 관점이 마감일에 의존하므로 할일 해내기의 요구사항 3 이 선행합니다.
