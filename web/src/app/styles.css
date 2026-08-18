@@ -29,6 +29,7 @@
   --color-info: var(--info);
   --color-success: var(--success);
   --color-toolbar: var(--toolbar);
+  --color-veil: var(--veil);
   --color-mark: var(--mark);
   --color-mark-foreground: var(--mark-foreground);
 }
@@ -146,6 +147,21 @@ html {
    * 비례하므로 두 모드에 같은 값이 맞을 수 없습니다. 04-design-system.md 3.3절.
    */
   --toolbar: light-dark(
+    color-mix(in srgb, oklch(0.997 0 89.9) 65%, transparent),
+    color-mix(in srgb, oklch(0.21 0.006 285.9) 85%, transparent)
+  );
+
+  /*
+   * 화면 전환 중 콘텐츠 영역을 덮는 가림막입니다.
+   *
+   * 불투명도를 모드마다 다르게 두는 이유는 --toolbar 와 같습니다. 뒤에 남아 있는 이전
+   * 화면이 비쳐 보이는 정도는 배경과의 밝기 차이에 비례하므로 두 모드에 같은 값이
+   * 맞을 수 없습니다. 측정한 비율을 그대로 씁니다.
+   *
+   * 알파 유틸리티(bg-background/85)로 대신하지 않습니다. 04-design-system.md 3.3절.
+   * 이 위에는 글자가 얹히지 않으므로 대비 검사 대상이 아닙니다.
+   */
+  --veil: light-dark(
     color-mix(in srgb, oklch(0.997 0 89.9) 65%, transparent),
     color-mix(in srgb, oklch(0.21 0.006 285.9) 85%, transparent)
   );

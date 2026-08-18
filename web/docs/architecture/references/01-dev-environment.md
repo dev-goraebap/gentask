@@ -139,6 +139,7 @@ web/
 
 | 대상 | 완화한 규칙 | 사유 |
 | :--- | :--- | :--- |
+| `src/**/*.spec.ts` | ESLint 브라우저 API 제한 | 테스트는 jsdom 에서만 실행되며 서버 렌더 경로를 지나지 않습니다. 제한의 근거가 서버 실행이므로 적용되지 않으며, 브라우저 API 를 다루는 코드를 검증하려면 그 API 에 직접 닿아야 합니다 |
 | `src/server.ts`, `src/main.server.ts` | `no-console` | Node 진입점은 stdout 이 표준 로깅 채널입니다. 브라우저 콘솔로의 개인정보 유출이라는 규칙의 근거가 적용되지 않습니다 |
 | `src/pages/**` | Steiger `excessive-slicing` | 슬라이스가 하나뿐인 초기 단계에서는 과분할 지적이 유효하지 않습니다. 슬라이스가 셋 이상이 되면 제거합니다 |
 | `src/shared/api/generated/**` | ESLint 전체 | 생성물에 대한 지적은 고칠 수 없으므로 잡음이 됩니다 |

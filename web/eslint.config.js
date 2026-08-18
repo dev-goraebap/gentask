@@ -149,6 +149,16 @@ module.exports = tseslint.config(
     },
   },
 
+  // 테스트는 jsdom 에서만 실행되며 서버 렌더 경로를 지나지 않습니다.
+  // 브라우저 API 제한의 근거가 서버 실행이므로 그 근거가 적용되지 않습니다.
+  // 브라우저 API 를 다루는 코드를 검증하려면 그 API 에 직접 닿아야 합니다.
+  {
+    files: ['src/**/*.spec.ts'],
+    rules: {
+      'no-restricted-globals': 'off',
+    },
+  },
+
   // Node 진입점은 stdout 이 표준 로깅 채널입니다.
   // no-console 의 근거(브라우저 콘솔로의 개인정보 유출)가 적용되지 않습니다.
   {
