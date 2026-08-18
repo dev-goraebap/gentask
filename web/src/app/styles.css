@@ -271,12 +271,28 @@ html {
   }
 }
 
+/*
+ * 두 방향에 같은 곡선을 씁니다. 퇴장에 흔히 쓰는 ease-in 은 처음 얼마간 거의 움직이지
+ * 않다가 끝에서 몰아치는데, 그 정지 구간이 닫는 조작에서 걸리는 느낌으로 읽힙니다.
+ * 이 곡선은 시작하자마자 움직이고 끝에서 잦아듭니다.
+ */
 .aside-enter {
-  animation: aside-enter 240ms ease-out;
+  animation: aside-enter 240ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .aside-leave {
-  animation: aside-leave 200ms ease-in;
+  animation: aside-leave 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/*
+ * 움직이는 동안 헤더의 배경 흐림을 끕니다. 헤더 폭이 매 프레임 바뀌므로 흐림 영역이
+ * 프레임마다 다시 래스터화되며, 이 비용은 레이아웃이 아니라 페인트에서 발생합니다.
+ *
+ * 그동안 헤더 아래로 지나가는 콘텐츠가 없어 흐림이 하는 일도 없습니다. 04-design-system.md
+ * 3.3절이 정한 toolbar 토큰의 불투명도는 그대로 유지되므로 색은 달라지지 않습니다.
+ */
+app-shell:has(.aside-enter, .aside-leave) header {
+  backdrop-filter: none;
 }
 
 /* 움직임을 줄이도록 설정한 사용자를 존중합니다. 13-accessibility.md 9절. */
