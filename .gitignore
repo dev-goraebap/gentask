@@ -24,4 +24,18 @@ Thumbs.db
 
 # 작업용
 tmp
-.claude
+
+### Claude Code ###
+# .claude/ 는 설정(settings.json)과 AGENTS.md 브리지(CLAUDE.md)만 팀 공유하고 나머지는 개인 영역입니다.
+.claude/*
+!.claude/settings.json
+!.claude/CLAUDE.md
+
+### 에이전트 스킬 ###
+# 팀 공용 스킬만 커밋합니다. 그 외 .agents/skills/* 는 개인 스킬이며,
+# 자유롭게 추가하면 세션 시작 훅이 설치까지 하되 커밋되지는 않습니다.
+# 팀 공용으로 승격하려면 아래 예외 목록에 추가합니다.
+.agents/skills/*
+!.agents/skills/angular-developer/
+# 설치 기록에는 개인 스킬 목록이 함께 들어가므로 공유하지 않습니다.
+skills-lock.json
