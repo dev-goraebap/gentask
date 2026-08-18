@@ -244,6 +244,41 @@ html {
   }
 }
 
+/*
+ * aside 슬롯의 등장과 퇴장입니다.
+ *
+ * 폭이 아니라 오른쪽 바깥 여백을 움직입니다. 폭을 줄이면 내부 내용이 매 프레임 다시
+ * 배치되어 글이 접혔다 펴집니다. 음수 여백은 차지하는 자리만 없애므로 내용은 그대로
+ * 둔 채 왼쪽 열이 밀려납니다. 겹치지 않고 미는 것이 규격이므로 위치만 옮기는 방식은
+ * 쓰지 않습니다. 06-layout.md 3.3절.
+ *
+ * 값은 aside 가 자기 폭과 함께 선언한 변수를 봅니다. 두 곳에 같은 수치를 적으면 하나를
+ * 고칠 때 나머지가 어긋납니다.
+ *
+ * 감속 설정은 아래 블록이 일괄로 처리하므로 여기서 따로 다루지 않습니다.
+ */
+@keyframes aside-enter {
+  from {
+    margin-right: calc(-1 * var(--aside-w));
+    opacity: 0;
+  }
+}
+
+@keyframes aside-leave {
+  to {
+    margin-right: calc(-1 * var(--aside-w));
+    opacity: 0;
+  }
+}
+
+.aside-enter {
+  animation: aside-enter 240ms ease-out;
+}
+
+.aside-leave {
+  animation: aside-leave 200ms ease-in;
+}
+
 /* 움직임을 줄이도록 설정한 사용자를 존중합니다. 13-accessibility.md 9절. */
 @media (prefers-reduced-motion: reduce) {
   *,

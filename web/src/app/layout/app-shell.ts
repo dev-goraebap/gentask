@@ -72,7 +72,11 @@ import { ThemeToggle } from './theme-toggle';
       특정 화면의 세부 구조를 알게 됩니다. 06-layout.md 3.1절과 3.3절.
     -->
     @if (aside.content(); as content) {
-      <aside class="border-border bg-background w-full shrink-0 md:w-[24rem] md:border-l">
+      <aside
+        class="border-border bg-background w-full shrink-0 [--aside-w:100%] md:w-[24rem] md:border-l md:[--aside-w:24rem]"
+        animate.enter="aside-enter"
+        animate.leave="aside-leave"
+      >
         <!--
           골격이 topbar 라 스크롤 컨테이너가 문서 전체이고 sticky 기준이 뷰포트입니다.
           전고를 차지하므로 화면 꼭대기에 답니다. 06-layout.md 4.5절.
