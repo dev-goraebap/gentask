@@ -191,7 +191,7 @@ export class HlmCalendar<T> {
      */
     classes(
       () =>
-        'p-3 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(8)] pointer-coarse:[--cell-size:--spacing(11)] group/calendar bg-background block in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent',
+        'p-3 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(8)] max-md:[--cell-size:--spacing(11)] group/calendar bg-background block in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent',
     );
   }
 }
