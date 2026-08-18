@@ -22,6 +22,7 @@ describe('TaskDetailPage', () => {
     createdAt: '2026-08-17T09:00:00.000Z',
     completedAt: null,
     note: '우유와 빵',
+    dueDate: null,
   };
 
   beforeEach(() => {
@@ -97,7 +98,49 @@ describe('TaskDetailPage', () => {
     query<HTMLButtonElement>(fixture, 'button[type="submit"]').click();
     await fixture.whenStable();
 
-    expect(update).toHaveBeenCalledWith('seed-1', { title: '장 보기', note: '두부도 사기' });
+    expect(update).toHaveBeenCalledWith('seed-1', {
+      title: '장 보기',
+      note: '두부도 사기',
+      dueDate: null,
+    });
     expect(navigate).toHaveBeenCalledWith(['/tasks']);
+  });
+
+  it('3: 마감일이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
+    tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
+    const fixture = render('seed-1');
+
+    // 트리거 버튼이 고른 날짜를 표기합니다. 정하지 않았을 때의 문구와 갈립니다.
+    const trigger = query<HTMLButtonElement>(fixture, 'hlm-date-picker-trigger button');
+    expect(trigger.textContent?.trim()).toBe('8월 25일');
+  });
+
+  it('3: 마감일을 정하지 않았으면 지우기를 내보내지 않는다', () => {
+    const fixture = render('seed-1');
+
+    // 지울 것이 없는 상태에서 지우기 버튼이 보이면 누를 수 있는 것이 무엇인지 모호해집니다.
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button'));
+    expect(buttons.some((b) => (b as HTMLElement).textContent?.includes('지우기'))).toBe(false);
+  });
+
+  it('3: 마감일을 지우면 비운 값을 넘긴다', async () => {
+    tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
+    const fixture = render('seed-1');
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    const clear = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
+      (b as HTMLElement).textContent?.includes('지우기'),
+    ) as HTMLButtonElement;
+    clear.click();
+    fixture.detectChanges();
+
+    query<HTMLButtonElement>(fixture, 'button[type="submit"]').click();
+    await fixture.whenStable();
+
+    expect(update).toHaveBeenCalledWith('seed-1', {
+      title: '장 보기',
+      note: '우유와 빵',
+      dueDate: null,
+    });
   });
 });

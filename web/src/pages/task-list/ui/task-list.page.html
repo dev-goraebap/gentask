@@ -34,23 +34,39 @@
 
   <ul class="divide-border border-border mt-8 divide-y border-y">
     @for (task of groups().active; track task.id) {
-      <li class="flex items-center gap-3 py-3">
+      <li class="flex items-start gap-3 py-3">
         <hlm-checkbox
+          class="mt-0.5"
           [checked]="false"
           [aria-labelledby]="'task-' + task.id"
           (checkedChange)="setCompleted(task, $event)"
         />
-        <!--
-          제목은 상세로 가는 이동이므로 링크입니다. 동작이 아니라 이동이라 사용자가
-          새 탭으로 열거나 주소를 복사할 수 있어야 합니다. 13-accessibility.md 2절.
-        -->
-        <a
-          [id]="'task-' + task.id"
-          [routerLink]="routes.taskDetail(task.id)"
-          class="flex-1 text-sm underline-offset-4 hover:underline"
-        >
-          {{ task.title }}
-        </a>
+        <div class="min-w-0 flex-1">
+          <!--
+            제목은 상세로 가는 이동이므로 링크입니다. 동작이 아니라 이동이라 사용자가
+            새 탭으로 열거나 주소를 복사할 수 있어야 합니다. 13-accessibility.md 2절.
+          -->
+          <a
+            [id]="'task-' + task.id"
+            [routerLink]="routes.taskDetail(task.id)"
+            class="block text-sm underline-offset-4 hover:underline"
+          >
+            {{ task.title }}
+          </a>
+          @if (task.dueDate; as due) {
+            <!--
+              지난 마감일을 색으로만 알리지 않고 문구를 함께 둡니다. 색각 이상과 흑백
+              출력에서 색은 전달되지 않습니다. 13-accessibility.md 4절.
+            -->
+            <p
+              class="mt-0.5 text-xs"
+              [class.text-warning]="isOverdue(task)"
+              [class.text-foreground-secondary]="!isOverdue(task)"
+            >
+              {{ formatDueDate(due) }}@if (isOverdue(task)) {<span> · 지남</span>}
+            </p>
+          }
+        </div>
       </li>
     } @empty {
       <li class="text-foreground-secondary py-8 text-center text-sm">

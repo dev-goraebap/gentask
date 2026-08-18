@@ -37,6 +37,9 @@ export interface TaskStore {
 export type TaskDraft = {
   title: string;
   note: string;
+
+  /** 정하지 않은 상태를 담아야 하므로 null 을 허용합니다. 형식은 Task 와 같습니다. */
+  dueDate: string | null;
 };
 
 /**

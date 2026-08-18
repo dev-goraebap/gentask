@@ -9,7 +9,15 @@ import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
-import { isAddableTitle, splitByCompletion, TASK_STORE, type Task } from '@/entities/task';
+import {
+  formatDueDate,
+  isAddableTitle,
+  isOverdue,
+  splitByCompletion,
+  TASK_STORE,
+  toDateKey,
+  type Task,
+} from '@/entities/task';
 
 /**
  * 할일 목록 화면입니다. 요구사항 1(빠르게 적어 둔다)과 2(해낸 것을 표시하고 되돌린다)를 담습니다.
@@ -52,6 +60,19 @@ export class TaskListPage {
   });
 
   protected readonly groups = computed(() => splitByCompletion(this.store.tasks()));
+
+  /**
+   * 지난 마감일 판정의 기준일입니다. 화면이 서 있는 동안 자정을 넘기면 낡은 값이 되지만,
+   * 목데이터 위의 프로토타입에서 그 경계를 다루는 장치를 먼저 만들 근거가 없습니다.
+   * 관점 스펙이 하루의 경계를 정할 때 이 값의 소유도 함께 정합니다.
+   */
+  private readonly today = toDateKey(new Date());
+
+  protected readonly formatDueDate = formatDueDate;
+
+  protected isOverdue(task: Task): boolean {
+    return isOverdue(task, this.today);
+  }
 
   /**
    * (submit) 에 바인딩하고 preventDefault 를 직접 호출합니다. (ngSubmit) 은 Reactive Forms 의

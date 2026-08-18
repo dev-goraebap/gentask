@@ -24,6 +24,30 @@
       </div>
 
       <div hlmField>
+        <label hlmFieldLabel for="task-due">마감일</label>
+        <div class="flex items-center gap-2">
+          <!--
+            네이티브 날짜 입력을 쓰지 않습니다. OS 와 브라우저마다 외형이 달라져 화면
+            통제를 잃기 때문이며, 접근성 부담은 brain 이 제공하는 프리미티브가 흡수합니다.
+            07-adaptive-ui.md 4.1절.
+          -->
+          <hlm-date-picker [date]="dueDate()" (dateChange)="setDueDate($event)">
+            <!-- 레이블이 가리킬 id 를 지정합니다. 지정하지 않으면 생성기가 붙인 일련번호가 됩니다. -->
+            <hlm-date-picker-trigger buttonId="task-due" class="w-48">
+              정하지 않음
+            </hlm-date-picker-trigger>
+          </hlm-date-picker>
+
+          @if (draftDueDate()) {
+            <!-- 한 번 정한 마감일을 되돌릴 길이 없으면 정하는 것 자체가 부담이 됩니다. -->
+            <button hlmBtn type="button" variant="ghost" size="sm" (click)="setDueDate(null)">
+              지우기
+            </button>
+          }
+        </div>
+      </div>
+
+      <div hlmField>
         <label hlmFieldLabel for="task-note">메모</label>
         <textarea
           hlmTextarea

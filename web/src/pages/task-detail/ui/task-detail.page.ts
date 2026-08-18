@@ -1,9 +1,22 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
-import { isAddableTitle, TASK_STORE, type Task, type TaskDraft } from '@/entities/task';
+import {
+  formatDueDate,
+  fromDateKey,
+  isAddableTitle,
+  TASK_STORE,
+  toDateKey,
+  type Task,
+  type TaskDraft,
+} from '@/entities/task';
 import { ROUTES } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
+import {
+  HlmDatePicker,
+  HlmDatePickerTrigger,
+  provideHlmDatePickerConfig,
+} from '@/shared/ui/date-picker';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmTextarea } from '@/shared/ui/textarea';
@@ -23,6 +36,17 @@ import { HlmTextarea } from '@/shared/ui/textarea';
   imports: [
     FormRoot, FormField, RouterLink,
     HlmButton, HlmInput, HlmTextarea, HlmField, HlmFieldLabel, HlmFieldError,
+    HlmDatePicker, HlmDatePickerTrigger,
+  ],
+  providers: [
+    /*
+     * 달력이 다루는 값은 Date 이고 저장 형식은 날짜 문자열입니다. 표기를 이 자리에서
+     * 정해 두면 목록과 상세가 같은 함수를 거치므로 두 화면의 날짜가 어긋나지 않습니다.
+     */
+    provideHlmDatePickerConfig<Date>({
+      formatDate: (date) => formatDueDate(toDateKey(date)),
+      autoCloseOnSelect: true,
+    }),
   ],
   templateUrl: './task-detail.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,7 +64,7 @@ export class TaskDetailPage {
     this.store.tasks().find((candidate) => candidate.id === this.id()),
   );
 
-  private readonly draft = signal<TaskDraft>({ title: '', note: '' });
+  private readonly draft = signal<TaskDraft>({ title: '', note: '', dueDate: null });
 
   /** 검증 규칙을 스키마 한 곳에 모읍니다. 12-forms.md 2절. */
   protected readonly editForm = form(this.draft, (p) => {
@@ -54,7 +78,11 @@ export class TaskDetailPage {
     effect(() => {
       const current = this.task();
       if (!current) return;
-      this.draft.set({ title: current.title, note: current.note });
+      this.draft.set({
+        title: current.title,
+        note: current.note,
+        dueDate: current.dueDate,
+      });
     });
   }
 
@@ -62,6 +90,23 @@ export class TaskDetailPage {
    * (submit) 에 바인딩하고 preventDefault 를 직접 호출합니다. (ngSubmit) 은 발화하지 않으며
    * 없는 채로 쓰면 빌드가 통과하고 제출만 조용히 동작하지 않습니다. 12-forms.md 1절.
    */
+  /**
+   * 달력에 넘길 값입니다. 저장 형식과 달력의 값 타입이 달라 경계에서 한 번 변환합니다.
+   * 모델을 Date 로 두지 않는 이유는 그것이 시각과 시간대를 함께 들고 다니는 타입이라
+   * 날짜만 다루기로 한 결정이 코드에서 흐려지기 때문입니다.
+   */
+  protected readonly dueDate = computed<Date | undefined>(() => {
+    const key = this.draft().dueDate;
+    return key ? (fromDateKey(key) ?? undefined) : undefined;
+  });
+
+  /** 지우기 버튼의 표시 조건입니다. 정하지 않은 상태에서는 지울 것이 없습니다. */
+  protected readonly draftDueDate = computed(() => this.draft().dueDate);
+
+  protected setDueDate(date: Date | null): void {
+    this.draft.update((draft) => ({ ...draft, dueDate: date ? toDateKey(date) : null }));
+  }
+
   protected async save(event: Event): Promise<void> {
     event.preventDefault();
 
