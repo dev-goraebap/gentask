@@ -20,10 +20,10 @@ import { isAddableTitle, splitByCompletion, type Task } from '../model/task';
   selector: 'app-task-list',
   imports: [FormRoot, FormField, HlmButton, HlmInput, HlmCheckbox, AppIcon],
   providers: [provideIcons({ lucideChevronRight })],
-  templateUrl: './task-list.html',
+  templateUrl: './task-list.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TaskList {
+export class TaskListPage {
   /**
    * 완료 섹션의 펼침 상태입니다. 쿼리 파라미터에 두어 새로고침과 링크 공유가
    * 별도 구현 없이 동작합니다. 08-routing.md 3절.

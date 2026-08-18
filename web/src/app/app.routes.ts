@@ -30,7 +30,7 @@ export const routes: Routes = [
         children: [
           {
             path: '',
-            loadComponent: () => import('@/pages/task-list').then((m) => m.TaskList),
+            loadComponent: () => import('@/pages/task-list').then((m) => m.TaskListPage),
           },
         ],
       },

@@ -36,7 +36,7 @@
 
 ```ts
 // pages/task-list/index.ts
-export { TaskList } from './ui/task-list';
+export { TaskListPage } from './ui/task-list.page';
 // TaskFilter, TaskRow 는 내보내지 않습니다
 ```
 
@@ -145,9 +145,9 @@ RxJS 를 사용하는 코드와 경계가 생기면 `toSignal` 로 변환해 컴
 
 ```text
 ui/
-├── task-list.ts
-├── task-list.html
-└── task-list.css
+├── task-list.page.ts
+├── task-list.page.html
+└── task-list.page.css
 ```
 
 `.css` 파일은 필요할 때만 만듭니다. 대부분 Tailwind 유틸리티로 해결합니다.

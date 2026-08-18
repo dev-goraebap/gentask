@@ -167,8 +167,8 @@ E2E 를 로컬 필수로 두지 않는 이유는 실행 시간 때문입니다. 
 ```text
 pages/task-list/
 ├── ui/
-│   ├── task-list.ts
-│   └── task-list.spec.ts
+│   ├── task-list.page.ts
+│   └── task-list.page.spec.ts
 └── model/
     ├── task-list.ts
     └── task-list.spec.ts

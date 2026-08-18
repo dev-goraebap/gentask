@@ -68,7 +68,7 @@ src/
 ```text
 pages/task-list/
 ├── ui/
-│   ├── task-list.ts
+│   ├── task-list.page.ts
 │   └── task-filter.ts
 ├── model/
 │   └── task-list.ts
@@ -77,7 +77,7 @@ pages/task-list/
 └── index.ts
 ```
 
-`ui/task-list.ts` 가 라우트 진입 컴포넌트이고, `model/task-list.ts` 가 화면 상태와 필터 로직을 담으며, `index.ts` 가 공개 API 입니다.
+`ui/task-list.page.ts` 가 라우트 진입 컴포넌트이고, `model/task-list.ts` 가 화면 상태와 필터 로직을 담으며, `index.ts` 가 공개 API 입니다. 진입 컴포넌트의 `.page` 접미사는 [03. 명명 규칙](03-naming.md) 2.1.1절이 원본입니다.
 
 ## 3. 배치 판정 트리
 
@@ -164,10 +164,10 @@ app → pages → features → entities → shared
 
 ```ts
 // 허용
-import { TaskList } from '@/pages/task-list';
+import { TaskListPage } from '@/pages/task-list';
 
 // 금지 — 공개 API 우회
-import { TaskList } from '@/pages/task-list/ui/task-list';
+import { TaskListPage } from '@/pages/task-list/ui/task-list.page';
 ```
 
 `shared` 는 슬라이스가 없으므로 최상위 `index.ts` 하나를 두지 않고 **세그먼트별로 공개 API 를 정의**합니다. `shared/ui/index.ts`, `shared/api/index.ts` 형태입니다. 임포트가 의도별로 구분되어 어느 성격의 코드를 쓰는지 임포트문에서 드러납니다.
@@ -285,7 +285,7 @@ Angular 의 의존성 주입 자체는 계층 규칙을 우회하지 않습니�
 `ng generate` 의 기본 출력 경로는 슬라이스 구조와 맞지 않습니다. 생성 시 경로를 명시합니다.
 
 ```bash
-ng g component pages/task-list/ui/task-list --flat
+ng g component pages/task-list/ui/task-list.page --flat
 ```
 
 ## 8. 파일명
