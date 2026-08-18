@@ -23,7 +23,19 @@ import { ThemeToggle } from './theme-toggle';
   selector: 'app-shell',
   imports: [RouterOutlet, RouterLink, ThemeToggle, NavigationVeil, NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex min-h-dvh' },
+  /*
+   * 가로만 잘라 냅니다. aside 는 등장·퇴장 동안 음수 여백으로 화면 밖에 서는데, 여백은
+   * 차지하는 자리만 없앨 뿐 상자는 그대로 오른쪽으로 나가므로 그동안 가로 스크롤이
+   * 생깁니다. 가로 스크롤바가 서면 세로가 그만큼 부족해져 세로 스크롤까지 따라옵니다.
+   *
+   * hidden 이 아니라 clip 을 쓰는 이유는 hidden 이 스크롤 컨테이너를 만들기 때문입니다.
+   * 그러면 헤더와 aside 안쪽의 sticky 가 뷰포트가 아니라 이 요소를 기준으로 삼아 고정이
+   * 풀립니다. clip 은 스크롤 컨테이너가 아니라 잘라 내기만 합니다. 06-layout.md 4.5절.
+   *
+   * 세로는 건드리지 않습니다. 문서 전체가 스크롤 컨테이너인 topbar 골격이라 세로까지
+   * 자르면 화면이 스크롤되지 않습니다. 06-layout.md 2.1절.
+   */
+  host: { class: 'flex min-h-dvh overflow-x-clip' },
   template: `
     <!--
       헤더와 본문이 한 열에 있습니다. aside 가 차면 이 열 전체가 좁아지므로 헤더도 함께
