@@ -61,10 +61,18 @@ export class MockTaskStore implements TaskStore {
     this.state.update((tasks) => tasks.filter((task) => task.id !== id));
   }
 
+  /**
+   * 이미 끝난 일을 다시 마쳐도 끝낸 시각을 덮지 않습니다. 그 시각이 끝난 일 목록의
+   * 순서이며, 덮으면 옛날에 끝낸 일이 방금 끝낸 것처럼 올라옵니다.
+   */
   async setCompleted(id: string, completed: boolean): Promise<void> {
-    const now = completed ? new Date().toISOString() : null;
+    const now = new Date().toISOString();
     this.state.update((tasks) =>
-      tasks.map((task) => (task.id === id ? { ...task, completedAt: now } : task)),
+      tasks.map((task) => {
+        if (task.id !== id) return task;
+        if (completed) return task.completedAt ? task : { ...task, completedAt: now };
+        return task.completedAt ? { ...task, completedAt: null } : task;
+      }),
     );
   }
 }

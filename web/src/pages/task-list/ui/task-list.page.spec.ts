@@ -17,6 +17,7 @@ describe('TaskListPage', () => {
   let tasks: ReturnType<typeof signal<readonly Task[]>>;
   let add: ReturnType<typeof vi.fn>;
   let setImportant: ReturnType<typeof vi.fn>;
+  let setCompleted: ReturnType<typeof vi.fn>;
   let store: TaskStore;
 
   const 장보기: Task = {
@@ -57,10 +58,11 @@ describe('TaskListPage', () => {
 
     add = vi.fn(async () => {});
     setImportant = vi.fn(async () => {});
+    setCompleted = vi.fn(async () => {});
     store = {
       tasks,
       add: add as unknown as (title: string) => Promise<void>,
-      setCompleted: async () => {},
+      setCompleted: setCompleted as unknown as (id: string, completed: boolean) => Promise<void>,
       setImportant: setImportant as unknown as (id: string, important: boolean) => Promise<void>,
       setMyDay: async () => {},
       update: async () => {},
@@ -241,6 +243,35 @@ describe('TaskListPage', () => {
     await fixture.whenStable();
 
     expect(setImportant).toHaveBeenCalledWith('seed-1', true);
+  });
+
+  it('TK-004 S1: 마치면 아직 할 일 목록에서 사라지고 끝난 일로 남는다', async () => {
+    const fixture = render();
+    const host = fixture.nativeElement as HTMLElement;
+    const box = host.querySelector<HTMLElement>('li [role="checkbox"]');
+
+    box?.click();
+    await fixture.whenStable();
+
+    expect(setCompleted).toHaveBeenCalledWith('seed-2', true);
+  });
+
+  it('TK-004 S3: 되돌리면 아직 할 일로 다시 보인다', async () => {
+    tasks.set([{ ...장보기, completedAt: '2026-08-18T00:00:00.000Z' }, 전기요금, 건강검진]);
+    const fixture = TestBed.createComponent(TaskListPage);
+    fixture.componentRef.setInput('done', true);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    // 끝난 일은 아직 할 일 목록에 없고, 펼친 끝난 일 목록의 체크는 마치기의 반대입니다.
+    const active = [...host.querySelectorAll('ul:not(#completed-tasks) li a')].map((a) =>
+      a.textContent?.trim(),
+    );
+    expect(active).not.toContain('장 보기');
+    host.querySelector<HTMLElement>('#completed-tasks [role="checkbox"]')?.click();
+    await fixture.whenStable();
+
+    expect(setCompleted).toHaveBeenCalledWith('seed-1', false);
   });
 
   it('고른 정렬 기준을 aria-pressed 로 알린다', () => {
