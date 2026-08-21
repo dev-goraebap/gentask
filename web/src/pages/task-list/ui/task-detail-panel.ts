@@ -23,6 +23,7 @@ import {
   type TaskDraft,
 } from '@/entities/task';
 import { TASK_PANEL } from '@/shared/config';
+import { toast } from '@/shared/ui/sonner';
 import {
   HlmAlertDialog,
   HlmAlertDialogAction,
@@ -68,12 +69,27 @@ import { lucideSun, lucideTrash2, lucideX } from '@ng-icons/lucide';
 @Component({
   selector: 'app-task-detail-panel',
   imports: [
-    FormRoot, FormField, AppIcon,
-    HlmButton, HlmInput, HlmTextarea, HlmField, HlmFieldLabel, HlmFieldError,
-    HlmDatePicker, HlmDatePickerTrigger,
-    HlmAlertDialog, HlmAlertDialogAction, HlmAlertDialogCancel, HlmAlertDialogContent,
-    HlmAlertDialogDescription, HlmAlertDialogFooter, HlmAlertDialogHeader,
-    HlmAlertDialogPortal, HlmAlertDialogTitle, HlmAlertDialogTrigger,
+    FormRoot,
+    FormField,
+    AppIcon,
+    HlmButton,
+    HlmInput,
+    HlmTextarea,
+    HlmField,
+    HlmFieldLabel,
+    HlmFieldError,
+    HlmDatePicker,
+    HlmDatePickerTrigger,
+    HlmAlertDialog,
+    HlmAlertDialogAction,
+    HlmAlertDialogCancel,
+    HlmAlertDialogContent,
+    HlmAlertDialogDescription,
+    HlmAlertDialogFooter,
+    HlmAlertDialogHeader,
+    HlmAlertDialogPortal,
+    HlmAlertDialogTitle,
+    HlmAlertDialogTrigger,
   ],
   providers: [
     provideIcons({ lucideSun, lucideTrash2, lucideX }),
@@ -241,7 +257,14 @@ export class TaskDetailPanel {
       next.dueDate === current.dueDate;
     if (unchanged) return;
 
-    await this.store.update(current.id, next);
+    try {
+      await this.store.update(current.id, next);
+    } catch {
+      // 이전 값으로 돌아갑니다. TK-003 A9. 고치던 값을 폼에 남기면 화면과 저장소가 다른 값을 보입니다.
+      this.draft.set({ title: current.title, note: current.note, dueDate: current.dueDate });
+      this.editForm().reset();
+      toast.error('바꾸지 못했습니다.');
+    }
   }
 
   /**

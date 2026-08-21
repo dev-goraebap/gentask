@@ -1,4 +1,12 @@
-import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import {
+  booleanAttribute,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { form, FormField, FormRoot } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
@@ -10,6 +18,7 @@ import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
+import { toast } from '@/shared/ui/sonner';
 import { TaskDetailPanel } from './task-detail-panel';
 import {
   filterByView,
@@ -46,8 +55,17 @@ import {
 @Component({
   selector: 'app-task-list',
   imports: [
-    FormRoot, FormField, RouterLink,
-    HlmButton, HlmInput, HlmCheckbox, AppIcon, HlmField, HlmFieldLabel, TaskDetailPanel, AsideOutlet,
+    FormRoot,
+    FormField,
+    RouterLink,
+    HlmButton,
+    HlmInput,
+    HlmCheckbox,
+    AppIcon,
+    HlmField,
+    HlmFieldLabel,
+    TaskDetailPanel,
+    AsideOutlet,
   ],
   providers: [provideIcons({ lucideChevronRight, lucideStar })],
   /*
@@ -181,14 +199,36 @@ export class TaskListPage {
     // 공백만 적은 것은 제목이 아닙니다. 알리지 않고 아무 일도 하지 않습니다.
     if (!isAddableTitle(this.draft().title)) return;
 
-    await this.store.add(this.draft().title, this.seed());
+    try {
+      await this.store.add(this.draft().title, this.seed());
+    } catch {
+      /*
+       * 남기지 못했음을 알리고 적은 것은 그대로 둡니다. TK-001 A6. 비우면 사용자가 다시
+       * 적어야 하고, 다시 적겠다고 하는 것이 곧 재시도입니다.
+       */
+      toast.error('할 일을 남기지 못했습니다.', {
+        action: { label: '다시 시도', onClick: () => void this.add() },
+      });
+      return;
+    }
 
     // 다음 항목을 이어 적을 수 있게 비웁니다.
     this.addForm().reset({ title: '' });
   }
 
-  protected async setCompleted(task: Task, completed: boolean): Promise<void> {
-    await this.store.setCompleted(task.id, completed);
+  /**
+   * 실패하면 체크박스를 누르기 전으로 되돌립니다. TK-004 A4.
+   *
+   * 체크박스는 자기 표시를 갖고, 입력값이 그대로면 다시 그리지 않습니다. 그래서 입력값을
+   * 바꾸는 것으로는 되돌릴 수 없고 그 표시를 직접 되돌립니다.
+   */
+  protected async setCompleted(task: Task, completed: boolean, box: HlmCheckbox): Promise<void> {
+    try {
+      await this.store.setCompleted(task.id, completed);
+    } catch {
+      box.checked.set(!completed);
+      toast.error(completed ? '마치지 못했습니다.' : '되돌리지 못했습니다.');
+    }
   }
 
   /** 중요 표시를 켜고 끕니다. TK-003 A4. */

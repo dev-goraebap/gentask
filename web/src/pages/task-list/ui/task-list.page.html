@@ -31,10 +31,11 @@
     @for (task of groups().active; track task.id) {
       <li class="flex items-start gap-3 py-3">
         <hlm-checkbox
+          #box
           class="mt-0.5"
           [checked]="false"
           [aria-labelledby]="'task-' + task.id"
-          (checkedChange)="setCompleted(task, $event)"
+          (checkedChange)="setCompleted(task, $event, box)"
         />
         <div class="min-w-0 flex-1">
           <!--
@@ -120,9 +121,10 @@
           @for (task of groups().completed; track task.id) {
             <li class="flex items-center gap-3 py-3">
               <hlm-checkbox
+                #doneBox
                 [checked]="true"
                 [aria-labelledby]="'done-' + task.id"
-                (checkedChange)="setCompleted(task, $event)"
+                (checkedChange)="setCompleted(task, $event, doneBox)"
               />
               <a
                 [id]="'done-' + task.id"

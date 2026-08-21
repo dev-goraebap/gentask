@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TASK_STORE, type Task, type TaskStore } from '@/entities/task';
 import { AsideSlot } from '@/shared/lib';
 import { TaskListPage } from './task-list.page';
+import { toast } from '@/shared/ui/sonner';
 
 /*
  * 목록의 계약을 고정합니다. 정렬 순서와 aside 슬롯의 채움·거둠이 이 화면의 몫입니다.
@@ -16,6 +17,7 @@ import { TaskListPage } from './task-list.page';
 describe('TaskListPage', () => {
   let tasks: ReturnType<typeof signal<readonly Task[]>>;
   let add: ReturnType<typeof vi.fn>;
+  let toastError: ReturnType<typeof vi.spyOn>;
   let setImportant: ReturnType<typeof vi.fn>;
   let setCompleted: ReturnType<typeof vi.fn>;
   let store: TaskStore;
@@ -59,6 +61,7 @@ describe('TaskListPage', () => {
     add = vi.fn(async () => {});
     setImportant = vi.fn(async () => {});
     setCompleted = vi.fn(async () => {});
+    toastError = vi.spyOn(toast, 'error').mockImplementation(() => '' as never);
     store = {
       tasks,
       add: add as unknown as (title: string) => Promise<void>,
@@ -272,6 +275,46 @@ describe('TaskListPage', () => {
     await fixture.whenStable();
 
     expect(setCompleted).toHaveBeenCalledWith('seed-1', false);
+  });
+
+  it('TK-001 S7: 넣기에 실패하면 목록에 없고, 기존 할일은 남는다', async () => {
+    add.mockRejectedValueOnce(new Error('저장소 없음'));
+    const fixture = render();
+    const input = newTaskInput(fixture);
+
+    input.value = '우산 챙기기';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    pressEnter(input);
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+
+    expect(titles(fixture)).toEqual(['전기요금 납부', '장 보기', '건강검진 예약']);
+    // 알리고, 적은 것은 다시 적지 않아도 되게 그대로 둡니다.
+    expect(toastError).toHaveBeenCalled();
+    expect(newTaskInput(fixture).value).toBe('우산 챙기기');
+  });
+
+  it('TK-004 S5: 실패하면 마치기 전과 같다', async () => {
+    // 저장소는 응답까지 한 번은 그려질 시간이 있습니다. 같은 턴의 거부는 현실에 없습니다.
+    setCompleted.mockImplementationOnce(
+      () => new Promise((_, reject) => setTimeout(() => reject(new Error('저장소 없음')))),
+    );
+    const fixture = render();
+    const host = fixture.nativeElement as HTMLElement;
+    const box = host.querySelector<HTMLElement>('li [role="checkbox"]')!;
+
+    box.click();
+    fixture.detectChanges();
+    expect(box.getAttribute('aria-checked')).toBe('true');
+
+    await new Promise((resolve) => setTimeout(resolve, 1));
+    fixture.detectChanges();
+
+    expect(toastError).toHaveBeenCalled();
+    expect(box.getAttribute('aria-checked')).toBe('false');
+    expect(titles(fixture)).toContain('전기요금 납부');
   });
 
   it('고른 정렬 기준을 aria-pressed 로 알린다', () => {

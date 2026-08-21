@@ -4,6 +4,7 @@ import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TASK_STORE, type Task, type TaskDraft, type TaskStore } from '@/entities/task';
 import { TaskDetailPanel } from './task-detail-panel';
+import { toast } from '@/shared/ui/sonner';
 
 /*
  * 조건부 표시와 즉시 반영, 그리고 지우기의 확인 단계를 검증합니다. 대상이 없을 때의 분기,
@@ -15,6 +16,7 @@ import { TaskDetailPanel } from './task-detail-panel';
 describe('TaskDetailPanel', () => {
   let tasks: ReturnType<typeof signal<readonly Task[]>>;
   let update: ReturnType<typeof vi.fn>;
+  let toastError: ReturnType<typeof vi.spyOn>;
   let remove: ReturnType<typeof vi.fn>;
   let setMyDay: ReturnType<typeof vi.fn>;
 
@@ -32,6 +34,7 @@ describe('TaskDetailPanel', () => {
   beforeEach(() => {
     tasks = signal<readonly Task[]>([seed]);
     update = vi.fn(async () => {});
+    toastError = vi.spyOn(toast, 'error').mockImplementation(() => '' as never);
     remove = vi.fn(async () => {});
     setMyDay = vi.fn(async () => {});
 
@@ -183,6 +186,21 @@ describe('TaskDetailPanel', () => {
     fixture.detectChanges();
 
     expect(update).not.toHaveBeenCalled();
+    expect(query<HTMLInputElement>(fixture, '#task-title').value).toBe('장 보기');
+  });
+
+  it('TK-003 S10: 실패하면 이전 값이 남는다', async () => {
+    update.mockRejectedValueOnce(new Error('저장소 없음'));
+    const fixture = render('seed-1');
+
+    const title = query<HTMLInputElement>(fixture, '#task-title');
+    type(title, '장 보기와 은행');
+    title.dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve));
+    fixture.detectChanges();
+
+    expect(toastError).toHaveBeenCalled();
     expect(query<HTMLInputElement>(fixture, '#task-title').value).toBe('장 보기');
   });
 

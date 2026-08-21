@@ -43,7 +43,12 @@
       저장 버튼이 없습니다. 고친 값은 입력란을 벗어날 때 반영되며, 이 form 은 제출이 아니라
       필드 배선을 위해 남아 있습니다. 기본 제출이 일어나면 화면이 통째로 다시 뜨므로 막습니다.
     -->
-    <form novalidate [formRoot]="editForm" (submit)="$event.preventDefault()" class="flex flex-col gap-5">
+    <form
+      novalidate
+      [formRoot]="editForm"
+      (submit)="$event.preventDefault()"
+      class="flex flex-col gap-5"
+    >
       <!--
         필드 래퍼가 레이블 연결과 오류 표시 자리를 제공합니다. 날것의 div 로 조립하면
         그 배선을 매번 직접 해야 합니다. 12-forms.md 7.1절.
