@@ -1,15 +1,21 @@
 export {
+  filterByView,
   formatDueDate,
   fromDateKey,
   isAddableTitle,
   isCompleted,
+  isInMyDay,
   isOverdue,
   sortActive,
   sortCompleted,
   splitByCompletion,
   type Task,
   type TaskSort,
+  TASK_VIEWS,
+  taskViewLabel,
+  type TaskView,
   toDateKey,
   toTaskSort,
+  toTaskView,
 } from './model/task';
-export { TASK_STORE, type TaskDraft, type TaskStore } from './api/task-store';
+export { TASK_STORE, type TaskDraft, type TaskSeed, type TaskStore } from './api/task-store';

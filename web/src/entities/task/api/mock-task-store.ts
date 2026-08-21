@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import type { Task } from '../model/task';
-import type { TaskDraft, TaskStore } from './task-store';
+import { toDateKey } from '../model/task';
+import type { TaskDraft, TaskSeed, TaskStore } from './task-store';
 
 /**
  * 프로토타입 구간의 구현입니다. 서버가 없는 동안 이 클래스가 원본을 소유합니다.
@@ -18,17 +19,32 @@ export class MockTaskStore implements TaskStore {
 
   readonly tasks = this.state.asReadonly();
 
-  async add(title: string): Promise<void> {
-    const now = new Date().toISOString();
+  async add(title: string, seed: TaskSeed = {}): Promise<void> {
+    const now = new Date();
     const task: Task = {
       id: crypto.randomUUID(),
       title: title.trim(),
-      createdAt: now,
+      createdAt: now.toISOString(),
       completedAt: null,
       note: '',
-      dueDate: null,
+      dueDate: seed.dueDate ?? null,
+      important: seed.important ?? false,
+      myDayOn: seed.inMyDay ? toDateKey(now) : null,
     };
     this.state.update((tasks) => [...tasks, task]);
+  }
+
+  async setImportant(id: string, important: boolean): Promise<void> {
+    this.state.update((tasks) =>
+      tasks.map((task) => (task.id === id ? { ...task, important } : task)),
+    );
+  }
+
+  async setMyDay(id: string, inMyDay: boolean): Promise<void> {
+    const today = inMyDay ? toDateKey(new Date()) : null;
+    this.state.update((tasks) =>
+      tasks.map((task) => (task.id === id ? { ...task, myDayOn: today } : task)),
+    );
   }
 
   async update(id: string, patch: TaskDraft): Promise<void> {
@@ -43,13 +59,6 @@ export class MockTaskStore implements TaskStore {
 
   async remove(id: string): Promise<void> {
     this.state.update((tasks) => tasks.filter((task) => task.id !== id));
-  }
-
-  async restore(task: Task): Promise<void> {
-    // 같은 식별자가 이미 있으면 더하지 않습니다. 되돌리기를 두 번 누르면 항목이 겹칩니다.
-    this.state.update((tasks) =>
-      tasks.some((existing) => existing.id === task.id) ? tasks : [...tasks, task],
-    );
   }
 
   async setCompleted(id: string, completed: boolean): Promise<void> {
@@ -72,6 +81,8 @@ const SEED: readonly Task[] = [
     completedAt: null,
     note: '',
     dueDate: null,
+    important: false,
+    myDayOn: null,
   },
   {
     id: 'seed-2',
@@ -80,6 +91,8 @@ const SEED: readonly Task[] = [
     completedAt: null,
     note: '',
     dueDate: '2026-08-25',
+    important: true,
+    myDayOn: null,
   },
   {
     id: 'seed-3',
@@ -88,6 +101,8 @@ const SEED: readonly Task[] = [
     completedAt: '2026-08-17T08:10:00.000Z',
     note: '앞바퀴만 확인했다. 뒷바퀴는 다음에.',
     dueDate: null,
+    important: false,
+    myDayOn: null,
   },
   {
     id: 'seed-4',
@@ -96,5 +111,7 @@ const SEED: readonly Task[] = [
     completedAt: null,
     note: '',
     dueDate: '2026-08-14',
+    important: false,
+    myDayOn: null,
   },
 ];

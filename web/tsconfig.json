@@ -19,7 +19,8 @@
       "@/shared/ui/select": ["./src/shared/ui/select/src/index.ts"],
       "@/shared/ui/popover": ["./src/shared/ui/popover/src/index.ts"],
       "@/shared/ui/input-group": ["./src/shared/ui/input-group/src/index.ts"],
-      "@/shared/ui/sonner": ["./src/shared/ui/sonner/src/index.ts"]
+      "@/shared/ui/sonner": ["./src/shared/ui/sonner/src/index.ts"],
+      "@/shared/ui/alert-dialog": ["./src/shared/ui/alert-dialog/src/index.ts"]
     },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,

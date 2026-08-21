@@ -28,6 +28,18 @@ export type Task = {
    * 필요 없습니다. ISO 8601 의 날짜 부분이 그 성질을 갖습니다.
    */
   readonly dueDate: string | null;
+
+  /** 지금 신경 써야 하는 항목이라는 표시입니다. TK-003 A4. */
+  readonly important: boolean;
+
+  /**
+   * 내 하루에 담은 날짜입니다. `YYYY-MM-DD` 이며 담지 않은 것이 기본 상태입니다.
+   *
+   * 담김을 boolean 이 아니라 날짜로 두는 이유는 담긴 것이 매일 비워져야 하기 때문입니다.
+   * 날짜를 들고 있으면 오늘과 비교하는 것만으로 비워지므로, 자정에 값을 지우러 다니는
+   * 장치를 따로 두지 않아도 됩니다. 하루의 경계 판정은 TK-002 의 미결 항목입니다.
+   */
+  readonly myDayOn: string | null;
 };
 
 export function isCompleted(task: Task): boolean {
@@ -102,6 +114,71 @@ export function sortActive(tasks: readonly Task[], by: TaskSort): readonly Task[
  */
 export function sortCompleted(tasks: readonly Task[]): readonly Task[] {
   return [...tasks].sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
+}
+
+/**
+ * 같은 할일을 목적에 따라 다르게 묶어 보는 자리입니다. TK-002 A1–A4.
+ *
+ * 한 항목이 여러 관점에 동시에 나타납니다. 관점은 항목을 소유하지 않고 고르기만 합니다.
+ */
+export type TaskView = 'all' | 'my-day' | 'important' | 'planned';
+
+/**
+ * 화면에 나열할 관점입니다. 순서가 곧 사이드바의 순서입니다.
+ *
+ * 이 목록이 엔티티에 있는 이유는 읽는 쪽이 둘이기 때문입니다. 셸의 네비게이션과 목록
+ * 화면의 제목이 같은 이름을 써야 하며, 둘이 함께 참조할 수 있는 아래 계층이 여기입니다.
+ * 아이콘은 표현이므로 셸이 갖습니다. 02-package-structure.md 5절.
+ */
+export const TASK_VIEWS: readonly { readonly value: TaskView; readonly label: string }[] = [
+  { value: 'my-day', label: '내 하루' },
+  { value: 'important', label: '중요' },
+  { value: 'planned', label: '계획된 일정' },
+  { value: 'all', label: '작업' },
+];
+
+/** 관점의 이름입니다. 화면 제목과 네비게이션이 같은 값을 씁니다. */
+export function taskViewLabel(view: TaskView): string {
+  return TASK_VIEWS.find((candidate) => candidate.value === view)?.label ?? '작업';
+}
+
+/**
+ * 주소에서 온 값을 관점으로 좁힙니다.
+ *
+ * 알 수 없는 값은 전체로 되돌립니다. 사용자가 주소를 직접 고쳤을 때 화면이 비는 대신
+ * 전체 목록이 뜨는 편이 낫습니다. 정렬 기준과 같은 처리입니다.
+ */
+export function toTaskView(raw: string | undefined | null): TaskView {
+  return raw === 'my-day' || raw === 'important' || raw === 'planned' ? raw : 'all';
+}
+
+/** 오늘 담긴 것인지 봅니다. 어제 담은 것은 오늘의 내 하루가 아닙니다. */
+export function isInMyDay(task: Task, today: string): boolean {
+  return task.myDayOn === today;
+}
+
+/**
+ * 관점이 고르는 항목만 남깁니다. 완료 여부로 가르는 것은 이 다음 단계입니다.
+ *
+ * 계획된 일정만 완료하지 않은 것으로 한정합니다. 마감일은 아직 해내지 않은 것을 언제까지
+ * 해야 하는가의 값이라 해낸 뒤에는 판단 대상이 아닙니다. 나머지 셋에서 완료 항목이
+ * 어떻게 보이는지는 TK-002 의 미결 항목입니다.
+ */
+export function filterByView(
+  tasks: readonly Task[],
+  view: TaskView,
+  today: string,
+): readonly Task[] {
+  switch (view) {
+    case 'my-day':
+      return tasks.filter((task) => isInMyDay(task, today));
+    case 'important':
+      return tasks.filter((task) => task.important);
+    case 'planned':
+      return tasks.filter((task) => task.dueDate !== null && !isCompleted(task));
+    case 'all':
+      return tasks;
+  }
 }
 
 /** 제목만 있으면 추가할 수 있습니다. 공백만 입력한 것은 제목이 아닙니다. */

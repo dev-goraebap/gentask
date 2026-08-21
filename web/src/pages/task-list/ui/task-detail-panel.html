@@ -2,7 +2,7 @@
   자리와 폭은 셸의 aside 슬롯이 정합니다. 이 컴포넌트는 내용만 갖습니다.
   화면이 자기 레이아웃을 정하는 것을 06-layout.md 9절이 금지합니다.
 -->
-<section>
+<section class="flex min-h-0 flex-1 flex-col">
   @if (task(); as current) {
     <div class="mb-4 flex items-center justify-between gap-2">
       <h2 class="text-sm font-medium">할 일 편집</h2>
@@ -18,22 +18,61 @@
       </button>
     </div>
 
-    <!-- novalidate 가 없으면 브라우저 기본 검증이 제출을 가로챕니다. 12-forms.md 1절. -->
-    <form novalidate [formRoot]="editForm" (submit)="save($event)" class="flex flex-col gap-5">
+    <!--
+      내 하루에 담고 뺍니다. 담긴 것은 매일 비워지며 빼도 원래 목록에는 그대로 남습니다.
+      담았다는 사실과 할일 자체의 존재는 다른 것입니다. TK-003 A5.
+
+      켜짐을 aria-pressed 가 전달하고 문구도 함께 바뀝니다. 색만으로 알리면 색각 이상과
+      흑백 출력에서 전달되지 않습니다. 13-accessibility.md 4절.
+    -->
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="sm"
+      class="mb-4 w-full justify-start gap-2"
+      [class.text-warning]="inMyDay()"
+      [attr.aria-pressed]="inMyDay()"
+      (click)="toggleMyDay()"
+    >
+      <app-icon name="lucideSun" />
+      {{ inMyDay() ? '내 하루에서 빼기' : '내 하루에 추가' }}
+    </button>
+
+    <!--
+      저장 버튼이 없습니다. 고친 값은 입력란을 벗어날 때 반영되며, 이 form 은 제출이 아니라
+      필드 배선을 위해 남아 있습니다. 기본 제출이 일어나면 화면이 통째로 다시 뜨므로 막습니다.
+    -->
+    <form novalidate [formRoot]="editForm" (submit)="$event.preventDefault()" class="flex flex-col gap-5">
       <!--
         필드 래퍼가 레이블 연결과 오류 표시 자리를 제공합니다. 날것의 div 로 조립하면
         그 배선을 매번 직접 해야 합니다. 12-forms.md 7.1절.
       -->
       <div hlmField>
         <label hlmFieldLabel for="task-title">제목</label>
-        <input hlmInput id="task-title" [formField]="editForm.title" autocomplete="off" />
-        @for (error of editForm.title().errors(); track error.kind) {
-          <!--
-            forceShow 를 넘기는 이유는 이 컴포넌트가 부모 필드의 NgControl 로 표시 조건을
-            판정하는데 Signal Forms 에는 그것이 없어 조건이 서지 않기 때문입니다.
-            표시 여부는 화면이 정하고 접근성 배선만 빌려 씁니다. 12-forms.md 7.1절.
-          -->
-          <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
+        <!--
+          엔터는 제출이 아니라 반영입니다. 기본 동작을 막지 않으면 입력란이 하나뿐인 폼이
+          암묵적으로 제출되어 화면이 다시 뜹니다.
+        -->
+        <input
+          hlmInput
+          id="task-title"
+          [formField]="editForm.title"
+          autocomplete="off"
+          enterkeyhint="done"
+          (blur)="commit()"
+          (keydown)="commitOnEnter($event)"
+        />
+        <!-- 벗어난 뒤에 표시합니다. 12-forms.md 5절. -->
+        @if (editForm.title().touched()) {
+          @for (error of editForm.title().errors(); track error.kind) {
+            <!--
+              forceShow 를 넘기는 이유는 이 컴포넌트가 부모 필드의 NgControl 로 표시 조건을
+              판정하는데 Signal Forms 에는 그것이 없어 조건이 서지 않기 때문입니다.
+              표시 여부는 화면이 정하고 접근성 배선만 빌려 씁니다. 12-forms.md 7.1절.
+            -->
+            <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
+          }
         }
       </div>
 
@@ -69,14 +108,47 @@
           rows="5"
           [formField]="editForm.note"
           placeholder="맥락이나 준비물을 적어 두세요"
+          (blur)="commit()"
         ></textarea>
       </div>
-
-      <div class="flex items-center gap-2">
-        <button hlmBtn type="submit">저장</button>
-        <button hlmBtn type="button" variant="ghost" (click)="close()">취소</button>
-      </div>
     </form>
+
+    <!--
+      지우기는 이 자리에만 둡니다. 목록 행에 상시 노출하면 파괴적 조작의 기회가 줄 수만큼
+      늘어납니다. 되돌리기 안내가 없으므로 확인 대화가 유일한 안전장치입니다.
+
+      대화의 호스트가 트리거 버튼을 감싸므로 폭 0 인 요소가 줄에 끼지 않습니다.
+      06-layout.md 9절.
+    -->
+    <div class="border-border mt-auto flex items-center justify-end border-t pt-4">
+      <hlm-alert-dialog>
+        <button
+          hlmBtn
+          hlmAlertDialogTrigger
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          class="text-foreground-secondary hover:text-warning"
+          aria-label="할 일 지우기"
+        >
+          <app-icon name="lucideTrash2" />
+        </button>
+
+        <hlm-alert-dialog-content *hlmAlertDialogPortal>
+          <hlm-alert-dialog-header>
+            <!-- 항목 이름을 제목 줄에 두어 무엇을 지우는지 확인 없이 지나칠 수 없게 합니다. -->
+            <h3 hlmAlertDialogTitle>&lsquo;{{ current.title }}&rsquo; 지우기</h3>
+            <p hlmAlertDialogDescription>지운 뒤에는 되돌릴 수 없습니다.</p>
+          </hlm-alert-dialog-header>
+
+          <hlm-alert-dialog-footer>
+            <button hlmAlertDialogCancel>취소</button>
+            <!-- 파괴적 액션이므로 색과 문구를 함께 씁니다. 13-accessibility.md 4절. -->
+            <button hlmAlertDialogAction variant="destructive" (click)="remove()">지우기</button>
+          </hlm-alert-dialog-footer>
+        </hlm-alert-dialog-content>
+      </hlm-alert-dialog>
+    </div>
   } @else {
     <p class="text-foreground-secondary py-8 text-center text-sm">
       찾을 수 없는 할 일입니다.

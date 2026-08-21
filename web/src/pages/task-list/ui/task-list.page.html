@@ -2,32 +2,8 @@
   읽기 폭을 좁게 잡습니다. 한 줄이 길면 체크박스와 제목 사이 시선 이동이 커집니다.
   색·간격·곡률은 전부 토큰을 경유합니다. 임의값 기재는 04-design-system.md 3.3절이 금지합니다.
 -->
-<section class="mx-auto w-full max-w-[40rem] px-4 py-8 md:py-12">
-  <h1 class="text-2xl font-semibold tracking-tight">할일</h1>
-
-  <!-- novalidate 가 없으면 브라우저 기본 검증이 제출을 가로채 핸들러가 실행되지 않습니다. 12-forms.md 1절. -->
-  <form novalidate [formRoot]="addForm" (submit)="add($event)" class="mt-6 flex items-start gap-2">
-    <!--
-      필드 래퍼가 레이블 연결과 오류 표시 자리를 제공합니다. 날것의 div 로 조립하면
-      그 배선을 매번 직접 해야 합니다. 12-forms.md 7.1절.
-    -->
-    <div hlmField class="flex-1">
-      <!-- placeholder 는 이름이 아닙니다. 레이블을 두고 화면에서만 감춥니다. 13-accessibility.md 3절. -->
-      <label hlmFieldLabel for="new-task-title" class="sr-only">할 일</label>
-      <input
-        hlmInput
-        id="new-task-title"
-        [formField]="addForm.title"
-        placeholder="할 일을 적어 두세요"
-        autocomplete="off"
-      />
-      @for (error of addForm.title().errors(); track error.kind) {
-        <!-- forceShow 를 넘기는 사유는 12-forms.md 7.1절에 있습니다. -->
-        <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
-      }
-    </div>
-    <button hlmBtn type="submit">추가</button>
-  </form>
+<section class="mx-auto flex w-full max-w-[40rem] flex-1 flex-col px-4 pt-8 md:pt-12">
+  <h1 class="text-2xl font-semibold tracking-tight">{{ title() }}</h1>
 
   <!-- 목록 갱신을 시각 외의 방법으로도 알립니다. 13-accessibility.md 7절. -->
   <p class="sr-only" aria-live="polite">남은 할 일 {{ groups().active.length }}개</p>
@@ -67,7 +43,7 @@
           -->
           <a
             [id]="'task-' + task.id"
-            [routerLink]="routes.taskList()"
+            [routerLink]="routes.taskList(view())"
             [queryParams]="panel.open(task.id)"
             queryParamsHandling="merge"
             class="block text-sm underline-offset-4 hover:underline"
@@ -92,24 +68,28 @@
           }
         </div>
         <!--
-          지우기는 파괴적 액션이라 완료 체크와 붙여 두지 않습니다. 07-adaptive-ui.md 7절.
-          호버로만 드러내지 않는 것도 같은 절이 정합니다. 터치에는 호버가 없습니다.
+          중요 표시입니다. 켜짐을 aria-pressed 가 전달하며 색과 채움만으로 알리지 않습니다.
+          13-accessibility.md 4절. 이름에 항목 제목을 넣는 이유는 같은 모양의 버튼이 줄마다
+          있어 이름이 같으면 어느 줄의 것인지 구별되지 않기 때문입니다.
         -->
         <button
           hlmBtn
           type="button"
           variant="ghost"
           size="icon-sm"
-          class="text-foreground-secondary hover:text-warning shrink-0"
-          [attr.aria-label]="task.title + ' 지우기'"
-          (click)="remove(task)"
+          class="shrink-0"
+          [class.text-warning]="task.important"
+          [class.text-foreground-secondary]="!task.important"
+          [attr.aria-pressed]="task.important"
+          [attr.aria-label]="task.title + ' 중요 표시'"
+          (click)="setImportant(task, !task.important)"
         >
-          <app-icon name="lucideTrash2" />
+          <app-icon name="lucideStar" />
         </button>
       </li>
     } @empty {
       <li class="text-foreground-secondary py-8 text-center text-sm">
-        적어 둔 할 일이 없습니다. 위에 입력해 하나 만들어 보세요.
+        {{ emptyMessage() }}
       </li>
     }
   </ul>
@@ -146,44 +126,65 @@
               />
               <a
                 [id]="'done-' + task.id"
-                [routerLink]="routes.taskList()"
+                [routerLink]="routes.taskList(view())"
                 [queryParams]="panel.open(task.id)"
                 queryParamsHandling="merge"
                 class="text-foreground-secondary flex-1 text-sm line-through underline-offset-4 hover:underline"
               >
                 {{ task.title }}
               </a>
-              <!--
-          지우기는 파괴적 액션이라 완료 체크와 붙여 두지 않습니다. 07-adaptive-ui.md 7절.
-          호버로만 드러내지 않는 것도 같은 절이 정합니다. 터치에는 호버가 없습니다.
-        -->
-              <button
-                hlmBtn
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                class="text-foreground-secondary hover:text-warning shrink-0"
-                [attr.aria-label]="task.title + ' 지우기'"
-                (click)="remove(task)"
-              >
-                <app-icon name="lucideTrash2" />
-              </button>
             </li>
           }
         </ul>
       }
     </div>
   }
-
   <!--
-    토스트를 이 화면이 소유합니다. 셸에 두면 초기 번들에 들어가 예산을 넘겼습니다.
-    실측은 셸 배치 521.51kB, 이 화면 배치 473.84kB 이며 경고선은 500kB 입니다.
-    18-performance.md 3절.
+    적는 자리를 목록 아래에 두고 화면 바닥에 붙입니다. 목록이 길어져도 적는 자리를
+    찾아 올라가지 않아도 되며, 방금 적은 것이 손 가까이에서 목록에 붙습니다.
 
-    위치를 폭으로 가르지 않습니다. 하단 고정은 되돌리기 안내의 관례이고, 좁은 화면에서는
-    sonner 가 스스로 전체 폭으로 눕습니다. 분기를 없앨 수 있으면 없앱니다. 07-adaptive-ui.md 5.1절.
+    겹치지 않고 흐름 안에서 붙습니다. `sticky` 는 자기 자리를 그대로 차지하므로 목록의
+    마지막 줄이 막대 밑으로 들어가지 않습니다. 본문에 아래 여백을 따로 두거나 막대 높이를
+    토큰으로 노출할 일도 없습니다. 06-layout.md 3.2절.
+
+    등록 버튼을 두지 않고 엔터로 추가합니다. 연달아 적는 동안 손이 입력란과 버튼을
+    왕복하게 되기 때문입니다.
+
+    제출은 쓰지 않습니다. 입력란이 하나뿐인 폼은 엔터로 암묵 제출되는데, 그 경로에
+    기대면 나중에 입력란이 하나 더 붙는 순간 조용히 동작이 바뀝니다. 엔터를 직접 받고
+    기본 동작을 막아 경로를 하나로 둡니다.
+
+    검증 표시를 두지 않습니다. 비어 있는 것은 사용자가 잘못한 상태가 아니라 아직 적지
+    않은 상태입니다. 이 자리는 화면이 서 있는 동안 대부분 비어 있으므로, 비었다고 붉은
+    테두리와 사유를 내면 평상시의 모습이 오류가 됩니다. 빈 채로 엔터를 누르면 아무 일도
+    일어나지 않는 것으로 충분합니다.
+
+    novalidate 가 없으면 브라우저 기본 검증이 제출을 가로챕니다. 12-forms.md 1절.
   -->
-  <hlm-toaster position="bottom-right" [duration]="8000" />
+  <form
+    novalidate
+    [formRoot]="addForm"
+    (submit)="$event.preventDefault()"
+    class="border-border bg-background sticky bottom-0 mt-auto border-t pt-4 pb-[calc(--spacing(6)+env(safe-area-inset-bottom))]"
+  >
+    <!--
+      필드 래퍼가 레이블 연결과 오류 표시 자리를 제공합니다. 날것의 div 로 조립하면
+      그 배선을 매번 직접 해야 합니다. 12-forms.md 7.1절.
+    -->
+    <div hlmField>
+      <!-- placeholder 는 이름이 아닙니다. 레이블을 두고 화면에서만 감춥니다. 13-accessibility.md 3절. -->
+      <label hlmFieldLabel for="new-task-title" class="sr-only">할 일</label>
+      <input
+        hlmInput
+        id="new-task-title"
+        [formField]="addForm.title"
+        placeholder="할 일을 적어 두세요"
+        autocomplete="off"
+        enterkeyhint="done"
+        (keydown)="addOnEnter($event)"
+      />
+    </div>
+  </form>
 </section>
 
 <!--

@@ -28,12 +28,20 @@ export const routes: Routes = [
         path: 'tasks',
         providers: [...provideTask()],
         children: [
+          /*
+           * 관점을 경로 파라미터로 둡니다. 네 관점이 같은 라우트를 공유하므로 관점을 바꿔도
+           * 라우터가 화면을 다시 만들지 않고, 열려 있던 상세 패널이 그대로 남습니다.
+           *
+           * 관점 없는 주소는 전체로 넘깁니다. 같은 화면을 가리키는 주소가 두 벌이 되면
+           * 공유된 링크가 갈립니다.
+           */
+          { path: '', pathMatch: 'full', redirectTo: 'all' },
           {
             /*
              * 상세는 별도 라우트가 아니라 이 화면이 여는 패널입니다. 경로가 바뀌면 라우터가
              * 목록을 언마운트해 곁에 둘 수 없습니다. 열린 항목은 쿼리 파라미터가 갖습니다.
              */
-            path: '',
+            path: ':view',
             loadComponent: () => import('@/pages/task-list').then((m) => m.TaskListPage),
           },
         ],

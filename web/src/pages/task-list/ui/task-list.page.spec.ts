@@ -7,16 +7,16 @@ import { AsideSlot } from '@/shared/lib';
 import { TaskListPage } from './task-list.page';
 
 /*
- * 요구사항 4 의 계약을 고정합니다. 지우면 목록에서 빠지고, 되돌리면 원래 자리로
- * 돌아옵니다. 17-testing.md 3.1절.
+ * 목록의 계약을 고정합니다. 정렬 순서와 aside 슬롯의 채움·거둠이 이 화면의 몫입니다.
+ * 17-testing.md 3.1절.
  *
- * 요소는 역할과 접근 가능한 이름으로 찾습니다. 지우기 버튼이 여러 줄에 같은 모양으로
- * 놓이므로 이름이 어느 항목의 것인지 구별하지 못하면 사용자도 구별하지 못합니다.
- * 17-testing.md 3.4절.
+ * 지우기는 이 화면의 계약이 아닙니다. 상세 패널이 확인 대화와 함께 소유하므로 여기서는
+ * 목록에 그 버튼이 없다는 것만 고정합니다.
  */
 describe('TaskListPage', () => {
   let tasks: ReturnType<typeof signal<readonly Task[]>>;
-  let remove: ReturnType<typeof vi.fn>;
+  let add: ReturnType<typeof vi.fn>;
+  let setImportant: ReturnType<typeof vi.fn>;
   let store: TaskStore;
 
   const 장보기: Task = {
@@ -26,6 +26,8 @@ describe('TaskListPage', () => {
     completedAt: null,
     note: '',
     dueDate: null,
+    important: false,
+    myDayOn: null,
   };
 
   const 전기요금: Task = {
@@ -35,6 +37,8 @@ describe('TaskListPage', () => {
     completedAt: null,
     note: '',
     dueDate: '2026-08-25',
+    important: false,
+    myDayOn: null,
   };
 
   const 건강검진: Task = {
@@ -44,23 +48,23 @@ describe('TaskListPage', () => {
     completedAt: null,
     note: '',
     dueDate: '2026-08-14',
+    important: false,
+    myDayOn: null,
   };
 
   beforeEach(() => {
     tasks = signal<readonly Task[]>([장보기, 전기요금, 건강검진]);
 
-    remove = vi.fn(async (id: string) => {
-      tasks.update((current) => current.filter((task) => task.id !== id));
-    });
+    add = vi.fn(async () => {});
+    setImportant = vi.fn(async () => {});
     store = {
       tasks,
-      add: async () => {},
+      add: add as unknown as (title: string) => Promise<void>,
       setCompleted: async () => {},
+      setImportant: setImportant as unknown as (id: string, important: boolean) => Promise<void>,
+      setMyDay: async () => {},
       update: async () => {},
-      remove: remove as unknown as (id: string) => Promise<void>,
-      restore: async (task: Task) => {
-        tasks.update((current) => [...current, task]);
-      },
+      remove: async () => {},
     };
 
     TestBed.resetTestingModule();
@@ -69,9 +73,10 @@ describe('TaskListPage', () => {
     });
   });
 
-  function render(sort?: 'created' | 'due'): ComponentFixture<TaskListPage> {
+  function render(sort?: 'created' | 'due', view?: string): ComponentFixture<TaskListPage> {
     const fixture = TestBed.createComponent(TaskListPage);
     if (sort) fixture.componentRef.setInput('sort', sort);
+    if (view) fixture.componentRef.setInput('view', view);
     fixture.detectChanges();
     return fixture;
   }
@@ -86,36 +91,150 @@ describe('TaskListPage', () => {
     return button;
   }
 
+  function newTaskInput(fixture: ComponentFixture<TaskListPage>): HTMLInputElement {
+    const found = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      '#new-task-title',
+    );
+    if (!found) throw new Error('입력란을 찾지 못했습니다');
+    return found;
+  }
+
+  function pressEnter(field: HTMLInputElement, isComposing = false): void {
+    field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', isComposing, bubbles: true }));
+  }
+
   function titles(fixture: ComponentFixture<TaskListPage>): string[] {
     const host = fixture.nativeElement as HTMLElement;
     return [...host.querySelectorAll('ul li a')].map((a) => a.textContent?.trim() ?? '');
   }
 
-  function deleteButton(fixture: ComponentFixture<TaskListPage>, title: string): HTMLButtonElement {
-    const host = fixture.nativeElement as HTMLElement;
-    const button = [...host.querySelectorAll('button')].find(
-      (candidate) => candidate.getAttribute('aria-label') === `${title} 지우기`,
-    );
-    if (!button) throw new Error(`${title} 의 지우기 버튼을 찾지 못했습니다`);
-    return button;
-  }
-
-  it('항목마다 그 항목을 가리키는 이름의 지우기 버튼을 둔다', () => {
+  it('1: 등록 버튼을 두지 않고 엔터로 추가한다', async () => {
     const fixture = render();
+    const input = newTaskInput(fixture);
 
-    expect(deleteButton(fixture, '장 보기')).toBeTruthy();
-    expect(deleteButton(fixture, '전기요금 납부')).toBeTruthy();
+    // 연달아 적는 동안 손이 입력란과 버튼을 왕복하지 않게 합니다.
+    expect((fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]')).toBeNull();
+
+    input.value = '우산 챙기기';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    pressEnter(input);
+    await fixture.whenStable();
+    TestBed.tick();
+
+    // 전체 관점에는 부여할 성질이 없으므로 씨앗이 비어 있습니다.
+    expect(add).toHaveBeenCalledWith('우산 챙기기', {});
+    // 추가에 성공하면 입력란을 비워 다음 항목을 이어 적을 수 있게 합니다.
+    expect(newTaskInput(fixture).value).toBe('');
   });
 
-  it('지우면 목록에서 빠진다', async () => {
+  it('1: 조합 중의 엔터는 추가하지 않는다', async () => {
     const fixture = render();
+    const input = newTaskInput(fixture);
 
-    deleteButton(fixture, '장 보기').click();
+    input.value = '우산';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    // 한글은 마지막 글자를 조합한 채 엔터로 확정합니다. 그것을 추가로 받으면 안 됩니다.
+    pressEnter(input, true);
+    await fixture.whenStable();
+
+    expect(add).not.toHaveBeenCalled();
+  });
+
+  it('1: 공백만 적으면 추가하지 않고 아무것도 알리지 않는다', async () => {
+    const fixture = render();
+    const input = newTaskInput(fixture);
+
+    input.value = '   ';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    pressEnter(input);
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(remove).toHaveBeenCalledWith('seed-1');
-    expect(titles(fixture)).toEqual(['전기요금 납부', '건강검진 예약']);
+    expect(add).not.toHaveBeenCalled();
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('입력해 주세요');
+  });
+
+  it('1: 적는 자리에는 검증 표시를 두지 않는다', () => {
+    const fixture = render();
+
+    /*
+     * 이 자리는 대부분 비어 있고, 비어 있는 것은 잘못이 아니라 아직 적지 않은 상태입니다.
+     * 붉은 테두리가 상시 걸리면 평상시의 모습이 오류가 됩니다.
+     */
+    expect(newTaskInput(fixture).getAttribute('data-matches-spartan-invalid')).not.toBe('true');
+    expect((fixture.nativeElement as HTMLElement).querySelector('hlm-field-error')).toBeNull();
+  });
+
+  it('목록 행에는 지우기 버튼을 두지 않는다', () => {
+    const fixture = render();
+    const host = fixture.nativeElement as HTMLElement;
+
+    // 파괴적 조작이 줄마다 상시 노출되면 오조작의 기회가 줄 수만큼 늘어납니다.
+    const labels = [...host.querySelectorAll('button')].map((button) =>
+      button.getAttribute('aria-label'),
+    );
+    expect(labels.some((label) => label?.includes('지우기'))).toBe(false);
+  });
+
+  it('관점: 중요는 표시를 켠 것만 보여 준다', () => {
+    tasks.set([{ ...장보기, important: true }, 전기요금, 건강검진]);
+
+    // 한 항목이 여러 관점에 동시에 나타납니다. 관점은 고르기만 하고 소유하지 않습니다.
+    expect(titles(render(undefined, 'important'))).toEqual(['장 보기']);
+  });
+
+  it('관점: 계획된 일정은 마감일이 있고 완료하지 않은 것만 보여 준다', () => {
+    tasks.set([장보기, 전기요금, { ...건강검진, completedAt: '2026-08-18T00:00:00.000Z' }]);
+
+    expect(titles(render(undefined, 'planned'))).toEqual(['전기요금 납부']);
+  });
+
+  it('관점: 알 수 없는 값은 전체로 되돌린다', () => {
+    // 주소를 직접 고쳤을 때 화면이 비는 대신 전체 목록이 뜨는 편이 낫습니다.
+    expect(titles(render(undefined, '없는-관점')).length).toBe(3);
+  });
+
+  it('관점: 제목이 관점의 이름을 따른다', () => {
+    const host = render(undefined, 'my-day').nativeElement as HTMLElement;
+
+    expect(host.querySelector('h1')?.textContent?.trim()).toBe('내 하루');
+  });
+
+  it('관점: 그 안에서 적으면 관점의 성질을 함께 받는다', async () => {
+    const fixture = render(undefined, 'important');
+    const input = newTaskInput(fixture);
+
+    input.value = '지금 급한 것';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    pressEnter(input);
+    await fixture.whenStable();
+
+    // 적은 항목이 그 관점에 나타나지 않으면 적은 사람은 사라진 것으로 봅니다.
+    expect(add).toHaveBeenCalledWith('지금 급한 것', { important: true });
+  });
+
+  it('1: 중요 표시를 켜고 끈다', async () => {
+    const fixture = render();
+    const host = fixture.nativeElement as HTMLElement;
+    const star = [...host.querySelectorAll('button')].find(
+      (button) => button.getAttribute('aria-label') === '장 보기 중요 표시',
+    );
+
+    // 켜짐을 색만으로 알리지 않습니다.
+    expect(star?.getAttribute('aria-pressed')).toBe('false');
+
+    star?.click();
+    await fixture.whenStable();
+
+    expect(setImportant).toHaveBeenCalledWith('seed-1', true);
   });
 
   it('고른 정렬 기준을 aria-pressed 로 알린다', () => {
@@ -139,8 +258,8 @@ describe('TaskListPage', () => {
     const host = fixture.nativeElement as HTMLElement;
     const link = host.querySelector<HTMLAnchorElement>('#task-seed-1');
 
-    // 경로가 바뀌면 라우터가 목록을 언마운트해 곁에 둘 수 없습니다. 부록 A.
-    expect(link?.getAttribute('href')).toBe('/tasks?task=seed-1');
+    // 경로가 바뀌면 라우터가 목록을 언마운트해 곁에 둘 수 없습니다. shared/config/routes.ts 의 TASK_PANEL 주석.
+    expect(link?.getAttribute('href')).toBe('/tasks/all?task=seed-1');
   });
 
   /*
@@ -171,20 +290,5 @@ describe('TaskListPage', () => {
     fixture.detectChanges();
 
     expect(TestBed.inject(AsideSlot).content()).toBeNull();
-  });
-
-  it('되돌리면 원래 자리로 돌아온다', async () => {
-    const fixture = render();
-    const before = titles(fixture);
-
-    deleteButton(fixture, '장 보기').click();
-    await fixture.whenStable();
-
-    // 화면이 안내에 실어 보내는 값입니다. 저장소가 아니라 화면이 들고 있습니다.
-    await store.restore(장보기);
-    fixture.detectChanges();
-
-    // 자리는 createdAt 이 정하므로 되살린 순서와 무관하게 원래 위치로 돌아옵니다.
-    expect(titles(fixture)).toEqual(before);
   });
 });

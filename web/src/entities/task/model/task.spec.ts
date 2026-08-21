@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  filterByView,
   formatDueDate,
   fromDateKey,
   isAddableTitle,
@@ -10,6 +11,7 @@ import {
   splitByCompletion,
   toDateKey,
   toTaskSort,
+  toTaskView,
   type Task,
 } from './task';
 
@@ -24,9 +26,52 @@ function task(partial: Partial<Task> & Pick<Task, 'id'>): Task {
     completedAt: null,
     note: '',
     dueDate: null,
+    important: false,
+    myDayOn: null,
     ...partial,
   };
 }
+
+describe('filterByView', () => {
+  const 오늘 = '2026-08-19';
+
+  const 항목 = [
+    task({ id: '표시' , important: true }),
+    task({ id: '오늘담김', myDayOn: 오늘 }),
+    task({ id: '어제담김', myDayOn: '2026-08-18' }),
+    task({ id: '마감있음', dueDate: '2026-08-25' }),
+    task({ id: '마감완료', dueDate: '2026-08-25', completedAt: '2026-08-19T00:00:00.000Z' }),
+  ];
+
+  const ids = (view: Parameters<typeof filterByView>[1]) =>
+    filterByView(항목, view, 오늘).map((task) => task.id);
+
+  it('전체는 가르지 않는다', () => {
+    expect(ids('all')).toEqual(['표시', '오늘담김', '어제담김', '마감있음', '마감완료']);
+  });
+
+  it('중요는 표시를 켠 것만 고른다', () => {
+    expect(ids('important')).toEqual(['표시']);
+  });
+
+  it('내 하루는 오늘 담은 것만 고른다', () => {
+    // 어제 담은 것은 오늘의 내 하루가 아닙니다. 담긴 것은 매일 비워집니다.
+    expect(ids('my-day')).toEqual(['오늘담김']);
+  });
+
+  it('계획된 일정은 마감일이 있고 완료하지 않은 것만 고른다', () => {
+    // 마감일은 아직 해내지 않은 것을 언제까지 해야 하는가의 값입니다.
+    expect(ids('planned')).toEqual(['마감있음']);
+  });
+});
+
+describe('toTaskView', () => {
+  it('알 수 없는 값은 전체로 되돌린다', () => {
+    expect(toTaskView('없는-값')).toBe('all');
+    expect(toTaskView(undefined)).toBe('all');
+    expect(toTaskView('my-day')).toBe('my-day');
+  });
+});
 
 describe('splitByCompletion', () => {
   it('완료 여부로 가른다', () => {
@@ -154,6 +199,8 @@ describe('3: 마감일', () => {
       completedAt,
       note: '',
       dueDate,
+      important: false,
+      myDayOn: null,
     });
 
     expect(isOverdue(task('2026-08-14'), '2026-08-18')).toBe(true);

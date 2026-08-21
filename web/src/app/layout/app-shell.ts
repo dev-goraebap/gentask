@@ -1,48 +1,92 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, viewChild } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
-import { AsideSlot } from '@/shared/lib';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { provideIcons } from '@ng-icons/core';
+import { lucideCalendarRange, lucideHouse, lucideStar, lucideSun } from '@ng-icons/lucide';
+import { TASK_VIEWS, type TaskView } from '@/entities/task';
 import { ROUTES } from '@/shared/config';
+import { AsideSlot } from '@/shared/lib';
+import { AppIcon } from '@/shared/ui/icon';
 import { NavigationVeil } from './navigation-veil';
 import { ThemeToggle } from './theme-toggle';
 
 /**
- * 모든 화면이 공유하는 셸입니다. 상단 바를 소유하고 본문 자리를 내어 줍니다.
+ * 모든 화면이 공유하는 셸입니다. 네비게이션을 소유하고 본문 자리를 내어 줍니다.
  *
- * 상단 바를 셸에 두면 라우트를 옮겨도 재생성되지 않아 전환 중에 깜빡이지 않습니다.
- * pages 슬라이스는 자신이 어느 레이아웃 안에 놓이는지 알지 못합니다. 06-layout.md 3.1절.
+ * 골격은 sidebar 입니다. 06-layout.md 2.1절 기준으로 실질적 차이는 스크롤 컨테이너의
+ * 위치이며, 문서 전체가 아니라 콘텐츠 박스가 스크롤됩니다. 그 대가로 라우터의 스크롤 위치
+ * 복원이 닿지 않으므로, 필요해지면 직접 구현해야 합니다. 같은 문서 4.3절.
  *
- * 골격은 topbar 이며 스크롤 컨테이너가 문서 전체입니다. 그래서 표면은 bordered 로 고정합니다.
- * 문서 전체가 스크롤되는 구조에서 inset 을 적용하면 콘텐츠 둘레의 배경이 스크롤과 함께
- * 움직여 표면 경계가 스크롤 영역과 어긋납니다. 06-layout.md 2.2절.
+ * 표면은 bordered 입니다. 선택은 sidebar 골격에서만 유효하지만 아직 전환 수단을 두지
+ * 않았고, 두려면 3.4절에 따라 선택값을 첫 페인트 전에 복원해야 합니다.
  *
- * 골격을 topbar 와 sidebar 로 쪼개지 않은 것은 아직 sidebar 를 쓰는 화면이 없기 때문입니다.
- * 라우트가 이 컴포넌트만 참조하므로 나중에 내부를 둘로 나눠도 호출부는 바뀌지 않습니다.
+ * 골격을 두 파일로 쪼개지 않았습니다. 3.1절의 분기는 골격이 둘일 때의 구조이며, topbar 를
+ * 쓰는 화면이 없는 동안 빈 분기를 먼저 만들 근거가 없습니다. 라우트가 이 컴포넌트만
+ * 참조하므로 나중에 내부를 둘로 나눠도 호출부는 바뀌지 않습니다.
+ *
+ * 네비게이션 항목은 셸이 압니다. 3절이 "분기하는 것은 골격이지 내용물이 아니다"라고
+ * 정하며 네비게이션 항목을 셸의 것으로 둡니다. 항목의 이름은 엔티티가 소유하고 셸은
+ * 아이콘과 자리만 정합니다.
  */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, ThemeToggle, NavigationVeil, NgTemplateOutlet],
+  imports: [
+    RouterOutlet, RouterLink, RouterLinkActive, NgTemplateOutlet,
+    AppIcon, ThemeToggle, NavigationVeil,
+  ],
+  providers: [provideIcons({ lucideCalendarRange, lucideHouse, lucideStar, lucideSun })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   /*
-   * 가로만 잘라 냅니다. aside 는 등장·퇴장 동안 음수 여백으로 화면 밖에 서는데, 여백은
-   * 차지하는 자리만 없앨 뿐 상자는 그대로 오른쪽으로 나가므로 그동안 가로 스크롤이
-   * 생깁니다. 가로 스크롤바가 서면 세로가 그만큼 부족해져 세로 스크롤까지 따라옵니다.
+   * 전고를 잡고 안쪽을 스크롤합니다. 문서는 스크롤되지 않으므로 가로로 나가는 것도
+   * 여기서 잘라 냅니다. aside 가 등장·퇴장 동안 화면 밖에 서기 때문입니다.
    *
-   * hidden 이 아니라 clip 을 쓰는 이유는 hidden 이 스크롤 컨테이너를 만들기 때문입니다.
-   * 그러면 헤더와 aside 안쪽의 sticky 가 뷰포트가 아니라 이 요소를 기준으로 삼아 고정이
-   * 풀립니다. clip 은 스크롤 컨테이너가 아니라 잘라 내기만 합니다. 06-layout.md 4.5절.
-   *
-   * 세로는 건드리지 않습니다. 문서 전체가 스크롤 컨테이너인 topbar 골격이라 세로까지
-   * 자르면 화면이 스크롤되지 않습니다. 06-layout.md 2.1절.
+   * 좁은 화면에서는 열이 아니라 행으로 쌓습니다. 사이드바가 아래로 내려가 탭 막대가 되며,
+   * DOM 과 항목이 같고 자리만 바뀌므로 07-adaptive-ui.md 1절 기준으로 반응형입니다.
    */
-  host: { class: 'flex min-h-dvh overflow-x-clip' },
+  host: { class: 'flex h-dvh overflow-hidden max-md:flex-col' },
   template: `
     <!--
-      헤더와 본문이 한 열에 있습니다. aside 가 차면 이 열 전체가 좁아지므로 헤더도 함께
-      밀립니다. 헤더를 aside 밖에 두면 상단 바만 전폭으로 남아 aside 가 화면의 일부만
-      가른 것처럼 보입니다.
+      네비게이션입니다. 넓은 화면에서는 왼쪽 열로 전고를 차지하고, 좁은 화면에서는 마지막
+      순서로 내려가 하단 탭이 됩니다. 항목이 넷이라 탭으로 눕혀도 이름이 살아 있습니다.
 
-      좁은 화면에서는 이 열을 통째로 감춥니다. 나란히 놓을 폭이 없어 aside 가 화면을
+      aside 가 화면을 덮는 동안에는 함께 감춥니다. 덮인 채로 탭만 남으면 가려진 쪽을
+      조작할 수 없는 상태에서 이동 수단만 떠 있게 됩니다. 06-layout.md 3.3절.
+    -->
+    <nav [class]="navClass()" aria-label="관점">
+      <a
+        [routerLink]="routes.home()"
+        class="mb-1 hidden px-2 py-1 text-base font-semibold tracking-tight md:block"
+      >
+        할일
+      </a>
+
+      <ul class="flex gap-1 max-md:justify-around md:flex-col">
+        @for (item of views; track item.value) {
+          <li class="max-md:flex-1">
+            <!--
+              현재 자리를 aria-current 로 알립니다. 색과 배경만으로 알리면 색각 이상과
+              흑백 출력에서 전달되지 않습니다. 13-accessibility.md 4절.
+            -->
+            <a
+              [routerLink]="routes.taskList(item.value)"
+              routerLinkActive="bg-muted text-foreground"
+              #active="routerLinkActive"
+              [attr.aria-current]="active.isActive ? 'page' : null"
+              class="text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2 text-sm max-md:min-h-11 max-md:flex-col max-md:justify-center max-md:gap-1 max-md:text-xs"
+            >
+              <app-icon [name]="icons[item.value]" />
+              {{ item.label }}
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <!--
+      콘텐츠 열입니다. min-w-0 이 없으면 긴 내용이 있는 화면에서 열이 밀려 나갑니다.
+      06-layout.md 4.2절.
+
+      좁은 화면에서 aside 가 차면 통째로 감춥니다. 나란히 놓을 폭이 없어 aside 가 화면을
       덮으며, 그 안의 닫기가 되돌아갈 길을 갖습니다. 06-layout.md 3.3절.
     -->
     <div [class]="columnClass()">
@@ -54,48 +98,49 @@ import { ThemeToggle } from './theme-toggle';
       </a>
 
       <!--
-        불투명도는 toolbar 토큰이 모드별로 정합니다. 여기에 /85 같은 알파 유틸리티를 붙이면
-        라이트와 다크에 같은 값이 걸려 다크에서 뒤 요소가 비쳐 보입니다. 04-design-system.md 3.3절.
+        헤더가 콘텐츠 열 안에 놓이는 것이 sidebar 골격입니다. 06-layout.md 2.1절.
+        불투명도는 toolbar 토큰이 모드별로 정합니다. 04-design-system.md 3.3절.
       -->
-      <header class="bg-toolbar border-border sticky top-0 z-40 border-b backdrop-blur-lg">
-        <nav class="mx-auto flex h-14 max-w-[66rem] items-center gap-4 px-4">
-          <a [routerLink]="routes.home()" class="text-base font-semibold tracking-tight">할일</a>
-          <span class="flex-1"></span>
-          <app-theme-toggle />
-        </nav>
+      <header class="bg-toolbar border-border flex h-14 shrink-0 items-center gap-4 border-b px-4">
+        <a [routerLink]="routes.home()" class="text-base font-semibold tracking-tight md:hidden">
+          할일
+        </a>
+        <span class="flex-1"></span>
+        <app-theme-toggle />
       </header>
 
       <!--
-        베일의 기준 상자입니다. 상단 바가 이 밖에 있으므로 전환 중에도 덮이지 않습니다.
-        여백을 여기 두지 않는 이유는 기준 상자가 눈에 보이는 콘텐츠 영역과 정확히 같아야
-        하기 때문입니다. 여백은 화면이 직접 갖습니다. 10-loading.md 7.1절.
+        스크롤 컨테이너입니다. 골격이 sidebar 라 문서가 아니라 이 박스가 스크롤되며,
+        화면 안의 sticky 는 이 상자를 기준으로 섭니다. 06-layout.md 4.5절.
+
+        스크롤바 자리를 늘 확보해 화면마다 콘텐츠 폭이 달라지지 않게 합니다. 4.1절.
+
+        베일의 기준 상자이기도 합니다. 여백을 여기 두지 않는 이유는 기준 상자가 눈에 보이는
+        콘텐츠 영역과 정확히 같아야 하기 때문입니다. 10-loading.md 7.1절.
       -->
-      <main id="main" class="relative flex-1" [attr.aria-busy]="veil().visible() || null">
+      <main
+        id="main"
+        class="relative flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-gutter:stable]"
+        [attr.aria-busy]="veil().visible() || null"
+      >
         <app-navigation-veil />
         <router-outlet />
       </main>
     </div>
 
     <!--
-      aside 슬롯입니다. 전고를 차지하며 왼쪽 열을 밀어냅니다. 콘텐츠 위에 겹치지 않는 것은
-      5.2절 배너와 같은 원리이며, 겹치면 가려진 쪽을 조작할 수 없습니다.
+      aside 슬롯입니다. 전고를 차지하며 콘텐츠 열을 밀어냅니다. 콘텐츠 위에 겹치지 않는
+      것은 5.2절 배너와 같은 원리이며, 겹치면 가려진 쪽을 조작할 수 없습니다.
 
-      셸은 슬롯이 찼는지만 알고 무엇이 들었는지는 모릅니다. 라우트를 보고 직접 그리면
-      특정 화면의 세부 구조를 알게 됩니다. 06-layout.md 3.1절과 3.3절.
+      셸은 슬롯이 찼는지만 알고 무엇이 들었는지는 모릅니다. 06-layout.md 3.1절과 3.3절.
     -->
     @if (aside.content(); as content) {
       <aside
-        class="border-border bg-background w-full shrink-0 [--aside-w:100%] md:w-[24rem] md:border-l md:[--aside-w:24rem]"
+        class="border-border bg-background flex w-full shrink-0 flex-col overflow-y-auto p-4 [--aside-w:100%] [scrollbar-gutter:stable] md:w-[24rem] md:border-l md:[--aside-w:24rem]"
         animate.enter="aside-enter"
         animate.leave="aside-leave"
       >
-        <!--
-          골격이 topbar 라 스크롤 컨테이너가 문서 전체이고 sticky 기준이 뷰포트입니다.
-          전고를 차지하므로 화면 꼭대기에 답니다. 06-layout.md 4.5절.
-        -->
-        <div class="sticky top-0 max-h-dvh overflow-y-auto overscroll-contain p-4">
-          <ng-container [ngTemplateOutlet]="content" />
-        </div>
+        <ng-container [ngTemplateOutlet]="content" />
       </aside>
     }
   `,
@@ -103,7 +148,29 @@ import { ThemeToggle } from './theme-toggle';
 export class AppShell {
   protected readonly routes = ROUTES;
 
+  protected readonly views = TASK_VIEWS;
+
+  /** 관점마다의 아이콘입니다. 이름은 엔티티가, 표현은 셸이 갖습니다. */
+  protected readonly icons: Record<TaskView, string> = {
+    'my-day': 'lucideSun',
+    important: 'lucideStar',
+    planned: 'lucideCalendarRange',
+    all: 'lucideHouse',
+  };
+
   protected readonly aside = inject(AsideSlot);
+
+  /**
+   * 네비게이션입니다. 넓은 화면에서는 왼쪽 열, 좁은 화면에서는 하단 탭입니다.
+   *
+   * 하단 탭에는 `env(safe-area-inset-bottom)` 을 더합니다. 더하지 않으면 홈 인디케이터가
+   * 있는 기기에서 마지막 줄이 그 아래로 들어갑니다. 06-layout.md 3.2절.
+   */
+  protected readonly navClass = computed(() => {
+    const base =
+      'border-border bg-toolbar shrink-0 md:w-56 md:overflow-y-auto md:border-r md:p-2 max-md:order-last max-md:border-t max-md:px-2 max-md:pt-1 max-md:pb-[calc(--spacing(1)+env(safe-area-inset-bottom))]';
+    return this.aside.content() ? `${base} max-md:hidden` : base;
+  });
 
   /**
    * 헤더와 본문을 담는 열입니다. 좁은 화면에서 aside 가 차면 통째로 감춥니다.
@@ -113,8 +180,8 @@ export class AppShell {
    */
   protected readonly columnClass = computed(() =>
     this.aside.content()
-      ? 'flex min-w-0 flex-1 flex-col max-md:hidden'
-      : 'flex min-w-0 flex-1 flex-col',
+      ? 'flex min-w-0 min-h-0 flex-1 flex-col max-md:hidden'
+      : 'flex min-w-0 min-h-0 flex-1 flex-col',
   );
 
   /** 대기 사실을 보조 기술에 알리기 위해 베일의 상태를 읽습니다. 13-accessibility.md 7절. */
