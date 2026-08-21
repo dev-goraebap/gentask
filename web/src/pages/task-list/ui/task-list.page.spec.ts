@@ -212,7 +212,7 @@ describe('TaskListPage', () => {
     expect(host.querySelector('h1')?.textContent?.trim()).toBe('내 하루');
   });
 
-  it('관점 안에서 적으면 관점의 성질을 함께 받는다', async () => {
+  it('TK-001 S8: 묶음을 보며 적으면 그 묶음의 성질이 붙은 채로 목록에 남는다', async () => {
     const fixture = render(undefined, 'important');
     const input = newTaskInput(fixture);
 
