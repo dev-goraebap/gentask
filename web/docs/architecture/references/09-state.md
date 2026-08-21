@@ -100,7 +100,7 @@ export class TaskListPage {
 | 한 화면의 진입 필수 데이터 (리졸버) | `pages/<화면>/api/`. 슬라이스 공개 API 로 내보냅니다 |
 | 한 화면에서만 쓰는 보조 조회 | `pages/<화면>/api/` |
 | 두 화면 이상에서 동일한 형태로 사용 | `entities/<도메인>/api/` |
-| 도메인 무관한 CRUD 헬퍼 | `shared/api/` |
+| 도메인 무관 CRUD 헬퍼 | `shared/api/` |
 
 리졸버는 `app/app.routes.ts` 가 임포트하므로 슬라이스 공개 API 에 포함됩니다. 다만 리졸버는 지연 로딩되지 않아 초기 번들에 들어가므로 **HTTP 호출만 담고 변환 로직을 넣지 않습니다.**
 
