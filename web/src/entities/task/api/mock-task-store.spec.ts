@@ -38,7 +38,7 @@ describe('MockTaskStore.setCompleted', () => {
     expect(s.tasks().find((t) => t.id === target.id)?.completedAt).toBe(first);
   });
 
-  it('TK-004 S4: 없는 할일은 마칠 수 없다', async () => {
+  it('TK-004 S2: 없는 할일은 마칠 수 없다', async () => {
     const s = store();
     const before = s.tasks();
 

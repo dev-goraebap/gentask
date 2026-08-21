@@ -108,7 +108,7 @@ describe('TaskDetailPanel', () => {
     fixture.detectChanges();
   }
 
-  it('TK-003 S9: 없는 할일은 손볼 수 없다', () => {
+  it('TK-003 S4: 없는 할일은 손볼 수 없다', () => {
     const fixture = render('없는-값');
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
@@ -132,7 +132,7 @@ describe('TaskDetailPanel', () => {
     ).toBeNull();
   });
 
-  it('TK-003 S3: 고친 메모가 그 할일에 보인다', async () => {
+  it('TK-003 S2: 고친 메모가 그 할일에 보인다', async () => {
     const fixture = render('seed-1');
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
@@ -174,7 +174,7 @@ describe('TaskDetailPanel', () => {
     expect(update).not.toHaveBeenCalled();
   });
 
-  it('TK-003 S8: 그만두면 고치던 제목은 반영되지 않는다', async () => {
+  it('TK-003 S1: 그만두면 고치던 제목은 반영되지 않는다', async () => {
     const fixture = render('seed-1');
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
@@ -189,7 +189,7 @@ describe('TaskDetailPanel', () => {
     expect(query<HTMLInputElement>(fixture, '#task-title').value).toBe('장 보기');
   });
 
-  it('TK-003 S10: 실패하면 이전 값이 남는다', async () => {
+  it('TK-003 S4: 실패하면 이전 값이 남는다', async () => {
     update.mockRejectedValueOnce(new Error('저장소 없음'));
     const fixture = render('seed-1');
 
@@ -204,7 +204,7 @@ describe('TaskDetailPanel', () => {
     expect(query<HTMLInputElement>(fixture, '#task-title').value).toBe('장 보기');
   });
 
-  it('TK-003 S2: 제목이 비면 값이 바뀌지 않는다', async () => {
+  it('TK-003 S1: 제목이 비면 값이 바뀌지 않는다', async () => {
     const fixture = render('seed-1');
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
@@ -217,7 +217,7 @@ describe('TaskDetailPanel', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('제목을 입력해 주세요');
   });
 
-  describe('TK-003 S7: 확인하면 그 할일이 목록에 없다', () => {
+  describe('TK-003 S3: 확인하면 그 할일이 목록에 없다', () => {
     it('지우기를 눌러도 확인 전에는 지우지 않는다', () => {
       const fixture = render('seed-1');
 
@@ -258,7 +258,7 @@ describe('TaskDetailPanel', () => {
     });
   });
 
-  describe('TK-003 S6: 오늘 담은 상태가 정한 대로 남는다', () => {
+  describe('TK-003 S2: 오늘 담은 상태가 정한 대로 남는다', () => {
     it('내 하루에 담는다', async () => {
       const fixture = render('seed-1');
       const button = myDayButton(fixture);
@@ -288,7 +288,7 @@ describe('TaskDetailPanel', () => {
     });
   });
 
-  describe('TK-003 S4: 마감일이 정한 대로 그 할일에 남는다', () => {
+  describe('TK-003 S2: 마감일이 정한 대로 그 할일에 남는다', () => {
     it('마감일이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
       tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
       const fixture = render('seed-1');

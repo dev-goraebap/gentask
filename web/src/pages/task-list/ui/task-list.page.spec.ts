@@ -153,7 +153,7 @@ describe('TaskListPage', () => {
     });
   });
 
-  describe('TK-001 S2: 제목이 비면 목록에 들어가지 않는다', () => {
+  describe('TK-001 S1: 제목이 비면 목록에 들어가지 않는다', () => {
     it('공백만 적으면 추가하지 않고 아무것도 알리지 않는다', async () => {
       const fixture = render();
       const input = newTaskInput(fixture);
@@ -193,20 +193,20 @@ describe('TaskListPage', () => {
     expect(labels.some((label) => label?.includes('지우기'))).toBe(false);
   });
 
-  it('TK-002 S5: 중요하다고 표시한 끝나지 않은 할일만 보인다', () => {
+  it('TK-002 S2: 중요하다고 표시한 끝나지 않은 할일만 보인다', () => {
     tasks.set([{ ...장보기, important: true }, 전기요금, 건강검진]);
 
     // 한 항목이 여러 관점에 동시에 나타납니다. 관점은 고르기만 하고 소유하지 않습니다.
     expect(titles(render(undefined, 'important'))).toEqual(['장 보기']);
   });
 
-  it('TK-002 S6: 마감일이 있는 끝나지 않은 할일만 보인다', () => {
+  it('TK-002 S2: 마감일이 있는 끝나지 않은 할일만 보인다', () => {
     tasks.set([장보기, 전기요금, { ...건강검진, completedAt: '2026-08-18T00:00:00.000Z' }]);
 
     expect(titles(render(undefined, 'planned'))).toEqual(['전기요금 납부']);
   });
 
-  it('TK-002 S8: 모르는 묶음을 요청하면 끝나지 않은 할일 목록이 보인다', () => {
+  it('TK-002 S1: 모르는 묶음을 요청하면 끝나지 않은 할일 목록이 보인다', () => {
     // 주소를 직접 고쳤을 때 화면이 비는 대신 전체 목록이 뜨는 편이 낫습니다.
     expect(titles(render(undefined, '없는-관점')).length).toBe(3);
   });
@@ -217,7 +217,7 @@ describe('TaskListPage', () => {
     expect(host.querySelector('h1')?.textContent?.trim()).toBe('내 하루');
   });
 
-  it('TK-001 S8: 묶음을 보며 적으면 그 묶음의 성질이 붙은 채로 목록에 남는다', async () => {
+  it('TK-001 S1: 묶음을 보며 적으면 그 묶음의 성질이 붙은 채로 목록에 남는다', async () => {
     const fixture = render(undefined, 'important');
     const input = newTaskInput(fixture);
 
@@ -232,7 +232,7 @@ describe('TaskListPage', () => {
     expect(add).toHaveBeenCalledWith('지금 급한 것', { important: true });
   });
 
-  it('TK-003 S5: 중요 표시가 정한 대로 남는다', async () => {
+  it('TK-003 S2: 중요 표시가 정한 대로 남는다', async () => {
     const fixture = render();
     const host = fixture.nativeElement as HTMLElement;
     const star = [...host.querySelectorAll('button')].find(
@@ -259,7 +259,7 @@ describe('TaskListPage', () => {
     expect(setCompleted).toHaveBeenCalledWith('seed-2', true);
   });
 
-  it('TK-004 S3: 되돌리면 아직 할 일로 다시 보인다', async () => {
+  it('TK-004 S1: 되돌리면 아직 할 일로 다시 보인다', async () => {
     tasks.set([{ ...장보기, completedAt: '2026-08-18T00:00:00.000Z' }, 전기요금, 건강검진]);
     const fixture = TestBed.createComponent(TaskListPage);
     fixture.componentRef.setInput('done', true);
@@ -277,7 +277,7 @@ describe('TaskListPage', () => {
     expect(setCompleted).toHaveBeenCalledWith('seed-1', false);
   });
 
-  it('TK-001 S7: 넣기에 실패하면 목록에 없고, 기존 할일은 남는다', async () => {
+  it('TK-001 S3: 넣기에 실패하면 목록에 없고, 기존 할일은 남는다', async () => {
     add.mockRejectedValueOnce(new Error('저장소 없음'));
     const fixture = render();
     const input = newTaskInput(fixture);
@@ -296,7 +296,7 @@ describe('TaskListPage', () => {
     expect(newTaskInput(fixture).value).toBe('우산 챙기기');
   });
 
-  it('TK-004 S5: 실패하면 마치기 전과 같다', async () => {
+  it('TK-004 S2: 실패하면 마치기 전과 같다', async () => {
     // 저장소는 응답까지 한 번은 그려질 시간이 있습니다. 같은 턴의 거부는 현실에 없습니다.
     setCompleted.mockImplementationOnce(
       () => new Promise((_, reject) => setTimeout(() => reject(new Error('저장소 없음')))),
@@ -329,7 +329,7 @@ describe('TaskListPage', () => {
     expect(titles(render())).toEqual(['전기요금 납부', '장 보기', '건강검진 예약']);
   });
 
-  it('TK-002 S7: 마감일이 가까운 것부터 보인다', () => {
+  it('TK-002 S3: 마감일이 가까운 것부터 보인다', () => {
     expect(titles(render('due'))).toEqual(['건강검진 예약', '전기요금 납부', '장 보기']);
   });
 
