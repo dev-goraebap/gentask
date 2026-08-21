@@ -105,7 +105,7 @@ describe('TaskDetailPanel', () => {
     fixture.detectChanges();
   }
 
-  it('없는 식별자에는 안내와 돌아갈 길을 보여 준다', () => {
+  it('TK-003 S9: 없는 할일은 손볼 수 없다', () => {
     const fixture = render('없는-값');
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
@@ -124,10 +124,12 @@ describe('TaskDetailPanel', () => {
     const fixture = render('seed-1');
 
     // 저장 시점이 있으면 저장하지 않은 변경이 생기고 이탈 확인이 따라옵니다. TK-003 의 각 속성은 고친 즉시 갱신됩니다.
-    expect((fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]')).toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]'),
+    ).toBeNull();
   });
 
-  it('입력란을 벗어나면 고친 값을 반영하고 패널은 열린 채로 둔다', async () => {
+  it('TK-003 S3: 고친 메모가 그 할일에 보인다', async () => {
     const fixture = render('seed-1');
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
@@ -144,7 +146,7 @@ describe('TaskDetailPanel', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('제목은 엔터로도 반영한다', async () => {
+  it('TK-003 S1: 고친 제목이 그 할일에 보인다', async () => {
     const fixture = render('seed-1');
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
@@ -169,7 +171,7 @@ describe('TaskDetailPanel', () => {
     expect(update).not.toHaveBeenCalled();
   });
 
-  it('제목을 비우면 반영하지 않고 사유를 보여 준다', async () => {
+  it('TK-003 S2: 제목이 비면 값이 바뀌지 않는다', async () => {
     const fixture = render('seed-1');
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
@@ -182,105 +184,111 @@ describe('TaskDetailPanel', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('제목을 입력해 주세요');
   });
 
-  it('4: 지우기를 눌러도 확인 전에는 지우지 않는다', () => {
-    const fixture = render('seed-1');
+  describe('TK-003 S7: 확인하면 그 할일이 목록에 없다', () => {
+    it('지우기를 눌러도 확인 전에는 지우지 않는다', () => {
+      const fixture = render('seed-1');
 
-    openConfirm(fixture);
+      openConfirm(fixture);
 
-    expect(remove).not.toHaveBeenCalled();
-    // 무엇을 지우는지와 되돌릴 수 없다는 사실을 함께 보여 줍니다.
-    const container = [...document.querySelectorAll('.cdk-overlay-container')].at(-1);
-    expect(container?.textContent).toContain('장 보기');
-    expect(container?.textContent).toContain('되돌릴 수 없습니다');
-  });
+      expect(remove).not.toHaveBeenCalled();
+      // 무엇을 지우는지와 되돌릴 수 없다는 사실을 함께 보여 줍니다.
+      const container = [...document.querySelectorAll('.cdk-overlay-container')].at(-1);
+      expect(container?.textContent).toContain('장 보기');
+      expect(container?.textContent).toContain('되돌릴 수 없습니다');
+    });
 
-  it('4: 취소하면 지우지 않는다', async () => {
-    const fixture = render('seed-1');
+    it('취소하면 지우지 않는다', async () => {
+      const fixture = render('seed-1');
 
-    openConfirm(fixture);
-    dialogButton('취소').click();
-    await fixture.whenStable();
+      openConfirm(fixture);
+      dialogButton('취소').click();
+      await fixture.whenStable();
 
-    expect(remove).not.toHaveBeenCalled();
-  });
+      expect(remove).not.toHaveBeenCalled();
+    });
 
-  it('4: 확인하면 지우고 패널을 닫는다', async () => {
-    const fixture = render('seed-1');
-    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    it('확인하면 지우고 패널을 닫는다', async () => {
+      const fixture = render('seed-1');
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
-    openConfirm(fixture);
-    dialogButton('지우기').click();
-    await fixture.whenStable();
+      openConfirm(fixture);
+      dialogButton('지우기').click();
+      await fixture.whenStable();
 
-    expect(remove).toHaveBeenCalledWith('seed-1');
-    // 지운 항목의 상세는 남을 이유가 없습니다. 경로는 그대로 두고 쿼리 파라미터만 지웁니다.
-    expect(navigate).toHaveBeenCalledWith([], {
-      queryParams: { task: null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
+      expect(remove).toHaveBeenCalledWith('seed-1');
+      // 지운 항목의 상세는 남을 이유가 없습니다. 경로는 그대로 두고 쿼리 파라미터만 지웁니다.
+      expect(navigate).toHaveBeenCalledWith([], {
+        queryParams: { task: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
     });
   });
 
-  it('관점 2: 내 하루에 담는다', async () => {
-    const fixture = render('seed-1');
-    const button = myDayButton(fixture);
+  describe('TK-003 S6: 오늘 담은 상태가 정한 대로 남는다', () => {
+    it('내 하루에 담는다', async () => {
+      const fixture = render('seed-1');
+      const button = myDayButton(fixture);
 
-    expect(button.getAttribute('aria-pressed')).toBe('false');
-    expect(button.textContent?.trim()).toBe('내 하루에 추가');
+      expect(button.getAttribute('aria-pressed')).toBe('false');
+      expect(button.textContent?.trim()).toBe('내 하루에 추가');
 
-    button.click();
-    await fixture.whenStable();
+      button.click();
+      await fixture.whenStable();
 
-    expect(setMyDay).toHaveBeenCalledWith('seed-1', true);
+      expect(setMyDay).toHaveBeenCalledWith('seed-1', true);
+    });
+
+    it('오늘 담긴 항목은 빼는 자리가 된다', () => {
+      tasks.set([{ ...seed, myDayOn: today() }]);
+      const fixture = render('seed-1');
+
+      expect(myDayButton(fixture).getAttribute('aria-pressed')).toBe('true');
+      expect(myDayButton(fixture).textContent?.trim()).toBe('내 하루에서 빼기');
+    });
+
+    it('어제 담긴 것은 오늘의 내 하루가 아니다', () => {
+      // 담긴 것은 매일 비워집니다. 날짜를 들고 있으면 비우러 다니는 장치가 필요 없습니다.
+      tasks.set([{ ...seed, myDayOn: '2020-01-01' }]);
+
+      expect(myDayButton(render('seed-1')).getAttribute('aria-pressed')).toBe('false');
+    });
   });
 
-  it('관점 2: 오늘 담긴 항목은 빼는 자리가 된다', () => {
-    tasks.set([{ ...seed, myDayOn: today() }]);
-    const fixture = render('seed-1');
+  describe('TK-003 S4: 마감일이 정한 대로 그 할일에 남는다', () => {
+    it('마감일이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
+      tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
+      const fixture = render('seed-1');
 
-    expect(myDayButton(fixture).getAttribute('aria-pressed')).toBe('true');
-    expect(myDayButton(fixture).textContent?.trim()).toBe('내 하루에서 빼기');
-  });
+      // 트리거 버튼이 고른 날짜를 표기합니다. 정하지 않았을 때의 문구와 갈립니다.
+      const trigger = query<HTMLButtonElement>(fixture, 'hlm-date-picker-trigger button');
+      expect(trigger.textContent?.trim()).toBe('8월 25일');
+    });
 
-  it('관점 2: 어제 담긴 것은 오늘의 내 하루가 아니다', () => {
-    // 담긴 것은 매일 비워집니다. 날짜를 들고 있으면 비우러 다니는 장치가 필요 없습니다.
-    tasks.set([{ ...seed, myDayOn: '2020-01-01' }]);
+    it('마감일을 정하지 않았으면 지우기를 내보내지 않는다', () => {
+      const fixture = render('seed-1');
 
-    expect(myDayButton(render('seed-1')).getAttribute('aria-pressed')).toBe('false');
-  });
+      // 지울 것이 없는 상태에서 지우기 버튼이 보이면 누를 수 있는 것이 무엇인지 모호해집니다.
+      const buttons = Array.from(fixture.nativeElement.querySelectorAll('button'));
+      expect(buttons.some((b) => (b as HTMLElement).textContent?.includes('지우기'))).toBe(false);
+    });
 
-  it('3: 마감일이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
-    tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
-    const fixture = render('seed-1');
+    it('마감일을 지우면 비운 값을 곧바로 반영한다', async () => {
+      tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
+      const fixture = render('seed-1');
 
-    // 트리거 버튼이 고른 날짜를 표기합니다. 정하지 않았을 때의 문구와 갈립니다.
-    const trigger = query<HTMLButtonElement>(fixture, 'hlm-date-picker-trigger button');
-    expect(trigger.textContent?.trim()).toBe('8월 25일');
-  });
+      const clear = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
+        (b as HTMLElement).textContent?.includes('지우기'),
+      ) as HTMLButtonElement;
+      clear.click();
+      await fixture.whenStable();
 
-  it('3: 마감일을 정하지 않았으면 지우기를 내보내지 않는다', () => {
-    const fixture = render('seed-1');
-
-    // 지울 것이 없는 상태에서 지우기 버튼이 보이면 누를 수 있는 것이 무엇인지 모호해집니다.
-    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button'));
-    expect(buttons.some((b) => (b as HTMLElement).textContent?.includes('지우기'))).toBe(false);
-  });
-
-  it('3: 마감일을 지우면 비운 값을 곧바로 반영한다', async () => {
-    tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
-    const fixture = render('seed-1');
-
-    const clear = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
-      (b as HTMLElement).textContent?.includes('지우기'),
-    ) as HTMLButtonElement;
-    clear.click();
-    await fixture.whenStable();
-
-    // 날짜는 고르는 즉시 반영합니다. 텍스트와 달리 벗어나는 조작이 따로 없습니다.
-    expect(update).toHaveBeenCalledWith('seed-1', {
-      title: '장 보기',
-      note: '우유와 빵',
-      dueDate: null,
+      // 날짜는 고르는 즉시 반영합니다. 텍스트와 달리 벗어나는 조작이 따로 없습니다.
+      expect(update).toHaveBeenCalledWith('seed-1', {
+        title: '장 보기',
+        note: '우유와 빵',
+        dueDate: null,
+      });
     });
   });
 });
