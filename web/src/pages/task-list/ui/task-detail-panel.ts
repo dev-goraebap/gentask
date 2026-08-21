@@ -200,6 +200,24 @@ export class TaskDetailPanel {
   }
 
   /**
+   * 고치던 것을 그만둡니다. 저장 버튼이 없는 대신 이것이 취소입니다.
+   *
+   * 입력란을 벗어나면 반영되므로, 그만두려면 벗어나기 전에 값을 되돌려야 합니다.
+   * Escape 가 그 자리이며 조합 중의 Escape 는 입력기가 받습니다.
+   */
+  protected cancelOnEscape(event: KeyboardEvent): void {
+    if (event.key !== 'Escape' || event.isComposing) return;
+
+    const current = this.task();
+    if (!current) return;
+
+    // 대화가 열려 있을 때의 Escape 는 대화의 몫입니다. 여기까지 오면 입력란의 것입니다.
+    event.preventDefault();
+    this.draft.set({ title: current.title, note: current.note, dueDate: current.dueDate });
+    this.editForm().reset();
+  }
+
+  /**
    * 고친 값을 저장소에 반영합니다. 저장 버튼이 없으므로 이 호출이 곧 저장입니다.
    *
    * 텍스트는 입력란을 벗어날 때 반영합니다. 글자마다 반영하면 백엔드가 붙는 시점에

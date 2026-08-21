@@ -61,7 +61,7 @@
           autocomplete="off"
           enterkeyhint="done"
           (blur)="commit()"
-          (keydown)="commitOnEnter($event)"
+          (keydown)="commitOnEnter($event); cancelOnEscape($event)"
         />
         <!-- 벗어난 뒤에 표시합니다. 12-forms.md 5절. -->
         @if (editForm.title().touched()) {
@@ -109,6 +109,7 @@
           [formField]="editForm.note"
           placeholder="맥락이나 준비물을 적어 두세요"
           (blur)="commit()"
+          (keydown)="cancelOnEscape($event)"
         ></textarea>
       </div>
     </form>

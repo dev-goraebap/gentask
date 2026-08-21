@@ -171,6 +171,21 @@ describe('TaskDetailPanel', () => {
     expect(update).not.toHaveBeenCalled();
   });
 
+  it('TK-003 S8: 그만두면 고치던 제목은 반영되지 않는다', async () => {
+    const fixture = render('seed-1');
+
+    const title = query<HTMLInputElement>(fixture, '#task-title');
+    type(title, '장 보기와 은행');
+    // 저장 버튼이 없으므로 Escape 가 그만두기입니다. 벗어나기 전에 값을 되돌립니다.
+    title.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    title.dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(update).not.toHaveBeenCalled();
+    expect(query<HTMLInputElement>(fixture, '#task-title').value).toBe('장 보기');
+  });
+
   it('TK-003 S2: 제목이 비면 값이 바뀌지 않는다', async () => {
     const fixture = render('seed-1');
 
