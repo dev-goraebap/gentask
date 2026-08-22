@@ -80,3 +80,52 @@ describe('AppShell 의 aside 슬롯', () => {
     expect(header?.parentElement?.contains(host.querySelector('main'))).toBe(true);
   });
 });
+
+describe('AppShell 의 사이드바 접기', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+  });
+
+  function toggle(host: HTMLElement): HTMLButtonElement {
+    const found = host.querySelector<HTMLButtonElement>('button[aria-controls="sidebar"]');
+    if (!found) throw new Error('접기 버튼을 찾지 못했습니다');
+    return found;
+  }
+
+  it('기본은 펼친 상태이며 버튼이 그것을 알린다', () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(toggle(host).getAttribute('aria-expanded')).toBe('true');
+    expect(toggle(host).getAttribute('aria-label')).toBe('사이드바 접기');
+    expect(host.querySelector('nav')?.className).toContain('md:w-56');
+  });
+
+  it('누르면 접히고 항목은 이름을 속성으로 갖는다', () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    toggle(host).click();
+    fixture.detectChanges();
+
+    expect(toggle(host).getAttribute('aria-expanded')).toBe('false');
+    expect(host.querySelector('nav')?.className).toContain('md:w-14');
+    // 이름이 보이지 않는 동안에도 링크는 이름을 가져야 합니다.
+    const link = host.querySelector('nav a[aria-label]');
+    expect(link?.getAttribute('aria-label')).toBeTruthy();
+  });
+
+  it('접은 선택은 다음 세션에서 복원된다', () => {
+    localStorage.setItem('sidebar', 'collapsed');
+
+    const fixture = TestBed.createComponent(Host);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(toggle(host).getAttribute('aria-expanded')).toBe('false');
+  });
+});

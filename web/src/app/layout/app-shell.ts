@@ -2,11 +2,20 @@ import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, viewChild } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideCalendarRange, lucideHouse, lucideStar, lucideSun } from '@ng-icons/lucide';
+import {
+  lucideCalendarRange,
+  lucideHouse,
+  lucidePanelLeftClose,
+  lucidePanelLeftOpen,
+  lucideStar,
+  lucideSun,
+} from '@ng-icons/lucide';
 import { TASK_VIEWS, type TaskView } from '@/entities/task';
 import { ROUTES } from '@/shared/config';
 import { AsideSlot } from '@/shared/lib';
+import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
+import { SidebarStore } from '../sidebar';
 import { NavigationVeil } from './navigation-veil';
 import { ThemeToggle } from './theme-toggle';
 
@@ -31,10 +40,25 @@ import { ThemeToggle } from './theme-toggle';
 @Component({
   selector: 'app-shell',
   imports: [
-    RouterOutlet, RouterLink, RouterLinkActive, NgTemplateOutlet,
-    AppIcon, ThemeToggle, NavigationVeil,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    NgTemplateOutlet,
+    AppIcon,
+    HlmButton,
+    ThemeToggle,
+    NavigationVeil,
   ],
-  providers: [provideIcons({ lucideCalendarRange, lucideHouse, lucideStar, lucideSun })],
+  providers: [
+    provideIcons({
+      lucideCalendarRange,
+      lucideHouse,
+      lucidePanelLeftClose,
+      lucidePanelLeftOpen,
+      lucideStar,
+      lucideSun,
+    }),
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   /*
    * 전고를 잡고 안쪽을 스크롤합니다. 문서는 스크롤되지 않으므로 가로로 나가는 것도
@@ -52,13 +76,16 @@ import { ThemeToggle } from './theme-toggle';
       aside 가 화면을 덮는 동안에는 함께 감춥니다. 덮인 채로 탭만 남으면 가려진 쪽을
       조작할 수 없는 상태에서 이동 수단만 떠 있게 됩니다. 06-layout.md 3.3절.
     -->
-    <nav [class]="navClass()" aria-label="관점">
-      <a
-        [routerLink]="routes.home()"
-        class="mb-1 hidden px-2 py-1 text-base font-semibold tracking-tight md:block"
-      >
-        할일
-      </a>
+    <nav id="sidebar" [class]="navClass()" aria-label="관점">
+      <!-- 접으면 제목이 들어갈 폭이 없습니다. 아이콘 열만 남깁니다. -->
+      @if (!sidebar.collapsed()) {
+        <a
+          [routerLink]="routes.home()"
+          class="mb-1 hidden px-2 py-1 text-base font-semibold tracking-tight md:block"
+        >
+          할일
+        </a>
+      }
 
       <ul class="flex gap-1 max-md:justify-around md:flex-col">
         @for (item of views; track item.value) {
@@ -67,15 +94,21 @@ import { ThemeToggle } from './theme-toggle';
               현재 자리를 aria-current 로 알립니다. 색과 배경만으로 알리면 색각 이상과
               흑백 출력에서 전달되지 않습니다. 13-accessibility.md 4절.
             -->
+            <!--
+              접힌 동안에는 이름이 보이지 않으므로 접근 가능한 이름을 속성으로 줍니다.
+              아이콘만 남은 링크는 이름을 가져야 합니다. 13-accessibility.md 3절.
+            -->
             <a
               [routerLink]="routes.taskList(item.value)"
               routerLinkActive="bg-muted text-foreground"
               #active="routerLinkActive"
               [attr.aria-current]="active.isActive ? 'page' : null"
-              class="text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2 text-sm max-md:min-h-11 max-md:flex-col max-md:justify-center max-md:gap-1 max-md:text-xs"
+              [attr.aria-label]="sidebar.collapsed() ? item.label : null"
+              [attr.title]="sidebar.collapsed() ? item.label : null"
+              [class]="linkClass()"
             >
               <app-icon [name]="icons[item.value]" />
-              {{ item.label }}
+              <span [class]="sidebar.collapsed() ? 'md:hidden' : ''">{{ item.label }}</span>
             </a>
           </li>
         }
@@ -102,6 +135,23 @@ import { ThemeToggle } from './theme-toggle';
         불투명도는 toolbar 토큰이 모드별로 정합니다. 04-design-system.md 3.3절.
       -->
       <header class="bg-toolbar border-border flex h-14 shrink-0 items-center gap-4 border-b px-4">
+        <!--
+          사이드바를 접고 펴는 버튼입니다. 좁은 화면에서는 네비게이션이 하단 탭이라 접을
+          것이 없으므로 감춥니다. 상태는 이름과 aria-expanded 둘 다로 알립니다.
+        -->
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          class="max-md:hidden"
+          aria-controls="sidebar"
+          [attr.aria-expanded]="!sidebar.collapsed()"
+          [attr.aria-label]="sidebar.collapsed() ? '사이드바 펼치기' : '사이드바 접기'"
+          (click)="sidebar.toggle()"
+        >
+          <app-icon [name]="sidebar.collapsed() ? 'lucidePanelLeftOpen' : 'lucidePanelLeftClose'" />
+        </button>
         <a [routerLink]="routes.home()" class="text-base font-semibold tracking-tight md:hidden">
           할일
         </a>
@@ -160,6 +210,8 @@ export class AppShell {
 
   protected readonly aside = inject(AsideSlot);
 
+  protected readonly sidebar = inject(SidebarStore);
+
   /**
    * 네비게이션입니다. 넓은 화면에서는 왼쪽 열, 좁은 화면에서는 하단 탭입니다.
    *
@@ -167,9 +219,16 @@ export class AppShell {
    * 있는 기기에서 마지막 줄이 그 아래로 들어갑니다. 06-layout.md 3.2절.
    */
   protected readonly navClass = computed(() => {
-    const base =
-      'border-border bg-toolbar shrink-0 md:w-56 md:overflow-y-auto md:border-r md:p-2 max-md:order-last max-md:border-t max-md:px-2 max-md:pt-1 max-md:pb-[calc(--spacing(1)+env(safe-area-inset-bottom))]';
+    const width = this.sidebar.collapsed() ? 'md:w-14' : 'md:w-56';
+    const base = `border-border bg-toolbar shrink-0 ${width} md:overflow-y-auto md:border-r md:p-2 max-md:order-last max-md:border-t max-md:px-2 max-md:pt-1 max-md:pb-[calc(--spacing(1)+env(safe-area-inset-bottom))]`;
     return this.aside.content() ? `${base} max-md:hidden` : base;
+  });
+
+  /** 접히면 아이콘을 가운데 세웁니다. 좁은 화면의 탭 배치는 그대로입니다. */
+  protected readonly linkClass = computed(() => {
+    const base =
+      'text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2 text-sm max-md:min-h-11 max-md:flex-col max-md:justify-center max-md:gap-1 max-md:text-xs';
+    return this.sidebar.collapsed() ? `${base} md:justify-center` : base;
   });
 
   /**
