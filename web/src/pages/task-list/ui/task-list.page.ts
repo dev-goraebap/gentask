@@ -294,9 +294,3 @@ const EMPTY_MESSAGES: Record<TaskView, string> = {
   planned: '마감일을 정한 항목이 없습니다. 항목을 열어 마감일을 정해 보세요.',
   all: '적어 둔 할 일이 없습니다. 아래에 입력해 하나 만들어 보세요.',
 };
-
-/** 화면에 나열할 정렬 기준입니다. 순서가 곧 버튼 순서입니다. */
-const SORT_OPTIONS: readonly { readonly value: TaskSort; readonly label: string }[] = [
-  { value: 'created', label: '추가순' },
-  { value: 'due', label: '마감일순' },
-];
