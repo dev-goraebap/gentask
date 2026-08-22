@@ -266,6 +266,18 @@ export function describeDue(dueDate: string, today: string): string {
   return `${formatDueDate(dueDate)}까지`;
 }
 
+/**
+ * 목록 행에 적는 짧은 기한입니다. 오늘 · 내일은 말로, 나머지는 날짜와 요일로 적습니다.
+ * MS To Do 의 목록 표기입니다.
+ */
+export function describeDueBrief(dueDate: string, today: string): string {
+  if (dueDate === today) return '오늘';
+  if (dueDate === shiftDateKey(today, 1)) return '내일';
+  const date = fromDateKey(dueDate);
+  const weekday = date ? ` ${date.toLocaleDateString('ko-KR', { weekday: 'short' })}` : '';
+  return `${formatDueDate(dueDate)}${weekday}`;
+}
+
 /** 날짜 키에 일수를 더합니다. 지역 시각 기준이며 달력과 같은 규칙입니다. */
 export function shiftDateKey(key: string, days: number): string {
   const date = fromDateKey(key);

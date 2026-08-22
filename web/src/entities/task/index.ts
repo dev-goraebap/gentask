@@ -1,6 +1,7 @@
 export {
   filterByView,
   describeDue,
+  describeDueBrief,
   formatDueDate,
   shiftDateKey,
   fromDateKey,

@@ -10,7 +10,14 @@ import {
 import { form, FormField, FormRoot } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideArrowDown, lucideArrowUp, lucideChevronRight, lucideStar } from '@ng-icons/lucide';
+import {
+  lucideArrowDown,
+  lucideArrowUp,
+  lucideCalendar,
+  lucideChevronRight,
+  lucideStar,
+  lucideSun,
+} from '@ng-icons/lucide';
 import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { AsideOutlet } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
@@ -22,7 +29,9 @@ import { toast } from '@/shared/ui/sonner';
 import { TaskDetailPanel } from './task-detail-panel';
 import {
   filterByView,
+  describeDueBrief,
   formatDueDate,
+  isInMyDay,
   isAddableTitle,
   isOverdue,
   sortActive,
@@ -71,7 +80,16 @@ import {
     TaskDetailPanel,
     AsideOutlet,
   ],
-  providers: [provideIcons({ lucideArrowDown, lucideArrowUp, lucideChevronRight, lucideStar })],
+  providers: [
+    provideIcons({
+      lucideArrowDown,
+      lucideArrowUp,
+      lucideCalendar,
+      lucideChevronRight,
+      lucideStar,
+      lucideSun,
+    }),
+  ],
   /*
    * 셸이 준 높이를 채웁니다. 자리와 폭은 셸이 정하며 이 클래스는 그 안에서 적는 자리를
    * 바닥으로 밀어내는 역할만 합니다. 06-layout.md 3.2절.
@@ -185,6 +203,18 @@ export class TaskListPage {
   private readonly today = toDateKey(new Date());
 
   protected readonly formatDueDate = formatDueDate;
+
+  protected describeDue(due: string): string {
+    return describeDueBrief(due, this.today);
+  }
+
+  protected isDueToday(task: Task): boolean {
+    return task.dueDate === this.today;
+  }
+
+  protected inMyDay(task: Task): boolean {
+    return isInMyDay(task, this.today);
+  }
 
   protected isOverdue(task: Task): boolean {
     return isOverdue(task, this.today);

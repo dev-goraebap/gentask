@@ -66,19 +66,36 @@
           >
             {{ task.title }}
           </a>
-          @if (task.dueDate; as due) {
-            <!--
-              지난 기한을 색으로만 알리지 않고 문구를 함께 둡니다. 색각 이상과 흑백
-              출력에서 색은 전달되지 않습니다. 13-accessibility.md 4절.
-            -->
+          <!--
+            두 번째 줄입니다. 나의 하루에 담겼는지와 기한을 MS To Do 의 목록처럼 적습니다.
+            지난 기한을 색으로만 알리지 않고 문구를 함께 둡니다. 색각 이상과 흑백
+            출력에서 색은 전달되지 않습니다. 13-accessibility.md 4절.
+          -->
+          @if (inMyDay(task) || task.dueDate) {
             <p
-              class="mt-0.5 text-xs"
-              [class.text-warning]="isOverdue(task)"
-              [class.text-foreground-secondary]="!isOverdue(task)"
+              class="text-foreground-secondary mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs"
             >
-              {{ formatDueDate(due) }}
-              @if (isOverdue(task)) {
-                <span> · 지남</span>
+              @if (inMyDay(task)) {
+                <span class="inline-flex items-center gap-1">
+                  <app-icon name="lucideSun" class="text-[length:--spacing(3)]" />
+                  오늘 할 일
+                </span>
+              }
+              @if (inMyDay(task) && task.dueDate) {
+                <span aria-hidden="true">·</span>
+              }
+              @if (task.dueDate; as due) {
+                <span
+                  class="inline-flex items-center gap-1"
+                  [class.text-warning]="isOverdue(task)"
+                  [class.text-primary]="isDueToday(task)"
+                >
+                  <app-icon name="lucideCalendar" class="text-[length:--spacing(3)]" />
+                  {{ describeDue(due) }}
+                  @if (isOverdue(task)) {
+                    <span class="sr-only">지남</span>
+                  }
+                </span>
               }
             </p>
           }
