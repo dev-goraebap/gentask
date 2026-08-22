@@ -13,7 +13,6 @@ import {
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import {
-  describeDue,
   fromDateKey,
   isAddableTitle,
   isCompleted,
@@ -39,11 +38,7 @@ import {
 } from '@/shared/ui/alert-dialog';
 import { HlmButton } from '@/shared/ui/button';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
-import {
-  HlmDatePicker,
-  HlmDatePickerTrigger,
-  provideHlmDatePickerConfig,
-} from '@/shared/ui/date-picker';
+import { HlmDatePicker, HlmDatePickerTrigger } from '@/shared/ui/date-picker';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
@@ -113,14 +108,6 @@ import {
       lucideSun,
       lucideTrash2,
       lucideX,
-    }),
-    /*
-     * 달력이 다루는 값은 Date 이고 저장 형식은 날짜 문자열입니다. 표기를 이 자리에서
-     * 정해 두면 목록과 상세가 같은 함수를 거치므로 두 화면의 날짜가 어긋나지 않습니다.
-     */
-    provideHlmDatePickerConfig<Date>({
-      formatDate: (date) => describeDue(toDateKey(date), toDateKey(new Date())),
-      autoCloseOnSelect: true,
     }),
   ],
   /*

@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TASK_STORE, type Task, type TaskDraft, type TaskStore } from '@/entities/task';
+import { provideTaskListDatePicker } from '../providers';
 import { TaskDetailPanel } from './task-detail-panel';
 import { toast } from '@/shared/ui/sonner';
 
@@ -50,7 +51,11 @@ describe('TaskDetailPanel', () => {
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: TASK_STORE, useValue: store }],
+      providers: [
+        provideRouter([]),
+        { provide: TASK_STORE, useValue: store },
+        ...provideTaskListDatePicker(),
+      ],
     });
   });
 

@@ -272,6 +272,31 @@ html {
 }
 
 /*
+ * 목록 행의 퇴장입니다. 완료를 누르면 체크된 모습이 잠시 보인 뒤 행이 접히며 사라집니다.
+ * 곧바로 빼면 누른 결과를 볼 새가 없습니다. 높이를 줄여 아래 행이 따라 올라오게 합니다.
+ */
+@keyframes row-leave {
+  0% {
+    opacity: 1;
+    max-height: 4rem;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+.row-leave {
+  overflow: hidden;
+  animation: row-leave 360ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/*
  * 움직이는 동안 헤더의 배경 흐림을 끕니다. 헤더 폭이 매 프레임 바뀌므로 흐림 영역이
  * 프레임마다 다시 래스터화되며, 이 비용은 레이아웃이 아니라 페인트에서 발생합니다.
  *

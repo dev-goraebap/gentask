@@ -7,6 +7,7 @@ import { Routes } from '@angular/router';
  * 근거와 수치는 01-dev-environment.md 7절에 있습니다.
  */
 import { provideTask } from '@/entities/task/providers';
+import { provideTaskListDatePicker } from '@/pages/task-list';
 import { AppShell } from './layout/app-shell';
 
 /**
@@ -26,7 +27,7 @@ export const routes: Routes = [
         // 프로바이더를 이 자리에 두면 하위 화면들이 한 인스턴스를 공유합니다. 상세 화면이
         // 생겨도 목록과 같은 데이터를 보게 됩니다. 02-package-structure.md 7.5절.
         path: 'tasks',
-        providers: [...provideTask()],
+        providers: [...provideTask(), ...provideTaskListDatePicker()],
         children: [
           /*
            * 관점을 경로 파라미터로 둡니다. 네 관점이 같은 라우트를 공유하므로 관점을 바꿔도

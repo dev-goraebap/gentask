@@ -40,7 +40,11 @@
 
   <ul class="divide-border border-border mt-3 divide-y border-y">
     @for (task of groups().active; track task.id) {
-      <li class="flex items-start gap-3 py-3">
+      <!--
+        완료하면 체크된 모습이 보인 뒤 사라집니다. 곧바로 빼면 누른 결과를 볼 새가 없습니다.
+        퇴장하는 동안 체크박스는 누른 상태를 그대로 갖습니다.
+      -->
+      <li class="flex items-start gap-3 py-3" animate.leave="row-leave">
         <hlm-checkbox
           #box
           class="mt-0.5"
@@ -130,7 +134,7 @@
       @if (done()) {
         <ul id="completed-tasks" class="divide-border border-border mt-2 divide-y border-y">
           @for (task of groups().completed; track task.id) {
-            <li class="flex items-center gap-3 py-3">
+            <li class="flex items-center gap-3 py-3" animate.leave="row-leave">
               <hlm-checkbox
                 #doneBox
                 [checked]="true"
