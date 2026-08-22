@@ -98,8 +98,13 @@ html {
   /*
    * 기준 반경입니다. Spartan 프리셋이 이 값에 배수를 곱해 sm 부터 4xl 까지를 만들므로
    * 개별 값을 고치지 않고 이 하나를 바꿉니다.
+   *
+   * 0 으로 둡니다. 모서리를 둥글게 하지 않는 것이 기본이며, 둥근 모서리가 필요한 자리는
+   * 그때 이 값이나 그 자리의 토큰을 정합니다. 0 이면 프리셋의 파생값도 전부 0 이고,
+   * `calc(var(--radius-sm) - 2px)` 처럼 음수가 되는 선언은 무효가 되어 0 으로 그려집니다.
+   * docs/design/DESIGN.md Shapes 절.
    */
-  --radius: 1rem;
+  --radius: 0;
 
   /*
    * 고정 요소의 높이입니다. 막대 자신과 본문의 아래 여백, 그리고 그 위에 놓이는 요소가
@@ -224,24 +229,6 @@ html {
 
 :root.dark {
   color-scheme: dark;
-}
-
-/*
- * 모서리를 초타원으로 그립니다. 원호는 직선에서 곡선으로 넘어가는 지점이 눈에 띄는데
- * 초타원은 곡률이 연속이라 그 꺾임이 없습니다. 반경이 클수록 차이가 드러납니다.
- *
- * corner-shape 는 아직 Baseline 이 아닙니다. 미지원 브라우저에서는 선언이 무시되어
- * 일반 원호로 그려지며 레이아웃과 크기는 달라지지 않습니다.
- * 완전한 원이 필요한 자리에는 corner-round 로 되돌립니다.
- */
-@supports (corner-shape: superellipse(1.6)) {
-  * {
-    corner-shape: superellipse(1.6);
-  }
-
-  .corner-round {
-    corner-shape: round;
-  }
 }
 
 /*
