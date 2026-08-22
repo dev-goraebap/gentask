@@ -265,7 +265,8 @@ describe('TaskListPage', () => {
     const box = host.querySelector<HTMLElement>('li [role="checkbox"]');
 
     box?.click();
-    await fixture.whenStable();
+    // 체크된 모습을 보여 주는 시간이 지난 뒤에 저장소에 닿습니다.
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     expect(setCompleted).toHaveBeenCalledWith('seed-2', true);
   });
@@ -283,7 +284,7 @@ describe('TaskListPage', () => {
     );
     expect(active).not.toContain('장 보기');
     host.querySelector<HTMLElement>('#completed-tasks [role="checkbox"]')?.click();
-    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     expect(setCompleted).toHaveBeenCalledWith('seed-1', false);
   });
@@ -320,7 +321,7 @@ describe('TaskListPage', () => {
     fixture.detectChanges();
     expect(box.getAttribute('aria-checked')).toBe('true');
 
-    await new Promise((resolve) => setTimeout(resolve, 1));
+    await new Promise((resolve) => setTimeout(resolve, 300));
     fixture.detectChanges();
 
     expect(toastError).toHaveBeenCalled();

@@ -304,6 +304,12 @@ export class TaskListPage {
    * 바꾸는 것으로는 되돌릴 수 없고 그 표시를 직접 되돌립니다.
    */
   protected async setCompleted(task: Task, completed: boolean, box: HlmCheckbox): Promise<void> {
+    /*
+     * 체크된 모습을 먼저 보여 준 뒤 옮깁니다. 곧바로 갱신하면 행 제거와 체크 표시가 같은
+     * 변경 감지에 몰려 체크가 그려지기 전에 행이 떠나고, 누른 결과를 볼 새가 없습니다.
+     * MS To Do 도 같은 간격을 둡니다.
+     */
+    await new Promise((resolve) => setTimeout(resolve, CHECK_DWELL_MS));
     try {
       await this.store.setCompleted(task.id, completed);
     } catch {
@@ -356,6 +362,9 @@ export class TaskListPage {
 }
 
 /** 관점마다 비어 있을 때의 안내입니다. */
+/** 체크된 모습을 보여 주는 시간입니다. 퇴장 애니메이션은 이 뒤에 시작합니다. */
+const CHECK_DWELL_MS = 240;
+
 const EMPTY_MESSAGES: Record<TaskView, string> = {
   'my-day': '오늘 할 것으로 담은 항목이 없습니다. 항목을 열어 나의 하루에 담아 보세요.',
   important: '중요 표시를 켠 항목이 없습니다. 목록에서 별을 눌러 표시할 수 있습니다.',
