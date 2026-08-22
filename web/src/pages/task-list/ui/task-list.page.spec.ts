@@ -360,7 +360,7 @@ describe('TaskListPage', () => {
     // 기본(만든 날짜 · 최근 것 앞)을 다시 누르면 오름차순이 되고, 그것은 주소에 적힌다.
     sortButton(fixture, '만든 날짜').click();
     expect(navigate).toHaveBeenCalledWith([], {
-      queryParams: { sort: null, dir: 'asc' },
+      queryParams: { sort: 'created', dir: 'asc' },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });

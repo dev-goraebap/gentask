@@ -115,13 +115,19 @@ export class TaskListPage {
    * 미완료 목록의 정렬 기준입니다. 08-routing.md 3절이 정렬을 주소에 두도록 정합니다.
    * 새로고침 복원과 링크 공유가 별도 구현 없이 동작합니다.
    */
-  readonly sort = input<TaskSort, string | undefined>('created', { transform: toTaskSort });
+  /**
+   * 주소의 정렬 값입니다. 날것을 받는 이유는 "고르지 않음" 과 "만든 날짜를 골랐음" 을
+   * 가르기 위해서입니다. 둘은 같은 순서이지만 후자만 칩을 보입니다.
+   */
+  readonly sort = input<string | undefined>(undefined);
+
+  protected readonly sortKey = computed<TaskSort>(() => toTaskSort(this.sort()));
 
   /** 방향입니다. 주소에 없으면 그 기준의 기본 방향입니다. */
   readonly dir = input<string | undefined>(undefined);
 
   protected readonly direction = computed<SortDirection>(() =>
-    toSortDirection(this.dir(), this.sort()),
+    toSortDirection(this.dir(), this.sortKey()),
   );
 
   /**
@@ -161,7 +167,7 @@ export class TaskListPage {
     const chosen = filterByView(this.store.tasks(), this.view(), this.today);
     const { active, completed } = splitByCompletion(chosen);
     return {
-      active: sortActive(active, this.sort(), this.direction()),
+      active: sortActive(active, this.sortKey(), this.direction()),
       completed: sortCompleted(completed),
     };
   });
@@ -204,16 +210,16 @@ export class TaskListPage {
    * 기본 상태에 칩이 늘 떠 있으면 "정렬 중" 이라는 신호가 값싸집니다.
    */
   protected readonly sortActive = computed(
-    () => this.sort() !== 'created' || this.direction() !== DEFAULT_DIRECTION.created,
+    () => this.sort() !== undefined || this.dir() !== undefined,
   );
 
   protected readonly sortChip = computed(
-    () => TASK_SORTS.find((s) => s.value === this.sort())?.chip ?? '',
+    () => TASK_SORTS.find((s) => s.value === this.sortKey())?.chip ?? '',
   );
 
   /** 칩의 화살표는 방향을 뒤집고, × 는 정렬을 기본으로 되돌립니다. */
   protected flipSort(): void {
-    this.setSort(this.sort());
+    this.setSort(this.sortKey());
   }
 
   protected clearSort(): void {
@@ -320,14 +326,15 @@ export class TaskListPage {
   protected setSort(next: TaskSort): void {
     // 같은 기준을 다시 고르면 방향을 뒤집습니다. 다른 기준이면 그 기준의 기본 방향입니다.
     const direction: SortDirection =
-      next === this.sort()
+      next === this.sortKey()
         ? this.direction() === 'asc'
           ? 'desc'
           : 'asc'
         : DEFAULT_DIRECTION[next];
+    // 고른 기준은 기본값이어도 주소에 남깁니다. 그래야 "골랐다" 는 사실이 칩으로 보입니다.
     void this.router.navigate([], {
       queryParams: {
-        sort: next === 'created' ? null : next,
+        sort: next,
         dir: direction === DEFAULT_DIRECTION[next] ? null : direction,
       },
       queryParamsHandling: 'merge',

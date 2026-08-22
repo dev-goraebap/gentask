@@ -28,7 +28,7 @@
               variant="ghost"
               size="sm"
               class="justify-start"
-              [attr.aria-pressed]="sort() === option.value"
+              [attr.aria-pressed]="sortKey() === option.value"
               (click)="setSort(option.value); ctx.close()"
             >
               {{ option.label }}
