@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TASK_STORE, type Task, type TaskStore } from '@/entities/task';
 import { AsideSlot } from '@/shared/lib';
@@ -89,8 +89,8 @@ describe('TaskListPage', () => {
   function sortButton(fixture: ComponentFixture<TaskListPage>, label: string): HTMLButtonElement {
     const host = fixture.nativeElement as HTMLElement;
     const group = host.querySelector('[role="group"][aria-label="정렬 기준"]');
-    const button = [...(group?.querySelectorAll('button') ?? [])].find(
-      (candidate) => candidate.textContent?.trim() === label,
+    const button = [...(group?.querySelectorAll('button') ?? [])].find((candidate) =>
+      candidate.textContent?.trim().startsWith(label),
     );
     if (!button) throw new Error(`${label} 버튼을 찾지 못했습니다`);
     return button;
@@ -321,15 +321,36 @@ describe('TaskListPage', () => {
     const fixture = render();
 
     // 색만으로 알리면 색각 이상과 흑백 출력에서 전달되지 않습니다. 13-accessibility.md 4절.
-    expect(sortButton(fixture, '추가순').getAttribute('aria-pressed')).toBe('true');
-    expect(sortButton(fixture, '마감일순').getAttribute('aria-pressed')).toBe('false');
+    expect(sortButton(fixture, '만든 때').getAttribute('aria-pressed')).toBe('true');
+    expect(sortButton(fixture, '기한').getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('TK-002 S3: 같은 기준을 다시 고르면 방향이 뒤집힌다', () => {
+    const fixture = render();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    // 기본(만든 때 · 최근 것 앞)을 다시 누르면 오름차순이 되고, 그것은 주소에 적힌다.
+    sortButton(fixture, '만든 때').click();
+    expect(navigate).toHaveBeenCalledWith([], {
+      queryParams: { sort: null, dir: 'asc' },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+
+    // 다른 기준을 고르면 그 기준의 기본 방향이라 dir 은 주소에서 빠진다.
+    sortButton(fixture, '기한').click();
+    expect(navigate).toHaveBeenLastCalledWith([], {
+      queryParams: { sort: 'due', dir: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   });
 
   it('기본 정렬은 최근에 적은 것이 위로 온다', () => {
     expect(titles(render())).toEqual(['전기요금 납부', '장 보기', '건강검진 예약']);
   });
 
-  it('TK-002 S3: 마감일이 가까운 것부터 보인다', () => {
+  it('TK-002 S3: 기한을 고르면 마감일이 가까운 것부터 보이고 없는 것은 뒤다', () => {
     expect(titles(render('due'))).toEqual(['건강검진 예약', '전기요금 납부', '장 보기']);
   });
 

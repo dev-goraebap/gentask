@@ -47,13 +47,37 @@ export function isCompleted(task: Task): boolean {
 }
 
 /**
- * 사용자가 고를 수 있는 미완료 목록의 정렬 기준입니다.
+ * 사용자가 고를 수 있는 미완료 목록의 정렬 기준입니다. TK-002 A6.
  *
- * 방향을 함께 두지 않습니다. 기준마다 쓸모 있는 방향이 하나로 정해지기 때문입니다.
- * 마감일은 가까운 것부터 봐야 하고, 추가한 순서는 방금 적은 것부터 봐야 합니다.
- * 뒤집을 수단이 필요해지면 그때 08-routing.md 3절에 따라 방향도 주소에 둡니다.
+ * MS To Do 와 같은 다섯입니다. 기준마다 자연스러운 방향이 하나 있어 그것을 기본으로
+ * 두되, 같은 기준을 다시 고르면 뒤집을 수 있습니다. 방향은 주소가 갖습니다.
+ * 08-routing.md 3절.
  */
-export type TaskSort = 'created' | 'due';
+export type TaskSort = 'created' | 'due' | 'importance' | 'my-day' | 'title';
+
+export type SortDirection = 'asc' | 'desc';
+
+/**
+ * 기준마다의 기본 방향입니다.
+ *
+ * 기한 · 제목 · 만든 때는 작은 것이 앞이고, 중요도와 오늘 담은 때는 표시된 것이 앞입니다.
+ * 만든 때만 예외로 최근 것이 앞입니다. 방금 적은 것을 바로 보기 위해서입니다.
+ */
+export const DEFAULT_DIRECTION: Record<TaskSort, SortDirection> = {
+  created: 'desc',
+  due: 'asc',
+  importance: 'desc',
+  'my-day': 'desc',
+  title: 'asc',
+};
+
+export const TASK_SORTS: readonly { readonly value: TaskSort; readonly label: string }[] = [
+  { value: 'created', label: '만든 때' },
+  { value: 'importance', label: '중요도' },
+  { value: 'due', label: '기한' },
+  { value: 'my-day', label: '오늘 담은 때' },
+  { value: 'title', label: '제목' },
+];
 
 /**
  * 주소에서 온 값을 정렬 기준으로 좁힙니다.
@@ -62,7 +86,12 @@ export type TaskSort = 'created' | 'due';
  * 깨지는 대신 기본 정렬로 뜨는 편이 낫습니다.
  */
 export function toTaskSort(raw: string | undefined | null): TaskSort {
-  return raw === 'due' ? 'due' : 'created';
+  return TASK_SORTS.some((s) => s.value === raw) ? (raw as TaskSort) : 'created';
+}
+
+/** 주소에서 온 방향을 좁힙니다. 알 수 없으면 그 기준의 기본 방향입니다. */
+export function toSortDirection(raw: string | undefined | null, by: TaskSort): SortDirection {
+  return raw === 'asc' || raw === 'desc' ? raw : DEFAULT_DIRECTION[by];
 }
 
 /**
@@ -84,25 +113,50 @@ export function splitByCompletion(tasks: readonly Task[]): {
 /**
  * 미완료 목록의 순서를 정합니다.
  *
- * 마감일 기준에서 정하지 않은 항목은 뒤로 보냅니다. 마감일이 없는 것은 늦은 것이 아니라
- * 기한이 없는 것이므로 가장 먼 날짜로 취급하면 어긋납니다. 그 안에서는 기본 기준인
- * 추가 순서를 따릅니다.
+ * 기준 값이 없는 항목(기한 없음, 오늘에 담지 않음)은 방향과 무관하게 뒤로 보냅니다.
+ * 없는 것은 작은 것이 아니라 없는 것이므로 극값으로 취급하면 방향을 뒤집을 때 맨 앞으로
+ * 올라옵니다. 같은 값끼리는 만든 때 최근 것이 앞입니다.
  *
- * 사전순 비교가 곧 시간순 비교입니다. `createdAt` 은 ISO 8601 이고 `dueDate` 는 그
- * 날짜 부분이라 둘 다 별도 변환이 필요 없습니다.
+ * 사전순 비교가 곧 시간순 비교입니다. `createdAt` 은 ISO 8601 이고 `dueDate` 와 `myDayOn` 은
+ * 그 날짜 부분이라 별도 변환이 필요 없습니다. 제목만 로캘 비교를 씁니다.
  */
-export function sortActive(tasks: readonly Task[], by: TaskSort): readonly Task[] {
+export function sortActive(
+  tasks: readonly Task[],
+  by: TaskSort,
+  direction: SortDirection = DEFAULT_DIRECTION[by],
+): readonly Task[] {
   const byCreated = (a: Task, b: Task) => b.createdAt.localeCompare(a.createdAt);
+  const sign = direction === 'asc' ? 1 : -1;
 
-  if (by === 'created') return [...tasks].sort(byCreated);
+  const key = (t: Task): string | number | null => {
+    switch (by) {
+      case 'created':
+        return t.createdAt;
+      case 'due':
+        return t.dueDate;
+      case 'my-day':
+        return t.myDayOn;
+      case 'importance':
+        return t.important ? 1 : 0;
+      case 'title':
+        return t.title;
+    }
+  };
 
   return [...tasks].sort((a, b) => {
-    if (a.dueDate === null && b.dueDate === null) return byCreated(a, b);
-    if (a.dueDate === null) return 1;
-    if (b.dueDate === null) return -1;
+    const ka = key(a);
+    const kb = key(b);
+    if (ka === null && kb === null) return byCreated(a, b);
+    if (ka === null) return 1;
+    if (kb === null) return -1;
 
-    const byDue = a.dueDate.localeCompare(b.dueDate);
-    return byDue !== 0 ? byDue : byCreated(a, b);
+    const cmp =
+      typeof ka === 'number' && typeof kb === 'number'
+        ? ka - kb
+        : by === 'title'
+          ? String(ka).localeCompare(String(kb), 'ko')
+          : String(ka).localeCompare(String(kb));
+    return cmp !== 0 ? cmp * sign : byCreated(a, b);
   });
 }
 

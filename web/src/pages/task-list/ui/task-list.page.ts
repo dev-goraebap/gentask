@@ -10,7 +10,7 @@ import {
 import { form, FormField, FormRoot } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideChevronRight, lucideStar } from '@ng-icons/lucide';
+import { lucideArrowDown, lucideArrowUp, lucideChevronRight, lucideStar } from '@ng-icons/lucide';
 import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { AsideOutlet } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
@@ -32,6 +32,10 @@ import {
   taskViewLabel,
   toDateKey,
   toTaskSort,
+  toSortDirection,
+  DEFAULT_DIRECTION,
+  TASK_SORTS,
+  type SortDirection,
   toTaskView,
   type Task,
   type TaskSeed,
@@ -67,7 +71,7 @@ import {
     TaskDetailPanel,
     AsideOutlet,
   ],
-  providers: [provideIcons({ lucideChevronRight, lucideStar })],
+  providers: [provideIcons({ lucideArrowDown, lucideArrowUp, lucideChevronRight, lucideStar })],
   /*
    * 셸이 준 높이를 채웁니다. 자리와 폭은 셸이 정하며 이 클래스는 그 안에서 적는 자리를
    * 바닥으로 밀어내는 역할만 합니다. 06-layout.md 3.2절.
@@ -88,6 +92,13 @@ export class TaskListPage {
    * 새로고침 복원과 링크 공유가 별도 구현 없이 동작합니다.
    */
   readonly sort = input<TaskSort, string | undefined>('created', { transform: toTaskSort });
+
+  /** 방향입니다. 주소에 없으면 그 기준의 기본 방향입니다. */
+  readonly dir = input<string | undefined>(undefined);
+
+  protected readonly direction = computed<SortDirection>(() =>
+    toSortDirection(this.dir(), this.sort()),
+  );
 
   /**
    * 무엇을 볼지 정하는 관점입니다. 이름은 경로 파라미터와 같아야 입력 바인딩이 묶입니다.
@@ -125,7 +136,10 @@ export class TaskListPage {
   protected readonly groups = computed(() => {
     const chosen = filterByView(this.store.tasks(), this.view(), this.today);
     const { active, completed } = splitByCompletion(chosen);
-    return { active: sortActive(active, this.sort()), completed: sortCompleted(completed) };
+    return {
+      active: sortActive(active, this.sort(), this.direction()),
+      completed: sortCompleted(completed),
+    };
   });
 
   /** 화면 제목입니다. 네비게이션의 항목 이름과 같은 값을 씁니다. */
@@ -159,7 +173,7 @@ export class TaskListPage {
     }
   });
 
-  protected readonly sortOptions = SORT_OPTIONS;
+  protected readonly sortOptions = TASK_SORTS;
 
   protected readonly panel = TASK_PANEL;
 
@@ -243,8 +257,18 @@ export class TaskListPage {
    * 가리키면 공유된 링크가 두 벌이 됩니다.
    */
   protected setSort(next: TaskSort): void {
+    // 같은 기준을 다시 고르면 방향을 뒤집습니다. 다른 기준이면 그 기준의 기본 방향입니다.
+    const direction: SortDirection =
+      next === this.sort()
+        ? this.direction() === 'asc'
+          ? 'desc'
+          : 'asc'
+        : DEFAULT_DIRECTION[next];
     void this.router.navigate([], {
-      queryParams: { sort: next === 'created' ? null : next },
+      queryParams: {
+        sort: next === 'created' ? null : next,
+        dir: direction === DEFAULT_DIRECTION[next] ? null : direction,
+      },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });

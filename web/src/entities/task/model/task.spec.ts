@@ -10,6 +10,7 @@ import {
   sortCompleted,
   splitByCompletion,
   toDateKey,
+  toSortDirection,
   toTaskSort,
   toTaskView,
   type Task,
@@ -36,7 +37,7 @@ describe('filterByView', () => {
   const 오늘 = '2026-08-19';
 
   const 항목 = [
-    task({ id: '표시' , important: true }),
+    task({ id: '표시', important: true }),
     task({ id: '오늘담김', myDayOn: 오늘 }),
     task({ id: '어제담김', myDayOn: '2026-08-18' }),
     task({ id: '마감있음', dueDate: '2026-08-25' }),
@@ -101,10 +102,7 @@ describe('sortActive', () => {
 
   it('마감일순은 가까운 것이 위로 온다', () => {
     const sorted = sortActive(
-      [
-        task({ id: 'late', dueDate: '2026-09-01' }),
-        task({ id: 'soon', dueDate: '2026-08-20' }),
-      ],
+      [task({ id: 'late', dueDate: '2026-09-01' }), task({ id: 'soon', dueDate: '2026-08-20' })],
       'due',
     );
 
@@ -153,6 +151,57 @@ describe('sortCompleted', () => {
     ]);
 
     expect(sorted.map((t) => t.id)).toEqual(['last', 'first']);
+  });
+});
+
+describe('sortActive 의 기준과 방향', () => {
+  const a = task({
+    id: 'a',
+    title: '나',
+    important: true,
+    myDayOn: '2026-08-20',
+    createdAt: '2026-08-01T00:00:00.000Z',
+  });
+  const b = task({
+    id: 'b',
+    title: '가',
+    important: false,
+    myDayOn: null,
+    createdAt: '2026-08-02T00:00:00.000Z',
+  });
+  const c = task({
+    id: 'c',
+    title: '다',
+    important: false,
+    myDayOn: '2026-08-21',
+    createdAt: '2026-08-03T00:00:00.000Z',
+  });
+
+  it('중요도는 표시된 것이 앞이고, 뒤집으면 표시되지 않은 것이 앞이다', () => {
+    expect(sortActive([b, c, a], 'importance').map((t) => t.id)).toEqual(['a', 'c', 'b']);
+    expect(sortActive([b, c, a], 'importance', 'asc').map((t) => t.id)).toEqual(['c', 'b', 'a']);
+  });
+
+  it('오늘 담은 때는 최근에 담은 것이 앞이고, 담지 않은 것은 방향과 무관하게 뒤다', () => {
+    expect(sortActive([a, b, c], 'my-day').map((t) => t.id)).toEqual(['c', 'a', 'b']);
+    expect(sortActive([a, b, c], 'my-day', 'asc').map((t) => t.id)).toEqual(['a', 'c', 'b']);
+  });
+
+  it('제목은 한국어 순이다', () => {
+    expect(sortActive([a, b, c], 'title').map((t) => t.id)).toEqual(['b', 'a', 'c']);
+    expect(sortActive([a, b, c], 'title', 'desc').map((t) => t.id)).toEqual(['c', 'a', 'b']);
+  });
+
+  it('만든 때를 뒤집으면 오래된 것이 앞이다', () => {
+    expect(sortActive([c, a, b], 'created', 'asc').map((t) => t.id)).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('toSortDirection', () => {
+  it('아는 값만 받고 나머지는 기준의 기본 방향이다', () => {
+    expect(toSortDirection('asc', 'created')).toBe('asc');
+    expect(toSortDirection('이상한값', 'created')).toBe('desc');
+    expect(toSortDirection(undefined, 'due')).toBe('asc');
   });
 });
 
