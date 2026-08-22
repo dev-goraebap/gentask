@@ -62,8 +62,8 @@ export class MockTaskStore implements TaskStore {
   }
 
   /**
-   * 이미 끝난 일을 다시 마쳐도 끝낸 시각을 덮지 않습니다. 그 시각이 끝난 일 목록의
-   * 순서이며, 덮으면 옛날에 끝낸 일이 방금 끝낸 것처럼 올라옵니다.
+   * 이미 완료된 작업을 다시 완료해도 완료한 시각을 덮지 않습니다. 그 시각이 완료된 작업 목록의
+   * 순서이며, 덮으면 옛날에 완료한 작업이 방금 완료한 것처럼 올라옵니다.
    */
   async setCompleted(id: string, completed: boolean): Promise<void> {
     const now = new Date().toISOString();

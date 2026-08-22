@@ -83,7 +83,7 @@ import { ThemeToggle } from './theme-toggle';
           [routerLink]="routes.home()"
           class="mb-1 hidden px-2 py-1 text-base font-semibold tracking-tight md:block"
         >
-          할일
+          작업
         </a>
       }
 
@@ -153,7 +153,7 @@ import { ThemeToggle } from './theme-toggle';
           <app-icon [name]="sidebar.collapsed() ? 'lucidePanelLeftOpen' : 'lucidePanelLeftClose'" />
         </button>
         <a [routerLink]="routes.home()" class="text-base font-semibold tracking-tight md:hidden">
-          할일
+          작업
         </a>
         <span class="flex-1"></span>
         <app-theme-toggle />

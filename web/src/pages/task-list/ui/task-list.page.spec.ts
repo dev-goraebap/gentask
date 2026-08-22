@@ -113,7 +113,7 @@ describe('TaskListPage', () => {
     return [...host.querySelectorAll('ul li a')].map((a) => a.textContent?.trim() ?? '');
   }
 
-  describe('TK-001 S1: 제목을 적으면 목록에 그 할일이 있다', () => {
+  describe('TK-001 S1: 제목을 적으면 목록에 그 작업이 있다', () => {
     it('등록 버튼을 두지 않고 엔터로 추가한다', async () => {
       const fixture = render();
       const input = newTaskInput(fixture);
@@ -193,20 +193,20 @@ describe('TaskListPage', () => {
     expect(labels.some((label) => label?.includes('지우기'))).toBe(false);
   });
 
-  it('TK-002 S2: 중요하다고 표시한 끝나지 않은 할일만 보인다', () => {
+  it('TK-002 S2: 중요하다고 표시한 완료되지 않은 작업만 보인다', () => {
     tasks.set([{ ...장보기, important: true }, 전기요금, 건강검진]);
 
     // 한 항목이 여러 관점에 동시에 나타납니다. 관점은 고르기만 하고 소유하지 않습니다.
     expect(titles(render(undefined, 'important'))).toEqual(['장 보기']);
   });
 
-  it('TK-002 S2: 마감일이 있는 끝나지 않은 할일만 보인다', () => {
+  it('TK-002 S2: 기한이 있는 완료되지 않은 작업만 보인다', () => {
     tasks.set([장보기, 전기요금, { ...건강검진, completedAt: '2026-08-18T00:00:00.000Z' }]);
 
     expect(titles(render(undefined, 'planned'))).toEqual(['전기요금 납부']);
   });
 
-  it('TK-002 S1: 모르는 묶음을 요청하면 끝나지 않은 할일 목록이 보인다', () => {
+  it('TK-002 S1: 모르는 스마트 목록을 요청하면 완료되지 않은 작업 목록이 보인다', () => {
     // 주소를 직접 고쳤을 때 화면이 비는 대신 전체 목록이 뜨는 편이 낫습니다.
     expect(titles(render(undefined, '없는-관점')).length).toBe(3);
   });
@@ -214,10 +214,10 @@ describe('TaskListPage', () => {
   it('제목이 관점의 이름을 따른다', () => {
     const host = render(undefined, 'my-day').nativeElement as HTMLElement;
 
-    expect(host.querySelector('h1')?.textContent?.trim()).toBe('내 하루');
+    expect(host.querySelector('h1')?.textContent?.trim()).toBe('나의 하루');
   });
 
-  it('TK-001 S1: 묶음을 보며 적으면 그 묶음의 성질이 붙은 채로 목록에 남는다', async () => {
+  it('TK-001 S1: 스마트 목록을 보며 적으면 그 스마트 목록의 성질이 붙은 채로 목록에 남는다', async () => {
     const fixture = render(undefined, 'important');
     const input = newTaskInput(fixture);
 
@@ -248,7 +248,7 @@ describe('TaskListPage', () => {
     expect(setImportant).toHaveBeenCalledWith('seed-1', true);
   });
 
-  it('TK-004 S1: 마치면 아직 할 일 목록에서 사라지고 끝난 일로 남는다', async () => {
+  it('TK-004 S1: 완료하면 완료되지 않은 작업 목록에서 사라지고 완료된 작업로 남는다', async () => {
     const fixture = render();
     const host = fixture.nativeElement as HTMLElement;
     const box = host.querySelector<HTMLElement>('li [role="checkbox"]');
@@ -259,14 +259,14 @@ describe('TaskListPage', () => {
     expect(setCompleted).toHaveBeenCalledWith('seed-2', true);
   });
 
-  it('TK-004 S1: 되돌리면 아직 할 일로 다시 보인다', async () => {
+  it('TK-004 S1: 되돌리면 완료되지 않은 작업으로 다시 보인다', async () => {
     tasks.set([{ ...장보기, completedAt: '2026-08-18T00:00:00.000Z' }, 전기요금, 건강검진]);
     const fixture = TestBed.createComponent(TaskListPage);
     fixture.componentRef.setInput('done', true);
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
 
-    // 끝난 일은 아직 할 일 목록에 없고, 펼친 끝난 일 목록의 체크는 마치기의 반대입니다.
+    // 완료된 작업은 완료되지 않은 작업 목록에 없고, 펼친 완료된 작업 목록의 체크는 완료의 반대입니다.
     const active = [...host.querySelectorAll('ul:not(#completed-tasks) li a')].map((a) =>
       a.textContent?.trim(),
     );
@@ -277,7 +277,7 @@ describe('TaskListPage', () => {
     expect(setCompleted).toHaveBeenCalledWith('seed-1', false);
   });
 
-  it('TK-001 S3: 넣기에 실패하면 목록에 없고, 기존 할일은 남는다', async () => {
+  it('TK-001 S3: 넣기에 실패하면 목록에 없고, 기존 작업은 남는다', async () => {
     add.mockRejectedValueOnce(new Error('저장소 없음'));
     const fixture = render();
     const input = newTaskInput(fixture);
@@ -296,7 +296,7 @@ describe('TaskListPage', () => {
     expect(newTaskInput(fixture).value).toBe('우산 챙기기');
   });
 
-  it('TK-004 S2: 실패하면 마치기 전과 같다', async () => {
+  it('TK-004 S2: 실패하면 완료 전과 같다', async () => {
     // 저장소는 응답까지 한 번은 그려질 시간이 있습니다. 같은 턴의 거부는 현실에 없습니다.
     setCompleted.mockImplementationOnce(
       () => new Promise((_, reject) => setTimeout(() => reject(new Error('저장소 없음')))),
@@ -321,7 +321,7 @@ describe('TaskListPage', () => {
     const fixture = render();
 
     // 색만으로 알리면 색각 이상과 흑백 출력에서 전달되지 않습니다. 13-accessibility.md 4절.
-    expect(sortButton(fixture, '만든 때').getAttribute('aria-pressed')).toBe('true');
+    expect(sortButton(fixture, '만든 날짜').getAttribute('aria-pressed')).toBe('true');
     expect(sortButton(fixture, '기한').getAttribute('aria-pressed')).toBe('false');
   });
 
@@ -329,8 +329,8 @@ describe('TaskListPage', () => {
     const fixture = render();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
-    // 기본(만든 때 · 최근 것 앞)을 다시 누르면 오름차순이 되고, 그것은 주소에 적힌다.
-    sortButton(fixture, '만든 때').click();
+    // 기본(만든 날짜 · 최근 것 앞)을 다시 누르면 오름차순이 되고, 그것은 주소에 적힌다.
+    sortButton(fixture, '만든 날짜').click();
     expect(navigate).toHaveBeenCalledWith([], {
       queryParams: { sort: null, dir: 'asc' },
       queryParamsHandling: 'merge',
@@ -350,7 +350,7 @@ describe('TaskListPage', () => {
     expect(titles(render())).toEqual(['전기요금 납부', '장 보기', '건강검진 예약']);
   });
 
-  it('TK-002 S3: 기한을 고르면 마감일이 가까운 것부터 보이고 없는 것은 뒤다', () => {
+  it('TK-002 S3: 기한을 고르면 기한이 가까운 것부터 보이고 없는 것은 뒤다', () => {
     expect(titles(render('due'))).toEqual(['건강검진 예약', '전기요금 납부', '장 보기']);
   });
 

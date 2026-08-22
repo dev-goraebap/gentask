@@ -55,13 +55,13 @@ describe('filterByView', () => {
     expect(ids('important')).toEqual(['표시']);
   });
 
-  it('내 하루는 오늘 담은 것만 고른다', () => {
-    // 어제 담은 것은 오늘의 내 하루가 아닙니다. 담긴 것은 매일 비워집니다.
+  it('나의 하루는 나의 하루에 추가된 것만 고른다', () => {
+    // 어제 담은 것은 오늘의 나의 하루가 아닙니다. 담긴 것은 매일 비워집니다.
     expect(ids('my-day')).toEqual(['오늘담김']);
   });
 
-  it('계획된 일정은 마감일이 있고 완료하지 않은 것만 고른다', () => {
-    // 마감일은 아직 해내지 않은 것을 언제까지 해야 하는가의 값입니다.
+  it('계획된 일정은 기한이 있고 완료하지 않은 것만 고른다', () => {
+    // 기한은 아직 해내지 않은 것을 언제까지 해야 하는가의 값입니다.
     expect(ids('planned')).toEqual(['마감있음']);
   });
 });
@@ -100,7 +100,7 @@ describe('sortActive', () => {
     expect(sorted.map((t) => t.id)).toEqual(['new', 'mid', 'old']);
   });
 
-  it('마감일순은 가까운 것이 위로 온다', () => {
+  it('기한순은 가까운 것이 위로 온다', () => {
     const sorted = sortActive(
       [task({ id: 'late', dueDate: '2026-09-01' }), task({ id: 'soon', dueDate: '2026-08-20' })],
       'due',
@@ -109,8 +109,8 @@ describe('sortActive', () => {
     expect(sorted.map((t) => t.id)).toEqual(['soon', 'late']);
   });
 
-  it('마감일순에서 정하지 않은 항목은 뒤로 간다', () => {
-    // 마감일이 없는 것은 늦은 것이 아니라 기한이 없는 것입니다.
+  it('기한순에서 정하지 않은 항목은 뒤로 간다', () => {
+    // 기한이 없는 것은 늦은 것이 아니라 기한이 없는 것입니다.
     const sorted = sortActive(
       [task({ id: 'none' }), task({ id: 'far', dueDate: '2099-12-31' })],
       'due',
@@ -119,7 +119,7 @@ describe('sortActive', () => {
     expect(sorted.map((t) => t.id)).toEqual(['far', 'none']);
   });
 
-  it('마감일이 같으면 추가순을 따른다', () => {
+  it('기한이 같으면 추가순을 따른다', () => {
     const sorted = sortActive(
       [
         task({ id: 'first', dueDate: '2026-08-20', createdAt: '2026-08-01T00:00:00.000Z' }),
@@ -182,7 +182,7 @@ describe('sortActive 의 기준과 방향', () => {
     expect(sortActive([b, c, a], 'importance', 'asc').map((t) => t.id)).toEqual(['c', 'b', 'a']);
   });
 
-  it('오늘 담은 때는 최근에 담은 것이 앞이고, 담지 않은 것은 방향과 무관하게 뒤다', () => {
+  it('나의 하루에 추가됨는 최근에 담은 것이 앞이고, 담지 않은 것은 방향과 무관하게 뒤다', () => {
     expect(sortActive([a, b, c], 'my-day').map((t) => t.id)).toEqual(['c', 'a', 'b']);
     expect(sortActive([a, b, c], 'my-day', 'asc').map((t) => t.id)).toEqual(['a', 'c', 'b']);
   });
@@ -192,7 +192,7 @@ describe('sortActive 의 기준과 방향', () => {
     expect(sortActive([a, b, c], 'title', 'desc').map((t) => t.id)).toEqual(['c', 'a', 'b']);
   });
 
-  it('만든 때를 뒤집으면 오래된 것이 앞이다', () => {
+  it('만든 날짜를 뒤집으면 오래된 것이 앞이다', () => {
     expect(sortActive([c, a, b], 'created', 'asc').map((t) => t.id)).toEqual(['a', 'b', 'c']);
   });
 });
@@ -231,7 +231,7 @@ describe('isAddableTitle', () => {
   });
 });
 
-describe('3: 마감일', () => {
+describe('3: 기한', () => {
   it('올해면 연도를 적지 않는다', () => {
     expect(formatDueDate('2026-08-25', new Date(2026, 0, 1))).toBe('8월 25일');
   });
@@ -240,7 +240,7 @@ describe('3: 마감일', () => {
     expect(formatDueDate('2027-01-03', new Date(2026, 0, 1))).toBe('2027년 1월 3일');
   });
 
-  it('오늘보다 앞선 마감일은 지난 것으로 본다', () => {
+  it('오늘보다 앞선 기한은 지난 것으로 본다', () => {
     const task = (dueDate: string | null, completedAt: string | null = null): Task => ({
       id: 'a',
       title: 'a',

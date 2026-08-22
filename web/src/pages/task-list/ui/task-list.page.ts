@@ -44,7 +44,7 @@ import {
 } from '@/entities/task';
 
 /**
- * 할일 목록 화면입니다. TK-001 할일 적어두기, TK-002 지금 할 일 보기, TK-004 할일 마치기의 기본 흐름과
+ * 작업 목록 화면입니다. TK-001 작업 추가, TK-002 작업 보기, TK-004 작업 완료의 기본 흐름과
  * TK-003 A4(중요 표시)를 담습니다.
  *
  * 관점 넷이 같은 화면을 씁니다. 관점마다 화면을 두면 목록·정렬·추가가 네 벌이 되고,
@@ -157,7 +157,7 @@ export class TaskListPage {
    * 적는 자리가 놓인 관점이 새 항목에 부여하는 성질입니다.
    *
    * 관점 안에서 적은 항목이 그 관점에 나타나지 않으면 적은 사람은 사라진 것으로 봅니다.
-   * 계획된 일정에 마감일을 오늘로 두는 것도 같은 이유이며, 그 자리는 마감일이 있는 것만
+   * 계획된 일정에 기한을 오늘로 두는 것도 같은 이유이며, 그 자리는 기한이 있는 것만
    * 담기 때문입니다.
    */
   protected readonly seed = computed<TaskSeed>(() => {
@@ -178,7 +178,7 @@ export class TaskListPage {
   protected readonly panel = TASK_PANEL;
 
   /**
-   * 지난 마감일 판정의 기준일입니다. 화면이 서 있는 동안 자정을 넘기면 낡은 값이 되지만,
+   * 지난 기한 판정의 기준일입니다. 화면이 서 있는 동안 자정을 넘기면 낡은 값이 되지만,
    * 목데이터 위의 프로토타입에서 그 경계를 다루는 장치를 먼저 만들 근거가 없습니다.
    * 관점 스펙이 하루의 경계를 정할 때 이 값의 소유도 함께 정합니다.
    */
@@ -220,7 +220,7 @@ export class TaskListPage {
        * 남기지 못했음을 알리고 적은 것은 그대로 둡니다. TK-001 A6. 비우면 사용자가 다시
        * 적어야 하고, 다시 적겠다고 하는 것이 곧 재시도입니다.
        */
-      toast.error('할 일을 남기지 못했습니다.', {
+      toast.error('작업을 추가하지 못했습니다.', {
         action: { label: '다시 시도', onClick: () => void this.add() },
       });
       return;
@@ -241,7 +241,7 @@ export class TaskListPage {
       await this.store.setCompleted(task.id, completed);
     } catch {
       box.checked.set(!completed);
-      toast.error(completed ? '마치지 못했습니다.' : '되돌리지 못했습니다.');
+      toast.error(completed ? '완료하지 못했습니다.' : '되돌리지 못했습니다.');
     }
   }
 
@@ -289,8 +289,8 @@ export class TaskListPage {
 
 /** 관점마다 비어 있을 때의 안내입니다. */
 const EMPTY_MESSAGES: Record<TaskView, string> = {
-  'my-day': '오늘 할 것으로 담은 항목이 없습니다. 항목을 열어 내 하루에 담아 보세요.',
+  'my-day': '오늘 할 것으로 담은 항목이 없습니다. 항목을 열어 나의 하루에 담아 보세요.',
   important: '중요 표시를 켠 항목이 없습니다. 목록에서 별을 눌러 표시할 수 있습니다.',
-  planned: '마감일을 정한 항목이 없습니다. 항목을 열어 마감일을 정해 보세요.',
-  all: '적어 둔 할 일이 없습니다. 아래에 입력해 하나 만들어 보세요.',
+  planned: '기한을 정한 항목이 없습니다. 항목을 열어 기한을 정해 보세요.',
+  all: '작업이 없습니다. 아래에 입력해 하나 추가해 보세요.',
 };

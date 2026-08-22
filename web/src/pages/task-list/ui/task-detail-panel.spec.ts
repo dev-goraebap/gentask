@@ -89,9 +89,9 @@ describe('TaskDetailPanel', () => {
 
   function myDayButton(fixture: ComponentFixture<TaskDetailPanel>): HTMLButtonElement {
     const found = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find(
-      (button) => button.textContent?.includes('내 하루'),
+      (button) => button.textContent?.includes('나의 하루'),
     );
-    if (!found) throw new Error('내 하루 버튼을 찾지 못했습니다');
+    if (!found) throw new Error('나의 하루 버튼을 찾지 못했습니다');
     return found;
   }
 
@@ -104,15 +104,15 @@ describe('TaskDetailPanel', () => {
   }
 
   function openConfirm(fixture: ComponentFixture<TaskDetailPanel>): void {
-    query<HTMLButtonElement>(fixture, 'button[aria-label="할 일 지우기"]').click();
+    query<HTMLButtonElement>(fixture, 'button[aria-label="작업 삭제"]').click();
     fixture.detectChanges();
   }
 
-  it('TK-003 S4: 없는 할일은 손볼 수 없다', () => {
+  it('TK-003 S4: 없는 작업은 편집할 수 없다', () => {
     const fixture = render('없는-값');
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
-    expect(text).toContain('찾을 수 없는 할 일입니다');
+    expect(text).toContain('찾을 수 없는 작업입니다');
     expect((fixture.nativeElement as HTMLElement).querySelector('form')).toBeNull();
   });
 
@@ -132,7 +132,7 @@ describe('TaskDetailPanel', () => {
     ).toBeNull();
   });
 
-  it('TK-003 S2: 고친 메모가 그 할일에 보인다', async () => {
+  it('TK-003 S2: 편집한 메모가 그 작업에 보인다', async () => {
     const fixture = render('seed-1');
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
@@ -149,7 +149,7 @@ describe('TaskDetailPanel', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('TK-003 S1: 고친 제목이 그 할일에 보인다', async () => {
+  it('TK-003 S1: 편집한 제목이 그 작업에 보인다', async () => {
     const fixture = render('seed-1');
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
@@ -174,7 +174,7 @@ describe('TaskDetailPanel', () => {
     expect(update).not.toHaveBeenCalled();
   });
 
-  it('TK-003 S1: 그만두면 고치던 제목은 반영되지 않는다', async () => {
+  it('TK-003 S1: 그만두면 편집하던 제목은 반영되지 않는다', async () => {
     const fixture = render('seed-1');
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
@@ -217,7 +217,7 @@ describe('TaskDetailPanel', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('제목을 입력해 주세요');
   });
 
-  describe('TK-003 S3: 확인하면 그 할일이 목록에 없다', () => {
+  describe('TK-003 S3: 확인하면 그 작업이 목록에 없다', () => {
     it('지우기를 눌러도 확인 전에는 지우지 않는다', () => {
       const fixture = render('seed-1');
 
@@ -245,7 +245,7 @@ describe('TaskDetailPanel', () => {
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
       openConfirm(fixture);
-      dialogButton('지우기').click();
+      dialogButton('삭제').click();
       await fixture.whenStable();
 
       expect(remove).toHaveBeenCalledWith('seed-1');
@@ -258,13 +258,13 @@ describe('TaskDetailPanel', () => {
     });
   });
 
-  describe('TK-003 S2: 오늘 담은 상태가 정한 대로 남는다', () => {
-    it('내 하루에 담는다', async () => {
+  describe('TK-003 S2: 나의 하루에 추가된 상태가 정한 대로 남는다', () => {
+    it('나의 하루에 담는다', async () => {
       const fixture = render('seed-1');
       const button = myDayButton(fixture);
 
       expect(button.getAttribute('aria-pressed')).toBe('false');
-      expect(button.textContent?.trim()).toBe('내 하루에 추가');
+      expect(button.textContent?.trim()).toBe('나의 하루에 추가');
 
       button.click();
       await fixture.whenStable();
@@ -272,15 +272,15 @@ describe('TaskDetailPanel', () => {
       expect(setMyDay).toHaveBeenCalledWith('seed-1', true);
     });
 
-    it('오늘 담긴 항목은 빼는 자리가 된다', () => {
+    it('나의 하루에 추가긴 항목은 빼는 자리가 된다', () => {
       tasks.set([{ ...seed, myDayOn: today() }]);
       const fixture = render('seed-1');
 
       expect(myDayButton(fixture).getAttribute('aria-pressed')).toBe('true');
-      expect(myDayButton(fixture).textContent?.trim()).toBe('내 하루에서 빼기');
+      expect(myDayButton(fixture).textContent?.trim()).toBe('나의 하루에서 빼기');
     });
 
-    it('어제 담긴 것은 오늘의 내 하루가 아니다', () => {
+    it('어제 담긴 것은 오늘의 나의 하루가 아니다', () => {
       // 담긴 것은 매일 비워집니다. 날짜를 들고 있으면 비우러 다니는 장치가 필요 없습니다.
       tasks.set([{ ...seed, myDayOn: '2020-01-01' }]);
 
@@ -288,8 +288,8 @@ describe('TaskDetailPanel', () => {
     });
   });
 
-  describe('TK-003 S2: 마감일이 정한 대로 그 할일에 남는다', () => {
-    it('마감일이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
+  describe('TK-003 S2: 기한이 정한 대로 그 작업에 남는다', () => {
+    it('기한이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
       tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
       const fixture = render('seed-1');
 
@@ -298,7 +298,7 @@ describe('TaskDetailPanel', () => {
       expect(trigger.textContent?.trim()).toBe('8월 25일');
     });
 
-    it('마감일을 정하지 않았으면 지우기를 내보내지 않는다', () => {
+    it('기한을 정하지 않았으면 지우기를 내보내지 않는다', () => {
       const fixture = render('seed-1');
 
       // 지울 것이 없는 상태에서 지우기 버튼이 보이면 누를 수 있는 것이 무엇인지 모호해집니다.
@@ -306,7 +306,7 @@ describe('TaskDetailPanel', () => {
       expect(buttons.some((b) => (b as HTMLElement).textContent?.includes('지우기'))).toBe(false);
     });
 
-    it('마감일을 지우면 비운 값을 곧바로 반영한다', async () => {
+    it('기한을 지우면 비운 값을 곧바로 반영한다', async () => {
       tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
       const fixture = render('seed-1');
 

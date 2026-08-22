@@ -2,7 +2,7 @@ import { InjectionToken, type Signal } from '@angular/core';
 import type { Task } from '../model/task';
 
 /**
- * 화면이 할일 데이터에 접근하는 유일한 통로입니다.
+ * 화면이 작업 데이터에 접근하는 유일한 통로입니다.
  *
  * UI 는 이 인터페이스 뒤에서만 데이터에 접근하며 컴포넌트에 목데이터를 직접 박지 않습니다.
  * 프로토타입 구간에는 Mock 구현이, 백엔드가 붙으면 Http 구현이 이 자리에 들어가고
@@ -30,7 +30,7 @@ export interface TaskStore {
   setImportant(id: string, important: boolean): Promise<void>;
 
   /**
-   * 내 하루에 담고 뺍니다. 담는 날짜는 저장소가 정합니다.
+   * 나의 하루에 담고 뺍니다. 담는 날짜는 저장소가 정합니다.
    *
    * 화면이 오늘 날짜를 넘기지 않는 이유는 그 값이 저장 형식의 일부이기 때문입니다.
    * 화면마다 오늘을 계산하면 자정을 넘긴 화면과 그렇지 않은 화면이 다른 날짜를 씁니다.

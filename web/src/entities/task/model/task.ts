@@ -1,5 +1,5 @@
 /**
- * 할일 하나입니다.
+ * 작업 하나입니다.
  *
  * 프로토타입 구간의 이 타입 정의가 이후 백엔드 스펙의 API 계약 입력이 됩니다.
  * 백엔드가 붙으면 생성 타입이 이 자리를 대체하며, 그때 이 모양과 생성 타입의 차이가
@@ -18,13 +18,13 @@ export type Task = {
   readonly note: string;
 
   /**
-   * 마감일입니다. `YYYY-MM-DD` 이며 정하지 않은 것이 기본 상태입니다.
+   * 기한입니다. `YYYY-MM-DD` 이며 정하지 않은 것이 기본 상태입니다.
    *
    * 시각을 담지 않는 이유는 마감 시각이 알림과 묶이는 값이고 알림이 이 스펙의 범위
    * 밖이기 때문입니다. 시각을 두면 어느 시간대로 판정할지가 따라오는데, 그 판단은
    * 요구사항이 확정되지 않은 상태에서 데이터 형식만 먼저 굳히게 됩니다.
    *
-   * 날짜만 두면 사전순 비교가 곧 시간순 비교라 정렬과 지난 마감일 판정에 별도 변환이
+   * 날짜만 두면 사전순 비교가 곧 시간순 비교라 정렬과 지난 기한 판정에 별도 변환이
    * 필요 없습니다. ISO 8601 의 날짜 부분이 그 성질을 갖습니다.
    */
   readonly dueDate: string | null;
@@ -33,7 +33,7 @@ export type Task = {
   readonly important: boolean;
 
   /**
-   * 내 하루에 담은 날짜입니다. `YYYY-MM-DD` 이며 담지 않은 것이 기본 상태입니다.
+   * 나의 하루에 담은 날짜입니다. `YYYY-MM-DD` 이며 담지 않은 것이 기본 상태입니다.
    *
    * 담김을 boolean 이 아니라 날짜로 두는 이유는 담긴 것이 매일 비워져야 하기 때문입니다.
    * 날짜를 들고 있으면 오늘과 비교하는 것만으로 비워지므로, 자정에 값을 지우러 다니는
@@ -60,8 +60,8 @@ export type SortDirection = 'asc' | 'desc';
 /**
  * 기준마다의 기본 방향입니다.
  *
- * 기한 · 제목 · 만든 때는 작은 것이 앞이고, 중요도와 오늘 담은 때는 표시된 것이 앞입니다.
- * 만든 때만 예외로 최근 것이 앞입니다. 방금 적은 것을 바로 보기 위해서입니다.
+ * 기한 · 제목 · 만든 날짜는 작은 것이 앞이고, 중요도와 나의 하루에 추가됨는 표시된 것이 앞입니다.
+ * 만든 날짜만 예외로 최근 것이 앞입니다. 방금 적은 것을 바로 보기 위해서입니다.
  */
 export const DEFAULT_DIRECTION: Record<TaskSort, SortDirection> = {
   created: 'desc',
@@ -72,10 +72,10 @@ export const DEFAULT_DIRECTION: Record<TaskSort, SortDirection> = {
 };
 
 export const TASK_SORTS: readonly { readonly value: TaskSort; readonly label: string }[] = [
-  { value: 'created', label: '만든 때' },
+  { value: 'created', label: '만든 날짜' },
   { value: 'importance', label: '중요도' },
   { value: 'due', label: '기한' },
-  { value: 'my-day', label: '오늘 담은 때' },
+  { value: 'my-day', label: '나의 하루에 추가됨' },
   { value: 'title', label: '제목' },
 ];
 
@@ -113,9 +113,9 @@ export function splitByCompletion(tasks: readonly Task[]): {
 /**
  * 미완료 목록의 순서를 정합니다.
  *
- * 기준 값이 없는 항목(기한 없음, 오늘에 담지 않음)은 방향과 무관하게 뒤로 보냅니다.
+ * 기준 값이 없는 항목(기한 없음, 나의 하루에 추가되지 않음)은 방향과 무관하게 뒤로 보냅니다.
  * 없는 것은 작은 것이 아니라 없는 것이므로 극값으로 취급하면 방향을 뒤집을 때 맨 앞으로
- * 올라옵니다. 같은 값끼리는 만든 때 최근 것이 앞입니다.
+ * 올라옵니다. 같은 값끼리는 만든 날짜 최근 것이 앞입니다.
  *
  * 사전순 비교가 곧 시간순 비교입니다. `createdAt` 은 ISO 8601 이고 `dueDate` 와 `myDayOn` 은
  * 그 날짜 부분이라 별도 변환이 필요 없습니다. 제목만 로캘 비교를 씁니다.
@@ -171,7 +171,7 @@ export function sortCompleted(tasks: readonly Task[]): readonly Task[] {
 }
 
 /**
- * 같은 할일을 목적에 따라 다르게 묶어 보는 자리입니다. TK-002 A1–A4.
+ * 같은 작업을 목적에 따라 다르게 묶어 보는 자리입니다. TK-002 A1–A4.
  *
  * 한 항목이 여러 관점에 동시에 나타납니다. 관점은 항목을 소유하지 않고 고르기만 합니다.
  */
@@ -185,7 +185,7 @@ export type TaskView = 'all' | 'my-day' | 'important' | 'planned';
  * 아이콘은 표현이므로 셸이 갖습니다. 02-package-structure.md 5절.
  */
 export const TASK_VIEWS: readonly { readonly value: TaskView; readonly label: string }[] = [
-  { value: 'my-day', label: '내 하루' },
+  { value: 'my-day', label: '나의 하루' },
   { value: 'important', label: '중요' },
   { value: 'planned', label: '계획된 일정' },
   { value: 'all', label: '작업' },
@@ -206,7 +206,7 @@ export function toTaskView(raw: string | undefined | null): TaskView {
   return raw === 'my-day' || raw === 'important' || raw === 'planned' ? raw : 'all';
 }
 
-/** 오늘 담긴 것인지 봅니다. 어제 담은 것은 오늘의 내 하루가 아닙니다. */
+/** 나의 하루에 추가긴 것인지 봅니다. 어제 담은 것은 오늘의 나의 하루가 아닙니다. */
 export function isInMyDay(task: Task, today: string): boolean {
   return task.myDayOn === today;
 }
@@ -214,7 +214,7 @@ export function isInMyDay(task: Task, today: string): boolean {
 /**
  * 관점이 고르는 항목만 남깁니다. 완료 여부로 가르는 것은 이 다음 단계입니다.
  *
- * 계획된 일정만 완료하지 않은 것으로 한정합니다. 마감일은 아직 해내지 않은 것을 언제까지
+ * 계획된 일정만 완료하지 않은 것으로 한정합니다. 기한은 아직 해내지 않은 것을 언제까지
  * 해야 하는가의 값이라 해낸 뒤에는 판단 대상이 아닙니다. 나머지 셋에서 완료 항목이
  * 어떻게 보이는지는 TK-002 의 미결 항목입니다.
  */
@@ -241,12 +241,12 @@ export function isAddableTitle(raw: string): boolean {
 }
 
 /**
- * 마감일을 화면에 적을 형태로 바꿉니다.
+ * 기한을 화면에 적을 형태로 바꿉니다.
  *
  * 저장 형식(`YYYY-MM-DD`)과 표시 형식을 분리합니다. 저장 형식은 정렬과 비교의 근거이고
  * 표시 형식은 읽는 사람의 것이라 둘을 같은 값으로 두면 한쪽이 다른 쪽에 끌려갑니다.
  *
- * 연도는 올해가 아닐 때만 적습니다. 대부분의 마감일이 올해에 몰리므로 매번 적으면
+ * 연도는 올해가 아닐 때만 적습니다. 대부분의 기한이 올해에 몰리므로 매번 적으면
  * 네 글자가 모든 줄에서 같은 값을 반복합니다.
  */
 export function formatDueDate(dueDate: string, today: Date = new Date()): string {
@@ -256,7 +256,7 @@ export function formatDueDate(dueDate: string, today: Date = new Date()): string
   return year === today.getFullYear() ? `${month}월 ${day}일` : `${year}년 ${month}월 ${day}일`;
 }
 
-/** 오늘 기준으로 마감일이 지났는지 봅니다. 사전순 비교가 곧 시간순 비교입니다. */
+/** 오늘 기준으로 기한이 지났는지 봅니다. 사전순 비교가 곧 시간순 비교입니다. */
 export function isOverdue(task: Task, today: string): boolean {
   return task.dueDate !== null && !isCompleted(task) && task.dueDate < today;
 }

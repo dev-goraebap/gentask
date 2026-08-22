@@ -5,7 +5,7 @@
 <section class="flex min-h-0 flex-1 flex-col">
   @if (task(); as current) {
     <div class="mb-4 flex items-center justify-between gap-2">
-      <h2 class="text-sm font-medium">할 일 편집</h2>
+      <h2 class="text-sm font-medium">작업 편집</h2>
       <button
         hlmBtn
         type="button"
@@ -19,8 +19,8 @@
     </div>
 
     <!--
-      내 하루에 담고 뺍니다. 담긴 것은 매일 비워지며 빼도 원래 목록에는 그대로 남습니다.
-      담았다는 사실과 할일 자체의 존재는 다른 것입니다. TK-003 A5.
+      나의 하루에 담고 뺍니다. 담긴 것은 매일 비워지며 빼도 원래 목록에는 그대로 남습니다.
+      담았다는 사실과 작업 자체의 존재는 다른 것입니다. TK-003 A5.
 
       켜짐을 aria-pressed 가 전달하고 문구도 함께 바뀝니다. 색만으로 알리면 색각 이상과
       흑백 출력에서 전달되지 않습니다. 13-accessibility.md 4절.
@@ -36,7 +36,7 @@
       (click)="toggleMyDay()"
     >
       <app-icon name="lucideSun" />
-      {{ inMyDay() ? '내 하루에서 빼기' : '내 하루에 추가' }}
+      {{ inMyDay() ? '나의 하루에서 빼기' : '나의 하루에 추가' }}
     </button>
 
     <!--
@@ -82,7 +82,7 @@
       </div>
 
       <div hlmField>
-        <label hlmFieldLabel for="task-due">마감일</label>
+        <label hlmFieldLabel for="task-due">기한</label>
         <div class="flex items-center gap-2">
           <!--
             네이티브 날짜 입력을 쓰지 않습니다. OS 와 브라우저마다 외형이 달라져 화면
@@ -97,7 +97,7 @@
           </hlm-date-picker>
 
           @if (draftDueDate()) {
-            <!-- 한 번 정한 마감일을 되돌릴 길이 없으면 정하는 것 자체가 부담이 됩니다. -->
+            <!-- 한 번 정한 기한을 되돌릴 길이 없으면 정하는 것 자체가 부담이 됩니다. -->
             <button hlmBtn type="button" variant="ghost" size="sm" (click)="setDueDate(null)">
               지우기
             </button>
@@ -120,7 +120,7 @@
     </form>
 
     <!--
-      지우기는 이 자리에만 둡니다. 목록 행에 상시 노출하면 파괴적 조작의 기회가 줄 수만큼
+      삭제는 이 자리에만 둡니다. 목록 행에 상시 노출하면 파괴적 조작의 기회가 줄 수만큼
       늘어납니다. 되돌리기 안내가 없으므로 확인 대화가 유일한 안전장치입니다.
 
       대화의 호스트가 트리거 버튼을 감싸므로 폭 0 인 요소가 줄에 끼지 않습니다.
@@ -135,7 +135,7 @@
           variant="ghost"
           size="icon-sm"
           class="text-foreground-secondary hover:text-warning"
-          aria-label="할 일 지우기"
+          aria-label="작업 삭제"
         >
           <app-icon name="lucideTrash2" />
         </button>
@@ -143,21 +143,21 @@
         <hlm-alert-dialog-content *hlmAlertDialogPortal>
           <hlm-alert-dialog-header>
             <!-- 항목 이름을 제목 줄에 두어 무엇을 지우는지 확인 없이 지나칠 수 없게 합니다. -->
-            <h3 hlmAlertDialogTitle>&lsquo;{{ current.title }}&rsquo; 지우기</h3>
+            <h3 hlmAlertDialogTitle>&lsquo;{{ current.title }}&rsquo; 삭제</h3>
             <p hlmAlertDialogDescription>지운 뒤에는 되돌릴 수 없습니다.</p>
           </hlm-alert-dialog-header>
 
           <hlm-alert-dialog-footer>
             <button hlmAlertDialogCancel>취소</button>
             <!-- 파괴적 액션이므로 색과 문구를 함께 씁니다. 13-accessibility.md 4절. -->
-            <button hlmAlertDialogAction variant="destructive" (click)="remove()">지우기</button>
+            <button hlmAlertDialogAction variant="destructive" (click)="remove()">삭제</button>
           </hlm-alert-dialog-footer>
         </hlm-alert-dialog-content>
       </hlm-alert-dialog>
     </div>
   } @else {
     <p class="text-foreground-secondary py-8 text-center text-sm">
-      찾을 수 없는 할 일입니다.
+      찾을 수 없는 작업입니다.
       <button hlmBtn type="button" variant="link" size="sm" class="px-1" (click)="close()">
         닫기
       </button>
