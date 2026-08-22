@@ -2,7 +2,7 @@
 
 순서만 담당한다. 제목과 상태는 각 항목 파일이 원본이다.
 
-접두어: Epic `EP-` · Feature `FT-` · Story `ST-` · Task `TA-`. Task 가 `TK-` 가 아닌 이유는 유스케이스 ID(`TK-001`)와 겹치기 때문이다.
+접두어: Epic `EP-` · Story `ST-` · Task `TA-`. Task 가 `TK-` 가 아닌 이유는 유스케이스 ID(`TK-001`)와 겹치기 때문이다.
 
 ## 진행 중
 
