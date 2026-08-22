@@ -290,12 +290,12 @@ describe('TaskDetailPanel', () => {
 
   describe('TK-003 S2: 기한이 정한 대로 그 작업에 남는다', () => {
     it('기한이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
-      tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
+      tasks.set([{ ...seed, dueDate: '2026-12-25' }]);
       const fixture = render('seed-1');
 
       // 트리거 버튼이 고른 날짜를 표기합니다. 정하지 않았을 때의 문구와 갈립니다.
       const trigger = query<HTMLButtonElement>(fixture, 'hlm-date-picker-trigger button');
-      expect(trigger.textContent?.trim()).toBe('8월 25일');
+      expect(trigger.textContent?.trim()).toBe('12월 25일까지');
     });
 
     it('기한을 정하지 않았으면 지우기를 내보내지 않는다', () => {
@@ -307,7 +307,7 @@ describe('TaskDetailPanel', () => {
     });
 
     it('기한을 지우면 비운 값을 곧바로 반영한다', async () => {
-      tasks.set([{ ...seed, dueDate: '2026-08-25' }]);
+      tasks.set([{ ...seed, dueDate: '2026-12-25' }]);
       const fixture = render('seed-1');
 
       const clear = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>

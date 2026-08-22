@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   filterByView,
+  describeDue,
   formatDueDate,
   fromDateKey,
   isAddableTitle,
@@ -202,6 +203,18 @@ describe('toSortDirection', () => {
     expect(toSortDirection('asc', 'created')).toBe('asc');
     expect(toSortDirection('이상한값', 'created')).toBe('desc');
     expect(toSortDirection(undefined, 'due')).toBe('asc');
+  });
+});
+
+describe('describeDue', () => {
+  it('오늘과 내일은 말로, 나머지는 날짜 뒤에 "까지" 를 붙인다', () => {
+    expect(describeDue('2026-08-22', '2026-08-22')).toBe('오늘까지');
+    expect(describeDue('2026-08-23', '2026-08-22')).toBe('내일까지');
+    expect(describeDue('2026-09-01', '2026-08-22')).toBe('9월 1일까지');
+  });
+
+  it('월말을 넘기는 내일도 맞게 판정한다', () => {
+    expect(describeDue('2026-09-01', '2026-08-31')).toBe('내일까지');
   });
 });
 

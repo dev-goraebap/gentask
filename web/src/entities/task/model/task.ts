@@ -256,6 +256,24 @@ export function formatDueDate(dueDate: string, today: Date = new Date()): string
   return year === today.getFullYear() ? `${month}월 ${day}일` : `${year}년 ${month}월 ${day}일`;
 }
 
+/**
+ * 기한을 "~까지" 로 읽어 줍니다. MS To Do 의 표기입니다. 오늘과 내일은 날짜 대신 말로 적습니다.
+ * 오늘을 인자로 받는 이유는 화면과 테스트가 같은 기준일을 쓰게 하기 위해서입니다.
+ */
+export function describeDue(dueDate: string, today: string): string {
+  if (dueDate === today) return '오늘까지';
+  if (dueDate === shiftDateKey(today, 1)) return '내일까지';
+  return `${formatDueDate(dueDate)}까지`;
+}
+
+/** 날짜 키에 일수를 더합니다. 지역 시각 기준이며 달력과 같은 규칙입니다. */
+export function shiftDateKey(key: string, days: number): string {
+  const date = fromDateKey(key);
+  if (!date) return key;
+  date.setDate(date.getDate() + days);
+  return toDateKey(date);
+}
+
 /** 오늘 기준으로 기한이 지났는지 봅니다. 사전순 비교가 곧 시간순 비교입니다. */
 export function isOverdue(task: Task, today: string): boolean {
   return task.dueDate !== null && !isCompleted(task) && task.dueDate < today;

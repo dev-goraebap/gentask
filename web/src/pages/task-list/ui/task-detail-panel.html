@@ -47,7 +47,7 @@
             <input
               hlmInput
               id="task-title"
-              class="h-9 border-0 bg-transparent px-0 text-base font-semibold shadow-none focus-visible:ring-0"
+              class="h-9 border-0 bg-transparent px-0 text-base font-semibold shadow-none focus-visible:ring-0 dark:bg-transparent"
               [formField]="editForm.title"
               autocomplete="off"
               enterkeyhint="done"
@@ -127,10 +127,34 @@
             07-adaptive-ui.md 4.1절.
           -->
           <hlm-date-picker
+            #picker
             [date]="dueDate()"
             (dateChange)="setDueDate($event)"
             class="min-w-0 flex-1"
           >
+            <!--
+              달력 위의 빠른 선택입니다. To Do 는 메뉴를 먼저 보이고 "날짜 선택" 으로 달력을
+              열지만, 여기서는 한 팝오버에 둘을 같이 둡니다. 단계가 하나 줄고 달력도 바로 보입니다.
+            -->
+            <div
+              hlmDatePickerHeader
+              class="border-border divide-border flex flex-col divide-y border-b"
+            >
+              @for (q of quickDue(); track q.label) {
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  class="h-10 justify-start gap-3 px-3"
+                  (click)="pickQuick(q.date, picker)"
+                >
+                  <app-icon [name]="q.icon" />
+                  {{ q.label }}
+                  <span class="text-muted-foreground ml-auto">{{ q.weekday }}</span>
+                </button>
+              }
+            </div>
             <hlm-date-picker-trigger
               buttonId="task-due"
               variant="ghost"
@@ -167,7 +191,7 @@
           hlmTextarea
           id="task-note"
           rows="5"
-          class="min-h-24 border-0 bg-transparent px-3 py-2.5 shadow-none focus-visible:ring-0"
+          class="min-h-24 border-0 bg-transparent px-3 py-2.5 shadow-none focus-visible:ring-0 dark:bg-transparent"
           [formField]="editForm.note"
           placeholder="메모 추가"
           (blur)="commit()"

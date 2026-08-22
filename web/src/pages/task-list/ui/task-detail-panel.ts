@@ -13,7 +13,7 @@ import {
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import {
-  formatDueDate,
+  describeDue,
   fromDateKey,
   isAddableTitle,
   isCompleted,
@@ -49,7 +49,16 @@ import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmTextarea } from '@/shared/ui/textarea';
 import { provideIcons } from '@ng-icons/core';
-import { lucideCalendar, lucideStar, lucideSun, lucideTrash2, lucideX } from '@ng-icons/lucide';
+import {
+  lucideCalendar,
+  lucideCalendarArrowDown,
+  lucideCalendarCheck,
+  lucideCalendarRange,
+  lucideStar,
+  lucideSun,
+  lucideTrash2,
+  lucideX,
+} from '@ng-icons/lucide';
 
 /**
  * 작업 하나의 내용을 채우는 패널입니다. TK-003 작업 편집의 기본 흐름과 A2–A6 을 담습니다.
@@ -95,13 +104,22 @@ import { lucideCalendar, lucideStar, lucideSun, lucideTrash2, lucideX } from '@n
     HlmAlertDialogTrigger,
   ],
   providers: [
-    provideIcons({ lucideCalendar, lucideStar, lucideSun, lucideTrash2, lucideX }),
+    provideIcons({
+      lucideCalendar,
+      lucideCalendarArrowDown,
+      lucideCalendarCheck,
+      lucideCalendarRange,
+      lucideStar,
+      lucideSun,
+      lucideTrash2,
+      lucideX,
+    }),
     /*
      * 달력이 다루는 값은 Date 이고 저장 형식은 날짜 문자열입니다. 표기를 이 자리에서
      * 정해 두면 목록과 상세가 같은 함수를 거치므로 두 화면의 날짜가 어긋나지 않습니다.
      */
     provideHlmDatePickerConfig<Date>({
-      formatDate: (date) => formatDueDate(toDateKey(date)),
+      formatDate: (date) => describeDue(toDateKey(date), toDateKey(new Date())),
       autoCloseOnSelect: true,
     }),
   ],
@@ -225,6 +243,29 @@ export class TaskDetailPanel {
 
   /** 지우기 버튼의 표시 조건입니다. 정하지 않은 상태에서는 지울 것이 없습니다. */
   protected readonly draftDueDate = computed(() => this.draft().dueDate);
+
+  /**
+   * 기한의 빠른 선택입니다. MS To Do 의 오늘 · 내일 · 다음 주와 같고, 요일을 함께 보여 줍니다.
+   * 오늘은 열 때마다 다시 재지 않습니다. 패널이 열려 있는 동안 자정을 넘는 경우는 드물고,
+   * 넘더라도 다음에 열 때 맞습니다.
+   */
+  protected readonly quickDue = computed(() =>
+    [
+      { label: '오늘', days: 0, icon: 'lucideCalendarCheck' },
+      { label: '내일', days: 1, icon: 'lucideCalendarArrowDown' },
+      { label: '다음 주', days: 7, icon: 'lucideCalendarRange' },
+    ].map((q) => {
+      const date = fromDateKey(this.today) ?? new Date();
+      date.setDate(date.getDate() + q.days);
+      return { ...q, date, weekday: date.toLocaleDateString('ko-KR', { weekday: 'short' }) };
+    }),
+  );
+
+  /** 빠른 선택은 달력을 거치지 않으므로 팝오버를 직접 닫습니다. */
+  protected pickQuick(date: Date, picker: { close(): void }): void {
+    this.setDueDate(date);
+    picker.close();
+  }
 
   /** 날짜는 고르는 즉시 반영합니다. 텍스트와 달리 벗어나는 조작이 따로 없습니다. */
   protected setDueDate(date: Date | null): void {

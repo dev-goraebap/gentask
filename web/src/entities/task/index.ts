@@ -1,6 +1,8 @@
 export {
   filterByView,
+  describeDue,
   formatDueDate,
+  shiftDateKey,
   fromDateKey,
   isAddableTitle,
   isCompleted,
