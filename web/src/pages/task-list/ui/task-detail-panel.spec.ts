@@ -277,7 +277,7 @@ describe('TaskDetailPanel', () => {
       const fixture = render('seed-1');
 
       expect(myDayButton(fixture).getAttribute('aria-pressed')).toBe('true');
-      expect(myDayButton(fixture).textContent?.trim()).toBe('나의 하루에서 빼기');
+      expect(myDayButton(fixture).textContent?.trim()).toBe('나의 하루에 추가됨');
     });
 
     it('어제 담긴 것은 오늘의 나의 하루가 아니다', () => {

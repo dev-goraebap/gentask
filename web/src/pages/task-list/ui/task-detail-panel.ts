@@ -16,6 +16,7 @@ import {
   formatDueDate,
   fromDateKey,
   isAddableTitle,
+  isCompleted,
   isInMyDay,
   TASK_STORE,
   toDateKey,
@@ -37,6 +38,7 @@ import {
   HlmAlertDialogTrigger,
 } from '@/shared/ui/alert-dialog';
 import { HlmButton } from '@/shared/ui/button';
+import { HlmCheckbox } from '@/shared/ui/checkbox';
 import {
   HlmDatePicker,
   HlmDatePickerTrigger,
@@ -47,7 +49,7 @@ import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmTextarea } from '@/shared/ui/textarea';
 import { provideIcons } from '@ng-icons/core';
-import { lucideSun, lucideTrash2, lucideX } from '@ng-icons/lucide';
+import { lucideCalendar, lucideStar, lucideSun, lucideTrash2, lucideX } from '@ng-icons/lucide';
 
 /**
  * 작업 하나의 내용을 채우는 패널입니다. TK-003 작업 편집의 기본 흐름과 A2–A6 을 담습니다.
@@ -73,6 +75,7 @@ import { lucideSun, lucideTrash2, lucideX } from '@ng-icons/lucide';
     FormField,
     AppIcon,
     HlmButton,
+    HlmCheckbox,
     HlmInput,
     HlmTextarea,
     HlmField,
@@ -92,7 +95,7 @@ import { lucideSun, lucideTrash2, lucideX } from '@ng-icons/lucide';
     HlmAlertDialogTrigger,
   ],
   providers: [
-    provideIcons({ lucideSun, lucideTrash2, lucideX }),
+    provideIcons({ lucideCalendar, lucideStar, lucideSun, lucideTrash2, lucideX }),
     /*
      * 달력이 다루는 값은 Date 이고 저장 형식은 날짜 문자열입니다. 표기를 이 자리에서
      * 정해 두면 목록과 상세가 같은 함수를 거치므로 두 화면의 날짜가 어긋나지 않습니다.
@@ -184,6 +187,33 @@ export class TaskDetailPanel {
   });
 
   private readonly today = toDateKey(new Date());
+
+  protected readonly completed = computed(() => {
+    const current = this.task();
+    return current ? isCompleted(current) : false;
+  });
+
+  /**
+   * 목록 행과 같은 완료 체크입니다. 실패하면 체크박스를 누르기 전으로 되돌립니다. TK-004 A4.
+   * 체크박스는 자기 표시를 갖고 입력값이 그대로면 다시 그리지 않으므로 그 표시를 직접 되돌립니다.
+   */
+  protected async setCompleted(completed: boolean, box: HlmCheckbox): Promise<void> {
+    const current = this.task();
+    if (!current) return;
+    try {
+      await this.store.setCompleted(current.id, completed);
+    } catch {
+      box.checked.set(!completed);
+      toast.error(completed ? '완료하지 못했습니다.' : '되돌리지 못했습니다.');
+    }
+  }
+
+  /** 중요 표시를 켜고 끕니다. TK-003 A4. 목록 행의 별과 같은 동작입니다. */
+  protected async setImportant(important: boolean): Promise<void> {
+    const current = this.task();
+    if (!current) return;
+    await this.store.setImportant(current.id, important);
+  }
 
   /** 담고 빼는 것은 즉시 반영입니다. 벗어나는 조작이 따로 없습니다. */
   protected async toggleMyDay(): Promise<void> {
