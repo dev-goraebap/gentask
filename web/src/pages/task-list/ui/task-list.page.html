@@ -9,32 +9,65 @@
   <p class="sr-only" aria-live="polite">남은 작업 {{ groups().active.length }}개</p>
 
   <!--
-    정렬 기준입니다. 고른 값은 aria-pressed 가, 방향은 화살표와 이름이 전달하며 색만으로
-    알리지 않습니다. 같은 기준을 다시 누르면 방향이 뒤집힙니다. 13-accessibility.md 4절.
+    정렬은 메뉴에서 고르고, 고른 뒤에는 칩 하나가 그것을 보여 줍니다. MS To Do 의 구성입니다.
+    칩의 화살표는 방향을 뒤집고 × 는 기본으로 되돌립니다. 고른 값은 메뉴의 aria-pressed 가,
+    방향은 화살표와 이름이 전달하며 색만으로 알리지 않습니다. 13-accessibility.md 4절.
   -->
-  <div role="group" aria-label="정렬 기준" class="mt-6 flex flex-wrap items-center gap-1">
-    @for (option of sortOptions; track option.value) {
-      <button
-        hlmBtn
-        type="button"
-        size="sm"
-        [variant]="sort() === option.value ? 'secondary' : 'ghost'"
-        [attr.aria-pressed]="sort() === option.value"
-        [attr.aria-label]="
-          sort() === option.value
-            ? option.label +
-              ' ' +
-              (direction() === 'asc' ? '오름차순' : '내림차순') +
-              ', 다시 누르면 뒤집기'
-            : option.label + '으로 정렬'
-        "
-        (click)="setSort(option.value)"
-      >
-        {{ option.label }}
-        @if (sort() === option.value) {
-          <app-icon [name]="direction() === 'asc' ? 'lucideArrowUp' : 'lucideArrowDown'" />
-        }
+  <div class="mt-4 flex flex-wrap items-center gap-2">
+    <hlm-popover align="start" sideOffset="4">
+      <button hlmPopoverTrigger hlmBtn type="button" variant="ghost" size="sm" class="gap-2">
+        <app-icon name="lucideArrowDownUp" />
+        정렬
       </button>
+      <hlm-popover-content *hlmPopoverPortal="let ctx" class="w-52 p-1">
+        <div role="group" aria-label="정렬 기준" class="flex flex-col">
+          @for (option of sortOptions; track option.value) {
+            <button
+              hlmBtn
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="justify-start"
+              [attr.aria-pressed]="sort() === option.value"
+              (click)="setSort(option.value); ctx.close()"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+      </hlm-popover-content>
+    </hlm-popover>
+
+    @if (sortActive()) {
+      <div class="border-border bg-card flex items-center border text-sm">
+        <button
+          hlmBtn
+          type="button"
+          variant="ghost"
+          size="sm"
+          class="gap-1.5 pr-1"
+          [attr.aria-label]="
+            sortChip() +
+            ', ' +
+            (direction() === 'asc' ? '오름차순' : '내림차순') +
+            '. 누르면 뒤집기'
+          "
+          (click)="flipSort()"
+        >
+          <app-icon [name]="direction() === 'asc' ? 'lucideArrowUp' : 'lucideArrowDown'" />
+          {{ sortChip() }}
+        </button>
+        <button
+          hlmBtn
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="정렬 해제"
+          (click)="clearSort()"
+        >
+          <app-icon name="lucideX" />
+        </button>
+      </div>
     }
   </div>
 
@@ -199,7 +232,7 @@
     novalidate
     [formRoot]="addForm"
     (submit)="$event.preventDefault()"
-    class="border-border bg-background sticky bottom-0 mt-auto border-t pt-4 pb-[calc(--spacing(6)+env(safe-area-inset-bottom))]"
+    class="bg-background sticky bottom-0 mt-auto pt-4 pb-[calc(--spacing(6)+env(safe-area-inset-bottom))]"
   >
     <!--
       필드 래퍼가 레이블 연결과 오류 표시 자리를 제공합니다. 날것의 div 로 조립하면

@@ -13,10 +13,12 @@ import { provideIcons } from '@ng-icons/core';
 import {
   lucideArrowDown,
   lucideArrowUp,
+  lucideArrowDownUp,
   lucideCalendar,
   lucideChevronRight,
   lucideStar,
   lucideSun,
+  lucideX,
 } from '@ng-icons/lucide';
 import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { AsideOutlet } from '@/shared/lib';
@@ -25,6 +27,7 @@ import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
+import { HlmPopoverImports } from '@/shared/ui/popover';
 import { toast } from '@/shared/ui/sonner';
 import { TaskDetailPanel } from './task-detail-panel';
 import {
@@ -73,6 +76,7 @@ import {
     RouterLink,
     HlmButton,
     HlmInput,
+    HlmPopoverImports,
     HlmCheckbox,
     AppIcon,
     HlmField,
@@ -84,10 +88,12 @@ import {
     provideIcons({
       lucideArrowDown,
       lucideArrowUp,
+      lucideArrowDownUp,
       lucideCalendar,
       lucideChevronRight,
       lucideStar,
       lucideSun,
+      lucideX,
     }),
   ],
   /*
@@ -192,6 +198,31 @@ export class TaskListPage {
   });
 
   protected readonly sortOptions = TASK_SORTS;
+
+  /**
+   * 정렬이 기본(만든 날짜 · 최근 것 앞)에서 벗어났는지입니다. 벗어났을 때만 칩을 보입니다.
+   * 기본 상태에 칩이 늘 떠 있으면 "정렬 중" 이라는 신호가 값싸집니다.
+   */
+  protected readonly sortActive = computed(
+    () => this.sort() !== 'created' || this.direction() !== DEFAULT_DIRECTION.created,
+  );
+
+  protected readonly sortChip = computed(
+    () => TASK_SORTS.find((s) => s.value === this.sort())?.chip ?? '',
+  );
+
+  /** 칩의 화살표는 방향을 뒤집고, × 는 정렬을 기본으로 되돌립니다. */
+  protected flipSort(): void {
+    this.setSort(this.sort());
+  }
+
+  protected clearSort(): void {
+    void this.router.navigate([], {
+      queryParams: { sort: null, dir: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
 
   protected readonly panel = TASK_PANEL;
 

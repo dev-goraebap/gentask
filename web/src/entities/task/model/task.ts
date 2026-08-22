@@ -71,12 +71,17 @@ export const DEFAULT_DIRECTION: Record<TaskSort, SortDirection> = {
   title: 'asc',
 };
 
-export const TASK_SORTS: readonly { readonly value: TaskSort; readonly label: string }[] = [
-  { value: 'created', label: '만든 날짜' },
-  { value: 'importance', label: '중요도' },
-  { value: 'due', label: '기한' },
-  { value: 'my-day', label: '나의 하루에 추가됨' },
-  { value: 'title', label: '제목' },
+/** 메뉴의 이름과, 고른 뒤 칩에 적는 문구입니다. 문구는 MS To Do 를 따릅니다. */
+export const TASK_SORTS: readonly {
+  readonly value: TaskSort;
+  readonly label: string;
+  readonly chip: string;
+}[] = [
+  { value: 'importance', label: '중요도', chip: '중요도로 정렬' },
+  { value: 'due', label: '기한', chip: '기한으로 정렬' },
+  { value: 'my-day', label: '나의 하루에 추가됨', chip: '나의 하루 추가 여부로 정렬' },
+  { value: 'title', label: '제목', chip: '제목으로 정렬' },
+  { value: 'created', label: '만든 날짜', chip: '만든 날짜로 정렬' },
 ];
 
 /**

@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TASK_STORE, type Task, type TaskStore } from '@/entities/task';
 import { AsideSlot } from '@/shared/lib';
 import { TaskListPage } from './task-list.page';
@@ -78,6 +78,10 @@ describe('TaskListPage', () => {
     });
   });
 
+  afterEach(() => {
+    document.querySelectorAll('.cdk-overlay-container').forEach((node) => node.remove());
+  });
+
   function render(sort?: 'created' | 'due', view?: string): ComponentFixture<TaskListPage> {
     const fixture = TestBed.createComponent(TaskListPage);
     if (sort) fixture.componentRef.setInput('sort', sort);
@@ -86,11 +90,18 @@ describe('TaskListPage', () => {
     return fixture;
   }
 
+  /** 정렬 메뉴를 열고 그 안의 기준 버튼을 돌려줍니다. 메뉴는 오버레이에 뜹니다. */
   function sortButton(fixture: ComponentFixture<TaskListPage>, label: string): HTMLButtonElement {
     const host = fixture.nativeElement as HTMLElement;
-    const group = host.querySelector('[role="group"][aria-label="정렬 기준"]');
-    const button = [...(group?.querySelectorAll('button') ?? [])].find((candidate) =>
-      candidate.textContent?.trim().startsWith(label),
+    const trigger = [...host.querySelectorAll('button')].find(
+      (b) => b.textContent?.trim() === '정렬',
+    );
+    if (!trigger) throw new Error('정렬 버튼을 찾지 못했습니다');
+    trigger.click();
+    fixture.detectChanges();
+    const group = document.querySelector('[role="group"][aria-label="정렬 기준"]');
+    const button = [...(group?.querySelectorAll('button') ?? [])].find(
+      (candidate) => candidate.textContent?.trim() === label,
     );
     if (!button) throw new Error(`${label} 버튼을 찾지 못했습니다`);
     return button;
@@ -315,6 +326,23 @@ describe('TaskListPage', () => {
     expect(toastError).toHaveBeenCalled();
     expect(box.getAttribute('aria-checked')).toBe('false');
     expect(titles(fixture)).toContain('전기요금 납부');
+  });
+
+  it('기본 정렬에는 칩이 없고, 고르면 칩이 그 기준을 보여 준다', () => {
+    expect((render().nativeElement as HTMLElement).textContent).not.toContain('로 정렬');
+
+    const fixture = render('due');
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('기한으로 정렬');
+
+    // × 는 정렬을 기본으로 되돌립니다.
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    host.querySelector<HTMLButtonElement>('button[aria-label="정렬 해제"]')?.click();
+    expect(navigate).toHaveBeenCalledWith([], {
+      queryParams: { sort: null, dir: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   });
 
   it('고른 정렬 기준을 aria-pressed 로 알린다', () => {
