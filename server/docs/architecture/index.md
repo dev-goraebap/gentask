@@ -35,8 +35,13 @@
 - [03. 명명 규칙](references/03-naming.md) — 계층을 식별하는 접미사와 패키지·클래스 명명
 - [05. 조회와 명령](references/05-query-command.md) — 읽기 경로와 쓰기 경로의 분리 기준
 - [06. 데이터 접근](references/06-data-access.md) — 스키마 소유권과 코드 생성, 저장소 구현 규약
+- [07. API 설계](references/07-api-design.md) — 엔드포인트 규약과 응답 형식
 - [08. 예외 · 에러 코드](references/08-error-handling.md) — 실패의 표현과 전달, 기록 범위
 
 ## §9 아키텍처 결정 (Architecture Decisions)
 
 - [결정 기록 목차](decisions/index.md) — 유효·대체됨 상태와 발행 예정 목록을 포함합니다
+
+## §10 품질 요구사항 (Quality Requirements)
+
+- [09. 테스트](references/09-testing.md) — 계층별 검증 수준과 제외 범위

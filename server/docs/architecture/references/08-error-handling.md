@@ -84,17 +84,32 @@ public interface ErrorCode {
 ### 모듈 열거형
 
 ```java
-@Getter
-@RequiredArgsConstructor
 public enum TaskErrorCode implements ErrorCode {
 
-    TASK_NOT_FOUND(NOT_FOUND, "작업을 찾을 수 없습니다"),
-    TASK_ALREADY_DONE(CONFLICT, "이미 완료한 작업입니다");
+    TASK_NOT_FOUND(HttpStatus.NOT_FOUND, "작업을 찾을 수 없습니다"),
+    TASK_ALREADY_DONE(HttpStatus.CONFLICT, "이미 완료한 작업입니다");
 
     private final HttpStatus status;
     private final String message;
+
+    TaskErrorCode(HttpStatus status, String message) {
+        this.status = status;
+        this.message = message;
+    }
+
+    @Override
+    public HttpStatus status() {
+        return status;
+    }
+
+    @Override
+    public String message() {
+        return message;
+    }
 }
 ```
+
+접근자를 Lombok 으로 만들지 않습니다. `@Getter` 는 `get` 접두사를 붙이는데 계약의 이름은 `status()` 와 `message()` 라 맞지 않습니다.
 
 ```java
 throw TASK_NOT_FOUND.raise();
