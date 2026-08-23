@@ -9,49 +9,47 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 
-/**
- * 작업 애그리거트 (TK-001 ~ TK-004).
- *
- * <p>완료를 boolean 이 아니라 시각으로 둔다. <b>"언제 해냈는가" 가 완료 목록의 정렬 근거</b>이고,
- * boolean 으로 두면 그 정보를 나중에 되살릴 수 없다.
- *
- * <p>나의 하루에 담긴 것도 날짜다. 담긴 것은 매일 비워져야 하는데, 날짜를 들고 있으면 오늘과
- * 비교하는 것만으로 비워지므로 자정에 값을 지우러 다니는 장치를 두지 않아도 된다.
- *
- * <p>생성자를 공개하지 않는다. 공개하면 불변식을 통과하지 않은 인스턴스가 존재할 수 있게 되어
- * 타입이 보장하는 것이 사라진다. {@code @NonNull} 이 붙은 필드는 생성 시점에 검사된다.
- */
+/** 작업 애그리거트 (TK-001 ~ TK-004). */
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Task {
 
+    // 식별자
     @NonNull private final UUID id;
 
+    // 제목
     @NonNull private TaskTitle title;
 
+    // 메모
     @NonNull private TaskNote note;
 
+    // 기한
     private LocalDate dueDate;
+
+    // 미리 알림 시각
     private LocalDateTime remindAt;
+
+    // 중요 표시
     private boolean important;
+
+    // 나의 하루에 담은 날짜
     private LocalDate myDayOn;
+
+    // 완료 시각
     private Instant completedAt;
 
+    // 만든 시각
     @NonNull private final Instant createdAt;
 
+    // 고친 시각
     @NonNull private Instant updatedAt;
 
-    /** 새 작업. 제목만으로 만들어지며 나머지는 정해지지 않은 상태로 시작한다. TK-001 기본 흐름. */
+    /** 제목 외의 값은 정해지지 않은 상태로 시작한다. TK-001 기본 흐름. */
     public static Task create(UUID id, TaskTitle title, Instant now) {
         return new Task(id, title, TaskNote.empty(), null, null, false, null, null, now, now);
     }
 
-    /**
-     * 저장소 전용 재구성.
-     *
-     * <p>생성 경로와 나누는 이유는 이미 저장된 값이 현재 불변식을 통과하지 못할 수 있기
-     * 때문이다. 규칙이 강화된 뒤에도 옛 데이터는 읽혀야 한다.
-     */
+    /** 저장소만 호출한다. 검증을 지나지 않는다. */
     public static Task restore(
             UUID id,
             TaskTitle title,

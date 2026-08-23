@@ -16,23 +16,17 @@ import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
-/**
- * 작업 저장소 구현.
- *
- * <p><b>jOOQ 에는 변경 감지가 없다.</b> 애그리거트를 고친 뒤에는 항상 {@code save} 를 부른다.
- *
- * <p>변환은 이 클래스의 비공개 메서드가 담당한다. 매퍼 클래스를 따로 두면 파일이 늘고 그 자체가
- * 유지 대상이 되는데, 저장소는 어차피 레코드를 다루므로 변환의 자연스러운 자리다.
- */
+/** jOOQ 에는 변경 감지가 없다. 애그리거트를 고친 뒤에는 항상 save 를 불러야 한다. */
 @Repository
 @RequiredArgsConstructor
 class JooqTaskRepository implements TaskRepository {
 
-    private final DSLContext dsl;
+    private final DSLContext dslContext;
 
     @Override
     public void save(Task task) {
-        dsl.insertInto(TASKS)
+        dslContext
+                .insertInto(TASKS)
                 .set(TASKS.ID, task.id())
                 .set(TASKS.TITLE, task.title().value())
                 .set(TASKS.NOTE, task.note().value())
@@ -40,9 +34,9 @@ class JooqTaskRepository implements TaskRepository {
                 .set(TASKS.REMIND_AT, task.remindAt())
                 .set(TASKS.IMPORTANT, task.important())
                 .set(TASKS.MY_DAY_ON, task.myDayOn())
-                .set(TASKS.COMPLETED_AT, offset(task.completedAt()))
-                .set(TASKS.CREATED_AT, offset(task.createdAt()))
-                .set(TASKS.UPDATED_AT, offset(task.updatedAt()))
+                .set(TASKS.COMPLETED_AT, toOffsetDateTime(task.completedAt()))
+                .set(TASKS.CREATED_AT, toOffsetDateTime(task.createdAt()))
+                .set(TASKS.UPDATED_AT, toOffsetDateTime(task.updatedAt()))
                 .onConflict(TASKS.ID)
                 .doUpdate()
                 .set(TASKS.TITLE, task.title().value())
@@ -51,46 +45,45 @@ class JooqTaskRepository implements TaskRepository {
                 .set(TASKS.REMIND_AT, task.remindAt())
                 .set(TASKS.IMPORTANT, task.important())
                 .set(TASKS.MY_DAY_ON, task.myDayOn())
-                .set(TASKS.COMPLETED_AT, offset(task.completedAt()))
-                .set(TASKS.UPDATED_AT, offset(task.updatedAt()))
+                .set(TASKS.COMPLETED_AT, toOffsetDateTime(task.completedAt()))
+                .set(TASKS.UPDATED_AT, toOffsetDateTime(task.updatedAt()))
                 .execute();
     }
 
     @Override
-    public Optional<Task> findById(UUID id) {
-        return dsl.selectFrom(TASKS).where(TASKS.ID.eq(id)).fetchOptional().map(JooqTaskRepository::toDomain);
+    public Optional<Task> findById(UUID taskId) {
+        return dslContext
+                .selectFrom(TASKS)
+                .where(TASKS.ID.eq(taskId))
+                .fetchOptional()
+                .map(JooqTaskRepository::toDomain);
     }
 
     @Override
-    public void deleteById(UUID id) {
-        dsl.deleteFrom(TASKS).where(TASKS.ID.eq(id)).execute();
+    public void deleteById(UUID taskId) {
+        dslContext.deleteFrom(TASKS).where(TASKS.ID.eq(taskId)).execute();
     }
 
-    /**
-     * 정규 생성자로 값 객체를 만든다 — 검증을 지나지 않는다.
-     *
-     * <p>애플리케이션 데이터베이스는 신뢰 경계 안이며 우리가 검증해서 넣은 값이다. 다시
-     * 검증하면 규칙을 강화한 날 옛 데이터를 읽지 못한다.
-     */
-    private static Task toDomain(TasksRecord record) {
+    /** 정규 생성자로 값 객체를 만든다. 검증을 지나지 않는다. */
+    private static Task toDomain(TasksRecord tasksRecord) {
         return Task.restore(
-                record.getId(),
-                new TaskTitle(record.getTitle()),
-                new TaskNote(record.getNote()),
-                record.getDueDate(),
-                record.getRemindAt(),
-                Boolean.TRUE.equals(record.getImportant()),
-                record.getMyDayOn(),
-                instant(record.getCompletedAt()),
-                instant(record.getCreatedAt()),
-                instant(record.getUpdatedAt()));
+                tasksRecord.getId(),
+                new TaskTitle(tasksRecord.getTitle()),
+                new TaskNote(tasksRecord.getNote()),
+                tasksRecord.getDueDate(),
+                tasksRecord.getRemindAt(),
+                Boolean.TRUE.equals(tasksRecord.getImportant()),
+                tasksRecord.getMyDayOn(),
+                toInstant(tasksRecord.getCompletedAt()),
+                toInstant(tasksRecord.getCreatedAt()),
+                toInstant(tasksRecord.getUpdatedAt()));
     }
 
-    private static OffsetDateTime offset(Instant instant) {
+    private static OffsetDateTime toOffsetDateTime(Instant instant) {
         return instant == null ? null : instant.atOffset(ZoneOffset.UTC);
     }
 
-    private static Instant instant(OffsetDateTime value) {
-        return value == null ? null : value.toInstant();
+    private static Instant toInstant(OffsetDateTime offsetDateTime) {
+        return offsetDateTime == null ? null : offsetDateTime.toInstant();
     }
 }

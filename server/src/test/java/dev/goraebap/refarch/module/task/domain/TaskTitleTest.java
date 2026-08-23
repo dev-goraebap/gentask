@@ -6,12 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import dev.goraebap.refarch.shared.error.DomainRuleViolation;
 import org.junit.jupiter.api.Test;
 
-/**
- * 값 객체의 불변식을 검증한다. 컨텍스트 없이 도는 것이 이 계층의 조건이다.
- *
- * <p>슬라이스 식별자를 붙이지 않는다. 함수 하나의 검증이 성공 조건을 이름으로 가지면 그 경로가
- * 닫혔다는 거짓 주장이 된다.
- */
 class TaskTitleTest {
 
     @Test
@@ -48,10 +42,6 @@ class TaskTitleTest {
         assertThat(TaskTitle.of(exact).value()).hasSize(TaskTitle.MAX);
     }
 
-    /**
-     * 저장소가 재구성할 때 쓰는 경로다. 규칙을 강화한 뒤에도 옛 데이터가 읽혀야 하므로
-     * 검증하지 않는다.
-     */
     @Test
     void 정규_생성자는_검증하지_않는다() {
         String tooLong = "가".repeat(TaskTitle.MAX + 1);

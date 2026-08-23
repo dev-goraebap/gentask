@@ -32,7 +32,7 @@
 
 애플리케이션 전반에 공통 적용되는 횡단 관심사 규약입니다.
 
-- [03. 명명 규칙](references/03-naming.md) — 계층을 식별하는 접미사와 패키지·클래스 명명
+- [03. 명명 규칙](references/03-naming.md) — 계층을 식별하는 접미사, 패키지·클래스·변수 명명, 주석 규약
 - [05. 조회와 명령](references/05-query-command.md) — 읽기 경로와 쓰기 경로의 분리 기준
 - [06. 데이터 접근](references/06-data-access.md) — 스키마 소유권과 코드 생성, 저장소 구현 규약
 - [07. API 설계](references/07-api-design.md) — 엔드포인트 규약과 응답 형식
