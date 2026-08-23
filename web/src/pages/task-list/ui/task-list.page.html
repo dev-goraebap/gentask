@@ -77,10 +77,10 @@
         완료하면 체크된 모습이 보인 뒤 사라집니다. 곧바로 빼면 누른 결과를 볼 새가 없습니다.
         퇴장하는 동안 체크박스는 누른 상태를 그대로 갖습니다.
       -->
-      <li class="flex items-start gap-3 py-3" animate.leave="row-leave">
+      <li class="flex items-center gap-3 py-3" animate.leave="row-leave">
         <hlm-checkbox
           #box
-          class="mt-0.5"
+          class="size-5 [&_ng-icon]:text-[length:--spacing(4)]"
           [checked]="false"
           [aria-labelledby]="'task-' + task.id"
           (checkedChange)="setCompleted(task, $event, box)"
@@ -187,6 +187,7 @@
             <li class="flex items-center gap-3 py-3" animate.leave="row-leave">
               <hlm-checkbox
                 #doneBox
+                class="size-5 [&_ng-icon]:text-[length:--spacing(4)]"
                 [checked]="true"
                 [aria-labelledby]="'done-' + task.id"
                 (checkedChange)="setCompleted(task, $event, doneBox)"
