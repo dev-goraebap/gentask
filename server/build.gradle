@@ -102,6 +102,21 @@ jooq {
 						outputSchema = 'public'
 					}
 				}
+				/*
+				 * timestamptz 는 실제로 일어난 순간이므로 도메인이 Instant 로 받는다. 변환을 손에
+				 * 두면 저장소와 조회에 같은 메서드가 한 벌씩 생기고, 새 모듈마다 다시 복제된다.
+				 * 여기서 내리면 생성물이 이미 Instant 를 주므로 그 자리가 사라진다.
+				 *
+				 * 시간대 없는 timestamp 는 걸리지 않는다. remind_at 처럼 사용자가 고른 "그 날 그
+				 * 시각" 은 절대 순간이 아니라서 LocalDateTime 으로 남아야 한다.
+				 */
+				forcedTypes {
+					forcedType {
+						userType = 'java.time.Instant'
+						converter = 'org.jooq.Converter.ofNullable(java.time.OffsetDateTime.class, java.time.Instant.class, java.time.OffsetDateTime::toInstant, i -> i.atOffset(java.time.ZoneOffset.UTC))'
+						includeTypes = 'TIMESTAMP.*WITH.*TIME.*ZONE'
+					}
+				}
 			}
 			target {
 				packageName = 'dev.goraebap.refarch.jooq'

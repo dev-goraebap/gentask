@@ -7,9 +7,6 @@ import dev.goraebap.refarch.module.task.domain.Task;
 import dev.goraebap.refarch.module.task.domain.TaskNote;
 import dev.goraebap.refarch.module.task.domain.TaskRepository;
 import dev.goraebap.refarch.module.task.domain.TaskTitle;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -34,9 +31,9 @@ class JooqTaskRepository implements TaskRepository {
                 .set(TASKS.REMIND_AT, task.remindAt())
                 .set(TASKS.IMPORTANT, task.important())
                 .set(TASKS.MY_DAY_ON, task.myDayOn())
-                .set(TASKS.COMPLETED_AT, toOffsetDateTime(task.completedAt()))
-                .set(TASKS.CREATED_AT, toOffsetDateTime(task.createdAt()))
-                .set(TASKS.UPDATED_AT, toOffsetDateTime(task.updatedAt()))
+                .set(TASKS.COMPLETED_AT, task.completedAt())
+                .set(TASKS.CREATED_AT, task.createdAt())
+                .set(TASKS.UPDATED_AT, task.updatedAt())
                 .onConflict(TASKS.ID)
                 .doUpdate()
                 .set(TASKS.TITLE, task.title().value())
@@ -45,8 +42,8 @@ class JooqTaskRepository implements TaskRepository {
                 .set(TASKS.REMIND_AT, task.remindAt())
                 .set(TASKS.IMPORTANT, task.important())
                 .set(TASKS.MY_DAY_ON, task.myDayOn())
-                .set(TASKS.COMPLETED_AT, toOffsetDateTime(task.completedAt()))
-                .set(TASKS.UPDATED_AT, toOffsetDateTime(task.updatedAt()))
+                .set(TASKS.COMPLETED_AT, task.completedAt())
+                .set(TASKS.UPDATED_AT, task.updatedAt())
                 .execute();
     }
 
@@ -74,16 +71,8 @@ class JooqTaskRepository implements TaskRepository {
                 tasksRecord.getRemindAt(),
                 Boolean.TRUE.equals(tasksRecord.getImportant()),
                 tasksRecord.getMyDayOn(),
-                toInstant(tasksRecord.getCompletedAt()),
-                toInstant(tasksRecord.getCreatedAt()),
-                toInstant(tasksRecord.getUpdatedAt()));
-    }
-
-    private static OffsetDateTime toOffsetDateTime(Instant instant) {
-        return instant == null ? null : instant.atOffset(ZoneOffset.UTC);
-    }
-
-    private static Instant toInstant(OffsetDateTime offsetDateTime) {
-        return offsetDateTime == null ? null : offsetDateTime.toInstant();
+                tasksRecord.getCompletedAt(),
+                tasksRecord.getCreatedAt(),
+                tasksRecord.getUpdatedAt());
     }
 }

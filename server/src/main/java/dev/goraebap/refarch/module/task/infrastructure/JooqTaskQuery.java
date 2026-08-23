@@ -5,8 +5,6 @@ import static dev.goraebap.refarch.jooq.Tables.TASKS;
 import dev.goraebap.refarch.jooq.tables.records.TasksRecord;
 import dev.goraebap.refarch.module.task.application.TaskQuery;
 import dev.goraebap.refarch.module.task.application.TaskViews.TaskView;
-import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,11 +41,7 @@ class JooqTaskQuery implements TaskQuery {
                 tasksRecord.getRemindAt(),
                 Boolean.TRUE.equals(tasksRecord.getImportant()),
                 tasksRecord.getMyDayOn(),
-                toInstant(tasksRecord.getCompletedAt()),
-                toInstant(tasksRecord.getCreatedAt()));
-    }
-
-    private static Instant toInstant(OffsetDateTime offsetDateTime) {
-        return offsetDateTime == null ? null : offsetDateTime.toInstant();
+                tasksRecord.getCompletedAt(),
+                tasksRecord.getCreatedAt());
     }
 }
