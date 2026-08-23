@@ -3,8 +3,11 @@ package dev.goraebap.refarch.module.task.domain;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
 
 /**
  * 작업 애그리거트 (TK-001 ~ TK-004).
@@ -14,42 +17,29 @@ import java.util.UUID;
  *
  * <p>나의 하루에 담긴 것도 날짜다. 담긴 것은 매일 비워져야 하는데, 날짜를 들고 있으면 오늘과
  * 비교하는 것만으로 비워지므로 자정에 값을 지우러 다니는 장치를 두지 않아도 된다.
+ *
+ * <p>생성자를 공개하지 않는다. 공개하면 불변식을 통과하지 않은 인스턴스가 존재할 수 있게 되어
+ * 타입이 보장하는 것이 사라진다. {@code @NonNull} 이 붙은 필드는 생성 시점에 검사된다.
  */
+@Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Task {
 
-    private final UUID id;
-    private TaskTitle title;
-    private TaskNote note;
+    @NonNull private final UUID id;
+
+    @NonNull private TaskTitle title;
+
+    @NonNull private TaskNote note;
+
     private LocalDate dueDate;
     private LocalDateTime remindAt;
     private boolean important;
     private LocalDate myDayOn;
     private Instant completedAt;
-    private final Instant createdAt;
-    private Instant updatedAt;
 
-    private Task(
-            UUID id,
-            TaskTitle title,
-            TaskNote note,
-            LocalDate dueDate,
-            LocalDateTime remindAt,
-            boolean important,
-            LocalDate myDayOn,
-            Instant completedAt,
-            Instant createdAt,
-            Instant updatedAt) {
-        this.id = Objects.requireNonNull(id);
-        this.title = Objects.requireNonNull(title);
-        this.note = Objects.requireNonNull(note);
-        this.dueDate = dueDate;
-        this.remindAt = remindAt;
-        this.important = important;
-        this.myDayOn = myDayOn;
-        this.completedAt = completedAt;
-        this.createdAt = Objects.requireNonNull(createdAt);
-        this.updatedAt = Objects.requireNonNull(updatedAt);
-    }
+    @NonNull private final Instant createdAt;
+
+    @NonNull private Instant updatedAt;
 
     /** 새 작업. 제목만으로 만들어지며 나머지는 정해지지 않은 상태로 시작한다. TK-001 기본 흐름. */
     public static Task create(UUID id, TaskTitle title, Instant now) {
@@ -78,45 +68,5 @@ public final class Task {
 
     public boolean isCompleted() {
         return completedAt != null;
-    }
-
-    public UUID id() {
-        return id;
-    }
-
-    public TaskTitle title() {
-        return title;
-    }
-
-    public TaskNote note() {
-        return note;
-    }
-
-    public LocalDate dueDate() {
-        return dueDate;
-    }
-
-    public LocalDateTime remindAt() {
-        return remindAt;
-    }
-
-    public boolean important() {
-        return important;
-    }
-
-    public LocalDate myDayOn() {
-        return myDayOn;
-    }
-
-    public Instant completedAt() {
-        return completedAt;
-    }
-
-    public Instant createdAt() {
-        return createdAt;
-    }
-
-    public Instant updatedAt() {
-        return updatedAt;
     }
 }

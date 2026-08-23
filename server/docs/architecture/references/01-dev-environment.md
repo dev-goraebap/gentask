@@ -10,6 +10,7 @@
 | `gradle/gradle-daemon-jvm.properties` | Gradle 데몬이 쓸 JVM 판 |
 | `compose.yaml` | 로컬 개발용 데이터베이스 |
 | `src/main/resources/application.properties` | 접속 정보와 마이그레이션 위치 |
+| `lombok.config` | 접근자 형태와 금지 기능 |
 | `config/checkstyle/` | 컨벤션 규칙과 예외 목록 |
 | `config/spotbugs/exclude.xml` | 결함 탐지 오탐 제외 목록 |
 

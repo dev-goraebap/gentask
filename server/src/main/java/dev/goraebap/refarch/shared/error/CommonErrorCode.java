@@ -1,5 +1,7 @@
 package dev.goraebap.refarch.shared.error;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -8,6 +10,8 @@ import org.springframework.http.HttpStatus;
  * <p>모듈 열거형에는 그 모듈 고유의 사유만 담고 잘못된 요청 · 충돌 · 서버 오류는 여기 한 벌만
  * 둔다. 모듈이 늘어도 복제되지 않는다.
  */
+@Getter
+@RequiredArgsConstructor
 public enum CommonErrorCode implements ErrorCode {
     COMMON_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "요청이 올바르지 않습니다"),
 
@@ -18,19 +22,4 @@ public enum CommonErrorCode implements ErrorCode {
 
     private final HttpStatus status;
     private final String message;
-
-    CommonErrorCode(HttpStatus status, String message) {
-        this.status = status;
-        this.message = message;
-    }
-
-    @Override
-    public HttpStatus status() {
-        return status;
-    }
-
-    @Override
-    public String message() {
-        return message;
-    }
 }

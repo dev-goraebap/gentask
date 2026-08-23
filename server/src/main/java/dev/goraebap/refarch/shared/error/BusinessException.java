@@ -1,5 +1,7 @@
 package dev.goraebap.refarch.shared.error;
 
+import lombok.Getter;
+
 /**
  * 지금 상태가 이 요청을 허용하지 않는다는 실패.
  *
@@ -9,6 +11,7 @@ package dev.goraebap.refarch.shared.error;
  *
  * <p>직접 생성하지 않고 {@link ErrorCode#raise()} 를 거친다.
  */
+@Getter
 public class BusinessException extends RuntimeException {
 
     private final transient ErrorCode errorCode;
@@ -16,9 +19,5 @@ public class BusinessException extends RuntimeException {
     BusinessException(ErrorCode errorCode, String detail) {
         super(detail);
         this.errorCode = errorCode;
-    }
-
-    public ErrorCode errorCode() {
-        return errorCode;
     }
 }

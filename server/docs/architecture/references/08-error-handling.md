@@ -84,6 +84,8 @@ public interface ErrorCode {
 ### 모듈 열거형
 
 ```java
+@Getter
+@RequiredArgsConstructor
 public enum TaskErrorCode implements ErrorCode {
 
     TASK_NOT_FOUND(HttpStatus.NOT_FOUND, "작업을 찾을 수 없습니다"),
@@ -91,25 +93,10 @@ public enum TaskErrorCode implements ErrorCode {
 
     private final HttpStatus status;
     private final String message;
-
-    TaskErrorCode(HttpStatus status, String message) {
-        this.status = status;
-        this.message = message;
-    }
-
-    @Override
-    public HttpStatus status() {
-        return status;
-    }
-
-    @Override
-    public String message() {
-        return message;
-    }
 }
 ```
 
-접근자를 Lombok 으로 만들지 않습니다. `@Getter` 는 `get` 접두사를 붙이는데 계약의 이름은 `status()` 와 `message()` 라 맞지 않습니다.
+**선언이 상수 목록과 필드 둘로 끝납니다.** 계약이 요구하는 `status()` 와 `message()` 는 생성된 접근자가 그대로 만족합니다 — `lombok.config` 가 접근자를 필드명 그대로 만들기 때문입니다([03. 명명 규칙](03-naming.md) 5절).
 
 ```java
 throw TASK_NOT_FOUND.raise();

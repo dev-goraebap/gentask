@@ -50,6 +50,10 @@ class ArchitectureTest {
     /**
      * 이 규칙이 깨지면 도메인 단위 테스트가 애플리케이션 컨텍스트를 요구하게 되어 검증 속도와
      * 범위가 함께 무너진다. 다른 규칙은 어기면 구조가 지저분해질 뿐이다.
+     *
+     * <p>Lombok 은 목록에 없다. 컴파일 시점에 코드를 만들 뿐 런타임 의존이 없어 이 규칙이
+     * 지키려는 것 — 컨텍스트 없이 도는 검증 — 을 해치지 않는다. 다른 프로젝트로 옮길 때도
+     * 생성된 코드가 남으므로 이식을 막지 않는다.
      */
     @ArchTest
     static final ArchRule 도메인은_프레임워크를_참조하지_않는다 = noClasses()
@@ -57,7 +61,7 @@ class ArchitectureTest {
             .resideInAPackage(DOMAIN)
             .should()
             .dependOnClassesThat()
-            .resideInAnyPackage("org.springframework..", "org.jooq..", "jakarta..", "lombok..")
+            .resideInAnyPackage("org.springframework..", "org.jooq..", "jakarta..")
             .because("도메인의 검증이 컨텍스트 없이 돌아야 한다");
 
     @ArchTest
