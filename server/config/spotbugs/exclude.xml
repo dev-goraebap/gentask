@@ -19,4 +19,14 @@
     <Bug pattern="EI_EXPOSE_REP2"/>
   </Match>
 
+  <!--
+    NP_NONNULL_PARAM_VIOLATION: 널을 받지 않는 인자에 널을 넘기는 호출.
+    널을 거부하는지 확인하는 테스트가 일부러 그렇게 하므로 테스트 클래스에서만 제외한다.
+    본문 코드에서는 그대로 결함으로 둔다.
+  -->
+  <Match>
+    <Class name="~.*Test"/>
+    <Bug pattern="NP_NONNULL_PARAM_VIOLATION"/>
+  </Match>
+
 </FindBugsFilter>
