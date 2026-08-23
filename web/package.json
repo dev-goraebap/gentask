@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "lint:fsd": "steiger ./src",
     "check": "npm run lint && npm run lint:fsd && npm test && npm run build",
-    "serve:ssr:web": "node dist/web/server/server.mjs"
+    "serve:ssr:web": "node dist/web/server/server.mjs",
+    "api:generate": "npx --yes openapi-typescript@7.13.0 ../server/openapi.json -o src/shared/api/generated/schema.d.ts"
   },
   "private": true,
   "packageManager": "npm@11.13.0",

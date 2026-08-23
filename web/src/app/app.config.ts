@@ -3,6 +3,7 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 
@@ -12,6 +13,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     // 처리되지 않은 예외를 포착합니다. 15-error-handling.md 4절.
     provideBrowserGlobalErrorListeners(),
+
+    // 변경 요청이 쓰는 클라이언트입니다. 조회는 리졸버와 httpResource 가 이것을 거칩니다.
+    // withFetch 는 서버 렌더 중의 요청을 fetch 로 보내 하이드레이션이 그 결과를 물려받게 합니다.
+    provideHttpClient(withFetch()),
 
     // 상태를 시그널로 통일합니다. 11-component-design.md 5절.
     provideZonelessChangeDetection(),

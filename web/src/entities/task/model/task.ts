@@ -1,59 +1,21 @@
+// 관점을 뜻하는 TaskView 가 이 파일에 이미 있어 겹치지 않는 이름으로 받습니다.
+import type { TaskView as TaskResponse } from '@/shared/api';
+
 /**
- * 작업 하나입니다.
+ * 작업 하나입니다. 서버 계약의 타입을 그대로 씁니다.
  *
- * 프로토타입 구간의 이 타입 정의가 이후 백엔드 스펙의 API 계약 입력이 됩니다.
- * 백엔드가 붙으면 생성 타입이 이 자리를 대체하며, 그때 이 모양과 생성 타입의 차이가
- * 곧 스펙 누락 목록입니다. docs/architecture/references/14-api-contract.md 4절.
+ * 프로토타입 구간에는 이 자리에 손으로 쓴 정의가 있었고 그것이 백엔드 스펙의 입력이
+ * 되었습니다. 백엔드가 선 지금은 생성 타입이 원본이며, 계약이 바뀌면 이 이름을 쓰는
+ * 모든 자리에서 컴파일이 깨집니다. 14-api-contract.md 2절.
  *
- * 완료 여부를 boolean 이 아니라 시각으로 두는 이유는 "언제 해냈는가"가 완료 목록의
- * 정렬 근거이고, boolean 으로 두면 그 정보를 나중에 되살릴 수 없기 때문입니다.
+ * 완료 여부가 boolean 이 아니라 시각인 이유는 "언제 해냈는가"가 완료 목록의 정렬
+ * 근거이고, boolean 으로 두면 그 정보를 나중에 되살릴 수 없기 때문입니다.
+ *
+ * 기한은 `YYYY-MM-DD`, 미리 알림은 `YYYY-MM-DDTHH:mm` 이며 둘 다 사전순 비교가 곧
+ * 시간순 비교입니다. 미리 알림에 시간대 지정자가 없는 것은 사용자가 고른 것이 "그 날
+ * 그 시각" 이지 절대 순간이 아니기 때문입니다. 07-api-design.md 3절.
  */
-export type Task = {
-  readonly id: string;
-  readonly title: string;
-  readonly createdAt: string;
-  readonly completedAt: string | null;
-
-  /** 제목만으로는 담기지 않는 맥락입니다. 비어 있는 것이 기본 상태입니다. */
-  readonly note: string;
-
-  /**
-   * 기한입니다. `YYYY-MM-DD` 이며 정하지 않은 것이 기본 상태입니다.
-   *
-   * 시각을 담지 않습니다. 기한은 "언제까지" 이고 그 판정은 날짜 단위로 끝납니다. 시각이
-   * 필요한 것은 알릴 순간을 정하는 `remindAt` 쪽이며, 둘을 한 값에 담으면 기한을 정하는
-   * 것만으로 알릴 시각까지 정해집니다. TK-001 A2 와 A3 는 따로 지나는 흐름입니다.
-   *
-   * 날짜만 두면 사전순 비교가 곧 시간순 비교라 정렬과 지난 기한 판정에 별도 변환이
-   * 필요 없습니다. ISO 8601 의 날짜 부분이 그 성질을 갖습니다.
-   */
-  readonly dueDate: string | null;
-
-  /**
-   * 미리 알림입니다. `YYYY-MM-DDTHH:mm` 이며 정하지 않은 것이 기본 상태입니다. TK-001 A3.
-   *
-   * 시간대 지정자(`Z`, `+09:00`)를 붙이지 않습니다. 사용자가 고른 것은 "그 날 그 시각" 이지
-   * 절대 순간이 아니며, 시간대를 붙이면 고른 값과 저장된 값이 달라져 화면에 낼 때마다
-   * 되돌려야 합니다. `dueDate` 와 같은 규칙이라 사전순 비교가 곧 시간순 비교입니다.
-   *
-   * 대가는 울리는 쪽에 있습니다. 절대 순간이 아니므로 실제로 알림을 보내는 구현은 사용자의
-   * 시간대를 알아야 합니다. 그 판단은 이 스펙이 갖지 않으며 `BACKLOG.md` 나중 구획의
-   * `미리 알림 울리기` 가 갖습니다.
-   */
-  readonly remindAt: string | null;
-
-  /** 지금 신경 써야 하는 항목이라는 표시입니다. TK-003 A4. */
-  readonly important: boolean;
-
-  /**
-   * 나의 하루에 담은 날짜입니다. `YYYY-MM-DD` 이며 담지 않은 것이 기본 상태입니다.
-   *
-   * 담김을 boolean 이 아니라 날짜로 두는 이유는 담긴 것이 매일 비워져야 하기 때문입니다.
-   * 날짜를 들고 있으면 오늘과 비교하는 것만으로 비워지므로, 자정에 값을 지우러 다니는
-   * 장치를 따로 두지 않아도 됩니다. 하루의 경계 판정은 TK-002 의 미결 항목입니다.
-   */
-  readonly myDayOn: string | null;
-};
+export type Task = TaskResponse;
 
 export function isCompleted(task: Task): boolean {
   return task.completedAt !== null;
@@ -528,7 +490,11 @@ export function withRemindDate(remindAt: string | null, date: Date, fallbackTime
   return `${toDateKey(date)}T${remindAt ? remindTimeKey(remindAt) : fallbackTime}`;
 }
 
-export function withRemindTime(remindAt: string | null, time: string, fallbackDate: string): string {
+export function withRemindTime(
+  remindAt: string | null,
+  time: string,
+  fallbackDate: string,
+): string {
   return `${remindAt ? remindDateKey(remindAt) : fallbackDate}T${time}`;
 }
 
