@@ -78,7 +78,7 @@
             aria-label="중요로 표시"
             (click)="setImportant(!current.important)"
           >
-            <app-icon name="lucideStar" />
+            <app-icon name="lucideStar" [class]="current.important ? '[&_svg]:fill-current' : ''" />
           </button>
         </div>
       </div>

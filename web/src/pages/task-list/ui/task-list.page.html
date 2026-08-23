@@ -150,7 +150,8 @@
           [attr.aria-label]="task.title + ' 중요 표시'"
           (click)="setImportant(task, !task.important)"
         >
-          <app-icon name="lucideStar" />
+          <!-- 중요한 것은 채운 별입니다. 윤곽만으로는 켜짐과 꺼짐이 멀리서 구분되지 않습니다. -->
+          <app-icon name="lucideStar" [class]="task.important ? '[&_svg]:fill-current' : ''" />
         </button>
       </li>
     } @empty {
