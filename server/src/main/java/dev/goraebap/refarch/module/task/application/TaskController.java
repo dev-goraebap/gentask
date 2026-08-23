@@ -25,7 +25,7 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<TaskView> add(@Valid @RequestBody CreateTask createTask) {
-        UUID taskId = taskService.add(createTask.title());
+        UUID taskId = taskService.add(createTask.title(), createTask.dueDate());
         return ResponseEntity.created(URI.create("/api/v1/tasks/" + taskId)).body(taskService.detail(taskId));
     }
 

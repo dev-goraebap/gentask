@@ -50,6 +50,32 @@ class TaskApiTest {
     }
 
     @Test
+    @DisplayName("TK-001 A2: 기한을 붙이면 목록이 그 기한을 보여 준다")
+    void 기한을_붙이면_목록이_그_기한을_보여_준다() throws Exception {
+        mockMvc.perform(post("/api/v1/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"장 보기\",\"dueDate\":\"2026-08-30\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.dueDate").value("2026-08-30"))
+                // 정하지 않은 값의 키는 빠지지 않는다. 오타와 미구현이 같은 모양이 되지 않게 한다.
+                .andExpect(jsonPath("$.remindAt").hasJsonPath());
+
+        mockMvc.perform(get("/api/v1/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].dueDate").value("2026-08-30"));
+    }
+
+    @Test
+    @DisplayName("TK-001 A2: 지난 날짜도 기한으로 받는다")
+    void 지난_날짜도_기한으로_받는다() throws Exception {
+        mockMvc.perform(post("/api/v1/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"미룬 일\",\"dueDate\":\"2020-01-01\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.dueDate").value("2020-01-01"));
+    }
+
+    @Test
     @DisplayName("TK-001 A1: 제목이 비면 목록에 들어가지 않는다")
     void 제목이_비면_목록에_들어가지_않는다() throws Exception {
         mockMvc.perform(post("/api/v1/tasks")
