@@ -9,7 +9,7 @@
 | **목적** | 상태를 바꾸면서 불변식을 검증합니다 | 화면 요구에 맞는 응답 구조를 만듭니다 |
 | **애그리거트 경계** | 준수합니다. 트랜잭션이 경계를 넘지 않습니다 | 제약받지 않습니다 |
 | **의존 대상** | 도메인 모델 | 화면 요구사항 |
-| **접근 수단** | 저장소 (`Repository`) | 조회 포트 (`Queries`) |
+| **접근 수단** | 저장소 (`Repository`) | 조회 포트 (`Query`) |
 | **반환** | 도메인 타입 | 화면 DTO |
 
 **두 경로가 같은 도구를 씁니다.** 도구를 나누면 두 기술 사이의 미커밋 변경 가시성, 반영 순서, 조각 재사용 같은 항목이 규칙으로 자라납니다. 경로를 나누되 도구는 하나로 둡니다.
@@ -24,7 +24,7 @@
 public class TaskService {
 
     private final TaskRepository tasks;      // 명령 경로
-    private final TaskQueries queries;       // 조회 경로
+    private final TaskQuery query;           // 조회 경로
     private final Clock clock;
 
     @Transactional
@@ -54,6 +54,19 @@ public class TaskService {
 경계를 반환 타입에 두는 이유는 **판정이 기계적이기 때문**입니다. "이 조회가 명령을 위한 것인가 화면을 위한 것인가"는 사람마다 답이 갈리고 같은 `findById` 가 양쪽에 쓰이면 답이 없습니다. 반환 타입은 컴파일러가 보는 값 하나이므로 갈릴 여지가 없고, ArchUnit 이 그대로 검사합니다.
 
 **단순한 조회에서 저장소를 쓰는 것은 위반이 아닙니다.** 애그리거트를 그대로 내보내는 동안은 저장소이고, 표시용 이름·정렬 라벨·집계처럼 도메인에 없는 값이 필요해지는 순간 포트가 갈립니다.
+
+### 조회가 애그리거트를 만들면 검증이 다시 돕니다
+
+경로를 나누는 실질적 이유가 하나 더 있습니다. **애그리거트를 조립하는 것은 저장된 값이 현재 불변식을 다시 통과한다는 뜻**입니다.
+
+```java
+// 조회가 애그리거트를 만든다면 — 저장된 값을 읽을 뿐인데 검증이 실행된다
+new TaskTitle(record.getTitle())
+```
+
+규칙이 강화된 뒤에는 이것이 실패합니다. 제목 상한을 200자에서 100자로 줄이는 날, 옛 데이터를 **조회하는 것만으로** 예외가 납니다. 쓰기 경로는 `restore` 가 그 문제를 풀지만([04. 계층](04-layers.md) 4절), 조회가 애그리거트를 조립하면 같은 함정이 읽기 경로에 되살아납니다.
+
+조회 포트는 레코드에서 화면 구조를 바로 만들므로 그 검증을 지나지 않습니다. **읽기는 이미 저장된 사실을 보여 주는 일이지 그것이 지금도 타당한지 판정하는 일이 아닙니다.**
 
 경계가 도메인 타입인 것은 애그리거트에 한정되지 않습니다. 여러 애그리거트를 조합한 결과라도 그것이 **도메인 어휘의 값 객체**라면 저장소가 반환할 수 있습니다. Vaughn Vernon 이 use case optimal query 를 설명하며 두는 단서가 이것입니다 — *"you design a Value Object, not a DTO, because the query is domain specific, not application specific"*([IDDD, ch.14](https://www.oreilly.com/library/view/implementing-domain-driven-design/9780133039900/ch14lev2sec6.html)). 진짜 선은 엔티티인지 아닌지가 아니라 **도메인 어휘인지 화면 어휘인지**입니다.
 

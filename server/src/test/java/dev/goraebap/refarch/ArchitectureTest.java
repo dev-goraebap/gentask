@@ -75,7 +75,7 @@ class ArchitectureTest {
             .haveSimpleNameEndingWith("Controller")
             .should()
             .dependOnClassesThat()
-            .haveSimpleNameEndingWith("Queries")
+            .haveSimpleNameEndingWith("Query")
             .because("조회 서비스가 전후에 수행하는 가공이 누락된다");
 
     /**

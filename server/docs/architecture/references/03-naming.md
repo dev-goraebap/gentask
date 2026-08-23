@@ -21,7 +21,7 @@
 | **컨트롤러** | `@RestController` + `Controller` 접미사 | `application` |
 | **서비스** | `Service` 접미사 | `application` |
 | **조회 서비스** | `QueryService` 접미사 | `application` |
-| **조회 포트** | `Queries` 접미사 | `application` |
+| **조회 포트** | `Query` 접미사 | `application` |
 | **요청 DTO 묶음** | `Requests` 접미사 | `application` |
 | **응답 DTO 묶음** | `Views` 접미사 | `application` |
 | **에러 코드** | `ErrorCode` 접미사 | `application` |
@@ -30,7 +30,9 @@
 
 **조회 포트의 이름을 `QueryRepository` 로 짓지 않습니다.** 저장소는 애그리거트를 다루는 계약이고 조회 포트는 화면 구조를 만드는 계약이라 지키는 것이 다릅니다([05. 조회와 명령](05-query-command.md) 3절). 이름이 겹치면 그 차이가 흐려집니다.
 
-**포트의 이름은 제공하는 것으로 짓습니다.** `TaskQueries` 는 작업에 대한 조회를 제공하고, `AssigneeLookup` 은 담당자 찾기를 제공합니다. 구현 기술이나 저장 위치를 이름에 담지 않습니다.
+**포트의 이름은 제공하는 것으로 짓습니다.** `TaskQuery` 는 작업에 대한 조회를 제공하고, `MailSender` 는 발송을 제공합니다. 구현 기술이나 저장 위치를 이름에 담지 않습니다.
+
+**인터페이스 이름에 복수형을 쓰지 않습니다.** 메서드가 여럿이라고 이름이 복수가 되지는 않습니다 — `Repository` 도 메서드가 여럿입니다. 이 저장소에서 복수형은 **여러 타입을 담은 묶음 클래스**(`TaskRequests` · `TaskViews`)를 뜻하며, 그 용법과 겹치면 이름이 무엇을 가리키는지 흐려집니다.
 
 ## 3. DTO
 
@@ -76,7 +78,7 @@ COMMON_INVALID_REQUEST
 | **명령 메서드** | 동사로 시작하고 `void` 또는 식별자를 반환합니다 |
 | **조회 메서드** | `find` 는 없을 수 있음을, `get` 은 없으면 실패함을 뜻합니다 |
 
-접근자에 `get` 접두사를 붙이지 않습니다. 도메인 타입과 record 는 필드명을 그대로 메서드 이름으로 씁니다(`task.title()`). Lombok 의 `@Getter` 를 쓰는 열거형만 예외이며, 인터페이스가 요구하는 이름에 맞춥니다.
+접근자에 `get` 접두사를 붙이지 않습니다. 도메인 타입과 record 는 필드명을 그대로 메서드 이름으로 씁니다(`task.title()`). 에러 코드 열거형도 계약이 요구하는 `status()` · `message()` 를 그대로 구현하며, 그래서 Lombok 의 `@Getter` 를 쓰지 않습니다 — 그것은 `get` 접두사를 붙입니다.
 
 ## 6. 테스트
 

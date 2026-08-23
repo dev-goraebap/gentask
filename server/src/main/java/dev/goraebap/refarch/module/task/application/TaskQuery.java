@@ -14,7 +14,7 @@ import java.util.UUID;
  * <p>이름을 {@code TaskQueryRepository} 로 짓지 않는다. 저장소는 애그리거트를 다루는 계약이고
  * 이것은 화면 구조를 만드는 계약이라 지키는 것이 다르다.
  */
-public interface TaskQueries {
+public interface TaskQuery {
 
     /**
      * 만든 순서의 역순으로 가져온다. 방금 적은 것이 위에 온다.

@@ -3,7 +3,7 @@ package dev.goraebap.refarch.module.task.infrastructure;
 import static dev.goraebap.refarch.jooq.Tables.TASKS;
 
 import dev.goraebap.refarch.jooq.tables.records.TasksRecord;
-import dev.goraebap.refarch.module.task.application.TaskQueries;
+import dev.goraebap.refarch.module.task.application.TaskQuery;
 import dev.goraebap.refarch.module.task.application.TaskViews.TaskView;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -23,19 +23,19 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
-class JooqTaskQueries implements TaskQueries {
+class JooqTaskQuery implements TaskQuery {
 
     private final DSLContext dsl;
 
     @Override
     public List<TaskView> findAll() {
         // 정렬을 쿼리가 결정한다. 전부 가져와 코드가 줄 세우면 목록이 커질 때 그대로 무너진다.
-        return dsl.selectFrom(TASKS).orderBy(TASKS.CREATED_AT.desc()).fetch(JooqTaskQueries::toView);
+        return dsl.selectFrom(TASKS).orderBy(TASKS.CREATED_AT.desc()).fetch(JooqTaskQuery::toView);
     }
 
     @Override
     public Optional<TaskView> findOne(UUID id) {
-        return dsl.selectFrom(TASKS).where(TASKS.ID.eq(id)).fetchOptional().map(JooqTaskQueries::toView);
+        return dsl.selectFrom(TASKS).where(TASKS.ID.eq(id)).fetchOptional().map(JooqTaskQuery::toView);
     }
 
     private static TaskView toView(TasksRecord record) {

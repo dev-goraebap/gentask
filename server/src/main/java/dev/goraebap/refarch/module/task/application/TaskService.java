@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TaskService {
 
     private final TaskRepository tasks;
-    private final TaskQueries queries;
+    private final TaskQuery query;
     private final Clock clock;
 
     /**
@@ -42,11 +42,11 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public List<TaskView> list() {
-        return queries.findAll();
+        return query.findAll();
     }
 
     @Transactional(readOnly = true)
     public TaskView detail(UUID taskId) {
-        return queries.findOne(taskId).orElseThrow(TaskErrorCode.TASK_NOT_FOUND::raise);
+        return query.findOne(taskId).orElseThrow(TaskErrorCode.TASK_NOT_FOUND::raise);
     }
 }
