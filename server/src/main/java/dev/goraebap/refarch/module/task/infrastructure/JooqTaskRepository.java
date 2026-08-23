@@ -66,6 +66,12 @@ class JooqTaskRepository implements TaskRepository {
         dsl.deleteFrom(TASKS).where(TASKS.ID.eq(id)).execute();
     }
 
+    /**
+     * 정규 생성자로 값 객체를 만든다 — 검증을 지나지 않는다.
+     *
+     * <p>애플리케이션 데이터베이스는 신뢰 경계 안이며 우리가 검증해서 넣은 값이다. 다시
+     * 검증하면 규칙을 강화한 날 옛 데이터를 읽지 못한다.
+     */
     private static Task toDomain(TasksRecord record) {
         return Task.restore(
                 record.getId(),

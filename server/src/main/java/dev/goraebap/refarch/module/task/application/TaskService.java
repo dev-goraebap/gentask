@@ -35,7 +35,7 @@ public class TaskService {
      */
     @Transactional
     public UUID add(String title) {
-        Task task = Task.create(UUID.randomUUID(), new TaskTitle(title), clock.instant());
+        Task task = Task.create(UUID.randomUUID(), TaskTitle.of(title), clock.instant());
         tasks.save(task);
         return task.id();
     }

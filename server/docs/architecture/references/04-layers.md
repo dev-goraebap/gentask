@@ -66,24 +66,39 @@ ORM 을 쓰는 구성에서는 이 분리가 비용입니다. 엔티티가 곧 �
 **검증 규칙이 붙는 필드는 값 객체로 분리합니다.** 상수와 검증과 정규화와 문구가 그 값 옆 한 자리에 모이고, 애그리거트는 조립만 합니다.
 
 ```java
-public record TaskTitle(String value) {
+public record TaskTitle(String value) implements ValueObject {
 
     public static final int MAX = 200;
     public static final String REQUIRED = "제목을 입력해 주세요";
 
-    public TaskTitle {
-        if (value == null || value.isBlank()) {
+    /** 바깥에서 들어온 값을 검증하고 정규화해 만든다. */
+    public static TaskTitle of(String raw) {
+        if (raw == null || raw.isBlank()) {
             throw new DomainRuleViolation(REQUIRED);
         }
-        value = value.strip();
-        if (value.length() > MAX) {
+        String stripped = raw.strip();
+        if (stripped.length() > MAX) {
             throw new DomainRuleViolation("제목은 " + MAX + "자를 넘을 수 없습니다");
         }
+        return new TaskTitle(stripped);
     }
 }
 ```
 
 분리하지 않으면 애그리거트가 상수와 검증 메서드로 뒤덮입니다. 필드가 둘일 때는 티가 나지 않지만 다섯을 넘으면 도메인 로직이 그 사이에 파묻힙니다.
+
+### 만드는 경로가 둘입니다
+
+| 경로 | 쓰는 곳 | 검증 |
+| :--- | :--- | :--- |
+| **`of(...)`** | 바깥에서 값이 들어오는 모든 자리 | 합니다 |
+| **정규 생성자** | 저장소의 재구성 | **하지 않습니다** |
+
+**애플리케이션 데이터베이스는 신뢰 경계 안입니다.** 우리가 검증해서 넣은 값이므로 읽을 때 다시 검증할 이유가 없으며, 객체의 사설 필드를 읽을 때 검증하지 않는 것과 같은 논리입니다. ORM 을 쓰는 구성에서는 리플렉션이 생성자를 우회해 이것이 자동으로 성립하지만, 손으로 매핑하는 구성에서는 **경로를 직접 나눠야 합니다.**
+
+다시 검증하면 **규칙을 강화한 날 옛 데이터를 읽지 못합니다.** 제목 상한을 줄이는 것만으로 그보다 긴 기존 행이 로드에서 실패하는데, 그것은 데이터가 잘못된 것이 아니라 규칙이 나중에 바뀐 것입니다.
+
+`record` 의 정규 생성자는 record 자신보다 좁은 접근 제한을 가질 수 없어 **언어로는 막지 못합니다.** `ValueObject` 표식을 달고 ArchUnit 이 호출자를 `domain` 과 `infrastructure` 로 제한하는 것이 그 자리를 대신합니다.
 
 ### 만들지 않는 기준
 
@@ -118,7 +133,14 @@ public record CreateTask(
 
 기본 생성자를 공개하지 않습니다. 공개하면 불변식을 통과하지 않은 인스턴스가 존재할 수 있게 되어 타입이 보장하는 것이 사라집니다. 애그리거트는 `@AllArgsConstructor(access = PRIVATE)` 로 비공개 생성자를 두고 두 정적 팩토리만 노출하며, 필수 필드의 null 검사는 `@NonNull` 이 생성합니다.
 
-재구성 경로가 필요한 이유는 이미 저장된 값이 현재 불변식을 통과하지 못할 수 있기 때문입니다. 규칙이 강화된 뒤에도 옛 데이터는 읽혀야 합니다. **다만 재구성은 저장소만 호출하며 그 사실을 문서 주석으로 명시합니다.**
+재구성 경로가 필요한 이유는 둘입니다.
+
+1. **상태 필드를 직접 지정해야 합니다.** `create` 는 완료 시각을 비우고 만든 시각을 지금으로 정합니다. 저장된 값을 되살리려면 그 자리를 그대로 채울 수 있어야 합니다.
+2. **이미 저장된 값이 현재 불변식을 통과하지 못할 수 있습니다.** 규칙이 강화된 뒤에도 옛 데이터는 읽혀야 합니다.
+
+**두 번째가 성립하려면 값 객체도 함께 우회해야 합니다.** 애그리거트만 `restore` 를 두고 값 객체가 검증하면, 저장소가 `TaskTitle` 을 만드는 순간 그 검증이 돌아 아무것도 달라지지 않습니다. 3절의 두 경로가 그래서 필요합니다.
+
+**재구성은 저장소만 호출하며 그 사실을 문서 주석으로 명시합니다.**
 
 ## 5. 시각의 출처
 

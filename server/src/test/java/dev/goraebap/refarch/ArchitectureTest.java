@@ -1,5 +1,8 @@
 package dev.goraebap.refarch;
 
+import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -9,6 +12,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import dev.goraebap.refarch.shared.domain.ValueObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,6 +102,21 @@ class ArchitectureTest {
                     "application 패키지의 타입",
                     javaClass -> javaClass.getPackageName().contains(".application")))
             .because("화면 어휘의 타입이 필요해지는 순간 그것은 조회 포트다");
+
+    /**
+     * 값 객체의 정규 생성자는 검증하지 않는다. 저장소가 재구성할 때만 쓰며, 그 밖에서 쓰면
+     * 검증을 지나지 않은 값이 도메인에 들어온다.
+     *
+     * <p>record 의 정규 생성자는 record 자신보다 좁은 접근 제한을 가질 수 없어 언어로는 막지
+     * 못한다. 그래서 이 규칙이 그 자리를 대신한다.
+     */
+    @ArchTest
+    static final ArchRule 값_객체의_정규_생성자는_재구성에만_쓴다 = noClasses()
+            .that()
+            .resideOutsideOfPackages(DOMAIN, "dev.goraebap.refarch.module.(*).infrastructure..")
+            .should()
+            .callConstructorWhere(target(owner(assignableTo(ValueObject.class))))
+            .because("바깥에서 들어온 값은 검증하는 팩토리(of)를 지나야 한다");
 
     @ArchTest
     static final ArchRule 서비스의_공개_메서드는_트랜잭션을_선언한다 = methods()
