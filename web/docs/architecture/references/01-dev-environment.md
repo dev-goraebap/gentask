@@ -42,7 +42,7 @@
 
 > **주의: OpenAPI 생성 타입은 `linguist-generated` 로 표시하지 않습니다**
 >
-> 생성물을 커밋하는 이유가 **계약 변경이 PR 차이에 드러나는 것**이기 때문입니다([14. API 계약 소비](14-api-contract.md) 1.1절). 차이 표시를 접으면 필드가 사라진 것을 병합 전에 발견할 수 없게 되어 해당 선언의 목적이 상실됩니다.
+> 생성물을 커밋하는 목적이 **계약 변경이 PR 차이에 드러나는 것**입니다([14. API 계약 소비](14-api-contract.md) 1.1절). 차이 표시를 접으면 필드가 사라진 것을 병합 전에 발견할 수 없게 되어 해당 선언의 목적이 상실됩니다.
 
 ## 4. 디렉터리 골격
 
@@ -67,7 +67,7 @@ web/
 
 `features` 와 `entities` 는 재사용이 확인된 시점에 생성합니다. 빈 폴더를 미리 만들지 않습니다.
 
-전역 스타일은 `src/app/styles.css` 이며 `angular.json` 의 `styles` 항목이 이 경로를 가리킵니다. Angular CLI 기본값인 `src/styles.css` 에서 이동한 것으로, FSD 가 전역 스타일을 `app` 계층에 두도록 정하고 있기 때문입니다.
+전역 스타일은 `src/app/styles.css` 이며 `angular.json` 의 `styles` 항목이 이 경로를 가리킵니다. Angular CLI 기본값인 `src/styles.css` 에서 이동한 것입니다. FSD 는 전역 스타일을 `app` 계층에 둡니다.
 
 > **중요: `src/styles.css` 를 남겨 두지 않습니다**
 >

@@ -106,7 +106,7 @@ app/layout/
 | 슬롯에 실리는 내용 | 화면 (`pages/<화면>/ui/`) |
 | 슬롯 서비스와 등록 디렉티브 | `shared/lib/` |
 
-서비스가 `shared` 에 있는 이유는 계층 방향 때문입니다. 셸은 `app` 이고 화면은 `pages` 라 둘이 함께 참조할 수 있는 자리가 `shared` 뿐입니다. [02. 패키지 배치](02-package-structure.md) 5절.
+셸은 `app` 이고 화면은 `pages` 입니다. 둘이 함께 참조할 수 있는 자리가 `shared` 뿐이라 서비스를 거기 둡니다. [02. 패키지 배치](02-package-structure.md) 5절.
 
 템플릿으로 주고받으므로 내용의 인젝터는 선언 위치인 화면입니다. 라우트가 제공한 프로바이더가 그대로 닿습니다.
 
@@ -140,7 +140,7 @@ html { scrollbar-gutter: stable; }
 
 ### 4.2 flex 콘텐츠 열의 붕괴
 
-`sidebar` 골격에서 콘텐츠 열이 flex 자식이면 내용이 넘칠 때 열이 밀려 나갑니다. flex 자식의 기본 `min-width` 가 `auto` 라 콘텐츠보다 작아지지 못하기 때문입니다.
+`sidebar` 골격에서 콘텐츠 열이 flex 자식이면 내용이 넘칠 때 열이 밀려 나갑니다. flex 자식의 기본 `min-width` 가 `auto` 라 콘텐츠보다 작아지지 못합니다.
 
 ```css
 .content-column { min-width: 0; }
