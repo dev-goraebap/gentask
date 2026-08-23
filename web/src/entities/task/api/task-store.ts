@@ -66,6 +66,9 @@ export type TaskSeed = {
   readonly important?: boolean;
   readonly inMyDay?: boolean;
   readonly dueDate?: string | null;
+
+  /** 적는 자리에서 붙인 미리 알림입니다. TK-001 A3. 형식은 Task 와 같습니다. */
+  readonly remindAt?: string | null;
 };
 
 export type TaskDraft = {
@@ -74,6 +77,9 @@ export type TaskDraft = {
 
   /** 정하지 않은 상태를 담아야 하므로 null 을 허용합니다. 형식은 Task 와 같습니다. */
   dueDate: string | null;
+
+  /** 미리 알림입니다. TK-003 A10. 기한과 서로를 정하지 않으므로 따로 담습니다. */
+  remindAt: string | null;
 };
 
 /**

@@ -20,14 +20,27 @@ export type Task = {
   /**
    * 기한입니다. `YYYY-MM-DD` 이며 정하지 않은 것이 기본 상태입니다.
    *
-   * 시각을 담지 않는 이유는 마감 시각이 알림과 묶이는 값이고 알림이 이 스펙의 범위
-   * 밖이기 때문입니다. 시각을 두면 어느 시간대로 판정할지가 따라오는데, 그 판단은
-   * 요구사항이 확정되지 않은 상태에서 데이터 형식만 먼저 굳히게 됩니다.
+   * 시각을 담지 않습니다. 기한은 "언제까지" 이고 그 판정은 날짜 단위로 끝납니다. 시각이
+   * 필요한 것은 알릴 순간을 정하는 `remindAt` 쪽이며, 둘을 한 값에 담으면 기한을 정하는
+   * 것만으로 알릴 시각까지 정해집니다. TK-001 A2 와 A3 는 따로 지나는 흐름입니다.
    *
    * 날짜만 두면 사전순 비교가 곧 시간순 비교라 정렬과 지난 기한 판정에 별도 변환이
    * 필요 없습니다. ISO 8601 의 날짜 부분이 그 성질을 갖습니다.
    */
   readonly dueDate: string | null;
+
+  /**
+   * 미리 알림입니다. `YYYY-MM-DDTHH:mm` 이며 정하지 않은 것이 기본 상태입니다. TK-001 A3.
+   *
+   * 시간대 지정자(`Z`, `+09:00`)를 붙이지 않습니다. 사용자가 고른 것은 "그 날 그 시각" 이지
+   * 절대 순간이 아니며, 시간대를 붙이면 고른 값과 저장된 값이 달라져 화면에 낼 때마다
+   * 되돌려야 합니다. `dueDate` 와 같은 규칙이라 사전순 비교가 곧 시간순 비교입니다.
+   *
+   * 대가는 울리는 쪽에 있습니다. 절대 순간이 아니므로 실제로 알림을 보내는 구현은 사용자의
+   * 시간대를 알아야 합니다. 그 판단은 이 스펙이 갖지 않으며 `BACKLOG.md` 나중 구획의
+   * `미리 알림 울리기` 가 갖습니다.
+   */
+  readonly remindAt: string | null;
 
   /** 지금 신경 써야 하는 항목이라는 표시입니다. TK-003 A4. */
   readonly important: boolean;
@@ -283,6 +296,183 @@ export function describeDueBrief(dueDate: string, today: string): string {
   return `${formatDueDate(dueDate)}${weekday}`;
 }
 
+/**
+ * 미리 알림에서 날짜 부분만 뗍니다. 달력에 넘기거나 오늘과 견줄 때 씁니다.
+ * 두 값이 같은 규칙이라 자르는 것으로 충분하며 파싱이 필요 없습니다.
+ */
+export function remindDateKey(remindAt: string): string {
+  return remindAt.slice(0, 10);
+}
+
+/** 미리 알림에서 시각 부분만 뗍니다. `HH:mm` 입니다. */
+export function remindTimeKey(remindAt: string): string {
+  return remindAt.slice(11, 16);
+}
+
+/**
+ * 시각을 화면에 적을 형태로 바꿉니다. `09:00` 이 `오전 9:00` 이 됩니다.
+ *
+ * `toLocaleTimeString` 을 쓰지 않습니다. 그 결과는 실행 환경의 로캘 데이터에 따라 달라져
+ * 테스트가 개발자 기계에서만 통과하는 종류의 차이를 만듭니다. 형식이 하나뿐이라 직접 만듭니다.
+ */
+export function formatTimeOfDay(time: string): string {
+  const [hour, minute] = time.split(':').map(Number);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return time;
+
+  const meridiem = hour < 12 ? '오전' : '오후';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${meridiem} ${hour12}:${`${minute}`.padStart(2, '0')}`;
+}
+
+/**
+ * 미리 알림을 짧게 읽어 줍니다. 오늘이면 시각만, 내일이면 말과 시각, 나머지는 날짜와 시각입니다.
+ * 오늘의 알림에 "오늘" 을 붙이지 않는 이유는 그 줄에서 가장 자주 나오는 값이 오늘이고,
+ * 매번 같은 두 글자가 반복되면 정작 다른 날인 항목이 눈에 띄지 않기 때문입니다.
+ */
+export function describeRemind(remindAt: string, today: string): string {
+  const date = remindDateKey(remindAt);
+  const time = formatTimeOfDay(remindTimeKey(remindAt));
+
+  if (date === today) return time;
+  if (date === shiftDateKey(today, 1)) return `내일 ${time}`;
+  return `${formatDueDate(date)} ${time}`;
+}
+
+/**
+ * 알릴 시각이 이미 지났는지 봅니다. 지난 알림은 울릴 일이 남지 않았다는 표시입니다.
+ * 완료한 작업은 판단 대상이 아닙니다. 해낸 뒤에는 알릴 이유가 없습니다.
+ */
+export function isRemindPast(task: Task, now: string): boolean {
+  return task.remindAt !== null && !isCompleted(task) && task.remindAt < now;
+}
+
+/**
+ * 기한의 빠른 선택입니다. MS To Do 의 오늘 · 내일 · 다음 주와 같습니다.
+ *
+ * 아이콘은 두지 않습니다. 그것은 표현이고 이 계층은 값과 이름만 갖습니다. TASK_VIEWS 와
+ * 같은 규칙입니다. 두 화면(적는 자리 · 상세)이 같은 함수를 거치므로 고를 수 있는 날이
+ * 어긋나지 않습니다.
+ */
+export function quickDues(now: Date): readonly {
+  readonly label: string;
+  readonly date: Date;
+  readonly weekday: string;
+}[] {
+  return [
+    { label: '오늘', days: 0 },
+    { label: '내일', days: 1 },
+    { label: '다음 주', days: 7 },
+  ].map(({ label, days }) => {
+    const date = new Date(now);
+    date.setDate(date.getDate() + days);
+    date.setHours(0, 0, 0, 0);
+    return { label, date, weekday: date.toLocaleDateString('ko-KR', { weekday: 'short' }) };
+  });
+}
+
+/**
+ * 미리 알림의 빠른 선택입니다. MS To Do 의 오늘 나중에 · 내일 · 다음 주와 같습니다.
+ *
+ * "오늘 나중에" 만 지금을 기준으로 움직입니다. 세 시간 뒤의 다음 정시이며, 분을 남기지 않는
+ * 이유는 사용자가 고른 것이 "이따가" 이지 특정 분이 아니기 때문입니다. 나머지 둘은 아침
+ * 아홉 시로 고정입니다.
+ */
+export function quickReminds(now: Date): readonly {
+  readonly label: string;
+  readonly at: string;
+  readonly hint: string;
+}[] {
+  const later = new Date(now);
+  later.setHours(later.getHours() + LATER_HOURS, 0, 0, 0);
+
+  const morning = (days: number): Date => {
+    const date = new Date(now);
+    date.setDate(date.getDate() + days);
+    date.setHours(MORNING_HOUR, 0, 0, 0);
+    return date;
+  };
+
+  const tomorrow = morning(1);
+  const nextWeek = morning(7);
+  const weekday = (date: Date) => date.toLocaleDateString('ko-KR', { weekday: 'short' });
+
+  return [
+    {
+      label: '오늘 나중에',
+      at: toDateTimeKey(later),
+      hint: formatTimeOfDay(remindTimeKey(toDateTimeKey(later))),
+    },
+    {
+      label: '내일',
+      at: toDateTimeKey(tomorrow),
+      hint: `${weekday(tomorrow)}, ${formatTimeOfDay(`${MORNING_HOUR}`.padStart(2, '0') + ':00')}`,
+    },
+    {
+      label: '다음 주',
+      at: toDateTimeKey(nextWeek),
+      hint: `${weekday(nextWeek)}, ${formatTimeOfDay(`${MORNING_HOUR}`.padStart(2, '0') + ':00')}`,
+    },
+  ];
+}
+
+/** 빠른 선택이 쓰는 값입니다. "오늘 나중에" 의 간격과 아침의 기준 시각입니다. */
+const LATER_HOURS = 3;
+const MORNING_HOUR = 9;
+
+/**
+ * 날짜만 고르고 시각을 정하지 않았을 때 쓰는 시각입니다.
+ *
+ * 빠른 선택의 "내일" · "다음 주" 와 같은 값입니다. 달력으로 고른 날과 빠른 선택으로 고른
+ * 날이 다른 시각에 울리면 같은 조작으로 보이지 않습니다. 적는 자리와 상세가 함께 씁니다.
+ */
+export const DEFAULT_REMIND_TIME = `${`${MORNING_HOUR}`.padStart(2, '0')}:00`;
+
+/**
+ * 시각을 고르는 세 축입니다. 오전·오후 · 시 · 분이며 MS To Do 와 같은 구성입니다.
+ *
+ * 하나의 목록으로 늘어놓지 않는 이유는 간격을 정해야 하기 때문입니다. 30분 간격이면
+ * 48칸이라 원하는 값까지 스크롤이 길고, 그러면서도 7시 10분 같은 값은 아예 고를 수
+ * 없습니다. 세 축으로 나누면 가장 긴 축이 60칸이지만 각 축에서 한 번씩만 고르면 됩니다.
+ */
+export const MERIDIEMS = ['오전', '오후'] as const;
+
+export type Meridiem = (typeof MERIDIEMS)[number];
+
+/** 12시간제의 시입니다. 0시는 없으며 자정과 정오가 모두 12입니다. */
+export const HOURS12: readonly number[] = Array.from({ length: 12 }, (_, index) => index + 1);
+
+/** 분입니다. 두 자리 문자열로 두어 화면과 저장 형식이 같은 값을 씁니다. */
+export const MINUTES: readonly string[] = Array.from({ length: 60 }, (_, index) =>
+  `${index}`.padStart(2, '0'),
+);
+
+/** 저장 형식의 시각(`HH:mm`)을 세 축으로 나눕니다. */
+export function splitTime(time: string): {
+  readonly meridiem: Meridiem;
+  readonly hour12: number;
+  readonly minute: string;
+} {
+  const [hour, minute] = time.split(':');
+  const hour24 = Number(hour);
+  return {
+    meridiem: hour24 < 12 ? '오전' : '오후',
+    hour12: hour24 % 12 === 0 ? 12 : hour24 % 12,
+    minute,
+  };
+}
+
+/**
+ * 세 축을 저장 형식의 시각으로 합칩니다.
+ *
+ * 12를 먼저 0으로 되돌린 뒤 오후에 12를 더합니다. 오전 12시가 0시이고 오후 12시가
+ * 12시인데, 그 둘만 예외로 두면 분기가 넷으로 늘어납니다.
+ */
+export function joinTime(meridiem: Meridiem, hour12: number, minute: string): string {
+  const base = hour12 % 12;
+  const hour24 = meridiem === '오후' ? base + 12 : base;
+  return `${`${hour24}`.padStart(2, '0')}:${minute}`;
+}
+
 /** 날짜 키에 일수를 더합니다. 지역 시각 기준이며 달력과 같은 규칙입니다. */
 export function shiftDateKey(key: string, days: number): string {
   const date = fromDateKey(key);
@@ -301,6 +491,45 @@ export function toDateKey(date: Date): string {
   const month = `${date.getMonth() + 1}`.padStart(2, '0');
   const day = `${date.getDate()}`.padStart(2, '0');
   return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/**
+ * 날짜와 시각을 미리 알림의 저장 형식으로 만듭니다. 지역 시각 기준입니다.
+ * 초와 밀리초는 버립니다. 사용자가 고를 수 있는 단위가 분까지입니다.
+ */
+export function toDateTimeKey(date: Date): string {
+  const hour = `${date.getHours()}`.padStart(2, '0');
+  const minute = `${date.getMinutes()}`.padStart(2, '0');
+  return `${toDateKey(date)}T${hour}:${minute}`;
+}
+
+/**
+ * 미리 알림의 저장 형식을 달력이 다루는 값으로 되돌립니다.
+ *
+ * `new Date(key)` 를 쓰지 않습니다. 시간대 지정자가 없는 문자열의 해석은 형식에 따라
+ * 갈리며, 날짜만 있는 쪽은 UTC 로 읽힙니다. 두 형식이 같은 규칙으로 읽히도록 직접 만듭니다.
+ */
+export function fromDateTimeKey(remindAt: string): Date | null {
+  const date = fromDateKey(remindDateKey(remindAt));
+  if (!date) return null;
+
+  const [hour, minute] = remindTimeKey(remindAt).split(':').map(Number);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
+
+  date.setHours(hour, minute, 0, 0);
+  return date;
+}
+
+/**
+ * 날짜와 시각을 합칩니다. 한쪽만 바뀌어도 다른 쪽은 그대로 둡니다.
+ * 미리 알림은 값이 하나라 달력과 시각 선택이 같은 문자열을 나눠 씁니다.
+ */
+export function withRemindDate(remindAt: string | null, date: Date, fallbackTime: string): string {
+  return `${toDateKey(date)}T${remindAt ? remindTimeKey(remindAt) : fallbackTime}`;
+}
+
+export function withRemindTime(remindAt: string | null, time: string, fallbackDate: string): string {
+  return `${remindAt ? remindDateKey(remindAt) : fallbackDate}T${time}`;
 }
 
 /**

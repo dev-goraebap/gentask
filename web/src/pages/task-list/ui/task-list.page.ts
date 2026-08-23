@@ -11,11 +11,18 @@ import { form, FormField, FormRoot } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import {
+  lucideAlarmClock,
   lucideArrowDown,
   lucideArrowUp,
   lucideArrowDownUp,
   lucideCalendar,
+  lucideCalendarArrowDown,
+  lucideCalendarCheck,
+  lucideCalendarRange,
   lucideChevronRight,
+  lucideChevronsRight,
+  lucideCircleArrowRight,
+  lucideClock,
   lucideStar,
   lucideSun,
   lucideX,
@@ -24,6 +31,7 @@ import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { AsideOutlet } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
+import { HlmDatePicker, HlmDatePickerTrigger } from '@/shared/ui/date-picker';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
@@ -31,12 +39,20 @@ import { HlmPopoverImports } from '@/shared/ui/popover';
 import { toast } from '@/shared/ui/sonner';
 import { TaskDetailPanel } from './task-detail-panel';
 import {
+  toDateTimeKey,
   filterByView,
+  DEFAULT_REMIND_TIME,
   describeDueBrief,
+  describeRemind,
   formatDueDate,
+  fromDateKey,
+  fromDateTimeKey,
   isInMyDay,
   isAddableTitle,
   isOverdue,
+  isRemindPast,
+  quickDues,
+  quickReminds,
   sortActive,
   sortCompleted,
   splitByCompletion,
@@ -45,6 +61,7 @@ import {
   toDateKey,
   toTaskSort,
   toSortDirection,
+  withRemindDate,
   DEFAULT_DIRECTION,
   TASK_SORTS,
   type SortDirection,
@@ -79,6 +96,8 @@ import {
     HlmPopoverImports,
     HlmCheckbox,
     AppIcon,
+    HlmDatePicker,
+    HlmDatePickerTrigger,
     HlmField,
     HlmFieldLabel,
     TaskDetailPanel,
@@ -86,11 +105,18 @@ import {
   ],
   providers: [
     provideIcons({
+      lucideAlarmClock,
       lucideArrowDown,
       lucideArrowUp,
       lucideArrowDownUp,
       lucideCalendar,
+      lucideCalendarArrowDown,
+      lucideCalendarCheck,
+      lucideCalendarRange,
       lucideChevronRight,
+      lucideChevronsRight,
+      lucideCircleArrowRight,
+      lucideClock,
       lucideStar,
       lucideSun,
       lucideX,
@@ -153,6 +179,16 @@ export class TaskListPage {
   private readonly draft = signal({ title: '' });
 
   /**
+   * 적으면서 붙인 기한과 미리 알림입니다. TK-001 A2 · A3.
+   *
+   * 폼에 두지 않고 따로 갖습니다. `form()` 이 관리하는 것은 사용자가 타이핑하는 값이고
+   * 이 둘은 팝오버에서 고르는 값이라, 폼에 넣으면 검증과 touched 를 쓰지 않는 필드가
+   * 스키마에 끼어듭니다. 비우는 시점만 제목과 같이 맞춥니다.
+   */
+  private readonly draftDue = signal<string | null>(null);
+  private readonly draftRemind = signal<string | null>(null);
+
+  /**
    * 검증 스키마를 두지 않습니다. 12-forms.md 2절이 규칙을 스키마에 모으라고 정하지만,
    * 그것은 사용자에게 알릴 오류가 있는 폼의 이야기입니다.
    *
@@ -190,7 +226,7 @@ export class TaskListPage {
    * 계획된 일정에 기한을 오늘로 두는 것도 같은 이유이며, 그 자리는 기한이 있는 것만
    * 담기 때문입니다.
    */
-  protected readonly seed = computed<TaskSeed>(() => {
+  private readonly viewSeed = computed<TaskSeed>(() => {
     switch (this.view()) {
       case 'my-day':
         return { inMyDay: true };
@@ -202,6 +238,84 @@ export class TaskListPage {
         return {};
     }
   });
+
+  /**
+   * 관점이 주는 성질 위에 적으면서 고른 값을 얹습니다. 고른 것이 이깁니다.
+   *
+   * 계획된 일정은 기한을 오늘로 씨앗에 넣는데, 그 자리에서 다른 날을 고른 사용자에게는
+   * 고른 날이 반영되어야 합니다. 관점의 기본값이 사용자의 선택을 덮으면 고르는 일 자체가
+   * 뜻을 잃습니다.
+   */
+  protected readonly seed = computed<TaskSeed>(() => {
+    const due = this.draftDue();
+    const remind = this.draftRemind();
+    return {
+      ...this.viewSeed(),
+      ...(due !== null ? { dueDate: due } : {}),
+      ...(remind !== null ? { remindAt: remind } : {}),
+    };
+  });
+
+  /** 적는 자리의 기한입니다. 달력에 넘길 값과 지우기 버튼의 표시 조건입니다. */
+  protected readonly draftDueDate = computed<Date | undefined>(() => {
+    const key = this.draftDue();
+    return key ? (fromDateKey(key) ?? undefined) : undefined;
+  });
+
+  protected readonly draftDueKey = computed(() => this.draftDue());
+
+  protected readonly draftRemindAt = computed(() => this.draftRemind());
+
+  protected readonly draftRemindDate = computed<Date | undefined>(() => {
+    const at = this.draftRemind();
+    return at ? (fromDateTimeKey(at) ?? undefined) : undefined;
+  });
+
+  /**
+   * 빠른 선택입니다. 고를 수 있는 값은 엔티티가 정하고 아이콘만 여기서 붙입니다.
+   * 상세 패널과 같은 함수를 거치므로 두 자리에서 고를 수 있는 날이 어긋나지 않습니다.
+   */
+  protected readonly quickDue = computed(() =>
+    quickDues(this.now).map((q, index) => ({ ...q, icon: DUE_ICONS[index] })),
+  );
+
+  protected readonly quickRemind = computed(() =>
+    quickReminds(this.now).map((q, index) => ({ ...q, icon: REMIND_ICONS[index] })),
+  );
+
+  private readonly now = new Date();
+
+  /**
+   * 미리 알림 칩에 적을 문구입니다. 달력은 날짜만 아는데 이 값은 시각까지 갖습니다.
+   *
+   * 앞에 "알림" 을 붙이는 이유는 값이 정해지면 트리거가 아이콘 대신 이 문구를 보이기
+   * 때문입니다. 시각만 남으면 그것이 기한인지 알림인지 구별되지 않습니다. 기한 쪽은
+   * "~까지" 가 그 구실을 하므로 따로 붙이지 않습니다.
+   */
+  protected readonly formatRemindChip = (date: Date): string =>
+    `알림 ${describeRemind(withRemindDate(this.draftRemind(), date, DEFAULT_REMIND_TIME), this.today)}`;
+
+  /** 달력에서 고른 날입니다. 이미 정한 시각이 있으면 지킵니다. */
+  protected setDraftRemindDate(date: Date | null): void {
+    this.draftRemind.set(
+      date ? withRemindDate(this.draftRemind(), date, DEFAULT_REMIND_TIME) : null,
+    );
+  }
+
+  protected setDraftDue(date: Date | null): void {
+    this.draftDue.set(date ? toDateKey(date) : null);
+  }
+
+  /** 빠른 선택은 달력을 거치지 않으므로 팝오버를 직접 닫습니다. 상세와 같은 규칙입니다. */
+  protected pickQuickDue(date: Date, picker: { close(): void }): void {
+    this.setDraftDue(date);
+    picker.close();
+  }
+
+  protected pickQuickRemind(at: string, picker: { close(): void }): void {
+    this.draftRemind.set(at);
+    picker.close();
+  }
 
   protected readonly sortOptions = TASK_SORTS;
 
@@ -257,6 +371,19 @@ export class TaskListPage {
     return isOverdue(task, this.today);
   }
 
+  /** 목록 행에 적는 미리 알림입니다. 오늘이면 시각만 나옵니다. */
+  protected describeRemind(at: string): string {
+    return describeRemind(at, this.today);
+  }
+
+  /**
+   * 알릴 시각이 지났는지입니다. 지난 기한과 같은 취급이며, 색과 문구를 함께 씁니다.
+   * 기준은 화면이 선 시점입니다. 지난 기한의 기준일과 같은 한계를 갖습니다.
+   */
+  protected isRemindPast(task: Task): boolean {
+    return isRemindPast(task, toDateTimeKey(this.now));
+  }
+
   /**
    * 엔터가 곧 추가입니다. 등록 버튼을 두지 않는 사유는 템플릿에 적혀 있습니다.
    *
@@ -293,8 +420,13 @@ export class TaskListPage {
       return;
     }
 
-    // 다음 항목을 이어 적을 수 있게 비웁니다.
+    /*
+     * 다음 항목을 이어 적을 수 있게 비웁니다. 붙인 기한과 미리 알림도 함께 비웁니다.
+     * 남겨 두면 다음에 적는 항목이 앞의 것과 같은 날짜를 조용히 물려받습니다.
+     */
     this.addForm().reset({ title: '' });
+    this.draftDue.set(null);
+    this.draftRemind.set(null);
   }
 
   /**
@@ -371,3 +503,9 @@ const EMPTY_MESSAGES: Record<TaskView, string> = {
   planned: '기한을 정한 항목이 없습니다. 항목을 열어 기한을 정해 보세요.',
   all: '작업이 없습니다. 아래에 입력해 하나 추가해 보세요.',
 };
+
+/** 기한 빠른 선택의 아이콘입니다. 엔티티가 주는 순서(오늘 · 내일 · 다음 주)와 자리를 맞춥니다. */
+const DUE_ICONS = ['lucideCalendarCheck', 'lucideCalendarArrowDown', 'lucideCalendarRange'];
+
+/** 미리 알림 빠른 선택의 아이콘입니다. 순서는 오늘 나중에 · 내일 · 다음 주입니다. */
+const REMIND_ICONS = ['lucideClock', 'lucideCircleArrowRight', 'lucideChevronsRight'];

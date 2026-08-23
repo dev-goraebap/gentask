@@ -4,6 +4,7 @@ import {
   computed,
   DestroyRef,
   effect,
+  type ElementRef,
   inject,
   input,
   signal,
@@ -13,12 +14,26 @@ import {
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import {
+  DEFAULT_REMIND_TIME,
+  describeRemind,
   fromDateKey,
+  fromDateTimeKey,
+  HOURS12,
   isAddableTitle,
   isCompleted,
   isInMyDay,
+  joinTime,
+  MERIDIEMS,
+  MINUTES,
+  quickDues,
+  quickReminds,
+  remindTimeKey,
+  splitTime,
   TASK_STORE,
   toDateKey,
+  withRemindDate,
+  withRemindTime,
+  type Meridiem,
   type Task,
   type TaskDraft,
 } from '@/entities/task';
@@ -45,10 +60,14 @@ import { HlmInput } from '@/shared/ui/input';
 import { HlmTextarea } from '@/shared/ui/textarea';
 import { provideIcons } from '@ng-icons/core';
 import {
+  lucideAlarmClock,
   lucideCalendar,
   lucideCalendarArrowDown,
   lucideCalendarCheck,
   lucideCalendarRange,
+  lucideChevronsRight,
+  lucideCircleArrowRight,
+  lucideClock,
   lucideStar,
   lucideSun,
   lucideTrash2,
@@ -100,10 +119,14 @@ import {
   ],
   providers: [
     provideIcons({
+      lucideAlarmClock,
       lucideCalendar,
       lucideCalendarArrowDown,
       lucideCalendarCheck,
       lucideCalendarRange,
+      lucideChevronsRight,
+      lucideCircleArrowRight,
+      lucideClock,
       lucideStar,
       lucideSun,
       lucideTrash2,
@@ -129,7 +152,12 @@ export class TaskDetailPanel {
     this.store.tasks().find((candidate) => candidate.id === this.id()),
   );
 
-  private readonly draft = signal<TaskDraft>({ title: '', note: '', dueDate: null });
+  private readonly draft = signal<TaskDraft>({
+    title: '',
+    note: '',
+    dueDate: null,
+    remindAt: null,
+  });
 
   /** 검증 규칙을 스키마 한 곳에 모읍니다. 12-forms.md 2절. */
   protected readonly editForm = form(this.draft, (p) => {
@@ -140,6 +168,10 @@ export class TaskDetailPanel {
 
   /** 확인을 거쳐야 지웁니다. 되돌릴 수단이 없으므로 확인이 유일한 안전장치입니다. */
   private readonly confirm = viewChild(HlmAlertDialog);
+
+  /** 시와 분의 열입니다. 팝오버가 열릴 때 자리를 잡으므로 그 전에는 높이가 없습니다. */
+  private readonly hourList = viewChild<ElementRef<HTMLElement>>('hourList');
+  private readonly minuteList = viewChild<ElementRef<HTMLElement>>('minuteList');
 
   /** 어느 항목의 값을 담고 있는지입니다. 대상이 바뀔 때만 폼을 다시 채웁니다. */
   private readonly loaded = signal<string | null>(null);
@@ -156,13 +188,19 @@ export class TaskDetailPanel {
       if (!current || untracked(this.loaded) === current.id) return;
 
       this.loaded.set(current.id);
-      this.draft.set({
-        title: current.title,
-        note: current.note,
-        dueDate: current.dueDate,
-      });
+      this.draft.set(toDraft(current));
     });
 
+    /*
+     * 시각 목록을 열면 골라 둔 시각이 보이는 자리에서 시작합니다.
+     *
+     * 하루가 마흔여덟 칸이라 목록은 늘 자정에서 시작하는데, 고른 값이 그 아래 어딘가에
+     * 있으면 열 때마다 찾아 내려가야 합니다. 아직 고르지 않았으면 기본 시각을 보입니다.
+     *
+     * 목록이 뷰에 나타나는 순간에만 맞춥니다. 고른 값에 반응하면 사용자가 스크롤해 둔
+     * 자리가 고를 때마다 되돌아갑니다. `scrollTop` 을 직접 두는 이유는 `scrollIntoView`
+     * 가 조상 스크롤까지 건드려 패널 전체가 따라 움직이기 때문입니다.
+     */
     /*
      * 입력란에 포커스를 둔 채 닫으면 blur 가 오지 않아 마지막 입력이 남습니다.
      * 파괴 시점에 한 번 더 반영해 그 자리를 막습니다.
@@ -232,26 +270,144 @@ export class TaskDetailPanel {
   protected readonly draftDueDate = computed(() => this.draft().dueDate);
 
   /**
-   * 기한의 빠른 선택입니다. MS To Do 의 오늘 · 내일 · 다음 주와 같고, 요일을 함께 보여 줍니다.
+   * 기한의 빠른 선택입니다. 고를 수 있는 날은 엔티티가 정하고 아이콘만 여기서 붙입니다.
+   * 아이콘은 표현이라 그 계층에 두지 않으며, 순서가 고정이므로 자리로 맞춥니다.
+   *
    * 오늘은 열 때마다 다시 재지 않습니다. 패널이 열려 있는 동안 자정을 넘는 경우는 드물고,
    * 넘더라도 다음에 열 때 맞습니다.
    */
   protected readonly quickDue = computed(() =>
-    [
-      { label: '오늘', days: 0, icon: 'lucideCalendarCheck' },
-      { label: '내일', days: 1, icon: 'lucideCalendarArrowDown' },
-      { label: '다음 주', days: 7, icon: 'lucideCalendarRange' },
-    ].map((q) => {
-      const date = fromDateKey(this.today) ?? new Date();
-      date.setDate(date.getDate() + q.days);
-      return { ...q, date, weekday: date.toLocaleDateString('ko-KR', { weekday: 'short' }) };
-    }),
+    quickDues(fromDateKey(this.today) ?? new Date()).map((q, index) => ({
+      ...q,
+      icon: DUE_ICONS[index],
+    })),
   );
 
   /** 빠른 선택은 달력을 거치지 않으므로 팝오버를 직접 닫습니다. */
   protected pickQuick(date: Date, picker: { close(): void }): void {
     this.setDueDate(date);
     picker.close();
+  }
+
+  /**
+   * 미리 알림의 빠른 선택입니다. 기한과 달리 시각까지 한 번에 정해집니다.
+   *
+   * 지금을 기준으로 삼습니다. "오늘 나중에" 가 세 시간 뒤라 오늘 날짜만으로는 값이 서지
+   * 않습니다. 열 때마다 다시 재지 않는 것은 기한과 같은 이유입니다.
+   */
+  protected readonly quickRemind = computed(() =>
+    quickReminds(this.now).map((q, index) => ({ ...q, icon: REMIND_ICONS[index] })),
+  );
+
+  private readonly now = new Date();
+
+  /** 지우기 버튼의 표시 조건이자, 트리거의 켜짐 표시입니다. */
+  protected readonly draftRemindAt = computed(() => this.draft().remindAt);
+
+  /** 달력에 넘길 날짜 부분입니다. 시각은 달력이 다루지 않습니다. */
+  protected readonly remindDate = computed<Date | undefined>(() => {
+    const at = this.draft().remindAt;
+    return at ? (fromDateTimeKey(at) ?? undefined) : undefined;
+  });
+
+  /** 시각 목록에서 지금 골라져 있는 값입니다. 정하지 않았으면 아무것도 골라지지 않습니다. */
+  protected readonly remindTime = computed(() => {
+    const at = this.draft().remindAt;
+    return at ? remindTimeKey(at) : null;
+  });
+
+  /**
+   * 세 열에서 골라져 있는 값입니다. 아직 정하지 않았으면 기본 시각의 자리를 보입니다.
+   *
+   * 정하지 않은 상태에서도 어딘가가 골라져 보이는 이유는 세 축이 함께 하나의 값을 이루기
+   * 때문입니다. 셋 다 비어 있으면 무엇을 눌러야 값이 서는지 알 수 없습니다.
+   */
+  protected readonly remindParts = computed(() =>
+    splitTime(this.remindTime() ?? DEFAULT_REMIND_TIME),
+  );
+
+  protected readonly meridiems = MERIDIEMS;
+  protected readonly hours12 = HOURS12;
+  protected readonly minutes = MINUTES;
+
+  /** 한 축만 바꾸고 나머지 둘은 지킵니다. 셋이 모여 하나의 시각이 됩니다. */
+  protected setRemindMeridiem(meridiem: Meridiem): void {
+    const { hour12, minute } = this.remindParts();
+    this.setRemindTime(joinTime(meridiem, hour12, minute));
+  }
+
+  protected setRemindHour(hour12: number): void {
+    const { meridiem, minute } = this.remindParts();
+    this.setRemindTime(joinTime(meridiem, hour12, minute));
+  }
+
+  protected setRemindMinute(minute: string): void {
+    const { meridiem, hour12 } = this.remindParts();
+    this.setRemindTime(joinTime(meridiem, hour12, minute));
+  }
+
+  /**
+   * 트리거에 적을 문구입니다. 달력은 날짜만 아는데 이 값은 시각까지 있어야 하므로,
+   * 화면이 들고 있는 초안에서 시각을 가져와 합칩니다.
+   *
+   * 앞에 "알림" 을 붙이는 이유는 값이 정해지면 트리거가 아이콘 대신 이 문구를 보이기
+   * 때문입니다. 바로 아래가 기한 줄이라 날짜만 남으면 둘이 구별되지 않습니다. 기한 쪽은
+   * "~까지" 가 그 구실을 하므로 따로 붙이지 않습니다.
+   *
+   * 화살표 함수로 두는 이유는 이것이 `hlm-date-picker` 의 입력으로 넘어가 그 안에서
+   * 불리기 때문입니다. 메서드로 두면 `this` 가 풀립니다.
+   */
+  protected readonly formatRemind = (date: Date): string =>
+    `알림 ${describeRemind(withRemindDate(this.draft().remindAt, date, DEFAULT_REMIND_TIME), this.today)}`;
+
+  /**
+   * 달력에서 날짜만 바꿉니다. 이미 정한 시각이 있으면 그것을 지킵니다.
+   *
+   * 날짜를 고칠 때마다 시각이 기본값으로 돌아가면, 시각을 먼저 정한 사용자는 자기가 정한
+   * 것이 조용히 지워진 것을 나중에야 알게 됩니다.
+   */
+  protected setRemindDate(date: Date | null): void {
+    this.setRemindAt(
+      date ? withRemindDate(this.draft().remindAt, date, DEFAULT_REMIND_TIME) : null,
+    );
+  }
+
+  /** 시각만 바꿉니다. 날짜를 아직 정하지 않았으면 오늘로 둡니다. */
+  protected setRemindTime(time: string): void {
+    this.setRemindAt(withRemindTime(this.draft().remindAt, time, this.today));
+  }
+
+  /** 빠른 선택은 날짜와 시각을 함께 정하므로 달력을 거치지 않고 팝오버를 닫습니다. */
+  protected pickQuickRemind(at: string, picker: { close(): void }): void {
+    this.setRemindAt(at);
+    picker.close();
+  }
+
+  /**
+   * 시각 목록을 골라 둔 시각이 보이는 자리에서 시작하게 합니다.
+   *
+   * 하루가 마흔여덟 칸이라 목록은 늘 자정에서 시작하는데, 고른 값이 그 아래 어딘가에
+   * 있으면 열 때마다 찾아 내려가야 합니다. 아직 고르지 않았으면 기본 시각을 보입니다.
+   *
+   * 트리거의 클릭에 매다는 이유는 팝오버 안의 내용이 투사된 콘텐츠라 이 컴포넌트의
+   * 뷰에서는 열기 전부터 존재하기 때문입니다. 존재 여부로는 열린 시점을 알 수 없습니다.
+   * 한 프레임 미루는 것은 그때까지 오버레이가 자리를 잡지 않아 높이가 0 이어서입니다.
+   *
+   * `scrollIntoView` 를 쓰지 않습니다. 그것은 조상 스크롤까지 건드려 패널 전체가 따라
+   * 움직입니다.
+   */
+  protected scrollToRemindTime(): void {
+    requestAnimationFrame(() => {
+      const { hour12, minute } = this.remindParts();
+      center(this.hourList()?.nativeElement, hour12 - 1);
+      center(this.minuteList()?.nativeElement, Number(minute));
+    });
+  }
+
+  /** 미리 알림도 고르는 즉시 반영합니다. 기한과 같은 규칙입니다. */
+  protected setRemindAt(at: string | null): void {
+    this.draft.update((draft) => ({ ...draft, remindAt: at }));
+    void this.commit();
   }
 
   /** 날짜는 고르는 즉시 반영합니다. 텍스트와 달리 벗어나는 조작이 따로 없습니다. */
@@ -287,7 +443,7 @@ export class TaskDetailPanel {
 
     // 대화가 열려 있을 때의 Escape 는 대화의 몫입니다. 여기까지 오면 입력란의 것입니다.
     event.preventDefault();
-    this.draft.set({ title: current.title, note: current.note, dueDate: current.dueDate });
+    this.draft.set(toDraft(current));
     this.editForm().reset();
   }
 
@@ -312,14 +468,15 @@ export class TaskDetailPanel {
     const unchanged =
       next.title.trim() === current.title &&
       next.note === current.note &&
-      next.dueDate === current.dueDate;
+      next.dueDate === current.dueDate &&
+      next.remindAt === current.remindAt;
     if (unchanged) return;
 
     try {
       await this.store.update(current.id, next);
     } catch {
       // 이전 값으로 돌아갑니다. TK-003 A9. 고치던 값을 폼에 남기면 화면과 저장소가 다른 값을 보입니다.
-      this.draft.set({ title: current.title, note: current.note, dueDate: current.dueDate });
+      this.draft.set(toDraft(current));
       this.editForm().reset();
       toast.error('바꾸지 못했습니다.');
     }
@@ -355,5 +512,29 @@ export class TaskDetailPanel {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+}
+
+/** 기한 빠른 선택의 아이콘입니다. 엔티티가 주는 순서(오늘 · 내일 · 다음 주)와 자리를 맞춥니다. */
+const DUE_ICONS = ['lucideCalendarCheck', 'lucideCalendarArrowDown', 'lucideCalendarRange'];
+
+/** 미리 알림 빠른 선택의 아이콘입니다. 순서는 오늘 나중에 · 내일 · 다음 주입니다. */
+const REMIND_ICONS = ['lucideClock', 'lucideCircleArrowRight', 'lucideChevronsRight'];
+
+/** 저장된 작업에서 편집할 부분만 떼어 냅니다. 채우기와 되돌리기가 같은 자리를 씁니다. */
+function toDraft(task: Task): TaskDraft {
+  return {
+    title: task.title,
+    note: task.note,
+    dueDate: task.dueDate,
+    remindAt: task.remindAt,
+  };
+}
+
+/** 열의 스크롤을 그 자리의 항목이 가운데 오도록 맞춥니다. 오전·오후 열은 둘뿐이라 없습니다. */
+function center(list: HTMLElement | undefined, index: number): void {
+  const item = list?.children.item(index) as HTMLElement | null;
+  if (list && item) {
+    list.scrollTop = item.offsetTop - list.clientHeight / 2 + item.offsetHeight / 2;
   }
 }

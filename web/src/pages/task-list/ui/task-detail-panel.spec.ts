@@ -28,6 +28,7 @@ describe('TaskDetailPanel', () => {
     completedAt: null,
     note: '우유와 빵',
     dueDate: null,
+    remindAt: null,
     important: false,
     myDayOn: null,
   };
@@ -80,6 +81,22 @@ describe('TaskDetailPanel', () => {
   function type(field: HTMLInputElement | HTMLTextAreaElement, value: string): void {
     field.value = value;
     field.dispatchEvent(new Event('input'));
+  }
+
+  /**
+   * 미리 알림 팝오버의 시각 열에서 한 칸을 고릅니다. 열은 오전 오후 · 시 · 분 셋이며
+   * 팝오버는 오버레이에 그려집니다.
+   */
+  function timeOption(group: string, label: string): HTMLButtonElement {
+    const container = [...document.querySelectorAll('.cdk-overlay-container')].at(-1);
+    const column = [...(container?.querySelectorAll('[role="group"]') ?? [])].find(
+      (candidate) => candidate.getAttribute('aria-label') === group,
+    );
+    const button = [...(column?.querySelectorAll('button') ?? [])].find(
+      (candidate) => candidate.textContent?.trim() === label,
+    );
+    if (!button) throw new Error(`${group} 열에서 ${label} 을 찾지 못했습니다`);
+    return button as HTMLButtonElement;
   }
 
   /** 대화 안의 버튼입니다. 오버레이는 컴포넌트의 DOM 밖에 붙습니다. */
@@ -150,6 +167,7 @@ describe('TaskDetailPanel', () => {
       title: '장 보기',
       note: '두부도 사기',
       dueDate: null,
+      remindAt: null,
     });
     expect(navigate).not.toHaveBeenCalled();
   });
@@ -166,6 +184,7 @@ describe('TaskDetailPanel', () => {
       title: '장 보기와 은행',
       note: '우유와 빵',
       dueDate: null,
+      remindAt: null,
     });
   });
 
@@ -299,7 +318,8 @@ describe('TaskDetailPanel', () => {
       const fixture = render('seed-1');
 
       // 트리거 버튼이 고른 날짜를 표기합니다. 정하지 않았을 때의 문구와 갈립니다.
-      const trigger = query<HTMLButtonElement>(fixture, 'hlm-date-picker-trigger button');
+      // 일정 카드에 트리거가 둘(미리 알림 · 기한)이라 id 로 특정합니다.
+      const trigger = query<HTMLButtonElement>(fixture, '#task-due');
       expect(trigger.textContent?.trim()).toBe('12월 25일까지');
     });
 
@@ -316,7 +336,7 @@ describe('TaskDetailPanel', () => {
       const fixture = render('seed-1');
 
       const clear = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
-        (b as HTMLElement).textContent?.includes('지우기'),
+        (b as HTMLElement).textContent?.includes('기한 지우기'),
       ) as HTMLButtonElement;
       clear.click();
       await fixture.whenStable();
@@ -326,6 +346,104 @@ describe('TaskDetailPanel', () => {
         title: '장 보기',
         note: '우유와 빵',
         dueDate: null,
+        remindAt: null,
+      });
+    });
+  });
+
+  /*
+   * 미리 알림입니다. TK-003 A10. 기한과 갈리는 지점만 봅니다. 값이 시각까지 갖는 것,
+   * 날짜를 고쳐도 정한 시각이 남는 것, 기한과 서로를 정하지 않는 것 셋입니다.
+   */
+  describe('TK-003 S8: 미리 알림이 정한 대로 그 작업에 남는다', () => {
+    it('미리 알림이 있으면 날짜와 시각을 트리거에 적는다', () => {
+      tasks.set([{ ...seed, remindAt: '2026-12-25T15:30' }]);
+      const fixture = render('seed-1');
+
+      const trigger = query<HTMLButtonElement>(fixture, '#task-remind');
+      expect(trigger.textContent?.trim()).toBe('알림 12월 25일 오후 3:30');
+    });
+
+    it('정하지 않았으면 트리거가 이름만 보인다', () => {
+      const fixture = render('seed-1');
+
+      expect(query<HTMLButtonElement>(fixture, '#task-remind').textContent?.trim()).toBe(
+        '미리 알림',
+      );
+    });
+
+    it('시를 고르면 나머지 축과 날짜를 지킨 채 반영한다', async () => {
+      tasks.set([{ ...seed, remindAt: '2026-12-25T15:30' }]);
+      const fixture = render('seed-1');
+
+      // 팝오버 안의 시각 열입니다. 트리거를 눌러야 그려집니다.
+      query<HTMLButtonElement>(fixture, '#task-remind').click();
+      await fixture.whenStable();
+
+      timeOption('시', '7').click();
+      await fixture.whenStable();
+
+      // 오후와 30분과 날짜가 그대로입니다. 한 축만 바뀝니다.
+      expect(update).toHaveBeenCalledWith('seed-1', {
+        title: '장 보기',
+        note: '우유와 빵',
+        dueDate: null,
+        remindAt: '2026-12-25T19:30',
+      });
+    });
+
+    it('오전으로 바꾸면 시와 분은 그대로다', async () => {
+      tasks.set([{ ...seed, remindAt: '2026-12-25T15:30' }]);
+      const fixture = render('seed-1');
+
+      query<HTMLButtonElement>(fixture, '#task-remind').click();
+      await fixture.whenStable();
+
+      timeOption('오전 오후', '오전').click();
+      await fixture.whenStable();
+
+      expect(update).toHaveBeenCalledWith('seed-1', {
+        title: '장 보기',
+        note: '우유와 빵',
+        dueDate: null,
+        remindAt: '2026-12-25T03:30',
+      });
+    });
+
+    it('분을 1분 단위로 고를 수 있다', async () => {
+      tasks.set([{ ...seed, remindAt: '2026-12-25T15:30' }]);
+      const fixture = render('seed-1');
+
+      query<HTMLButtonElement>(fixture, '#task-remind').click();
+      await fixture.whenStable();
+
+      // 한 목록으로 늘어놓았다면 간격에 걸리지 않아 고를 수 없던 값입니다.
+      timeOption('분', '07').click();
+      await fixture.whenStable();
+
+      expect(update).toHaveBeenCalledWith('seed-1', {
+        title: '장 보기',
+        note: '우유와 빵',
+        dueDate: null,
+        remindAt: '2026-12-25T15:07',
+      });
+    });
+
+    it('미리 알림을 지워도 기한은 남는다', async () => {
+      tasks.set([{ ...seed, dueDate: '2026-12-25', remindAt: '2026-12-25T15:30' }]);
+      const fixture = render('seed-1');
+
+      const clear = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
+        (b as HTMLElement).textContent?.includes('미리 알림 지우기'),
+      ) as HTMLButtonElement;
+      clear.click();
+      await fixture.whenStable();
+
+      expect(update).toHaveBeenCalledWith('seed-1', {
+        title: '장 보기',
+        note: '우유와 빵',
+        dueDate: '2026-12-25',
+        remindAt: null,
       });
     });
   });

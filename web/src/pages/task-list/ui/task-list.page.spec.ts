@@ -2,8 +2,9 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TASK_STORE, type Task, type TaskStore } from '@/entities/task';
+import { TASK_STORE, toDateKey, type Task, type TaskStore } from '@/entities/task';
 import { AsideSlot } from '@/shared/lib';
+import { provideTaskListDatePicker } from '../providers';
 import { TaskListPage } from './task-list.page';
 import { toast } from '@/shared/ui/sonner';
 
@@ -29,6 +30,7 @@ describe('TaskListPage', () => {
     completedAt: null,
     note: '',
     dueDate: null,
+    remindAt: null,
     important: false,
     myDayOn: null,
   };
@@ -40,6 +42,7 @@ describe('TaskListPage', () => {
     completedAt: null,
     note: '',
     dueDate: '2026-08-25',
+    remindAt: null,
     important: false,
     myDayOn: null,
   };
@@ -51,6 +54,7 @@ describe('TaskListPage', () => {
     completedAt: null,
     note: '',
     dueDate: '2026-08-14',
+    remindAt: null,
     important: false,
     myDayOn: null,
   };
@@ -74,7 +78,11 @@ describe('TaskListPage', () => {
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: TASK_STORE, useValue: store }],
+      providers: [
+        provideRouter([]),
+        { provide: TASK_STORE, useValue: store },
+        ...provideTaskListDatePicker(),
+      ],
     });
   });
 
@@ -117,6 +125,27 @@ describe('TaskListPage', () => {
 
   function pressEnter(field: HTMLInputElement, isComposing = false): void {
     field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', isComposing, bubbles: true }));
+  }
+
+  /**
+   * 적는 자리의 아이콘을 눌러 팝오버를 열고 그 안의 빠른 선택을 누릅니다.
+   * 팝오버는 오버레이에 그려지므로 컴포넌트의 DOM 밖에서 찾습니다.
+   */
+  function pickQuick(fixture: ComponentFixture<TaskListPage>, id: string, label: string): void {
+    const trigger = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      `#${id}`,
+    );
+    if (!trigger) throw new Error(`${id} 를 찾지 못했습니다`);
+    trigger.click();
+    fixture.detectChanges();
+
+    const container = [...document.querySelectorAll('.cdk-overlay-container')].at(-1);
+    const button = [...(container?.querySelectorAll('button') ?? [])].find(
+      (candidate) => candidate.textContent?.trim().startsWith(label),
+    );
+    if (!button) throw new Error(`${label} 을 찾지 못했습니다`);
+    (button as HTMLButtonElement).click();
+    fixture.detectChanges();
   }
 
   function titles(fixture: ComponentFixture<TaskListPage>): string[] {
@@ -226,6 +255,81 @@ describe('TaskListPage', () => {
     const host = render(undefined, 'my-day').nativeElement as HTMLElement;
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe('나의 하루');
+  });
+
+  /*
+   * 적는 자리의 아이콘 줄입니다. TK-001 A2 · A3. 붙인 값이 씨앗으로 넘어가는지와, 다음
+   * 항목이 앞의 값을 물려받지 않는지를 봅니다. ST-002 · ST-013.
+   */
+  describe('TK-001 S2: 적으면서 기한과 미리 알림을 붙인다', () => {
+    it('기한을 고르고 적으면 그 기한이 붙은 채로 넘어간다', async () => {
+      const fixture = render();
+
+      pickQuick(fixture, 'new-task-due', '오늘');
+
+      const input = newTaskInput(fixture);
+      input.value = '우산 챙기기';
+      input.dispatchEvent(new Event('input'));
+      pressEnter(input);
+      await fixture.whenStable();
+
+      expect(add).toHaveBeenCalledWith('우산 챙기기', { dueDate: toDateKey(new Date()) });
+    });
+
+    it('미리 알림을 고르고 적으면 시각까지 붙은 채로 넘어간다', async () => {
+      const fixture = render();
+
+      pickQuick(fixture, 'new-task-remind', '내일');
+
+      const input = newTaskInput(fixture);
+      input.value = '약 먹기';
+      input.dispatchEvent(new Event('input'));
+      pressEnter(input);
+      await fixture.whenStable();
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      expect(add).toHaveBeenCalledWith('약 먹기', {
+        remindAt: `${toDateKey(tomorrow)}T09:00`,
+      });
+    });
+
+    it('적고 나면 붙였던 값이 남지 않는다', async () => {
+      const fixture = render();
+
+      pickQuick(fixture, 'new-task-due', '오늘');
+
+      const input = newTaskInput(fixture);
+      input.value = '첫 번째';
+      input.dispatchEvent(new Event('input'));
+      pressEnter(input);
+      await fixture.whenStable();
+
+      input.value = '두 번째';
+      input.dispatchEvent(new Event('input'));
+      pressEnter(input);
+      await fixture.whenStable();
+
+      // 남겨 두면 다음 항목이 앞의 것과 같은 날짜를 조용히 물려받습니다.
+      expect(add).toHaveBeenLastCalledWith('두 번째', {});
+    });
+
+    it('관점이 주는 기한보다 고른 기한이 이긴다', async () => {
+      const fixture = render(undefined, 'planned');
+
+      // 계획된 일정은 기한을 오늘로 씨앗에 넣습니다. 그 자리에서 내일을 고른 경우입니다.
+      pickQuick(fixture, 'new-task-due', '내일');
+
+      const input = newTaskInput(fixture);
+      input.value = '내일 할 것';
+      input.dispatchEvent(new Event('input'));
+      pressEnter(input);
+      await fixture.whenStable();
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      expect(add).toHaveBeenCalledWith('내일 할 것', { dueDate: toDateKey(tomorrow) });
+    });
   });
 
   it('TK-001 S1: 스마트 목록을 보며 적으면 그 스마트 목록의 성질이 붙은 채로 목록에 남는다', async () => {

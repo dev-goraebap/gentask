@@ -28,6 +28,7 @@ export class MockTaskStore implements TaskStore {
       completedAt: null,
       note: '',
       dueDate: seed.dueDate ?? null,
+      remindAt: seed.remindAt ?? null,
       important: seed.important ?? false,
       myDayOn: seed.inMyDay ? toDateKey(now) : null,
     };
@@ -51,7 +52,13 @@ export class MockTaskStore implements TaskStore {
     this.state.update((tasks) =>
       tasks.map((task) =>
         task.id === id
-          ? { ...task, title: patch.title.trim(), note: patch.note, dueDate: patch.dueDate }
+          ? {
+              ...task,
+              title: patch.title.trim(),
+              note: patch.note,
+              dueDate: patch.dueDate,
+              remindAt: patch.remindAt,
+            }
           : task,
       ),
     );
@@ -89,6 +96,7 @@ const SEED: readonly Task[] = [
     completedAt: null,
     note: '',
     dueDate: null,
+    remindAt: null,
     important: false,
     myDayOn: null,
   },
@@ -99,6 +107,7 @@ const SEED: readonly Task[] = [
     completedAt: null,
     note: '',
     dueDate: '2026-08-25',
+    remindAt: '2026-08-25T09:00',
     important: true,
     myDayOn: null,
   },
@@ -109,6 +118,7 @@ const SEED: readonly Task[] = [
     completedAt: '2026-08-17T08:10:00.000Z',
     note: '앞바퀴만 확인했다. 뒷바퀴는 다음에.',
     dueDate: null,
+    remindAt: null,
     important: false,
     myDayOn: null,
   },
@@ -119,6 +129,7 @@ const SEED: readonly Task[] = [
     completedAt: null,
     note: '',
     dueDate: '2026-08-14',
+    remindAt: null,
     important: false,
     myDayOn: null,
   },

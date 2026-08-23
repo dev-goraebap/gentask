@@ -119,8 +119,157 @@
         }
       </div>
 
-      <!-- 일정 카드: 기한. 미리 알림과 반복은 결정 뒤에 이 카드에 줄로 들어옵니다. -->
+      <!--
+        일정 카드: 미리 알림 · 기한. 반복은 결정 뒤에 이 카드에 줄로 들어옵니다.
+
+        미리 알림이 기한 위입니다. 둘은 서로를 정하지 않지만 함께 정하는 일이 잦아
+        붙여 두며, 시각까지 정하는 쪽이 위입니다. MS To Do 의 순서와 같습니다.
+      -->
       <div class="border-border bg-card divide-border flex flex-col divide-y border">
+        <!--
+          미리 알림입니다. TK-003 A10. 기한과 달리 값이 시각까지 갖습니다.
+
+          빠른 선택 · 달력 · 시각을 한 팝오버에 담습니다. 시각 목록을 팝오버 안에 그대로
+          펼치는 이유는 그것을 또 하나의 오버레이로 열면 달력 팝오버가 바깥 클릭으로
+          닫히기 때문입니다. 겹치는 오버레이를 만들지 않는 것이 배선보다 쌉니다.
+        -->
+        <div class="flex items-center">
+          <hlm-date-picker
+            #remindPicker
+            [date]="remindDate()"
+            [autoCloseOnSelect]="false"
+            [formatDate]="formatRemind"
+            (dateChange)="setRemindDate($event)"
+            class="min-w-0 flex-1"
+          >
+            <div
+              hlmDatePickerHeader
+              class="border-border divide-border flex flex-col divide-y border-b"
+            >
+              @for (q of quickRemind(); track q.label) {
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  class="h-10 justify-start gap-3 px-3"
+                  (click)="pickQuickRemind(q.at, remindPicker)"
+                >
+                  <app-icon [name]="q.icon" />
+                  {{ q.label }}
+                  <span class="text-muted-foreground ml-auto">{{ q.hint }}</span>
+                </button>
+              }
+            </div>
+
+            <!--
+              달력에서 고른 날의 시각입니다. 오전·오후 · 시 · 분 세 열이며 MS To Do 와 같은
+              구성입니다. 한 목록으로 늘어놓으면 간격을 정해야 하고, 그 간격에 걸리지 않는
+              시각은 아예 고를 수 없게 됩니다.
+
+              고른 값을 굵기와 배경으로 함께 알립니다. 열이 좁아 체크를 넣을 자리가 없으며,
+              배경색만으로 두면 색각 이상과 흑백 출력에서 전달되지 않습니다.
+              13-accessibility.md 4절.
+            -->
+            <div hlmDatePickerFooter class="border-border border-t">
+              <p id="remind-time-label" class="text-foreground-secondary px-3 pt-2 pb-1 text-xs">
+                알릴 시각
+              </p>
+              <div class="divide-border grid grid-cols-3 divide-x">
+                <div role="group" aria-label="오전 오후" class="flex flex-col justify-center">
+                  @for (meridiem of meridiems; track meridiem) {
+                    <button
+                      hlmBtn
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      class="h-8 shrink-0 justify-center"
+                      [class.bg-muted]="remindParts().meridiem === meridiem"
+                      [class.font-semibold]="remindParts().meridiem === meridiem"
+                      [attr.aria-pressed]="remindParts().meridiem === meridiem"
+                      (click)="setRemindMeridiem(meridiem)"
+                    >
+                      {{ meridiem }}
+                    </button>
+                  }
+                </div>
+
+                <div
+                  #hourList
+                  role="group"
+                  aria-label="시"
+                  class="relative flex max-h-24 flex-col overflow-y-auto"
+                >
+                  @for (hour of hours12; track hour) {
+                    <button
+                      hlmBtn
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      class="h-8 shrink-0 justify-center"
+                      [class.bg-muted]="remindParts().hour12 === hour"
+                      [class.font-semibold]="remindParts().hour12 === hour"
+                      [attr.aria-pressed]="remindParts().hour12 === hour"
+                      (click)="setRemindHour(hour)"
+                    >
+                      {{ hour }}
+                    </button>
+                  }
+                </div>
+
+                <div
+                  #minuteList
+                  role="group"
+                  aria-label="분"
+                  class="relative flex max-h-24 flex-col overflow-y-auto"
+                >
+                  @for (minute of minutes; track minute) {
+                    <button
+                      hlmBtn
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      class="h-8 shrink-0 justify-center"
+                      [class.bg-muted]="remindParts().minute === minute"
+                      [class.font-semibold]="remindParts().minute === minute"
+                      [attr.aria-pressed]="remindParts().minute === minute"
+                      (click)="setRemindMinute(minute)"
+                    >
+                      {{ minute }}
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <hlm-date-picker-trigger
+              buttonId="task-remind"
+              variant="ghost"
+              [showTrigger]="false"
+              class="w-full [&>button]:h-10 [&>button]:w-full [&>button]:justify-start [&>button]:gap-3 [&>button]:px-3"
+              [class.text-warning]="draftRemindAt()"
+              (click)="scrollToRemindTime()"
+            >
+              <app-icon name="lucideAlarmClock" />
+              미리 알림
+            </hlm-date-picker-trigger>
+          </hlm-date-picker>
+
+          @if (draftRemindAt()) {
+            <button
+              hlmBtn
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              class="mr-1"
+              (click)="setRemindAt(null)"
+            >
+              <app-icon name="lucideX" />
+              <span class="sr-only">미리 알림 지우기</span>
+            </button>
+          }
+        </div>
+
         <div class="flex items-center">
           <!--
             네이티브 날짜 입력을 쓰지 않습니다. OS 와 브라우저마다 외형이 달라져 화면
