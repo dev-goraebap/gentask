@@ -2,10 +2,17 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'checkstyle'
+	id 'com.diffplug.spotless' version '8.8.0'
+	id 'com.github.spotbugs' version '6.5.9'
+	id 'org.jooq.jooq-codegen-gradle' version '3.21.6'
 }
 
 group = 'dev.goraebap'
 version = '0.0.1-SNAPSHOT'
+
+// 런타임 jOOQ 버전을 코드 생성기와 맞춘다. 어긋나면 생성물이 런타임 API 와 맞지 않는다.
+ext['jooq.version'] = '3.21.6'
 
 java {
 	toolchain {
@@ -21,14 +28,26 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-flyway'
 	implementation 'org.springframework.boot:spring-boot-starter-jooq'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.flywaydb:flyway-database-postgresql'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// 로컬 실행 시 compose.yaml 의 컨테이너를 함께 띄운다. 배포 산출물에는 들어가지 않는다.
+	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
+	// 코드 생성기 클래스패스 — DDLDatabase(SQL 파일에서 생성)를 쓰기 위해 필요하다.
+	jooqCodegen 'org.jooq:jooq-meta-extensions:3.21.6'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-flyway-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-jooq-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+	testImplementation 'org.testcontainers:testcontainers-postgresql'
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
@@ -36,4 +55,109 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	// CI 로그만 보고 원인을 알 수 있어야 한다 — 실패 시 전체 스택트레이스를 남긴다.
+	testLogging {
+		events 'failed'
+		exceptionFormat 'full'
+		showStackTraces = true
+	}
+}
+
+/*
+ * jOOQ 코드 생성: 실행 중인 데이터베이스 없이 마이그레이션 SQL 에서 직접 생성한다.
+ * 빌드가 외부 상태에 의존하지 않으며, 스키마와 코드가 어긋나면 컴파일이 실패한다.
+ * 생성물은 build/ 아래에만 두고 커밋하지 않는다 — 단일 원본을 두 벌로 만들지 않기 위해서다.
+ */
+jooq {
+	configuration {
+		generator {
+			database {
+				name = 'org.jooq.meta.extensions.ddl.DDLDatabase'
+				properties {
+					property {
+						key = 'scripts'
+						value = 'src/main/resources/db/migration/*.sql'
+					}
+					property {
+						key = 'sort'
+						value = 'flyway'
+					}
+					property {
+						key = 'defaultNameCase'
+						value = 'lower'
+					}
+					property {
+						key = 'unqualifiedSchema'
+						value = 'public'
+					}
+				}
+				/*
+				 * DDLDatabase 는 인메모리 H2 를 쓰므로 스키마 이름이 대문자 PUBLIC 으로 잡힌다.
+				 * PostgreSQL 의 실제 스키마는 소문자 public 이므로 매핑해 준다 — 그러지 않으면
+				 * "PUBLIC"."tasks" 로 렌더링되어 런타임에 SQL 문법 오류가 난다.
+				 */
+				schemata {
+					schema {
+						inputSchema = 'PUBLIC'
+						outputSchema = 'public'
+					}
+				}
+			}
+			target {
+				packageName = 'dev.goraebap.refarch.jooq'
+				directory = layout.buildDirectory.dir('generated-sources/jooq').get().asFile.absolutePath
+			}
+		}
+	}
+}
+
+tasks.named('jooqCodegen') {
+	// 마이그레이션이 바뀔 때만 재생성한다.
+	inputs.files(fileTree('src/main/resources/db/migration'))
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir layout.buildDirectory.dir('generated-sources/jooq')
+		}
+	}
+}
+
+tasks.named('compileJava') {
+	dependsOn tasks.named('jooqCodegen')
+}
+
+/*
+ * 코딩 표준은 세 도구가 겹치지 않게 나눠 맡는다.
+ * 포맷은 Spotless 가 재작성하고, 컨벤션은 Checkstyle 이, 결함 패턴은 SpotBugs 가 본다.
+ * 생성 코드는 우리가 쓴 것이 아니므로 셋 모두에서 제외한다.
+ */
+spotless {
+	java {
+		target fileTree('src') { include '**/*.java' }
+		palantirJavaFormat()
+		removeUnusedImports()
+		formatAnnotations()
+	}
+}
+
+checkstyle {
+	toolVersion = '13.8.0'
+	maxWarnings = 0
+}
+
+tasks.withType(Checkstyle).configureEach {
+	exclude '**/jooq/**'
+}
+
+spotbugs {
+	excludeFilter = file('config/spotbugs/exclude.xml')
+}
+
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+	reports {
+		html { required = true }
+		xml { required = true }
+	}
 }

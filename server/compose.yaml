@@ -1,0 +1,24 @@
+# 로컬 개발용 데이터베이스.
+# `bootRun` 이 이 파일을 읽어 컨테이너를 함께 띄우고 종료 시 내린다.
+# 운영 환경의 접속 정보는 환경변수로 주입하며 이 파일을 쓰지 않는다.
+services:
+  postgres:
+    image: 'postgres:17-alpine'
+    environment:
+      POSTGRES_DB: refarch
+      POSTGRES_USER: refarch
+      POSTGRES_PASSWORD: refarch
+    # 호스트 포트를 기본값에서 비켜 둔다. 개발 기계에 다른 PostgreSQL 이 떠 있으면
+    # 5432 는 대개 그것이 쓰고 있어 컨테이너가 뜨지 않는다. 컨테이너 안은 5432 그대로다.
+    ports:
+      - '5434:5432'
+    volumes:
+      - 'refarch-pgdata:/var/lib/postgresql/data'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U refarch -d refarch']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  refarch-pgdata:

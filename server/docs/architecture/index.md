@@ -22,12 +22,19 @@
 - [02. 패키지 배치와 참조 규칙](references/02-package-structure.md) — 모듈·세그먼트 배치 판정과 참조 허용 범위
 - [04. 계층](references/04-layers.md) — 계층별 책임과 의존 방향, 도메인 모델과 영속 모델의 관계
 
+## §7 배포와 개발 환경 (Deployment View)
+
+빌드 및 런타임 환경과 배포 인프라를 정의합니다.
+
+- [01. 개발 환경](references/01-dev-environment.md) — 빌드 구성, 로컬 실행, 규칙 강제 지점
+
 ## §8 횡단 개념 (Cross-cutting Concepts)
 
 애플리케이션 전반에 공통 적용되는 횡단 관심사 규약입니다.
 
 - [03. 명명 규칙](references/03-naming.md) — 계층을 식별하는 접미사와 패키지·클래스 명명
 - [05. 조회와 명령](references/05-query-command.md) — 읽기 경로와 쓰기 경로의 분리 기준
+- [06. 데이터 접근](references/06-data-access.md) — 스키마 소유권과 코드 생성, 저장소 구현 규약
 - [08. 예외 · 에러 코드](references/08-error-handling.md) — 실패의 표현과 전달, 기록 범위
 
 ## §9 아키텍처 결정 (Architecture Decisions)

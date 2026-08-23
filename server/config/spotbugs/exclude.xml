@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SpotBugs 오탐 제외 목록. 항목을 추가할 때는 사유를 주석으로 남긴다. -->
+<FindBugsFilter>
+
+  <!-- jOOQ 코드 생성 산출물은 우리 코딩 표준의 대상이 아니다. -->
+  <Match>
+    <Package name="~dev\.goraebap\.refarch\.jooq.*"/>
+  </Match>
+
+  <!--
+    EI_EXPOSE_REP2: 생성자로 받은 가변 객체를 필드에 보관하는 패턴.
+    Spring 생성자 주입에서 협력자(DSLContext · Repository 등)를 보관하는 것이 여기 해당하는데,
+    이는 결함이 아니라 의존성 주입 그 자체다.
+
+    접근자 쪽 노출(EI_EXPOSE_REP)은 제외하지 않는다 — record 의 불변성을 지키는 검사이며,
+    가변 컴포넌트는 방어복사로 해소한다.
+  -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+
+</FindBugsFilter>
