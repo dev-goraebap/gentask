@@ -61,6 +61,11 @@ dependencies {
 	testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
+// 배포 이미지가 버전 없는 한 이름을 복사하게 한다. 버전은 이미지 태그가 갖는다.
+tasks.named('bootJar') {
+	archiveFileName = 'app.jar'
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 	// CI 로그만 보고 원인을 알 수 있어야 한다 — 실패 시 전체 스택트레이스를 남긴다.
