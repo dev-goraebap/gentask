@@ -14,8 +14,7 @@ export const appConfig: ApplicationConfig = {
     // 처리되지 않은 예외를 포착합니다. 15-error-handling.md 4절.
     provideBrowserGlobalErrorListeners(),
 
-    // 변경 요청이 쓰는 클라이언트입니다. 조회는 리졸버와 httpResource 가 이것을 거칩니다.
-    // withFetch 는 서버 렌더 중의 요청을 fetch 로 보내 하이드레이션이 그 결과를 물려받게 합니다.
+    // withFetch 가 서버 렌더 중의 조회를 HTML 에 실어 클라이언트가 다시 묻지 않게 합니다. 05-rendering.md 4절.
     provideHttpClient(withFetch()),
 
     // 상태를 시그널로 통일합니다. 11-component-design.md 5절.

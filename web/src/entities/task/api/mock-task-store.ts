@@ -4,14 +4,8 @@ import { toDateKey } from '../model/task';
 import type { TaskDraft, TaskSeed, TaskStore } from './task-store';
 
 /**
- * 프로토타입 구간의 구현입니다. 서버가 없는 동안 이 클래스가 원본을 소유합니다.
- *
- * 화면은 여전히 사본만 읽고 변경은 명령으로 보냅니다. 그 규율을 프로토타입 구간에도
- * 지켜야 백엔드 연결이 프로바이더 교체로 끝납니다.
- *
- * 백엔드 연결 후에도 이 구현을 지우지 않습니다. 테스트와 오프라인 개발에서 계속 쓰이며,
- * 두 구현이 같은 인터페이스를 지키는지가 계약 유지의 확인 수단이 됩니다.
- * 14-api-contract.md 4절.
+ * 테스트와 오프라인 개발이 쓰는 구현입니다. 두 구현이 같은 인터페이스를 지키는지가
+ * 계약 유지의 확인 수단입니다. 14-api-contract.md 4절.
  */
 @Injectable()
 export class MockTaskStore implements TaskStore {

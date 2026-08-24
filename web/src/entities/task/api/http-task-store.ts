@@ -6,13 +6,10 @@ import type { Task } from '../model/task';
 import type { TaskDraft, TaskSeed, TaskStore } from './task-store';
 
 /**
- * 서버가 원본을 소유하는 구현입니다.
+ * 변경에 httpResource 를 쓰지 않습니다. 읽기 전용이고 요청이 바뀌면 진행 중인 작업을
+ * 중단해 저장이 도중에 취소됩니다. 09-state.md 4절.
  *
- * 변경에 httpResource 를 쓰지 않습니다. 그것은 읽기 전용이고 요청이 바뀌면 진행 중인
- * 작업을 중단하므로, 변경에 쓰면 저장이 도중에 취소될 수 있습니다. 09-state.md 4절.
- *
- * 변경의 응답으로 화면을 갱신하고 목록을 다시 부르지 않습니다. 서버가 바뀐 것을 응답에
- * 실어 주므로 왕복이 한 번으로 끝납니다. 07-api-design.md 2절.
+ * 변경 뒤 목록을 다시 부르지 않고 응답을 상태에 넣습니다. 07-api-design.md 2절.
  */
 @Injectable()
 export class HttpTaskStore implements TaskStore {
@@ -22,11 +19,7 @@ export class HttpTaskStore implements TaskStore {
   readonly tasks = this.state.asReadonly();
 
   constructor() {
-    /*
-     * 브라우저에서만 부릅니다. 작업 화면은 Client 렌더이고(05-rendering.md 1절) 정적
-     * 생성은 백엔드 없이 도는 빌드 단계라, 서버에서 부르면 프리렌더가 응답을 기다리다
-     * 끊깁니다.
-     */
+    // 정적 생성은 백엔드 없이 도는 빌드 단계라, 서버에서 부르면 프리렌더가 응답을 기다리다 끊깁니다.
     afterNextRender(() => void this.refresh());
   }
 
@@ -36,10 +29,7 @@ export class HttpTaskStore implements TaskStore {
     );
     this.state.update((tasks) => [...tasks, created]);
 
-    /*
-     * 씨앗의 나머지는 만든 뒤에 붙입니다. 적는 자리가 놓인 관점이 부여하는 성질이고
-     * 각자 하위 자원을 가지므로, 생성 요청에 함께 담으면 같은 값을 두 경로로 바꾸게 됩니다.
-     */
+    // 셋은 각자 하위 자원이라 생성 요청에 함께 담으면 같은 값을 두 경로로 바꾸게 됩니다.
     if (seed.important) await this.setImportant(created.id, true);
     if (seed.inMyDay) await this.setMyDay(created.id, true);
     if (seed.remindAt) {
@@ -79,7 +69,6 @@ export class HttpTaskStore implements TaskStore {
     this.state.update((tasks) => tasks.filter((task) => task.id !== id));
   }
 
-  /** 목록을 서버에서 받아 옵니다. 화면이 처음 그려질 때 한 번 돕니다. */
   private async refresh(): Promise<void> {
     this.state.set(await firstValueFrom(this.http.get<TaskView[]>(ENDPOINTS.tasks)));
   }

@@ -10,9 +10,6 @@ import { TASK_STORE } from './task-store';
  *
  * 목록과 상세가 한 인스턴스를 공유해야 하므로 두 화면을 감싸는 라우트에 등록합니다.
  * 화면마다 따로 두면 목록에서 고친 것이 상세에 보이지 않습니다.
- *
- * MockTaskStore 는 지우지 않습니다. 테스트와 오프라인 개발이 계속 쓰며, 두 구현이 같은
- * 인터페이스를 지키는지가 계약 유지의 확인 수단입니다. 14-api-contract.md 4절.
  */
 export function provideTask(): Provider[] {
   return [HttpTaskStore, { provide: TASK_STORE, useExisting: HttpTaskStore }];
