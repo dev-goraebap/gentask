@@ -16,7 +16,7 @@ class TaskTest {
     private static final Instant LATEST = Instant.parse("2026-08-03T00:00:00Z");
 
     private static Task 새_작업() {
-        return Task.create(UUID.randomUUID(), TaskTitle.of("장 보기"), CREATED);
+        return Task.create(UUID.randomUUID(), UUID.randomUUID(), TaskTitle.of("장 보기"), CREATED);
     }
 
     @Test

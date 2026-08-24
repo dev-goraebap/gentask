@@ -13,9 +13,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
+import dev.goraebap.refarch.AuthTestSupport;
 import dev.goraebap.refarch.TestcontainersConfiguration;
+import jakarta.servlet.http.Cookie;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +40,14 @@ class TaskApiTest {
     @Autowired
     private MockMvc mockMvc;
 
+    /** 모든 작업 경로는 로그인 뒤에 있다 (TK-005). 계정마다 이메일이 달라야 해서 매번 만든다. */
+    private Cookie session;
+
+    @BeforeEach
+    void 로그인한다() throws Exception {
+        session = AuthTestSupport.가입한다(mockMvc, "tester-" + UUID.randomUUID() + "@example.com");
+    }
+
     @Test
     @DisplayName("TK-001 S1: 제목을 적으면 목록에 그 작업이 있다")
     void 제목을_적으면_목록에_그_작업이_있다() throws Exception {
@@ -49,10 +61,31 @@ class TaskApiTest {
                 .andExpect(jsonPath("$.important").value(false))
                 .andExpect(jsonPath("$.completedAt").value(nullValue()));
 
-        mockMvc.perform(get("/api/v1/tasks"))
+        mockMvc.perform(get("/api/v1/tasks").cookie(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].title").value("장 보기"));
+    }
+
+    @Test
+    @DisplayName("TK-005 A5: 로그인 없이 작업에 닿을 수 없다")
+    void 로그인_없이_작업에_닿을_수_없다() throws Exception {
+        mockMvc.perform(get("/api/v1/tasks"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    @DisplayName("TK-005: 다른 계정의 작업은 목록에도 상세에도 없다")
+    void 다른_계정의_작업은_목록에도_상세에도_없다() throws Exception {
+        String taskId = 작업을_만든다("{\"title\":\"내 것\"}");
+
+        Cookie other = AuthTestSupport.가입한다(mockMvc, "other-" + UUID.randomUUID() + "@example.com");
+
+        mockMvc.perform(get("/api/v1/tasks").cookie(other)).andExpect(jsonPath("$", hasSize(0)));
+        // 남의 식별자는 없는 것과 같은 답을 받는다. 존재 여부가 새어 나가지 않는다.
+        mockMvc.perform(get("/api/v1/tasks/{id}", taskId).cookie(other)).andExpect(status().isNotFound());
+        mockMvc.perform(delete("/api/v1/tasks/{id}", taskId).cookie(other)).andExpect(status().isNotFound());
     }
 
     @Test
@@ -60,7 +93,7 @@ class TaskApiTest {
     void 기한을_붙이면_목록이_그_기한을_보여_준다() throws Exception {
         작업을_만든다("{\"title\":\"장 보기\",\"dueDate\":\"2026-08-30\"}");
 
-        mockMvc.perform(get("/api/v1/tasks"))
+        mockMvc.perform(get("/api/v1/tasks").cookie(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].dueDate").value("2026-08-30"))
                 .andExpect(jsonPath("$[0].remindAt").hasJsonPath());
@@ -78,6 +111,7 @@ class TaskApiTest {
     @DisplayName("TK-001 A1: 제목이 비면 목록에 들어가지 않는다")
     void 제목이_비면_목록에_들어가지_않는다() throws Exception {
         mockMvc.perform(post("/api/v1/tasks")
+                        .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"  \"}"))
                 .andExpect(status().isBadRequest())
@@ -85,7 +119,7 @@ class TaskApiTest {
                 .andExpect(jsonPath("$.errors[0].message").value("제목을 입력해 주세요"))
                 .andExpect(jsonPath("$.traceId").exists());
 
-        mockMvc.perform(get("/api/v1/tasks")).andExpect(jsonPath("$", hasSize(0)));
+        mockMvc.perform(get("/api/v1/tasks").cookie(session)).andExpect(jsonPath("$", hasSize(0)));
     }
 
     @Test
@@ -155,6 +189,7 @@ class TaskApiTest {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
         mockMvc.perform(patch("/api/v1/tasks/{id}", taskId)
+                        .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"  \",\"note\":\"\",\"dueDate\":null,\"remindAt\":null}"))
                 .andExpect(status().isBadRequest())
@@ -194,16 +229,17 @@ class TaskApiTest {
     void 삭제하면_목록에_없다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
-        mockMvc.perform(delete("/api/v1/tasks/{id}", taskId)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/v1/tasks/{id}", taskId).cookie(session)).andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/v1/tasks")).andExpect(jsonPath("$", hasSize(0)));
-        mockMvc.perform(get("/api/v1/tasks/{id}", taskId)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/tasks").cookie(session)).andExpect(jsonPath("$", hasSize(0)));
+        mockMvc.perform(get("/api/v1/tasks/{id}", taskId).cookie(session)).andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("TK-003 A8: 없는 작업은 고치지 못한다")
     void 없는_작업은_고치지_못한다() throws Exception {
         mockMvc.perform(patch("/api/v1/tasks/{id}/completion", "00000000-0000-0000-0000-000000000000")
+                        .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"completed\":true}"))
                 .andExpect(status().isNotFound())
@@ -213,6 +249,7 @@ class TaskApiTest {
     /** 만든 것의 식별자는 본문이 아니라 Location 이 전달한다. 07-api-design 2절. */
     private String 작업을_만든다(String body) throws Exception {
         String location = requireNonNull(mockMvc.perform(post("/api/v1/tasks")
+                        .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
@@ -224,7 +261,8 @@ class TaskApiTest {
     }
 
     private ResultActions 작업을_연다(String taskId) throws Exception {
-        return mockMvc.perform(get("/api/v1/tasks/{id}", taskId)).andExpect(status().isOk());
+        return mockMvc.perform(get("/api/v1/tasks/{id}", taskId).cookie(session))
+                .andExpect(status().isOk());
     }
 
     private String 완료_시각(String taskId) throws Exception {
@@ -238,6 +276,7 @@ class TaskApiTest {
 
     private void 하위_자원을_바꾼다(String taskId, String sub, String body) throws Exception {
         mockMvc.perform(patch("/api/v1/tasks/{id}/{sub}", taskId, sub)
+                        .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isNoContent());
@@ -245,6 +284,7 @@ class TaskApiTest {
 
     private void 고친다(String taskId, String body) throws Exception {
         mockMvc.perform(patch("/api/v1/tasks/{id}", taskId)
+                        .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isNoContent());

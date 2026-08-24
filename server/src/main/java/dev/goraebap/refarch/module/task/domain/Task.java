@@ -17,6 +17,9 @@ public final class Task {
     // 식별자
     @NonNull private final UUID id;
 
+    // 소유자. 작업은 계정 단위로 격리된다 (TK-005)
+    @NonNull private final UUID userId;
+
     // 제목
     @NonNull private TaskTitle title;
 
@@ -45,13 +48,14 @@ public final class Task {
     @NonNull private Instant updatedAt;
 
     /** 제목 외의 값은 정해지지 않은 상태로 시작한다. TK-001 기본 흐름. */
-    public static Task create(UUID id, TaskTitle title, Instant now) {
-        return new Task(id, title, TaskNote.empty(), null, null, false, null, null, now, now);
+    public static Task create(UUID id, UUID userId, TaskTitle title, Instant now) {
+        return new Task(id, userId, title, TaskNote.empty(), null, null, false, null, null, now, now);
     }
 
     /** 저장소만 호출한다. 검증을 지나지 않는다. */
     public static Task restore(
             UUID id,
+            UUID userId,
             TaskTitle title,
             TaskNote note,
             LocalDate dueDate,
@@ -61,7 +65,13 @@ public final class Task {
             Instant completedAt,
             Instant createdAt,
             Instant updatedAt) {
-        return new Task(id, title, note, dueDate, remindAt, important, myDayOn, completedAt, createdAt, updatedAt);
+        return new Task(
+                id, userId, title, note, dueDate, remindAt, important, myDayOn, completedAt, createdAt, updatedAt);
+    }
+
+    /** 이 계정의 것인지다. 남의 작업은 없는 작업과 같은 답을 받는다 (TK-003 A8). */
+    public boolean isOwnedBy(@NonNull UUID candidateUserId) {
+        return userId.equals(candidateUserId);
     }
 
     public boolean isCompleted() {

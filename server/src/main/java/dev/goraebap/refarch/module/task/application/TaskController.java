@@ -6,6 +6,7 @@ import dev.goraebap.refarch.module.task.application.TaskRequests.ChangeMyDay;
 import dev.goraebap.refarch.module.task.application.TaskRequests.CreateTask;
 import dev.goraebap.refarch.module.task.application.TaskRequests.EditTask;
 import dev.goraebap.refarch.module.task.application.TaskViews.TaskView;
+import dev.goraebap.refarch.shared.web.CurrentUser;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -34,48 +35,51 @@ public class TaskController {
 
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
-    public ResponseEntity<Void> add(@Valid @RequestBody CreateTask createTask) {
-        UUID taskId = taskService.add(createTask.title(), createTask.dueDate());
+    public ResponseEntity<Void> add(@CurrentUser UUID userId, @Valid @RequestBody CreateTask createTask) {
+        UUID taskId = taskService.add(userId, createTask.title(), createTask.dueDate());
         return ResponseEntity.created(URI.create("/api/v1/tasks/" + taskId)).build();
     }
 
     @GetMapping
-    public List<TaskView> list() {
-        return taskService.list();
+    public List<TaskView> list(@CurrentUser UUID userId) {
+        return taskService.list(userId);
     }
 
     @GetMapping("/{taskId}")
-    public TaskView detail(@PathVariable UUID taskId) {
-        return taskService.detail(taskId);
+    public TaskView detail(@CurrentUser UUID userId, @PathVariable UUID taskId) {
+        return taskService.detail(userId, taskId);
     }
 
     @PatchMapping("/{taskId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void edit(@PathVariable UUID taskId, @Valid @RequestBody EditTask editTask) {
-        taskService.edit(taskId, editTask.title(), editTask.note(), editTask.dueDate(), editTask.remindAt());
+    public void edit(@CurrentUser UUID userId, @PathVariable UUID taskId, @Valid @RequestBody EditTask editTask) {
+        taskService.edit(userId, taskId, editTask.title(), editTask.note(), editTask.dueDate(), editTask.remindAt());
     }
 
     @PatchMapping("/{taskId}/completion")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changeCompletion(@PathVariable UUID taskId, @Valid @RequestBody ChangeCompletion request) {
-        taskService.changeCompletion(taskId, request.completed());
+    public void changeCompletion(
+            @CurrentUser UUID userId, @PathVariable UUID taskId, @Valid @RequestBody ChangeCompletion request) {
+        taskService.changeCompletion(userId, taskId, request.completed());
     }
 
     @PatchMapping("/{taskId}/importance")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changeImportance(@PathVariable UUID taskId, @Valid @RequestBody ChangeImportance request) {
-        taskService.changeImportance(taskId, request.important());
+    public void changeImportance(
+            @CurrentUser UUID userId, @PathVariable UUID taskId, @Valid @RequestBody ChangeImportance request) {
+        taskService.changeImportance(userId, taskId, request.important());
     }
 
     @PatchMapping("/{taskId}/my-day")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changeMyDay(@PathVariable UUID taskId, @Valid @RequestBody ChangeMyDay request) {
-        taskService.changeMyDay(taskId, request.inMyDay());
+    public void changeMyDay(
+            @CurrentUser UUID userId, @PathVariable UUID taskId, @Valid @RequestBody ChangeMyDay request) {
+        taskService.changeMyDay(userId, taskId, request.inMyDay());
     }
 
     @DeleteMapping("/{taskId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void remove(@PathVariable UUID taskId) {
-        taskService.remove(taskId);
+    public void remove(@CurrentUser UUID userId, @PathVariable UUID taskId) {
+        taskService.remove(userId, taskId);
     }
 }

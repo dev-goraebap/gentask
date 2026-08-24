@@ -19,15 +19,20 @@ class JooqTaskQuery implements TaskQuery {
     private final DSLContext dslContext;
 
     @Override
-    public List<TaskView> findAll() {
-        return dslContext.selectFrom(TASKS).orderBy(TASKS.CREATED_AT.desc()).fetch(JooqTaskQuery::toView);
+    public List<TaskView> findAll(UUID userId) {
+        return dslContext
+                .selectFrom(TASKS)
+                .where(TASKS.USER_ID.eq(userId))
+                .orderBy(TASKS.CREATED_AT.desc())
+                .fetch(JooqTaskQuery::toView);
     }
 
     @Override
-    public Optional<TaskView> findOne(UUID taskId) {
+    public Optional<TaskView> findOne(UUID taskId, UUID userId) {
         return dslContext
                 .selectFrom(TASKS)
                 .where(TASKS.ID.eq(taskId))
+                .and(TASKS.USER_ID.eq(userId))
                 .fetchOptional()
                 .map(JooqTaskQuery::toView);
     }

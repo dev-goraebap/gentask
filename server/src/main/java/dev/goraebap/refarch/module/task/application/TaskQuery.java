@@ -7,8 +7,8 @@ import java.util.UUID;
 
 public interface TaskQuery {
 
-    /** 만든 순서의 역순. */
-    List<TaskView> findAll();
+    /** 그 계정의 것만, 만든 순서의 역순. */
+    List<TaskView> findAll(UUID userId);
 
-    Optional<TaskView> findOne(UUID taskId);
+    Optional<TaskView> findOne(UUID taskId, UUID userId);
 }

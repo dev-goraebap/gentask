@@ -25,6 +25,7 @@ class JooqTaskRepository implements TaskRepository {
         dslContext
                 .insertInto(TASKS)
                 .set(TASKS.ID, task.id())
+                .set(TASKS.USER_ID, task.userId())
                 .set(TASKS.TITLE, task.title().value())
                 .set(TASKS.NOTE, task.note().value())
                 .set(TASKS.DUE_DATE, task.dueDate())
@@ -65,6 +66,7 @@ class JooqTaskRepository implements TaskRepository {
     private static Task toDomain(TasksRecord tasksRecord) {
         return Task.restore(
                 tasksRecord.getId(),
+                tasksRecord.getUserId(),
                 new TaskTitle(tasksRecord.getTitle()),
                 new TaskNote(tasksRecord.getNote()),
                 tasksRecord.getDueDate(),

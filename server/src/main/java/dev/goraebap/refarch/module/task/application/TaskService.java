@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** TK-001 ~ TK-004. */
+/** TK-001 ~ TK-004. 모든 경로가 로그인한 사용자의 것만 다룬다 (TK-005). */
 @Service
 @RequiredArgsConstructor
 public class TaskService {
@@ -31,9 +31,9 @@ public class TaskService {
      * 고친 시각이 갈리지 않게 한다.
      */
     @Transactional
-    public UUID add(String title, LocalDate dueDate) {
+    public UUID add(UUID userId, String title, LocalDate dueDate) {
         Instant now = clock.instant();
-        Task task = Task.create(UUID.randomUUID(), TaskTitle.of(title), now);
+        Task task = Task.create(UUID.randomUUID(), userId, TaskTitle.of(title), now);
         task.changeDueDate(dueDate, now);
         taskRepository.save(task);
         return task.id();
@@ -41,8 +41,8 @@ public class TaskService {
 
     /** TK-003 기본 흐름 · A2 · A3 · A10. */
     @Transactional
-    public void edit(UUID taskId, String title, String note, LocalDate dueDate, LocalDateTime remindAt) {
-        Task task = find(taskId);
+    public void edit(UUID userId, UUID taskId, String title, String note, LocalDate dueDate, LocalDateTime remindAt) {
+        Task task = find(taskId, userId);
         Instant now = clock.instant();
         task.changeTitle(TaskTitle.of(title), now);
         task.changeNote(TaskNote.of(note), now);
@@ -53,8 +53,8 @@ public class TaskService {
 
     /** TK-004 기본 흐름과 A2. */
     @Transactional
-    public void changeCompletion(UUID taskId, boolean completed) {
-        Task task = find(taskId);
+    public void changeCompletion(UUID userId, UUID taskId, boolean completed) {
+        Task task = find(taskId, userId);
         Instant now = clock.instant();
         if (completed) {
             task.complete(now);
@@ -66,8 +66,8 @@ public class TaskService {
 
     /** TK-003 A4. */
     @Transactional
-    public void changeImportance(UUID taskId, boolean important) {
-        Task task = find(taskId);
+    public void changeImportance(UUID userId, UUID taskId, boolean important) {
+        Task task = find(taskId, userId);
         Instant now = clock.instant();
         if (important) {
             task.markImportant(now);
@@ -79,8 +79,8 @@ public class TaskService {
 
     /** TK-003 A5. 담는 날짜를 여기서 정한다. 시계를 주입받는 자리가 시간대 정책을 갖는다. */
     @Transactional
-    public void changeMyDay(UUID taskId, boolean inMyDay) {
-        Task task = find(taskId);
+    public void changeMyDay(UUID userId, UUID taskId, boolean inMyDay) {
+        Task task = find(taskId, userId);
         Instant now = clock.instant();
         if (inMyDay) {
             task.addToMyDay(LocalDate.now(clock), now);
@@ -92,23 +92,30 @@ public class TaskService {
 
     /** TK-003 A6. 되돌릴 수 없음을 확인받는 것은 화면의 일이다. */
     @Transactional
-    public void remove(UUID taskId) {
-        find(taskId);
+    public void remove(UUID userId, UUID taskId) {
+        find(taskId, userId);
         taskRepository.deleteById(taskId);
     }
 
     @Transactional(readOnly = true)
-    public List<TaskView> list() {
-        return taskQuery.findAll();
+    public List<TaskView> list(UUID userId) {
+        return taskQuery.findAll(userId);
     }
 
     @Transactional(readOnly = true)
-    public TaskView detail(UUID taskId) {
-        return taskQuery.findOne(taskId).orElseThrow(TaskErrorCode.TASK_NOT_FOUND::raise);
+    public TaskView detail(UUID userId, UUID taskId) {
+        return taskQuery.findOne(taskId, userId).orElseThrow(TaskErrorCode.TASK_NOT_FOUND::raise);
     }
 
-    /** 없는 것을 고치려 한 경우다. TK-003 A8 · TK-004 A3. */
-    private Task find(UUID taskId) {
-        return taskRepository.findById(taskId).orElseThrow(TaskErrorCode.TASK_NOT_FOUND::raise);
+    /**
+     * 없는 것을 고치려 한 경우다. TK-003 A8 · TK-004 A3.
+     *
+     * 남의 작업도 같은 답을 받는다. 갈라 말하면 남의 식별자가 실재하는지가 응답으로 새어 나간다.
+     */
+    Task find(UUID taskId, UUID userId) {
+        return taskRepository
+                .findById(taskId)
+                .filter(task -> task.isOwnedBy(userId))
+                .orElseThrow(TaskErrorCode.TASK_NOT_FOUND::raise);
     }
 }

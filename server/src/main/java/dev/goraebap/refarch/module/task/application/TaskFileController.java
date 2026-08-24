@@ -1,0 +1,55 @@
+package dev.goraebap.refarch.module.task.application;
+
+import dev.goraebap.refarch.module.task.application.TaskFileRequests.AttachTaskFile;
+import dev.goraebap.refarch.module.task.application.TaskFileRequests.PresignTaskFile;
+import dev.goraebap.refarch.module.task.application.TaskFileViews.TaskFileView;
+import dev.goraebap.refarch.shared.storage.PresignedUpload;
+import dev.goraebap.refarch.shared.web.CurrentUser;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
+import java.util.List;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+/** TK-003 A11. 백엔드는 URL 만 주고 바이트는 브라우저가 보관소와 직접 주고받는다. */
+@RestController
+@RequestMapping("/api/v1/tasks/{taskId}/files")
+@RequiredArgsConstructor
+public class TaskFileController {
+
+    private final TaskFileService taskFileService;
+
+    @PostMapping("/presign")
+    public PresignedUpload presign(
+            @CurrentUser UUID userId, @PathVariable UUID taskId, @Valid @RequestBody PresignTaskFile request) {
+        return taskFileService.presign(userId, taskId, request.fileName(), request.contentType(), request.size());
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiResponse(responseCode = "201", description = "Created")
+    public TaskFileView attach(
+            @CurrentUser UUID userId, @PathVariable UUID taskId, @Valid @RequestBody AttachTaskFile request) {
+        return taskFileService.attach(userId, taskId, request.objectKey(), request.fileName(), request.contentType());
+    }
+
+    @GetMapping
+    public List<TaskFileView> list(@CurrentUser UUID userId, @PathVariable UUID taskId) {
+        return taskFileService.list(userId, taskId);
+    }
+
+    @DeleteMapping("/{taskFileId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void detach(@CurrentUser UUID userId, @PathVariable UUID taskId, @PathVariable UUID taskFileId) {
+        taskFileService.detach(userId, taskId, taskFileId);
+    }
+}

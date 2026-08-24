@@ -30,6 +30,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.13'
+
+	// 비밀번호 해싱만 뽑아 쓴다. Security 스타터(필터 체인 · 인가 프레임워크)는 들이지 않고
+	// 인증은 인터셉터가 직접 한다. 근거는 backlog/stories/ST-014 메모.
+	implementation 'org.springframework.security:spring-security-crypto'
+
+	// presigned URL 발급용 S3 호환 클라이언트. 로컬은 MinIO, 배포는 R2 를 프로퍼티로 갈아 끼운다.
+	implementation 'software.amazon.awssdk:s3:2.29.52'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 	runtimeOnly 'org.postgresql:postgresql'
