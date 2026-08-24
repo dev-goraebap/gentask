@@ -20,6 +20,16 @@ export const ROUTES = {
    * 02-package-structure.md 5.1절.
    */
   taskList: (view = 'all') => `/tasks/${view}`,
+
+  /** 관점을 정하지 않은 할일 자리. 라우터가 전체 관점으로 넘긴다. 하단 탭의 활성 판정이 이 값을 쓴다. */
+  tasks: () => '/tasks',
+
+  /** 계정 화면. 프로필과 에이전트 토큰이 이 자리에 있다. TK-006. */
+  account: () => '/account',
+
+  /** 셸 밖의 화면들. 로그인 전에도 닿아야 하므로 셸이 감싸지 않는다. TK-005. */
+  login: () => '/login',
+  signup: () => '/signup',
 } as const;
 
 /**

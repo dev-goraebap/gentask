@@ -11,6 +11,13 @@
 @import '@spartan-ng/brain/hlm-tailwind-preset.css';
 
 /*
+ * uppy 대화의 스타일입니다. 컴포넌트가 아니라 전역인 이유는 대시보드가 오버레이로
+ * 문서에 직접 붙기 때문입니다. 테마는 대시보드의 theme: 'auto' 가 따라갑니다.
+ */
+@import '@uppy/core/css/style.min.css';
+@import '@uppy/dashboard/css/style.min.css';
+
+/*
  * dark 변형을 다시 선언합니다. 프리셋의 `&:is(.dark *)` 는 클래스만 보므로, 사용자가
  * 시스템 모드에 둔 동안에는 OS 가 다크여도 `dark:` 유틸리티가 하나도 적용되지 않습니다.
  * 토큰은 color-scheme 과 light-dark() 로 갈리는데 유틸리티만 따라오지 않아, 시스템과

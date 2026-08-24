@@ -3,11 +3,12 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 
 import { routes } from './app.routes';
+import { unauthorizedInterceptor } from './unauthorized-interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,7 +16,8 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
 
     // withFetch 가 서버 렌더 중의 조회를 HTML 에 실어 클라이언트가 다시 묻지 않게 합니다. 05-rendering.md 4절.
-    provideHttpClient(withFetch()),
+    // 세션이 풀린 401 은 인터셉터가 로그인 자리로 보냅니다. TK-005 A5.
+    provideHttpClient(withFetch(), withInterceptors([unauthorizedInterceptor])),
 
     // 상태를 시그널로 통일합니다. 11-component-design.md 5절.
     provideZonelessChangeDetection(),

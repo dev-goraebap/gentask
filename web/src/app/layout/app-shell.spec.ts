@@ -1,9 +1,17 @@
-import { Component, TemplateRef, viewChild } from '@angular/core';
+import { Component, signal, TemplateRef, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { CurrentUser } from '@/entities/user';
 import { AsideSlot } from '@/shared/lib';
 import { AppShell } from './app-shell';
+
+/** 셸은 라우트 스코프의 CurrentUser 를 읽습니다. 여기서는 사본이 아직 없는 상태로 둡니다. */
+const currentUserStub = {
+  me: signal(undefined),
+  status: signal('idle' as const),
+  reload: () => {},
+} as unknown as CurrentUser;
 
 /*
  * 셸이 aside 슬롯을 어떻게 다루는지 고정합니다. 슬롯이 비면 그리지 않고, 차면 헤더와
@@ -28,7 +36,9 @@ class Host {
 describe('AppShell 의 aside 슬롯', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), { provide: CurrentUser, useValue: currentUserStub }],
+    });
   });
 
   it('슬롯이 비면 aside 를 그리지 않는다', () => {
@@ -85,7 +95,9 @@ describe('AppShell 의 사이드바 접기', () => {
   beforeEach(() => {
     localStorage.clear();
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), { provide: CurrentUser, useValue: currentUserStub }],
+    });
   });
 
   function toggle(host: HTMLElement): HTMLButtonElement {

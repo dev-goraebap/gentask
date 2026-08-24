@@ -7,7 +7,9 @@ import { Routes } from '@angular/router';
  * 근거와 수치는 01-dev-environment.md 7절에 있습니다.
  */
 import { TaskCommands, TaskList } from '@/entities/task/providers';
-import { provideTaskListDatePicker } from '@/pages/task-list';
+import { authGuard } from '@/entities/user/guard';
+import { AuthCommands, CurrentUser, MeCommands } from '@/entities/user/providers';
+import { provideTaskListDatePicker } from '@/pages/task-list/providers';
 import { AppShell } from './layout/app-shell';
 
 /**
@@ -18,11 +20,36 @@ import { AppShell } from './layout/app-shell';
  * 근거는 docs/architecture/references/08-routing.md 2절입니다.
  */
 export const routes: Routes = [
+  /*
+   * 로그인 전에도 닿아야 하는 화면들은 셸 밖에 둡니다. 셸은 네비게이션과 프로필 자리를
+   * 갖는데, 그 자리들이 전부 로그인 뒤의 것입니다. TK-005.
+   */
+  {
+    path: 'login',
+    providers: [AuthCommands],
+    loadComponent: () => import('@/pages/login').then((m) => m.LoginPage),
+  },
+  {
+    path: 'signup',
+    providers: [AuthCommands],
+    loadComponent: () => import('@/pages/signup').then((m) => m.SignupPage),
+  },
   {
     path: '',
     component: AppShell,
+    // 로그인 없이 접근하면 로그인 자리로 갑니다. 화면 사용 중의 만료는 401 인터셉터가 받습니다.
+    canActivate: [authGuard],
+    /*
+     * 로그인한 사용자의 사본과 계정 명령. 셸로 들어올 때마다 새로 받고 나가면 버려져
+     * 로그아웃 뒤 낡은 프로필이 남지 않습니다. 02-package-structure.md 7.5절.
+     */
+    providers: [CurrentUser, MeCommands, AuthCommands],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'tasks' },
+      {
+        path: 'account',
+        loadComponent: () => import('@/pages/account').then((m) => m.AccountPage),
+      },
       {
         /*
          * 프로바이더를 이 자리에 두면 하위 화면들이 한 인스턴스를 공유합니다. 상세 화면이

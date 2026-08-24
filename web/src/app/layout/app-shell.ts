@@ -1,16 +1,19 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import {
   lucideCalendarRange,
   lucideHouse,
+  lucideMenu,
   lucidePanelLeftClose,
   lucidePanelLeftOpen,
   lucideStar,
   lucideSun,
+  lucideUserRound,
 } from '@ng-icons/lucide';
 import { TASK_VIEWS, type TaskView } from '@/entities/task';
+import { CurrentUser, UserAvatar } from '@/entities/user';
 import { ROUTES } from '@/shared/config';
 import { AsideSlot } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
@@ -26,16 +29,14 @@ import { ThemeToggle } from './theme-toggle';
  * 위치이며, 문서 전체가 아니라 콘텐츠 박스가 스크롤됩니다. 그 대가로 라우터의 스크롤 위치
  * 복원이 닿지 않으므로, 필요해지면 직접 구현해야 합니다. 같은 문서 4.3절.
  *
- * 표면은 bordered 입니다. 선택은 sidebar 골격에서만 유효하지만 아직 전환 수단을 두지
- * 않았고, 두려면 3.4절에 따라 선택값을 첫 페인트 전에 복원해야 합니다.
+ * 넓은 화면의 사이드바는 스마트 목록을 갖고 하단에 내 프로필이 고정됩니다(TK-006).
+ * 좁은 화면의 하단 탭은 최상위 구획(할일 · 계정) 둘뿐입니다 — 스마트 목록 넷을 탭으로
+ * 눕히면 계정이 들어올 자리가 없습니다. 스마트 목록은 헤더의 버튼이 여는 드로어로
+ * 옮겨 갑니다. ST-015.
  *
- * 골격을 두 파일로 쪼개지 않았습니다. 3.1절의 분기는 골격이 둘일 때의 구조이며, topbar 를
- * 쓰는 화면이 없는 동안 빈 분기를 먼저 만들 근거가 없습니다. 라우트가 이 컴포넌트만
- * 참조하므로 나중에 내부를 둘로 나눠도 호출부는 바뀌지 않습니다.
- *
- * 네비게이션 항목은 셸이 압니다. 3절이 "분기하는 것은 골격이지 내용물이 아니다"라고
- * 정하며 네비게이션 항목을 셸의 것으로 둡니다. 항목의 이름은 엔티티가 소유하고 셸은
- * 아이콘과 자리만 정합니다.
+ * 네비게이션 항목은 셸이 압니다. 06-layout.md 3절이 "분기하는 것은 골격이지 내용물이
+ * 아니다"라고 정하며 네비게이션 항목을 셸의 것으로 둡니다. 항목의 이름은 엔티티가
+ * 소유하고 셸은 아이콘과 자리만 정합니다.
  */
 @Component({
   selector: 'app-shell',
@@ -48,15 +49,18 @@ import { ThemeToggle } from './theme-toggle';
     HlmButton,
     ThemeToggle,
     NavigationVeil,
+    UserAvatar,
   ],
   providers: [
     provideIcons({
       lucideCalendarRange,
       lucideHouse,
+      lucideMenu,
       lucidePanelLeftClose,
       lucidePanelLeftOpen,
       lucideStar,
       lucideSun,
+      lucideUserRound,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,19 +68,19 @@ import { ThemeToggle } from './theme-toggle';
    * 전고를 잡고 안쪽을 스크롤합니다. 문서는 스크롤되지 않으므로 가로로 나가는 것도
    * 여기서 잘라 냅니다. aside 가 등장·퇴장 동안 화면 밖에 서기 때문입니다.
    *
-   * 좁은 화면에서는 열이 아니라 행으로 쌓습니다. 사이드바가 아래로 내려가 탭 막대가 되며,
-   * DOM 과 항목이 같고 자리만 바뀌므로 07-adaptive-ui.md 1절 기준으로 반응형입니다.
+   * 좁은 화면에서는 열이 아니라 행으로 쌓습니다. 하단 탭이 마지막 순서로 내려가며,
+   * DOM 과 자리만 바뀌므로 07-adaptive-ui.md 1절 기준으로 반응형입니다.
    */
   host: { class: 'flex h-dvh overflow-hidden max-md:flex-col' },
   template: `
     <!--
       네비게이션입니다. 넓은 화면에서는 왼쪽 열로 전고를 차지하고, 좁은 화면에서는 마지막
-      순서로 내려가 하단 탭이 됩니다. 항목이 넷이라 탭으로 눕혀도 이름이 살아 있습니다.
+      순서로 내려가 하단 탭이 됩니다.
 
       aside 가 화면을 덮는 동안에는 함께 감춥니다. 덮인 채로 탭만 남으면 가려진 쪽을
       조작할 수 없는 상태에서 이동 수단만 떠 있게 됩니다. 06-layout.md 3.3절.
     -->
-    <nav id="sidebar" [class]="navClass()" aria-label="관점">
+    <nav id="sidebar" [class]="navClass()" aria-label="탐색">
       <!-- 접으면 제목이 들어갈 폭이 없습니다. 아이콘 열만 남깁니다. -->
       @if (!sidebar.collapsed()) {
         <a
@@ -87,9 +91,10 @@ import { ThemeToggle } from './theme-toggle';
         </a>
       }
 
-      <ul class="flex gap-1 max-md:justify-around md:flex-col">
+      <!-- 스마트 목록. 넓은 화면 전용이며 좁은 화면에서는 드로어가 같은 항목을 갖습니다. -->
+      <ul class="hidden gap-1 md:flex md:flex-col">
         @for (item of views; track item.value) {
-          <li class="max-md:flex-1">
+          <li>
             <!--
               현재 자리를 aria-current 로 알립니다. 색과 배경만으로 알리면 색각 이상과
               흑백 출력에서 전달되지 않습니다. 13-accessibility.md 4절.
@@ -112,6 +117,54 @@ import { ThemeToggle } from './theme-toggle';
             </a>
           </li>
         }
+      </ul>
+
+      <!--
+        내 프로필. 사이드바 하단에 고정되어 계정 화면으로 가는 길이 됩니다. ST-015.
+        사본이 오기 전에는 자리를 비워 둡니다 — 로그인 전이거나 아직 받는 중입니다.
+      -->
+      @if (currentUser.me(); as me) {
+        <a
+          [routerLink]="routes.account()"
+          routerLinkActive="bg-muted text-foreground"
+          class="text-foreground-secondary hover:bg-muted hover:text-foreground mt-auto hidden items-center gap-2.5 rounded-md px-2 py-2 md:flex"
+          [class.md:justify-center]="sidebar.collapsed()"
+          [attr.aria-label]="sidebar.collapsed() ? '계정' : null"
+          [attr.title]="sidebar.collapsed() ? '계정' : null"
+        >
+          <app-user-avatar class="size-7 text-xs" [name]="me.nickname" [imageUrl]="me.profileImageUrl" />
+          @if (!sidebar.collapsed()) {
+            <span class="min-w-0 flex-1 truncate text-sm">{{ me.nickname }}</span>
+          }
+        </a>
+      }
+
+      <!-- 하단 탭. 최상위 구획 둘뿐입니다. 스마트 목록은 드로어가 갖습니다. ST-015. -->
+      <ul class="flex justify-around gap-1 md:hidden">
+        <li class="flex-1">
+          <a
+            [routerLink]="routes.tasks()"
+            routerLinkActive="bg-muted text-foreground"
+            #tasksActive="routerLinkActive"
+            [attr.aria-current]="tasksActive.isActive ? 'page' : null"
+            [class]="linkClass()"
+          >
+            <app-icon name="lucideHouse" />
+            <span>할일</span>
+          </a>
+        </li>
+        <li class="flex-1">
+          <a
+            [routerLink]="routes.account()"
+            routerLinkActive="bg-muted text-foreground"
+            #accountActive="routerLinkActive"
+            [attr.aria-current]="accountActive.isActive ? 'page' : null"
+            [class]="linkClass()"
+          >
+            <app-icon name="lucideUserRound" />
+            <span>계정</span>
+          </a>
+        </li>
       </ul>
     </nav>
 
@@ -136,8 +189,9 @@ import { ThemeToggle } from './theme-toggle';
       -->
       <header class="bg-toolbar border-border flex h-14 shrink-0 items-center gap-4 border-b px-4">
         <!--
-          사이드바를 접고 펴는 버튼입니다. 좁은 화면에서는 네비게이션이 하단 탭이라 접을
-          것이 없으므로 감춥니다. 상태는 이름과 aria-expanded 둘 다로 알립니다.
+          사이드바를 접고 펴는 버튼입니다. 좁은 화면에서는 같은 자리가 스마트 목록
+          드로어를 엽니다 — 하단 탭이 최상위 구획만 갖기 때문입니다. 상태는 이름과
+          aria-expanded 둘 다로 알립니다.
         -->
         <button
           hlmBtn
@@ -151,6 +205,19 @@ import { ThemeToggle } from './theme-toggle';
           (click)="sidebar.toggle()"
         >
           <app-icon [name]="sidebar.collapsed() ? 'lucidePanelLeftOpen' : 'lucidePanelLeftClose'" />
+        </button>
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          class="md:hidden"
+          aria-controls="mobile-drawer"
+          [attr.aria-expanded]="drawerOpen()"
+          aria-label="스마트 목록 열기"
+          (click)="drawerOpen.set(true)"
+        >
+          <app-icon name="lucideMenu" />
         </button>
         <a [routerLink]="routes.home()" class="text-base font-semibold tracking-tight md:hidden">
           작업
@@ -177,6 +244,41 @@ import { ThemeToggle } from './theme-toggle';
         <router-outlet />
       </main>
     </div>
+
+    <!--
+      좁은 화면의 스마트 목록 드로어입니다. 하단 탭이 최상위 구획만 가지므로 관점을
+      고르는 자리가 여기입니다. 항목은 넓은 화면의 사이드바와 같습니다. ST-015.
+    -->
+    @if (drawerOpen()) {
+      <div class="fixed inset-0 z-40 md:hidden">
+        <!-- 가림막을 누르면 닫힙니다. 드로어는 이동 수단이라 오래 머무는 자리가 아닙니다. -->
+        <div class="bg-veil absolute inset-0" aria-hidden="true" (click)="drawerOpen.set(false)"></div>
+        <nav
+          id="mobile-drawer"
+          class="bg-background border-border absolute inset-y-0 left-0 flex w-64 flex-col border-r p-2"
+          aria-label="스마트 목록"
+        >
+          <p class="px-2 py-1 text-base font-semibold tracking-tight">작업</p>
+          <ul class="mt-1 flex flex-col gap-1">
+            @for (item of views; track item.value) {
+              <li>
+                <a
+                  [routerLink]="routes.taskList(item.value)"
+                  routerLinkActive="bg-muted text-foreground"
+                  #drawerActive="routerLinkActive"
+                  [attr.aria-current]="drawerActive.isActive ? 'page' : null"
+                  class="text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2 text-sm"
+                  (click)="drawerOpen.set(false)"
+                >
+                  <app-icon [name]="icons[item.value]" />
+                  <span>{{ item.label }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </nav>
+      </div>
+    }
 
     <!--
       aside 슬롯입니다. 전고를 차지하며 콘텐츠 열을 밀어냅니다. 콘텐츠 위에 겹치지 않는
@@ -212,6 +314,11 @@ export class AppShell {
 
   protected readonly sidebar = inject(SidebarStore);
 
+  protected readonly currentUser = inject(CurrentUser);
+
+  /** 좁은 화면의 스마트 목록 드로어. 이동하면 닫힙니다. */
+  protected readonly drawerOpen = signal(false);
+
   /**
    * 네비게이션입니다. 넓은 화면에서는 왼쪽 열, 좁은 화면에서는 하단 탭입니다.
    *
@@ -220,7 +327,7 @@ export class AppShell {
    */
   protected readonly navClass = computed(() => {
     const width = this.sidebar.collapsed() ? 'md:w-14' : 'md:w-56';
-    const base = `border-border bg-toolbar shrink-0 ${width} md:overflow-y-auto md:border-r md:p-2 max-md:order-last max-md:border-t max-md:px-2 max-md:pt-1 max-md:pb-[calc(--spacing(1)+env(safe-area-inset-bottom))]`;
+    const base = `border-border bg-toolbar shrink-0 ${width} md:flex md:flex-col md:overflow-y-auto md:border-r md:p-2 max-md:order-last max-md:border-t max-md:px-2 max-md:pt-1 max-md:pb-[calc(--spacing(1)+env(safe-area-inset-bottom))]`;
     return this.aside.content() ? `${base} max-md:hidden` : base;
   });
 

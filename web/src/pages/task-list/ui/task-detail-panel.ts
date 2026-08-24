@@ -38,8 +38,11 @@ import {
   type Task,
   type TaskDraft,
 } from '@/entities/task';
+import { problemDetail } from '@/shared/api';
 import { TASK_PANEL } from '@/shared/config';
+import { openUppyDialog } from '@/shared/lib';
 import { toast } from '@/shared/ui/sonner';
+import { injectTaskFiles } from '../api/task-files';
 import {
   HlmAlertDialog,
   HlmAlertDialogAction,
@@ -69,6 +72,8 @@ import {
   lucideChevronsRight,
   lucideCircleArrowRight,
   lucideClock,
+  lucideFile,
+  lucidePaperclip,
   lucideStar,
   lucideSun,
   lucideTrash2,
@@ -124,6 +129,8 @@ import {
       lucideChevronsRight,
       lucideCircleArrowRight,
       lucideClock,
+      lucideFile,
+      lucidePaperclip,
       lucideStar,
       lucideSun,
       lucideTrash2,
@@ -164,6 +171,13 @@ export class TaskDetailPanel {
 
   /** 확인을 거쳐야 지웁니다. 되돌릴 수단이 없으므로 확인이 유일한 안전장치입니다. */
   private readonly confirm = viewChild(HlmAlertDialog);
+
+  /** 붙인 파일 (TK-003 A11). 대상이 바뀌면 요청도 따라 바뀝니다. */
+  private readonly files = injectTaskFiles(computed(() => this.task()?.id));
+
+  protected readonly fileList = computed(() => (this.files.hasValue() ? (this.files.value() ?? []) : []));
+
+  protected readonly canAddFiles = computed(() => this.fileList().length < MAX_TASK_FILES);
 
   /** 시와 분의 열입니다. 팝오버가 열릴 때 자리를 잡으므로 그 전에는 높이가 없습니다. */
   private readonly hourList = viewChild<ElementRef<HTMLElement>>('hourList');
@@ -503,6 +517,50 @@ export class TaskDetailPanel {
   }
 
   /**
+   * TK-003 A11. presign → 보관소로 직접 PUT → 확정. 남은 자리만큼만 고를 수 있게 합니다.
+   *
+   * 확정이 끝난 뒤 한 번 다시 받습니다. 파일은 목록 행에 나오지 않으므로 부모의 재조회
+   * 신호((changed))는 내지 않습니다.
+   */
+  protected addFiles(): void {
+    const current = this.task();
+    if (!current) return;
+
+    openUppyDialog({
+      maxNumberOfFiles: MAX_TASK_FILES - this.fileList().length,
+      maxFileSize: MAX_TASK_FILE_BYTES,
+      note: '작업당 5개, 각 10MB 이하',
+      presign: (file) => this.commands.presignFile(current.id, file.name, file.type, file.size),
+      attach: async (objectKey, file) => {
+        await this.commands.attachFile(current.id, objectKey, file.name, file.type);
+      },
+      onCompleted: () => this.files.reload(),
+      onAttachError: (message) => toast.error(message),
+    });
+  }
+
+  /** 떼면 보관소의 바이트도 함께 사라집니다. 확인 대화는 두지 않습니다 — 지우는 것은 작업이 아니라 붙임입니다. */
+  protected async removeFile(fileId: string): Promise<void> {
+    const current = this.task();
+    if (!current) return;
+
+    try {
+      await this.commands.detachFile(current.id, fileId);
+    } catch (error) {
+      toast.error(problemDetail(error, '파일을 떼지 못했습니다.'));
+      return;
+    }
+    this.files.reload();
+  }
+
+  /** 목록 줄에 적는 크기입니다. 바이트 수는 사람이 읽는 단위가 아닙니다. */
+  protected formatFileSize(bytes: number): string {
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+    if (bytes >= 1024) return `${Math.round(bytes / 1024)}KB`;
+    return `${bytes}B`;
+  }
+
+  /**
    * 패널을 닫습니다. 경로는 그대로 두고 쿼리 파라미터만 지웁니다.
    *
    * `replaceUrl` 로 항목을 덮는 이유는 닫기가 새로운 자리가 아니기 때문입니다. 쌓으면
@@ -517,6 +575,11 @@ export class TaskDetailPanel {
     });
   }
 }
+
+/** 파일 제한 (TK-003 A11). 값은 서버와 같아야 하며 강제는 서버가 한다. */
+const MAX_TASK_FILES = 5;
+
+const MAX_TASK_FILE_BYTES = 10 * 1024 * 1024;
 
 /** 기한 빠른 선택의 아이콘입니다. 엔티티가 주는 순서(오늘 · 내일 · 다음 주)와 자리를 맞춥니다. */
 const DUE_ICONS = ['lucideCalendarCheck', 'lucideCalendarArrowDown', 'lucideCalendarRange'];

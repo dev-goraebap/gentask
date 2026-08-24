@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ENDPOINTS } from '@/shared/api';
+import { ENDPOINTS, type PresignedUpload, type TaskFileView } from '@/shared/api';
 
 /**
  * 새 항목이 태어날 때 함께 받는 성질입니다. 적는 자리가 놓인 관점이 정합니다.
@@ -104,6 +104,32 @@ export class TaskCommands {
    */
   async remove(id: string): Promise<void> {
     await firstValueFrom(this.http.delete<void>(ENDPOINTS.task(id)));
+  }
+
+  /**
+   * 파일 붙이기의 세 걸음 (TK-003 A11). presign 으로 자리를 받고, 브라우저가 보관소로
+   * 직접 올린 뒤, attach 로 확정합니다. 서버는 확정 시점에 보관소의 실측으로 검증합니다.
+   */
+  async presignFile(taskId: string, fileName: string, contentType: string, size: number): Promise<PresignedUpload> {
+    return firstValueFrom(
+      this.http.post<PresignedUpload>(ENDPOINTS.taskFilePresign(taskId), { fileName, contentType, size }),
+    );
+  }
+
+  async attachFile(
+    taskId: string,
+    objectKey: string,
+    fileName: string,
+    contentType: string,
+  ): Promise<TaskFileView> {
+    return firstValueFrom(
+      this.http.post<TaskFileView>(ENDPOINTS.taskFiles(taskId), { objectKey, fileName, contentType }),
+    );
+  }
+
+  /** 떼면 보관소의 바이트도 함께 사라집니다. 되살리는 수단은 없습니다. */
+  async detachFile(taskId: string, fileId: string): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(ENDPOINTS.taskFile(taskId, fileId)));
   }
 
   /**

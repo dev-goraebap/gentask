@@ -334,6 +334,43 @@
         </div>
       </div>
 
+      <!--
+        파일 카드 (TK-003 A11). 목록과 붙이기가 한 카드입니다. 이름을 누르면 받고(presigned
+        GET 이 원래 이름으로 돌려줍니다) 줄 오른쪽 × 가 뗍니다. 제한(5개 · 10MB)은 고르는
+        대화에도 걸어 일찍 알리되 강제는 서버가 합니다.
+      -->
+      <div class="border-border bg-card divide-border flex flex-col divide-y border">
+        @for (file of fileList(); track file.id) {
+          <div class="flex items-center gap-2 px-3 py-2">
+            <app-icon name="lucideFile" class="text-foreground-secondary shrink-0" />
+            <a
+              [href]="file.url"
+              class="min-w-0 flex-1 truncate text-sm underline-offset-4 hover:underline"
+            >
+              {{ file.fileName }}
+            </a>
+            <span class="text-foreground-secondary shrink-0 text-xs">{{ formatFileSize(file.size) }}</span>
+            <button hlmBtn type="button" variant="ghost" size="icon-sm" (click)="removeFile(file.id)">
+              <app-icon name="lucideX" />
+              <span class="sr-only">{{ file.fileName }} 떼기</span>
+            </button>
+          </div>
+        }
+        <button
+          hlmBtn
+          type="button"
+          variant="ghost"
+          size="sm"
+          class="h-10 justify-start gap-3 px-3"
+          [disabled]="!canAddFiles()"
+          (click)="addFiles()"
+        >
+          <app-icon name="lucidePaperclip" />
+          파일 추가
+          <span class="text-muted-foreground ml-auto text-xs">{{ fileList().length }}/5</span>
+        </button>
+      </div>
+
       <!-- 메모 카드. 라벨 대신 자리 표시 문구가 용도를 말합니다. -->
       <div hlmField class="border-border bg-card border">
         <label hlmFieldLabel for="task-note" class="sr-only">메모</label>
