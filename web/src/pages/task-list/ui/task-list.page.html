@@ -1,4 +1,10 @@
 <!--
+  최초 조회의 베일입니다. 기준 상자는 셸의 스크롤 컨테이너이며, 최초 조회 동안은 내용이
+  없어 스크롤이 생기지 않으므로 그 상자가 곧 보이는 영역입니다. 10-loading.md 7.1절.
+-->
+<app-veil [loading]="listLoading()" [failed]="listFailed()" />
+
+<!--
   읽기 폭을 좁게 잡습니다. 한 줄이 길면 체크박스와 제목 사이 시선 이동이 커집니다.
   색·간격·곡률은 전부 토큰을 경유합니다. 임의값 기재는 04-design-system.md 3.3절이 금지합니다.
 -->
@@ -174,9 +180,23 @@
         </button>
       </li>
     } @empty {
-      <li class="text-foreground-secondary py-8 text-center text-sm">
-        {{ emptyMessage() }}
-      </li>
+      <!--
+        빈 것은 조회가 끝난 뒤에야 사실입니다. 기다리는 동안 안내를 내면 잠깐 "없다"가
+        떴다가 목록으로 바뀝니다. 실패는 빈 상태로 보이지 않게 그 자리에서 알리고 재시도
+        수단을 둡니다. 15-error-handling.md 3.2절 · 3.3절.
+      -->
+      @if (listFailed()) {
+        <li class="py-8 text-center text-sm">
+          <p class="text-foreground-secondary">목록을 불러오지 못했습니다.</p>
+          <button hlmBtn type="button" variant="outline" size="sm" class="mt-3" (click)="taskList.reload()">
+            다시 시도
+          </button>
+        </li>
+      } @else if (!listLoading()) {
+        <li class="text-foreground-secondary py-8 text-center text-sm">
+          {{ emptyMessage() }}
+        </li>
+      }
     }
   </ul>
 
@@ -406,8 +426,12 @@
   상세는 셸의 aside 슬롯에 냅니다. 화면이 자기 레이아웃을 정하지 않으며, 슬롯이 차면
   본문 영역 전체가 왼쪽으로 밀립니다. 06-layout.md 3.1절과 9절.
 -->
-@if (task(); as openId) {
+@if (task() && !listLoading()) {
   <ng-template appAside>
-    <app-task-detail-panel [id]="openId" />
+    <!--
+      항목을 찾는 것은 이 화면의 몫입니다. 패널은 목록의 조회를 모른 채 값 하나를 받고,
+      바꾼 뒤에는 (changed) 로만 알립니다. 사본을 다시 받는 것은 조회를 든 쪽의 일입니다.
+    -->
+    <app-task-detail-panel [task]="openTask()" (changed)="taskList.reload()" />
   </ng-template>
 }

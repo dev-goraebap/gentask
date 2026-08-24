@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TASK_STORE, toDateKey, type Task, type TaskStore } from '@/entities/task';
+import { TaskCommands, TaskList, toDateKey, type Task } from '@/entities/task';
 import { AsideSlot } from '@/shared/lib';
 import { provideTaskListDatePicker } from '../providers';
 import { TaskListPage } from './task-list.page';
@@ -17,11 +17,12 @@ import { toast } from '@/shared/ui/sonner';
  */
 describe('TaskListPage', () => {
   let tasks: ReturnType<typeof signal<readonly Task[]>>;
+  let status: ReturnType<typeof signal<'idle' | 'loading' | 'reloading' | 'resolved' | 'error'>>;
+  let reload: ReturnType<typeof vi.fn>;
   let add: ReturnType<typeof vi.fn>;
   let toastError: ReturnType<typeof vi.spyOn>;
   let setImportant: ReturnType<typeof vi.fn>;
   let setCompleted: ReturnType<typeof vi.fn>;
-  let store: TaskStore;
 
   const 장보기: Task = {
     id: 'seed-1',
@@ -61,17 +62,20 @@ describe('TaskListPage', () => {
 
   beforeEach(() => {
     tasks = signal<readonly Task[]>([장보기, 전기요금, 건강검진]);
+    status = signal<'idle' | 'loading' | 'reloading' | 'resolved' | 'error'>('resolved');
+    reload = vi.fn();
 
     add = vi.fn(async () => {});
     setImportant = vi.fn(async () => {});
     setCompleted = vi.fn(async () => {});
     toastError = vi.spyOn(toast, 'error').mockImplementation(() => '' as never);
-    store = {
-      tasks,
-      load: async () => {},
-      add: add as unknown as (title: string) => Promise<void>,
-      setCompleted: setCompleted as unknown as (id: string, completed: boolean) => Promise<void>,
-      setImportant: setImportant as unknown as (id: string, important: boolean) => Promise<void>,
+
+    // 조회 상자는 신호 셋만 쓰이므로 그 모양만 세웁니다. 실제 요청은 이 화면의 계약이 아닙니다.
+    const taskList = { tasks, status, reload } as unknown as TaskList;
+    const commands: Partial<TaskCommands> = {
+      add: add as unknown as TaskCommands['add'],
+      setCompleted: setCompleted as unknown as TaskCommands['setCompleted'],
+      setImportant: setImportant as unknown as TaskCommands['setImportant'],
       setMyDay: async () => {},
       update: async () => {},
       remove: async () => {},
@@ -81,7 +85,8 @@ describe('TaskListPage', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        { provide: TASK_STORE, useValue: store },
+        { provide: TaskList, useValue: taskList },
+        { provide: TaskCommands, useValue: commands },
         ...provideTaskListDatePicker(),
       ],
     });
@@ -174,6 +179,8 @@ describe('TaskListPage', () => {
 
       // 전체 관점에는 부여할 성질이 없으므로 씨앗이 비어 있습니다.
       expect(add).toHaveBeenCalledWith('우산 챙기기', {});
+      // 명령은 결과를 싣지 않으므로 사본을 다시 받아야 목록에 보입니다.
+      expect(reload).toHaveBeenCalled();
       // 추가에 성공하면 입력란을 비워 다음 항목을 이어 적을 수 있게 합니다.
       expect(newTaskInput(fixture).value).toBe('');
     });
@@ -250,6 +257,30 @@ describe('TaskListPage', () => {
   it('TK-002 S1: 모르는 스마트 목록을 요청하면 완료되지 않은 작업 목록이 보인다', () => {
     // 주소를 직접 고쳤을 때 화면이 비는 대신 전체 목록이 뜨는 편이 낫습니다.
     expect(titles(render(undefined, '없는-관점')).length).toBe(3);
+  });
+
+  it('조회가 끝나기 전에는 빈 안내를 내지 않는다', () => {
+    // 빈 것은 조회가 끝난 뒤에야 사실입니다. 기다리는 동안 "없다"가 떴다 사라지면 안 됩니다.
+    tasks.set([]);
+    status.set('loading');
+
+    expect((render().nativeElement as HTMLElement).textContent).not.toContain('작업이 없습니다');
+  });
+
+  it('조회에 실패하면 빈 목록이 아니라 실패와 재시도 수단이 보인다', () => {
+    // 빈 상태로 보이면 사용자는 데이터가 없는 것으로 오해합니다. 15-error-handling.md 3.2절.
+    tasks.set([]);
+    status.set('error');
+    const host = render().nativeElement as HTMLElement;
+
+    expect(host.textContent).toContain('목록을 불러오지 못했습니다');
+    expect(host.textContent).not.toContain('작업이 없습니다');
+
+    const retry = [...host.querySelectorAll('button')].find(
+      (button) => button.textContent?.trim() === '다시 시도',
+    );
+    retry?.click();
+    expect(reload).toHaveBeenCalled();
   });
 
   it('제목이 관점의 이름을 따른다', () => {
@@ -408,8 +439,9 @@ describe('TaskListPage', () => {
     fixture.detectChanges();
 
     expect(titles(fixture)).toEqual(['전기요금 납부', '장 보기', '건강검진 예약']);
-    // 알리고, 적은 것은 다시 적지 않아도 되게 그대로 둡니다.
+    // 알리고, 적은 것은 다시 적지 않아도 되게 그대로 둡니다. 실패한 명령 뒤에 재조회할 것도 없습니다.
     expect(toastError).toHaveBeenCalled();
+    expect(reload).not.toHaveBeenCalled();
     expect(newTaskInput(fixture).value).toBe('우산 챙기기');
   });
 

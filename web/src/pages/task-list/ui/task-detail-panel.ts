@@ -7,6 +7,7 @@ import {
   type ElementRef,
   inject,
   input,
+  output,
   signal,
   untracked,
   viewChild,
@@ -29,7 +30,7 @@ import {
   quickReminds,
   remindTimeKey,
   splitTime,
-  TASK_STORE,
+  TaskCommands,
   toDateKey,
   withRemindDate,
   withRemindTime,
@@ -84,12 +85,8 @@ import {
  * 저장 버튼을 두지 않고 고친 값을 즉시 반영합니다. 저장 시점이 있으면 저장하지 않은
  * 변경이라는 상태가 생기고 닫기·취소·뒤로가기를 가로채는 이탈 확인이 따라옵니다.
  *
- * 목록과 같은 저장소 인스턴스를 봅니다. 두 화면을 감싸는 라우트가 프로바이더를 갖기
- * 때문이며, 화면마다 따로 두면 목록에서 고친 것이 여기 보이지 않습니다.
- *
- * 대상을 목록에서 파생하는 것은 프로토타입 구간의 형태입니다. 백엔드가 붙으면 화면
- * 진입에 필수인 데이터이므로 리졸버로 옮기고, 없는 식별자에 대한 처리도 그때 리졸버가
- * 가져갑니다. 09-state.md 3.1절.
+ * 대상은 부모가 입력으로 넘깁니다. 이 패널은 목록의 조회를 모르며, 바꾼 뒤에는
+ * `(changed)` 로만 알립니다. 사본을 다시 받는 것은 조회를 든 쪽의 일입니다. 09-state.md 4.1절.
  */
 @Component({
   selector: 'app-task-detail-panel',
@@ -142,15 +139,14 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskDetailPanel {
-  /** 목록 화면이 쿼리 파라미터에서 받아 넘깁니다. */
-  readonly id = input.required<string>();
+  /** 부모가 목록에서 찾아 넘깁니다. 없는 식별자를 열었으면 undefined 입니다. */
+  readonly task = input.required<Task | undefined>();
 
-  private readonly store = inject(TASK_STORE);
+  /** 값을 바꾸는 데 성공했음을 알립니다. 무엇이 바뀌었는지는 싣지 않습니다. */
+  readonly changed = output<void>();
+
+  private readonly commands = inject(TaskCommands);
   private readonly router = inject(Router);
-
-  protected readonly task = computed<Task | undefined>(() =>
-    this.store.tasks().find((candidate) => candidate.id === this.id()),
-  );
 
   private readonly draft = signal<TaskDraft>({
     title: '',
@@ -244,18 +240,21 @@ export class TaskDetailPanel {
     const current = this.task();
     if (!current) return;
     try {
-      await this.store.setCompleted(current.id, completed);
+      await this.commands.setCompleted(current.id, completed);
     } catch {
       box.checked.set(!completed);
       toast.error(completed ? '완료하지 못했습니다.' : '되돌리지 못했습니다.');
+      return;
     }
+    this.changed.emit();
   }
 
   /** 중요 표시를 켜고 끕니다. TK-003 A4. 목록 행의 별과 같은 동작입니다. */
   protected async setImportant(important: boolean): Promise<void> {
     const current = this.task();
     if (!current) return;
-    await this.store.setImportant(current.id, important);
+    await this.commands.setImportant(current.id, important);
+    this.changed.emit();
   }
 
   /** 담고 빼는 것은 즉시 반영입니다. 벗어나는 조작이 따로 없습니다. */
@@ -263,7 +262,8 @@ export class TaskDetailPanel {
     const current = this.task();
     if (!current) return;
 
-    await this.store.setMyDay(current.id, !this.inMyDay());
+    await this.commands.setMyDay(current.id, !this.inMyDay());
+    this.changed.emit();
   }
 
   /** 지우기 버튼의 표시 조건입니다. 정하지 않은 상태에서는 지울 것이 없습니다. */
@@ -473,13 +473,15 @@ export class TaskDetailPanel {
     if (unchanged) return;
 
     try {
-      await this.store.update(current.id, next);
+      await this.commands.update(current.id, next);
     } catch {
-      // 이전 값으로 돌아갑니다. TK-003 A9. 고치던 값을 폼에 남기면 화면과 저장소가 다른 값을 보입니다.
+      // 이전 값으로 돌아갑니다. TK-003 A9. 고치던 값을 폼에 남기면 화면과 서버가 다른 값을 보입니다.
       this.draft.set(toDraft(current));
       this.editForm().reset();
       toast.error('바꾸지 못했습니다.');
+      return;
     }
+    this.changed.emit();
   }
 
   /**
@@ -493,7 +495,8 @@ export class TaskDetailPanel {
     if (!current) return;
 
     this.confirm()?.close();
-    await this.store.remove(current.id);
+    await this.commands.remove(current.id);
+    this.changed.emit();
 
     // 지운 항목의 상세는 남을 이유가 없습니다.
     this.close();

@@ -1,8 +1,7 @@
-import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TASK_STORE, type Task, type TaskDraft, type TaskStore } from '@/entities/task';
+import { TaskCommands, type Task } from '@/entities/task';
 import { provideTaskListDatePicker } from '../providers';
 import { TaskDetailPanel } from './task-detail-panel';
 import { toast } from '@/shared/ui/sonner';
@@ -13,13 +12,16 @@ import { toast } from '@/shared/ui/sonner';
  *
  * 저장 버튼이 없으므로 반영은 입력란을 벗어나는 조작으로 확인합니다. 컴포넌트의 메서드를
  * 직접 부르면 템플릿의 배선이 빠져도 통과합니다. 17-testing.md 3.3절.
+ *
+ * 대상은 입력으로 받고 성공은 (changed) 로만 알립니다. 목록의 조회를 다시 부르는 것은
+ * 부모의 몫이므로 여기서는 신호가 나갔는지만 봅니다.
  */
 describe('TaskDetailPanel', () => {
-  let tasks: ReturnType<typeof signal<readonly Task[]>>;
   let update: ReturnType<typeof vi.fn>;
   let toastError: ReturnType<typeof vi.spyOn>;
   let remove: ReturnType<typeof vi.fn>;
   let setMyDay: ReturnType<typeof vi.fn>;
+  let changed: ReturnType<typeof vi.fn<() => void>>;
 
   const seed: Task = {
     id: 'seed-1',
@@ -34,28 +36,26 @@ describe('TaskDetailPanel', () => {
   };
 
   beforeEach(() => {
-    tasks = signal<readonly Task[]>([seed]);
     update = vi.fn(async () => {});
     toastError = vi.spyOn(toast, 'error').mockImplementation(() => '' as never);
     remove = vi.fn(async () => {});
     setMyDay = vi.fn(async () => {});
+    changed = vi.fn(() => {});
 
-    const store: TaskStore = {
-      tasks,
-      load: async () => {},
+    const commands: Partial<TaskCommands> = {
       add: async () => {},
       setCompleted: async () => {},
       setImportant: async () => {},
-      setMyDay: setMyDay as unknown as (id: string, inMyDay: boolean) => Promise<void>,
-      remove: remove as unknown as (id: string) => Promise<void>,
-      update: update as unknown as (id: string, patch: TaskDraft) => Promise<void>,
+      setMyDay: setMyDay as unknown as TaskCommands['setMyDay'],
+      remove: remove as unknown as TaskCommands['remove'],
+      update: update as unknown as TaskCommands['update'],
     };
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        { provide: TASK_STORE, useValue: store },
+        { provide: TaskCommands, useValue: commands },
         ...provideTaskListDatePicker(),
       ],
     });
@@ -66,9 +66,10 @@ describe('TaskDetailPanel', () => {
     document.querySelectorAll('.cdk-overlay-container').forEach((node) => node.remove());
   });
 
-  function render(id: string): ComponentFixture<TaskDetailPanel> {
+  function render(task: Task | undefined): ComponentFixture<TaskDetailPanel> {
     const fixture = TestBed.createComponent(TaskDetailPanel);
-    fixture.componentRef.setInput('id', id);
+    fixture.componentRef.setInput('task', task);
+    fixture.componentInstance.changed.subscribe(() => changed());
     fixture.detectChanges();
     return fixture;
   }
@@ -132,7 +133,7 @@ describe('TaskDetailPanel', () => {
   }
 
   it('TK-003 S4: 없는 작업은 편집할 수 없다', () => {
-    const fixture = render('없는-값');
+    const fixture = render(undefined);
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
     expect(text).toContain('찾을 수 없는 작업입니다');
@@ -140,14 +141,14 @@ describe('TaskDetailPanel', () => {
   });
 
   it('대상의 현재 값으로 폼을 채운다', () => {
-    const fixture = render('seed-1');
+    const fixture = render(seed);
 
     expect(query<HTMLInputElement>(fixture, '#task-title').value).toBe('장 보기');
     expect(query<HTMLTextAreaElement>(fixture, '#task-note').value).toBe('우유와 빵');
   });
 
   it('저장 버튼을 두지 않는다', () => {
-    const fixture = render('seed-1');
+    const fixture = render(seed);
 
     // 저장 시점이 있으면 저장하지 않은 변경이 생기고 이탈 확인이 따라옵니다. TK-003 의 각 속성은 고친 즉시 갱신됩니다.
     expect(
@@ -156,7 +157,7 @@ describe('TaskDetailPanel', () => {
   });
 
   it('TK-003 S2: 편집한 메모가 그 작업에 보인다', async () => {
-    const fixture = render('seed-1');
+    const fixture = render(seed);
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
     const note = query<HTMLTextAreaElement>(fixture, '#task-note');
@@ -170,11 +171,13 @@ describe('TaskDetailPanel', () => {
       dueDate: null,
       remindAt: null,
     });
+    // 사본을 다시 받는 것은 부모의 몫입니다. 신호가 나갔는지만 봅니다.
+    expect(changed).toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
   });
 
   it('TK-003 S1: 편집한 제목이 그 작업에 보인다', async () => {
-    const fixture = render('seed-1');
+    const fixture = render(seed);
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
     type(title, '장 보기와 은행');
@@ -190,7 +193,7 @@ describe('TaskDetailPanel', () => {
   });
 
   it('값이 그대로면 반영하지 않는다', async () => {
-    const fixture = render('seed-1');
+    const fixture = render(seed);
 
     // 벗어나기만 해도 반영되면 고치지 않은 항목의 갱신 시각이 바뀝니다.
     query<HTMLTextAreaElement>(fixture, '#task-note').dispatchEvent(new Event('blur'));
@@ -200,7 +203,7 @@ describe('TaskDetailPanel', () => {
   });
 
   it('TK-003 S1: 그만두면 편집하던 제목은 반영되지 않는다', async () => {
-    const fixture = render('seed-1');
+    const fixture = render(seed);
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
     type(title, '장 보기와 은행');
@@ -216,7 +219,7 @@ describe('TaskDetailPanel', () => {
 
   it('TK-003 S4: 실패하면 이전 값이 남는다', async () => {
     update.mockRejectedValueOnce(new Error('저장소 없음'));
-    const fixture = render('seed-1');
+    const fixture = render(seed);
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
     type(title, '장 보기와 은행');
@@ -226,11 +229,12 @@ describe('TaskDetailPanel', () => {
     fixture.detectChanges();
 
     expect(toastError).toHaveBeenCalled();
+    expect(changed).not.toHaveBeenCalled();
     expect(query<HTMLInputElement>(fixture, '#task-title').value).toBe('장 보기');
   });
 
   it('TK-003 S1: 제목이 비면 값이 바뀌지 않는다', async () => {
-    const fixture = render('seed-1');
+    const fixture = render(seed);
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
     type(title, '   ');
@@ -244,7 +248,7 @@ describe('TaskDetailPanel', () => {
 
   describe('TK-003 S3: 확인하면 그 작업이 목록에 없다', () => {
     it('지우기를 눌러도 확인 전에는 지우지 않는다', () => {
-      const fixture = render('seed-1');
+      const fixture = render(seed);
 
       openConfirm(fixture);
 
@@ -256,7 +260,7 @@ describe('TaskDetailPanel', () => {
     });
 
     it('취소하면 지우지 않는다', async () => {
-      const fixture = render('seed-1');
+      const fixture = render(seed);
 
       openConfirm(fixture);
       dialogButton('취소').click();
@@ -266,7 +270,7 @@ describe('TaskDetailPanel', () => {
     });
 
     it('확인하면 지우고 패널을 닫는다', async () => {
-      const fixture = render('seed-1');
+      const fixture = render(seed);
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
       openConfirm(fixture);
@@ -274,6 +278,7 @@ describe('TaskDetailPanel', () => {
       await fixture.whenStable();
 
       expect(remove).toHaveBeenCalledWith('seed-1');
+      expect(changed).toHaveBeenCalled();
       // 지운 항목의 상세는 남을 이유가 없습니다. 경로는 그대로 두고 쿼리 파라미터만 지웁니다.
       expect(navigate).toHaveBeenCalledWith([], {
         queryParams: { task: null },
@@ -285,7 +290,7 @@ describe('TaskDetailPanel', () => {
 
   describe('TK-003 S2: 나의 하루에 추가된 상태가 정한 대로 남는다', () => {
     it('나의 하루에 담는다', async () => {
-      const fixture = render('seed-1');
+      const fixture = render(seed);
       const button = myDayButton(fixture);
 
       expect(button.getAttribute('aria-pressed')).toBe('false');
@@ -298,8 +303,7 @@ describe('TaskDetailPanel', () => {
     });
 
     it('나의 하루에 추가긴 항목은 빼는 자리가 된다', () => {
-      tasks.set([{ ...seed, myDayOn: today() }]);
-      const fixture = render('seed-1');
+      const fixture = render({ ...seed, myDayOn: today() });
 
       expect(myDayButton(fixture).getAttribute('aria-pressed')).toBe('true');
       expect(myDayButton(fixture).textContent?.trim()).toBe('나의 하루에 추가됨');
@@ -307,16 +311,15 @@ describe('TaskDetailPanel', () => {
 
     it('어제 담긴 것은 오늘의 나의 하루가 아니다', () => {
       // 담긴 것은 매일 비워집니다. 날짜를 들고 있으면 비우러 다니는 장치가 필요 없습니다.
-      tasks.set([{ ...seed, myDayOn: '2020-01-01' }]);
+      const fixture = render({ ...seed, myDayOn: '2020-01-01' });
 
-      expect(myDayButton(render('seed-1')).getAttribute('aria-pressed')).toBe('false');
+      expect(myDayButton(fixture).getAttribute('aria-pressed')).toBe('false');
     });
   });
 
   describe('TK-003 S2: 기한이 정한 대로 그 작업에 남는다', () => {
     it('기한이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
-      tasks.set([{ ...seed, dueDate: '2026-12-25' }]);
-      const fixture = render('seed-1');
+      const fixture = render({ ...seed, dueDate: '2026-12-25' });
 
       // 트리거 버튼이 고른 날짜를 표기합니다. 정하지 않았을 때의 문구와 갈립니다.
       // 일정 카드에 트리거가 둘(미리 알림 · 기한)이라 id 로 특정합니다.
@@ -325,7 +328,7 @@ describe('TaskDetailPanel', () => {
     });
 
     it('기한을 정하지 않았으면 지우기를 내보내지 않는다', () => {
-      const fixture = render('seed-1');
+      const fixture = render(seed);
 
       // 지울 것이 없는 상태에서 지우기 버튼이 보이면 누를 수 있는 것이 무엇인지 모호해집니다.
       const buttons = Array.from(fixture.nativeElement.querySelectorAll('button'));
@@ -333,8 +336,7 @@ describe('TaskDetailPanel', () => {
     });
 
     it('기한을 지우면 비운 값을 곧바로 반영한다', async () => {
-      tasks.set([{ ...seed, dueDate: '2026-12-25' }]);
-      const fixture = render('seed-1');
+      const fixture = render({ ...seed, dueDate: '2026-12-25' });
 
       const clear = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
         (b as HTMLElement).textContent?.includes('기한 지우기'),
@@ -358,15 +360,14 @@ describe('TaskDetailPanel', () => {
    */
   describe('TK-003 S8: 미리 알림이 정한 대로 그 작업에 남는다', () => {
     it('미리 알림이 있으면 날짜와 시각을 트리거에 적는다', () => {
-      tasks.set([{ ...seed, remindAt: '2026-12-25T15:30' }]);
-      const fixture = render('seed-1');
+      const fixture = render({ ...seed, remindAt: '2026-12-25T15:30' });
 
       const trigger = query<HTMLButtonElement>(fixture, '#task-remind');
       expect(trigger.textContent?.trim()).toBe('알림 12월 25일 오후 3:30');
     });
 
     it('정하지 않았으면 트리거가 이름만 보인다', () => {
-      const fixture = render('seed-1');
+      const fixture = render(seed);
 
       expect(query<HTMLButtonElement>(fixture, '#task-remind').textContent?.trim()).toBe(
         '미리 알림',
@@ -374,8 +375,7 @@ describe('TaskDetailPanel', () => {
     });
 
     it('시를 고르면 나머지 축과 날짜를 지킨 채 반영한다', async () => {
-      tasks.set([{ ...seed, remindAt: '2026-12-25T15:30' }]);
-      const fixture = render('seed-1');
+      const fixture = render({ ...seed, remindAt: '2026-12-25T15:30' });
 
       // 팝오버 안의 시각 열입니다. 트리거를 눌러야 그려집니다.
       query<HTMLButtonElement>(fixture, '#task-remind').click();
@@ -394,8 +394,7 @@ describe('TaskDetailPanel', () => {
     });
 
     it('오전으로 바꾸면 시와 분은 그대로다', async () => {
-      tasks.set([{ ...seed, remindAt: '2026-12-25T15:30' }]);
-      const fixture = render('seed-1');
+      const fixture = render({ ...seed, remindAt: '2026-12-25T15:30' });
 
       query<HTMLButtonElement>(fixture, '#task-remind').click();
       await fixture.whenStable();
@@ -412,8 +411,7 @@ describe('TaskDetailPanel', () => {
     });
 
     it('분을 1분 단위로 고를 수 있다', async () => {
-      tasks.set([{ ...seed, remindAt: '2026-12-25T15:30' }]);
-      const fixture = render('seed-1');
+      const fixture = render({ ...seed, remindAt: '2026-12-25T15:30' });
 
       query<HTMLButtonElement>(fixture, '#task-remind').click();
       await fixture.whenStable();
@@ -431,8 +429,7 @@ describe('TaskDetailPanel', () => {
     });
 
     it('미리 알림을 지워도 기한은 남는다', async () => {
-      tasks.set([{ ...seed, dueDate: '2026-12-25', remindAt: '2026-12-25T15:30' }]);
-      const fixture = render('seed-1');
+      const fixture = render({ ...seed, dueDate: '2026-12-25', remindAt: '2026-12-25T15:30' });
 
       const clear = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
         (b as HTMLElement).textContent?.includes('미리 알림 지우기'),

@@ -6,6 +6,7 @@ import {
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 import { form, FormField, FormRoot } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
@@ -30,6 +31,7 @@ import {
 import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { AsideOutlet } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
+import { Veil } from '@/shared/ui/veil';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmDatePicker, HlmDatePickerTrigger } from '@/shared/ui/date-picker';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
@@ -56,7 +58,8 @@ import {
   sortActive,
   sortCompleted,
   splitByCompletion,
-  TASK_STORE,
+  TaskCommands,
+  TaskList,
   taskViewLabel,
   toDateKey,
   toTaskSort,
@@ -82,8 +85,8 @@ import {
  * 지우기는 이 화면에 없습니다. 파괴적 조작이 줄마다 상시 노출되지 않도록 상세 패널이
  * 소유하며, 확인 대화를 거칩니다. 기각한 대안(별도 페이지)은 shared/config/routes.ts 의 TASK_PANEL 주석에 있습니다.
  *
- * 데이터는 TASK_STORE 인터페이스 뒤에서만 접근합니다. 목데이터를 여기 박지 않는 이유는
- * 백엔드 연결을 프로바이더 교체로 축소하기 위함입니다. 09-state.md 2절.
+ * 목록은 라우트 스코프의 TaskList 가 들고 있고 변경은 TaskCommands 가 보냅니다.
+ * 변경이 성공하면 이 화면이 reload() 를 불러 사본을 다시 받습니다. 09-state.md 4.1절.
  */
 @Component({
   selector: 'app-task-list',
@@ -102,6 +105,7 @@ import {
     HlmFieldLabel,
     TaskDetailPanel,
     AsideOutlet,
+    Veil,
   ],
   providers: [
     provideIcons({
@@ -126,7 +130,11 @@ import {
    * 셸이 준 높이를 채웁니다. 자리와 폭은 셸이 정하며 이 클래스는 그 안에서 적는 자리를
    * 바닥으로 밀어내는 역할만 합니다. 06-layout.md 3.2절.
    */
-  host: { class: 'flex min-h-0 flex-1 flex-col' },
+  host: {
+    class: 'flex min-h-0 flex-1 flex-col',
+    // 대기 사실을 보조 기술에 알립니다. 13-accessibility.md 7절.
+    '[attr.aria-busy]': 'veil().visible() || null',
+  },
   templateUrl: './task-list.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -173,8 +181,20 @@ export class TaskListPage {
 
   protected readonly routes = ROUTES;
 
-  private readonly store = inject(TASK_STORE);
+  protected readonly taskList = inject(TaskList);
+  private readonly commands = inject(TaskCommands);
   private readonly router = inject(Router);
+
+  /**
+   * 베일은 최초 조회에만 띄웁니다. `reloading` 은 이전 값이 화면에 남아 있어 덮을 이유가
+   * 없고, 덮으면 방금 누른 컨트롤이 가려집니다. 09-state.md 3.3절 · 10-loading.md 3.2절.
+   */
+  protected readonly listLoading = computed(() => this.taskList.status() === 'loading');
+
+  /** 실패는 빈 목록이 아니라 실패로 보입니다. 15-error-handling.md 3.2절. */
+  protected readonly listFailed = computed(() => this.taskList.status() === 'error');
+
+  protected readonly veil = viewChild.required(Veil);
 
   private readonly draft = signal({ title: '' });
 
@@ -200,7 +220,7 @@ export class TaskListPage {
 
   /** 관점이 고른 뒤에 완료 여부로 가릅니다. 순서는 그다음입니다. */
   protected readonly groups = computed(() => {
-    const chosen = filterByView(this.store.tasks(), this.view(), this.today);
+    const chosen = filterByView(this.taskList.tasks(), this.view(), this.today);
     const { active, completed } = splitByCompletion(chosen);
     return {
       active: sortActive(active, this.sortKey(), this.direction()),
@@ -347,6 +367,15 @@ export class TaskListPage {
   protected readonly panel = TASK_PANEL;
 
   /**
+   * 상세 패널에 넘길 항목입니다. 찾는 것은 부모의 몫이며, 패널은 목록의 조회를 모른 채
+   * 값 하나를 받아 (changed) 로만 알립니다.
+   */
+  protected readonly openTask = computed<Task | undefined>(() => {
+    const id = this.task();
+    return id ? this.taskList.tasks().find((candidate) => candidate.id === id) : undefined;
+  });
+
+  /**
    * 지난 기한 판정의 기준일입니다. 화면이 서 있는 동안 자정을 넘기면 낡은 값이 되지만,
    * 목데이터 위의 프로토타입에서 그 경계를 다루는 장치를 먼저 만들 근거가 없습니다.
    * 관점 스펙이 하루의 경계를 정할 때 이 값의 소유도 함께 정합니다.
@@ -408,7 +437,7 @@ export class TaskListPage {
     if (!isAddableTitle(this.draft().title)) return;
 
     try {
-      await this.store.add(this.draft().title, this.seed());
+      await this.commands.add(this.draft().title, this.seed());
     } catch {
       /*
        * 남기지 못했음을 알리고 적은 것은 그대로 둡니다. TK-001 A6. 비우면 사용자가 다시
@@ -419,6 +448,9 @@ export class TaskListPage {
       });
       return;
     }
+
+    // 명령은 결과를 싣지 않습니다. 적은 것이 목록에 보이려면 사본을 다시 받아야 합니다.
+    this.taskList.reload();
 
     /*
      * 다음 항목을 이어 적을 수 있게 비웁니다. 붙인 기한과 미리 알림도 함께 비웁니다.
@@ -443,16 +475,19 @@ export class TaskListPage {
      */
     await new Promise((resolve) => setTimeout(resolve, CHECK_DWELL_MS));
     try {
-      await this.store.setCompleted(task.id, completed);
+      await this.commands.setCompleted(task.id, completed);
     } catch {
       box.checked.set(!completed);
       toast.error(completed ? '완료하지 못했습니다.' : '되돌리지 못했습니다.');
+      return;
     }
+    this.taskList.reload();
   }
 
   /** 중요 표시를 켜고 끕니다. TK-003 A4. */
   protected async setImportant(task: Task, important: boolean): Promise<void> {
-    await this.store.setImportant(task.id, important);
+    await this.commands.setImportant(task.id, important);
+    this.taskList.reload();
   }
 
   /**

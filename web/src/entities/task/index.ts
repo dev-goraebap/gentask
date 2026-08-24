@@ -43,4 +43,5 @@ export {
   toTaskSort,
   toTaskView,
 } from './model/task';
-export { TASK_STORE, type TaskDraft, type TaskSeed, type TaskStore } from './api/task-store';
+export { TaskList } from './api/task-list';
+export { TaskCommands, type TaskDraft, type TaskSeed } from './api/task-commands';
