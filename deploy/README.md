@@ -42,6 +42,19 @@ SSR 컨테이너에는 `NG_ALLOWED_HOSTS=todogen.app` 이 필요하다. Angular 
 Host 헤더를 허용 목록과 대조하며, 없으면 모든 요청이 400 으로 끝난다. 서버의
 `docker-compose.yml` 이 이 값을 갖는다.
 
-R2 버킷의 CORS 는 `https://todogen.app` 의 GET · PUT 을 허용해야 한다 — 브라우저가
-presigned URL 로 버킷에 직접 올리기 때문이다. 로컬 개발은 R2 가 아니라 compose 의
-MinIO 를 쓴다.
+R2 버킷의 CORS 는 `https://todogen.app` 의 GET · PUT 허용에 더해 **`ExposeHeaders` 에
+`etag` 가 있어야 한다** — 브라우저가 presigned URL 로 직접 올리고, uppy 가 업로드 검증에
+응답의 ETag 헤더를 읽는데 노출하지 않으면 100% 에서 멈춘다. 로컬 개발은 R2 가 아니라
+compose 의 MinIO 를 쓴다(기본 설정으로 충분하다).
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://todogen.app"],
+    "AllowedMethods": ["GET", "PUT"],
+    "AllowedHeaders": ["content-type"],
+    "ExposeHeaders": ["etag"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
