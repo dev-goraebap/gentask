@@ -7,6 +7,7 @@ import { Routes } from '@angular/router';
  * 근거와 수치는 01-dev-environment.md 7절에 있습니다.
  */
 import { provideTask } from '@/entities/task/providers';
+import { taskListResolver } from '@/pages/task-list/resolvers';
 import { provideTaskListDatePicker } from '@/pages/task-list';
 import { AppShell } from './layout/app-shell';
 
@@ -28,6 +29,12 @@ export const routes: Routes = [
         // 생겨도 목록과 같은 데이터를 보게 됩니다. 02-package-structure.md 7.5절.
         path: 'tasks',
         providers: [...provideTask(), ...provideTaskListDatePicker()],
+
+        /*
+         * 목록을 이 자리에서 받습니다. 관점(:view)이 바뀌어도 이 라우트는 다시 활성화되지
+         * 않으므로 관점을 옮길 때 재조회가 일어나지 않습니다.
+         */
+        resolve: { tasks: taskListResolver },
         children: [
           /*
            * 관점을 경로 파라미터로 둡니다. 네 관점이 같은 라우트를 공유하므로 관점을 바꿔도

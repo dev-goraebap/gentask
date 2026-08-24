@@ -13,6 +13,9 @@ export class MockTaskStore implements TaskStore {
 
   readonly tasks = this.state.asReadonly();
 
+  /** 시드가 이미 있어 받아 올 것이 없습니다. */
+  async load(): Promise<void> {}
+
   async add(title: string, seed: TaskSeed = {}): Promise<void> {
     const now = new Date();
     const task: Task = {

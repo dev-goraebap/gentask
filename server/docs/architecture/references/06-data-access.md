@@ -57,7 +57,9 @@ V1__create_tasks.sql  ──(파서)──▶  build/generated-sources/jooq/
 
 미리 알림에 시간대를 붙이면 사용자가 고른 값과 저장된 값이 달라져 화면에 낼 때마다 되돌려야 합니다. 그 대가로 절대 순간이 아니게 되며, 실제로 알림을 보내는 구현이 사용자 시간대를 알아야 합니다.
 
-**`timestamptz` 는 코드 생성 단계에서 `Instant` 가 됩니다.** 생성 설정의 `forcedType` 이 걸어 두며, 저장소와 조회는 변환 없이 그 값을 그대로 씁니다. 시간대 없는 `timestamp` 는 걸리지 않으므로 `LocalDateTime` 으로 남습니다. 근거는 [결정-0001](../decisions/0001-timestamptz-converter.md)입니다.
+**`timestamptz` 는 코드 생성 단계에서 `Instant` 가 됩니다.** 생성 설정의 `forcedType` 이 걸어 두며, 저장소와 조회는 변환 없이 그 값을 그대로 씁니다. 시간대 없는 `timestamp` 는 걸리지 않으므로 `LocalDateTime` 으로 남습니다.
+
+**값 객체는 강제 타입으로 내리지 않습니다.** 생성물이 도메인 패키지를 import 하게 되어, 모듈이 늘면 생성물 하나가 모든 모듈의 도메인을 알게 됩니다. 인프라가 도메인에 의존하는 방향이므로 [04. 계층](04-layers.md)의 의존 방향과 어긋납니다.
 
 > [!NOTE]
 > **정규식에 공백을 쓰지 않습니다**

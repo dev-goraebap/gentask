@@ -57,11 +57,9 @@ public class TaskService {
 
 ### 검증 재실행은 근거가 아닙니다
 
-한때 이것이 근거였습니다. 애그리거트를 조립한다는 것은 저장된 값이 현재 불변식을 다시 통과한다는 뜻이고, 규칙을 강화한 날 옛 데이터를 읽지 못하게 됩니다.
+조회가 애그리거트를 조립하면 저장된 값이 현재 불변식을 다시 통과해야 하고, 규칙을 강화한 날 옛 데이터를 읽지 못하게 된다 — 그럴듯하지만 근거가 되지 못합니다. **값 객체의 두 경로가 그 문제를 이미 풉니다**([04. 계층](04-layers.md) 3절). 저장소는 검증하지 않는 정규 생성자로 재구성하므로 조회가 애그리거트를 만들어도 검증이 돌지 않습니다.
 
-**그 문제는 값 객체의 두 경로가 이미 풀었습니다**([04. 계층](04-layers.md) 3절). 저장소는 검증하지 않는 정규 생성자로 재구성하므로, 조회가 애그리거트를 만든다 해도 검증이 돌지 않습니다. **그러므로 이것을 경로 분리의 근거로 쓰지 않습니다.**
-
-이 논거는 그럴듯해서 다시 등장하기 쉽습니다. 그래서 기록으로 남깁니다. 값 객체가 생성자에서 검증하는 구성이라면 근거가 되지만, 그 구성은 그것대로 규칙 강화 시 읽기를 막습니다.
+값 객체가 생성자에서 검증하는 구성이라면 이 논거가 성립하지만, 그 구성은 그것대로 규칙을 강화할 때 읽기를 막습니다.
 
 ### 그래서 남는 근거
 
@@ -82,13 +80,13 @@ public class TaskService {
 
 ## 4. 명령 경로의 규약
 
-**명령 메서드는 `void` 또는 식별자를 반환합니다.** 화면이 필요로 하는 나머지는 조회가 줍니다. 컨트롤러가 명령을 호출한 뒤 조회로 응답을 조립하는 형태가 표준입니다.
+**명령 메서드는 `void` 또는 식별자를 반환합니다.** 화면이 필요로 하는 나머지는 조회가 주며, 그 조회는 클라이언트가 따로 부릅니다([07. API 설계](07-api-design.md) 2절).
 
 ```java
 @PostMapping
-public ResponseEntity<TaskView> add(@Valid @RequestBody CreateTask request) {
+public ResponseEntity<Void> add(@Valid @RequestBody CreateTask request) {
     UUID id = tasks.add(request.title());
-    return ResponseEntity.created(location(id)).body(tasks.detail(id));
+    return ResponseEntity.created(location(id)).build();
 }
 ```
 

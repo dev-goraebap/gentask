@@ -42,6 +42,7 @@ describe('TaskDetailPanel', () => {
 
     const store: TaskStore = {
       tasks,
+      load: async () => {},
       add: async () => {},
       setCompleted: async () => {},
       setImportant: async () => {},

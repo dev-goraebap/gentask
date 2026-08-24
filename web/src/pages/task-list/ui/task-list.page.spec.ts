@@ -68,6 +68,7 @@ describe('TaskListPage', () => {
     toastError = vi.spyOn(toast, 'error').mockImplementation(() => '' as never);
     store = {
       tasks,
+      load: async () => {},
       add: add as unknown as (title: string) => Promise<void>,
       setCompleted: setCompleted as unknown as (id: string, completed: boolean) => Promise<void>,
       setImportant: setImportant as unknown as (id: string, important: boolean) => Promise<void>,

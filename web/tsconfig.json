@@ -4,6 +4,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/shared/ui/button": ["./src/shared/ui/button/src/index.ts"],
+      "@/pages/task-list/resolvers": ["./src/pages/task-list/resolvers.ts"],
       "@/entities/task/providers": ["./src/entities/task/api/provide-task.ts"],
       "@/shared/ui/icon": ["./src/shared/ui/icon/src/index.ts"],
       "@/shared/ui/utils": ["./src/shared/ui/utils/src/index.ts"],

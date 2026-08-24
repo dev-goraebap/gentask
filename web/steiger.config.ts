@@ -52,4 +52,17 @@ export default defineConfig([
       'fsd/excessive-slicing': 'off',
     },
   },
+
+  {
+    /*
+     * 라우트가 즉시 임포트하는 심볼의 전용 진입점입니다. 세그먼트가 아니라 배럴을 우회하는
+     * 파일이며, 그것이 필요한 이유는 01-dev-environment.md 7절에 있습니다. Steiger 가
+     * 슬라이스 뿌리의 파일을 세그먼트로 보고 이름을 지적하는데, 이름이 가리키는 것은
+     * 내용의 종류가 아니라 임포트 방식입니다.
+     */
+    files: ['./src/pages/task-list/providers.ts', './src/pages/task-list/resolvers.ts'],
+    rules: {
+      'fsd/segments-by-purpose': 'off',
+    },
+  },
 ]);
