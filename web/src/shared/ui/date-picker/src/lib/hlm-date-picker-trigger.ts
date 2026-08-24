@@ -89,13 +89,10 @@ export class HlmDatePickerTrigger implements BrnDatePickerTriggerBase {
 
   protected readonly _isPlaceholder = computed(() => !this._datePicker.hasDate());
 
-  /** The id of the button that opens the date picker. */
   public readonly buttonId = input<string>(`hlm-date-picker-${++HlmDatePickerTrigger._nextId}`);
 
-  /** @internal The id of the button that opens the date picker, used for labeling. */
   public readonly triggerId = this.buttonId;
 
-  /** Forces the invalid state visually, regardless of form control state. */
   public readonly forceInvalid = input<boolean, BooleanInput>(false, {
     transform: booleanAttribute,
   });
@@ -112,16 +109,6 @@ export class HlmDatePickerTrigger implements BrnDatePickerTriggerBase {
   private readonly _button = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
 
   constructor() {
-    /*
-     * 오리진을 트리거가 직접 관리합니다. `BrnPopoverTrigger` 를 쓰지 않는 이유는
-     * 그것이 클릭 시점에 자기 호스트를 오리진으로 심고, 오리진이 붙은 팝오버는
-     * `positionStrategy` 입력을 무시한 채 트리거 연결 전략만 쓰기 때문입니다.
-     * 바텀시트는 오리진이 비어 있어야 열립니다. 07-adaptive-ui.md 4.2절.
-     *
-     * ARIA·id·클릭 처리는 `BrnOverlayTrigger` 가 그대로 담당하며 여기서 직접
-     * 배선하는 것은 오리진 하나입니다. 같은 방식이 `HlmDatePickerAnchor` 에도
-     * 이미 쓰이고 있습니다.
-     */
     effect(() => {
       const origin = this._viewport() === 'compact' ? null : this._button().nativeElement;
       this._popover().setOrigin(origin);

@@ -23,16 +23,6 @@ const NEXT: Record<ThemePreference, ThemePreference> = {
   dark: 'system',
 };
 
-/**
- * 색상 모드를 순환 전환합니다.
- *
- * 세 상태를 버튼 하나로 도는 방식은 다음에 무엇이 오는지 보이지 않는 것이 약점입니다.
- * 그래서 접근 가능한 이름에 현재 상태와 다음 상태를 함께 담습니다. 아이콘만으로 동작을
- * 표현하는 버튼은 이름을 가져야 한다는 13-accessibility.md 3절의 요구이기도 합니다.
- *
- * 메뉴로 펼치는 편이 예측 가능하지만 그러려면 오버레이 컴포넌트를 들여야 합니다.
- * 항목이 셋뿐이라 지금은 순환으로 두고, 모드 외에 고를 것이 늘면 그때 바꿉니다.
- */
 @Component({
   selector: 'app-theme-toggle',
   imports: [HlmButton, AppIcon],

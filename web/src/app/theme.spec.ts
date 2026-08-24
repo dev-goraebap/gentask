@@ -2,13 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ThemeStore } from './theme';
 
-/*
- * 색상 모드 선택의 저장과 복원, 그리고 문서 루트에 붙는 클래스를 검증합니다.
- *
- * CSS 가 `:root.light` 와 `:root.dark` 를 받을 준비를 해 두었으므로, 그 클래스가
- * 실제로 붙는지가 라이트와 다크를 실제로 볼 수 있는지를 가릅니다.
- * 규칙은 docs/architecture/references/04-design-system.md 7절입니다.
- */
 describe('ThemeStore', () => {
   beforeEach(() => {
     localStorage.clear();

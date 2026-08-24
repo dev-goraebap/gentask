@@ -69,12 +69,6 @@ export const HLM_CHECKBOX_VALUE_ACCESSOR = {
 export class HlmCheckbox implements ControlValueAccessor {
   public readonly userClass = input<ClassValue>('', { alias: 'class' });
 
-  /*
-   * size-4 는 16px 이라 터치 기준에 미달합니다. 목록 행 안에 놓이는 컨트롤이라 시각 치수를
-   * 44 로 키우면 행이 무너지므로, 04-design-system.md 3.5절의 예외를 적용해 보이는 크기는
-   * 두고 누를 수 있는 영역만 넓힙니다. 16 + 14*2 = 44 이므로 -inset-3.5 입니다.
-   * 이것은 예외이며 기본은 시각 치수를 함께 키우는 것입니다.
-   */
   protected readonly _computedClass = computed(() =>
     hlm(
       'max-md:relative max-md:before:absolute max-md:before:-inset-3.5 max-md:before:content-[""] border-input dark:bg-input/30 data-checked:bg-primary data-checked:text-primary-foreground dark:data-checked:bg-primary data-checked:border-primary data-[matches-spartan-invalid=true]:aria-checked:border-primary data-[matches-spartan-invalid=true]:border-destructive dark:data-[matches-spartan-invalid=true]:border-destructive/50 focus-visible:border-ring focus-visible:ring-ring/50 data-[matches-spartan-invalid=true]:ring-destructive/20 dark:data-[matches-spartan-invalid=true]:ring-destructive/40 flex size-4 items-center justify-center rounded-sm border shadow-xs transition-shadow group-has-disabled/field:opacity-50 focus-visible:ring-3 data-[matches-spartan-invalid=true]:ring-3 peer shrink-0 cursor-default outline-none disabled:cursor-not-allowed disabled:opacity-50',
@@ -83,44 +77,30 @@ export class HlmCheckbox implements ControlValueAccessor {
     ),
   );
 
-  /** Used to set the id on the underlying brn element. */
   public readonly inputId = input<string | null>(null);
 
-  /** Used to set the aria-label attribute on the underlying brn element. */
   public readonly ariaLabel = input<string | null>(null, { alias: 'aria-label' });
 
-  /** Used to set the aria-labelledby attribute on the underlying brn element. */
   public readonly ariaLabelledby = input<string | null>(null, { alias: 'aria-labelledby' });
 
-  /** Used to set the aria-describedby attribute on the underlying brn element. */
   public readonly ariaDescribedby = input<string | null>(null, { alias: 'aria-describedby' });
 
-  /** The checked state of the checkbox. */
   public readonly checkedInput = input<boolean, BooleanInput>(false, {
     alias: 'checked',
     transform: booleanAttribute,
   });
   public readonly checked = linkedSignal(this.checkedInput);
 
-  /** Emits when checked state changes. */
   public readonly checkedChange = output<boolean>();
 
-  /**
-   * The indeterminate state of the checkbox.
-   * For example, a "select all/deselect all" checkbox may be in the indeterminate state when some but not all of its sub-controls are checked.
-   */
   public readonly indeterminate = model<boolean>(false);
 
-  /** The name attribute of the checkbox. */
   public readonly name = input<string | null>(null);
 
-  /** Whether the checkbox is required. */
   public readonly required = input<boolean, BooleanInput>(false, { transform: booleanAttribute });
 
-  /** Whether the checkbox is disabled. */
   public readonly disabled = input<boolean, BooleanInput>(false, { transform: booleanAttribute });
 
-  /** Whether to force the checkbox into an invalid state. */
   public readonly forceInvalid = input<boolean, BooleanInput>(false, {
     transform: booleanAttribute,
   });
@@ -148,7 +128,6 @@ export class HlmCheckbox implements ControlValueAccessor {
     this._onChange?.(value);
   }
 
-  /** CONTROL VALUE ACCESSOR */
   writeValue(value: boolean): void {
     this.checked.set(value);
   }

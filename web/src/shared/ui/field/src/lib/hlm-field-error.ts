@@ -38,16 +38,10 @@ export class HlmFieldError implements OnDestroy {
 
   private readonly _hasParentField = !!this._field;
 
-  /** The unique ID for the field error. If none is supplied, it will be auto-generated. */
   public readonly id = input<string>(`hlm-field-error-${HlmFieldError._id++}`);
 
-  /**
-   * The name of the specific validator error key to match (e.g. 'required').
-   * When omitted, the error is shown if any validation error is present.
-   */
   public readonly validator = input<string>();
 
-  /** Forces the error message to be visible regardless of the control's validation state. */
   public readonly forceShow = input<boolean, BooleanInput>(false, { transform: booleanAttribute });
 
   protected readonly _display = computed(

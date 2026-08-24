@@ -2,26 +2,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-/*
- * 디자인 토큰의 대비를 검증합니다.
- *
- * 기준은 docs/architecture/references/13-accessibility.md 6절이 소유하고
- * 값은 docs/design/DESIGN.md 가 채웁니다. 이 테스트가 둘 사이의 경계를 지킵니다.
- * 문서에만 적힌 기준은 팔레트가 바뀌는 순간 조용히 어긋나므로, 값을 갈아끼우거나
- * 오버라이드를 지우면 여기서 실패해야 합니다.
- *
- * 검증 대상은 실제 CSS 파일이며 이 파일에 값을 하드코딩하지 않습니다.
- * 하드코딩하면 두 벌이 되어 한쪽만 고치는 실수가 다시 가능해집니다.
- */
-
 const STYLES = join(process.cwd(), 'src', 'app', 'styles.css');
 
 type Mode = 'light' | 'dark';
-
-// ── 색 변환 ────────────────────────────────────────────────────────────────
-// OKLCH → OKLab → 선형 sRGB → 감마 sRGB 순서입니다. 감마 단계에서 색역을 벗어난
-// 값이 잘리므로, 휘도는 자른 뒤의 값을 다시 선형화해 계산합니다. 브라우저가
-// 실제로 표시하는 색과 같은 값을 검증해야 하기 때문입니다.
 
 interface Rgb {
   r: number;
@@ -64,7 +47,6 @@ function luminance({ r, g, b }: Rgb): number {
   return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
 }
 
-/** 반투명 색을 불투명 배경 위에 합성합니다. */
 function composite(front: Rgb, back: Rgb): Rgb {
   return {
     r: front.r * front.a + back.r * (1 - front.a),
@@ -80,9 +62,6 @@ function contrast(front: Rgb, back: Rgb): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-// ── CSS 파싱 ───────────────────────────────────────────────────────────────
-
-/** `--name: value;` 를 추출합니다. 값이 여러 줄에 걸치거나 함수를 중첩해도 됩니다. */
 function readTokens(css: string): Map<string, string> {
   const rootStart = css.indexOf(':root {');
   expect(rootStart, ':root 블록을 찾지 못했습니다').toBeGreaterThan(-1);
@@ -122,7 +101,6 @@ function readValue(body: string, from: number): string | null {
   return null;
 }
 
-/** 최상위 콤마로 인자를 나눕니다. */
 function splitArgs(inner: string): string[] {
   const parts: string[] = [];
   let depth = 0;
@@ -152,7 +130,6 @@ function parseColor(value: string): Rgb {
   return oklchToRgb(Number(oklch[1]), Number(oklch[2]), Number(oklch[3]), alpha);
 }
 
-/** 토큰 하나를 해당 모드의 색으로 해석합니다. */
 function resolve(tokens: Map<string, string>, name: string, mode: Mode): Rgb {
   const raw = tokens.get(name);
   expect(raw, `--${name} 토큰이 정의되어 있지 않습니다`).toBeDefined();
@@ -171,9 +148,6 @@ function resolve(tokens: Map<string, string>, name: string, mode: Mode): Rgb {
   return parseColor(args[mode === 'light' ? 0 : 1]);
 }
 
-// ── 검증 대상 ──────────────────────────────────────────────────────────────
-
-/** 본문과 보조 텍스트는 AA 4.5:1 을 넘어야 합니다. */
 const TEXT_PAIRS: Array<[front: string, back: string]> = [
   ['foreground', 'background'],
   ['foreground-secondary', 'background'],
@@ -193,16 +167,6 @@ const TEXT_PAIRS: Array<[front: string, back: string]> = [
   ['primary', 'background'],
 ];
 
-/*
- * 컨트롤 경계와 포커스 링은 UI 3:1 을 넘어야 합니다.
- *
- * --border 는 대상이 아닙니다. 같은 평면에서 면을 가르는 장식선이며 사라져도
- * 컴포넌트를 식별하지 못하게 되지 않으므로 WCAG 1.4.11 의 대상이 아닙니다.
- * 여기에 3:1 을 걸면 모든 면 사이에 중간 회색 선이 그어져 헤어라인으로 구조를
- * 그린다는 시각 언어가 깨집니다. 느슨해진 것이 아니라 더 정교하게 나눈 것입니다.
- *
- * 반대로 --input 은 "여기가 입력란"임을 알리는 유일한 단서이므로 강제합니다.
- */
 const UI_PAIRS: Array<[front: string, back: string]> = [
   ['input', 'background'],
   ['input', 'card'],
@@ -210,10 +174,6 @@ const UI_PAIRS: Array<[front: string, back: string]> = [
   ['ring', 'card'],
 ];
 
-/**
- * 짝을 반드시 함께 정의해야 하는 토큰입니다. 04-design-system.md 3.2절.
- * `background` 의 짝은 `foreground` 이며 Spartan 규약이 그 이름을 접두사 없이 씁니다.
- */
 const REQUIRED_PAIRS: Array<[surface: string, ink: string]> = [
   ['background', 'foreground'],
   ['card', 'card-foreground'],

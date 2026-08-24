@@ -82,52 +82,38 @@ export const HLM_DATE_PICKER_MUTLI_VALUE_ACCESSOR = {
 export class HlmDatePickerMulti<T> implements BrnDatePickerBase<T[]>, ControlValueAccessor {
   private readonly _config = injectHlmDatePickerMultiConfig<T>();
 
-  /** wide 는 트리거 옆 팝오버, compact 는 하단 바텀시트입니다. 07-adaptive-ui.md 5절. */
   protected readonly _presentation = injectHlmDatePickerPresentation();
 
   public readonly popover = viewChild.required(BrnPopover);
 
   private readonly _trigger = contentChild(BrnDatePickerTriggerToken);
 
-  /*
-   * 필드에 붙는 오버레이는 필드의 시작 모서리에 맞춥니다. 캘린더는 일곱 열이라 대개
-   * 트리거보다 넓은데, 가운데로 맞추면 양쪽으로 삐져나와 어느 필드에 딸린 것인지
-   * 흐려집니다. brain 기본값은 center 이며 여기서 바꿉니다.
-   */
   public readonly align = input<BrnPopoverAlign>('start');
 
-  /** Show dropdowns to navigate between months or years. */
   public readonly captionLayout = input<
     'dropdown' | 'label' | 'dropdown-months' | 'dropdown-years'
   >('label');
 
-  /** The minimum date that can be selected.*/
   public readonly minDate = input<T>();
 
-  /** The maximum date that can be selected. */
   public readonly maxDate = input<T>();
 
-  /** The minimum selectable dates.  */
   public readonly minSelection = input<number, NumberInput>(undefined, {
     transform: numberAttribute,
   });
 
-  /** The maximum selectable dates.  */
   public readonly maxSelection = input<number, NumberInput>(undefined, {
     transform: numberAttribute,
   });
 
-  /** Determine if the date picker is disabled. */
   public readonly disabled = input<boolean, BooleanInput>(false, {
     transform: booleanAttribute,
   });
 
-  /** The selected value. */
   public readonly date = input<T[]>();
 
   protected readonly _mutableDate = linkedSignal(this.date);
 
-  /** If true, the date picker will close when the max selection of dates is reached. */
   public readonly autoCloseOnMaxSelection = input<boolean, BooleanInput>(
     this._config.autoCloseOnMaxSelection,
     {
@@ -135,17 +121,14 @@ export class HlmDatePickerMulti<T> implements BrnDatePickerBase<T[]>, ControlVal
     },
   );
 
-  /** Defines how the date should be displayed in the UI.  */
   public readonly formatDates = input<(date: T[]) => string>(this._config.formatDates);
 
-  /** Defines how the date should be transformed before saving to model/form. */
   public readonly transformDates = input<(date: T[]) => T[]>(this._config.transformDates);
 
   protected readonly _popoverState = signal<BrnOverlayState | null>(null);
 
   protected readonly _disabled = linkedSignal(this.disabled);
 
-  /** @internal The disabled state as a readonly signal */
   public readonly disabledState = this._disabled.asReadonly();
 
   public readonly formattedDate = computed(() => {
@@ -159,7 +142,6 @@ export class HlmDatePickerMulti<T> implements BrnDatePickerBase<T[]>, ControlVal
 
   public readonly hasDate = computed(() => !!this._mutableDate()?.length);
 
-  /** @internal The current raw value, used by inputs to reformat on focus. */
   public readonly value = computed(() => this._mutableDate() ?? null);
 
   protected _onChange?: ChangeFn<T[]>;
@@ -185,11 +167,6 @@ export class HlmDatePickerMulti<T> implements BrnDatePickerBase<T[]>, ControlVal
     }
   }
 
-  /**
-   * Commit dates to the picker. Updates the internal model, notifies form
-   * controls, and emits `dateChange`. Intended to be called from a text input
-   * that parses user-entered values. Pass `null` to clear the selection.
-   */
   public updateDate(value: T[] | null) {
     if (this._disabled()) return;
     const transformedDate = value ? this.transformDates()(value) : undefined;
@@ -203,7 +180,6 @@ export class HlmDatePickerMulti<T> implements BrnDatePickerBase<T[]>, ControlVal
     this._onTouched?.();
   }
 
-  /** CONTROL VALUE ACCESSOR */
   public writeValue(value: T[] | null): void {
     this._mutableDate.set(value ? this.transformDates()(value) : undefined);
   }

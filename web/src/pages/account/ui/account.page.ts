@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import { AuthCommands, CurrentUser, MeCommands, UserAvatar } from '@/entities/user';
@@ -11,17 +19,21 @@ import { HlmInput } from '@/shared/ui/input';
 import { toast } from '@/shared/ui/sonner';
 import { Veil } from '@/shared/ui/veil';
 
-/** 프로필 이미지의 상한. 파일 첨부(TK-003 A11)와 같은 값이며 강제는 서버가 한다. */
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
-/**
- * 계정 화면 (TK-006). 아바타와 기본 정보, 에이전트 토큰, 로그아웃이 이 자리에 있습니다.
- *
- * 별명은 저장 버튼 없이 입력란을 벗어날 때 반영합니다. 상세 패널과 같은 규칙입니다.
- */
 @Component({
   selector: 'app-account',
-  imports: [FormRoot, FormField, HlmButton, HlmInput, HlmField, HlmFieldError, HlmFieldLabel, UserAvatar, Veil],
+  imports: [
+    FormRoot,
+    FormField,
+    HlmButton,
+    HlmInput,
+    HlmField,
+    HlmFieldError,
+    HlmFieldLabel,
+    UserAvatar,
+    Veil,
+  ],
   host: {
     class: 'flex min-h-0 flex-1 flex-col',
     '[attr.aria-busy]': 'veilLoading() || null',
@@ -30,14 +42,19 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
   template: `
     <app-veil [loading]="veilLoading()" [failed]="veilFailed()" />
 
-    <section class="mx-auto flex w-full max-w-[40rem] flex-1 flex-col gap-6 px-4 pt-8 pb-8 md:pt-12">
+    <section
+      class="mx-auto flex w-full max-w-[40rem] flex-1 flex-col gap-6 px-4 pt-8 pb-8 md:pt-12"
+    >
       <h1 class="text-2xl font-semibold tracking-tight">계정</h1>
 
       @if (me(); as user) {
-        <!-- 프로필: 아바타와 기본 정보. 이미지가 없으면 기본 아바타가 그 자리다. -->
         <div class="border-border bg-card border p-4">
           <div class="flex items-center gap-4">
-            <app-user-avatar class="size-16 text-xl" [name]="user.nickname" [imageUrl]="user.profileImageUrl" />
+            <app-user-avatar
+              class="size-16 text-xl"
+              [name]="user.nickname"
+              [imageUrl]="user.profileImageUrl"
+            />
             <div class="min-w-0 flex-1">
               <p class="truncate font-medium">{{ user.nickname }}</p>
               <p class="text-foreground-secondary truncate text-sm">{{ user.email }}</p>
@@ -56,7 +73,12 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
             }
           </div>
 
-          <form novalidate [formRoot]="nicknameForm" (submit)="$event.preventDefault()" class="mt-4">
+          <form
+            novalidate
+            [formRoot]="nicknameForm"
+            (submit)="$event.preventDefault()"
+            class="mt-4"
+          >
             <div hlmField>
               <label hlmFieldLabel for="account-nickname">별명</label>
               <input
@@ -76,10 +98,6 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
           </form>
         </div>
 
-        <!--
-          에이전트 토큰 (TK-006 A3). 원문은 발급 응답에만 실리므로 이 자리에서 복사해 두어야
-          한다. 재발급은 이전 토큰을 무효로 만든다 — MCP 설정에 넣은 값도 함께 죽는다.
-        -->
         <div class="border-border bg-card border p-4">
           <h2 class="font-medium">에이전트 토큰</h2>
           <p class="text-foreground-secondary mt-1 text-sm">
@@ -90,9 +108,13 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
           @if (issuedToken(); as token) {
             <div class="border-border bg-muted mt-3 flex items-center gap-2 border p-2">
               <code class="min-w-0 flex-1 truncate text-xs">{{ token }}</code>
-              <button hlmBtn type="button" variant="outline" size="sm" (click)="copyToken()">복사</button>
+              <button hlmBtn type="button" variant="outline" size="sm" (click)="copyToken()">
+                복사
+              </button>
             </div>
-            <p class="text-warning mt-2 text-xs">이 화면을 떠나면 다시 볼 수 없습니다. 지금 복사해 두세요.</p>
+            <p class="text-warning mt-2 text-xs">
+              이 화면을 떠나면 다시 볼 수 없습니다. 지금 복사해 두세요.
+            </p>
           } @else if (user.apiTokenIssuedAt) {
             <p class="text-foreground-secondary mt-3 text-sm">
               {{ tokenIssuedAt() }} 에 발급된 토큰이 있습니다. 원문은 발급할 때만 보입니다.
@@ -106,12 +128,13 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
               {{ user.apiTokenIssuedAt ? '다시 발급' : '발급' }}
             </button>
             @if (user.apiTokenIssuedAt) {
-              <button hlmBtn type="button" variant="ghost" size="sm" (click)="deleteToken()">지우기</button>
+              <button hlmBtn type="button" variant="ghost" size="sm" (click)="deleteToken()">
+                지우기
+              </button>
             }
           </div>
         </div>
 
-        <!-- TK-005 A4. -->
         <div>
           <button hlmBtn type="button" variant="outline" (click)="logout()">로그아웃</button>
         </div>
@@ -130,7 +153,6 @@ export class AccountPage {
   protected readonly veilLoading = computed(() => this.currentUser.status() === 'loading');
   protected readonly veilFailed = computed(() => this.currentUser.status() === 'error');
 
-  /** 발급 직후의 원문. 이 화면이 서 있는 동안만 산다. */
   protected readonly issuedToken = signal<string | null>(null);
 
   private readonly draft = signal({ nickname: '' });
@@ -141,7 +163,6 @@ export class AccountPage {
     );
   });
 
-  /** 어느 값으로 채웠는지다. 사본이 갱신될 때마다 입력 중인 폼을 덮지 않기 위한 빗장이다. */
   private readonly loaded = signal<string | null>(null);
 
   constructor() {
@@ -189,7 +210,6 @@ export class AccountPage {
     void this.commitNickname();
   }
 
-  /** TK-006 A1. presign → 보관소로 직접 PUT → 확정 → 사본 갱신. */
   protected uploadImage(): void {
     openUppyDialog({
       maxNumberOfFiles: 1,
@@ -203,7 +223,6 @@ export class AccountPage {
     });
   }
 
-  /** TK-006 A2. */
   protected async clearImage(): Promise<void> {
     try {
       await this.meCommands.clearProfileImage();
@@ -214,7 +233,6 @@ export class AccountPage {
     this.currentUser.reload();
   }
 
-  /** TK-006 A3. 재발급은 이전 토큰을 무효로 만든다. */
   protected async issueToken(): Promise<void> {
     try {
       const issued = await this.meCommands.issueApiToken();
@@ -244,7 +262,6 @@ export class AccountPage {
     toast.success('토큰을 복사했습니다.');
   }
 
-  /** TK-005 A4. */
   protected async logout(): Promise<void> {
     try {
       await this.auth.logout();

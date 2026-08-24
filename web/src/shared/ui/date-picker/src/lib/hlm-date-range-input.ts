@@ -78,21 +78,8 @@ export class HlmDateRangeInput<T> extends BrnDateInput<[T, T]> implements BrnDat
 
   protected readonly _ariaInvalid = computed(() => (this._invalid?.() ? 'true' : null));
 
-  /**
-   * Parses input text into a date range. Return `null` for invalid
-   * input - the picker's range is cleared while the text is preserved so
-   * the user can fix it.
-   *
-   * Defaults to `parseDate` from `HlmDateRangePickerConfig`.
-   */
   public readonly parseDate = input<(value: string) => [T, T] | null>(this._config.parseDate);
 
-  /**
-   * Formats the current range into the input/edit format shown while the
-   * input is focused. On blur the picker's display format is restored.
-   *
-   * Defaults to `formatInputDates` from `HlmDateRangePickerConfig`.
-   */
   public readonly formatInputDates = input<(dates: [T | null, T | null]) => string>(
     this._config.formatInputDates,
   );

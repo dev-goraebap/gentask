@@ -6,21 +6,12 @@ import { CurrentUser } from '@/entities/user';
 import { AsideSlot } from '@/shared/lib';
 import { AppShell } from './app-shell';
 
-/** 셸은 라우트 스코프의 CurrentUser 를 읽습니다. 여기서는 사본이 아직 없는 상태로 둡니다. */
 const currentUserStub = {
   me: signal(undefined),
   status: signal('idle' as const),
   reload: () => {},
 } as unknown as CurrentUser;
 
-/*
- * 셸이 aside 슬롯을 어떻게 다루는지 고정합니다. 슬롯이 비면 그리지 않고, 차면 헤더와
- * 본문을 담은 열 옆에 나란히 둡니다. 06-layout.md 3.3절.
- *
- * 등장·퇴장 효과 자체는 여기서 검증하지 않습니다. jsdom 에는 CSS 애니메이션이 없어
- * 시간에 따른 값 변화를 재현할 수 없으며, 그 확인은 실제 브라우저의 몫입니다.
- * 17-testing.md 2.2절이 정한 "우리가 만들지 않은 것"의 경계와 같은 이유입니다.
- */
 @Component({
   selector: 'app-host',
   imports: [AppShell],
@@ -76,7 +67,6 @@ describe('AppShell 의 aside 슬롯', () => {
   });
 
   it('헤더는 aside 밖이 아니라 본문과 같은 열에 있다', () => {
-    // 헤더가 aside 의 형제로 남으면 상단 바만 전폭으로 남아 밀리지 않습니다.
     const fixture = TestBed.createComponent(Host);
     fixture.detectChanges();
 
@@ -126,7 +116,6 @@ describe('AppShell 의 사이드바 접기', () => {
 
     expect(toggle(host).getAttribute('aria-expanded')).toBe('false');
     expect(host.querySelector('nav')?.className).toContain('md:w-14');
-    // 이름이 보이지 않는 동안에도 링크는 이름을 가져야 합니다.
     const link = host.querySelector('nav a[aria-label]');
     expect(link?.getAttribute('aria-label')).toBeTruthy();
   });

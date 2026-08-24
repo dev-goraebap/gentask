@@ -77,21 +77,8 @@ export class HlmDateMultiInput<T> extends BrnDateInput<T[]> implements BrnDatePi
   protected readonly _touched = this._fieldControl?.touched;
 
   protected readonly _ariaInvalid = computed(() => (this._invalid?.() ? 'true' : null));
-  /**
-   * Parses input text into dates. Return `null` for invalid input - the
-   * picker's dates are cleared while the text is preserved so the user can
-   * fix it.
-   *
-   * Defaults to `parseDate` from `HlmDatePickerMultiConfig`.
-   */
   public readonly parseDate = input<(value: string) => T[] | null>(this._config.parseDate);
 
-  /**
-   * Formats the current dates into the input/edit format shown while the
-   * input is focused. On blur the picker's display format is restored.
-   *
-   * Defaults to `formatInputDates` from `HlmDatePickerMultiConfig`.
-   */
   public readonly formatInputDates = input<(dates: T[]) => string>(this._config.formatInputDates);
 
   protected override parseValue(value: string): T[] | null {

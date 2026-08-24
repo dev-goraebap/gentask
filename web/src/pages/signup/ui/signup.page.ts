@@ -8,15 +8,18 @@ import { HlmButton } from '@/shared/ui/button';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { HlmInput } from '@/shared/ui/input';
 
-/**
- * 계정 등록 화면 (TK-005 A1 · A3). 등록이 곧 로그인이라 성공하면 바로 작업 목록입니다.
- *
- * 별명은 여기서 받지 않습니다. 이메일 앞부분이 기본이 되고 프로필(TK-006)에서 고칩니다.
- * 시작 문턱에 선택 입력을 쌓지 않기 위해서입니다.
- */
 @Component({
   selector: 'app-signup',
-  imports: [FormRoot, FormField, RouterLink, HlmButton, HlmInput, HlmField, HlmFieldError, HlmFieldLabel],
+  imports: [
+    FormRoot,
+    FormField,
+    RouterLink,
+    HlmButton,
+    HlmInput,
+    HlmField,
+    HlmFieldError,
+    HlmFieldLabel,
+  ],
   host: { class: 'flex min-h-dvh items-center justify-center p-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -71,13 +74,14 @@ import { HlmInput } from '@/shared/ui/input';
 
       <p class="text-foreground-secondary mt-4 text-sm">
         이미 계정이 있나요?
-        <a class="text-primary underline-offset-4 hover:underline" [routerLink]="routes.login()">로그인</a>
+        <a class="text-primary underline-offset-4 hover:underline" [routerLink]="routes.login()"
+          >로그인</a
+        >
       </p>
     </section>
   `,
 })
 export class SignupPage {
-  /** 하한은 서버(bcrypt 상한 72와 함께)와 같은 값이다. 여기서는 일찍 알릴 뿐 강제는 서버가 한다. */
   private static readonly PASSWORD_MIN = 8;
 
   private readonly auth = inject(AuthCommands);
@@ -119,7 +123,6 @@ export class SignupPage {
       this.busy.set(false);
     }
 
-    // 사용자 사본은 셸 라우트가 들고 있어 셸로 들어가며 새로 받는다.
     await this.router.navigateByUrl(ROUTES.taskList());
   }
 }

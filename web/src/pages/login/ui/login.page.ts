@@ -8,15 +8,18 @@ import { HlmButton } from '@/shared/ui/button';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { HlmInput } from '@/shared/ui/input';
 
-/**
- * 로그인 화면 (TK-005 기본 흐름 · A2). 셸 밖의 화면이라 네비게이션이 없습니다.
- *
- * 실패 문구는 서버의 detail 을 그대로 씁니다. 어느 쪽이 틀렸는지 구분하지 않는 것이
- * 서버의 결정이고, 화면이 다시 쪼개면 그 결정이 무너집니다.
- */
 @Component({
   selector: 'app-login',
-  imports: [FormRoot, FormField, RouterLink, HlmButton, HlmInput, HlmField, HlmFieldError, HlmFieldLabel],
+  imports: [
+    FormRoot,
+    FormField,
+    RouterLink,
+    HlmButton,
+    HlmInput,
+    HlmField,
+    HlmFieldError,
+    HlmFieldLabel,
+  ],
   host: { class: 'flex min-h-dvh items-center justify-center p-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -71,7 +74,9 @@ import { HlmInput } from '@/shared/ui/input';
 
       <p class="text-foreground-secondary mt-4 text-sm">
         계정이 없나요?
-        <a class="text-primary underline-offset-4 hover:underline" [routerLink]="routes.signup()">등록</a>
+        <a class="text-primary underline-offset-4 hover:underline" [routerLink]="routes.signup()"
+          >등록</a
+        >
       </p>
     </section>
   `,
@@ -112,7 +117,6 @@ export class LoginPage {
       this.busy.set(false);
     }
 
-    // 사용자 사본은 셸 라우트가 들고 있어 셸로 들어가며 새로 받는다.
     await this.router.navigateByUrl(ROUTES.taskList());
   }
 }

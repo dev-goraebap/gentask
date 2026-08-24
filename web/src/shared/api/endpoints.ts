@@ -1,4 +1,3 @@
-/** 경로가 바뀌어도 컴파일이 잡지 못합니다. 14-api-contract.md 3절. */
 const TASKS = '/api/v1/tasks';
 const AUTH = '/api/v1/auth';
 const ME = '/api/v1/me';

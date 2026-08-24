@@ -32,7 +32,6 @@ import { classes, hlm } from '@/shared/ui/utils';
   host: { 'data-slot': 'calendar' },
   template: `
     <div class="inline-flex flex-col gap-4">
-      <!-- Header -->
       <div class="flex w-full items-center justify-between gap-1.5">
         <ng-template #month>
           <hlm-select brnCalendarMonthSelect class="order-1">
@@ -134,21 +133,16 @@ import { classes, hlm } from '@/shared/ui/utils';
   `,
 })
 export class HlmCalendar<T> {
-  /** Access the calendar i18n */
   protected readonly _i18n = injectBrnCalendarI18n();
 
-  /** Access the date time adapter */
   protected readonly _dateAdapter = injectDateAdapter<T>();
 
-  /** Show dropdowns to navigate between months or years. */
   public readonly captionLayout = input<
     'dropdown' | 'label' | 'dropdown-months' | 'dropdown-years'
   >('label');
 
-  /** Access the calendar directive */
   private readonly _calendar = inject(BrnCalendar);
 
-  /** Get the heading for the current month and year */
   protected readonly _heading = computed(() => {
     const config = this._i18n.config();
     const date = this._calendar.focusedDate();
@@ -181,14 +175,6 @@ export class HlmCalendar<T> {
   protected readonly _selectClass = 'gap-0 px-1.5 py-2 [&>ng-icon]:ms-1';
 
   constructor() {
-    /*
-     * 셀 크기를 터치 환경에서 44px 로 올립니다. helm 기본값 32px 은 마우스를 전제한
-     * 값이라 최소 터치 타겟에 미달합니다. 04-design-system.md 3.5절.
-     *
-     * 셀 하나만 바꾸면 헤더 · 요일 · 이동 버튼이 모두 같은 변수를 보고 따라오므로
-     * 자리마다 값을 흩지 않습니다. 7열 기준 폭은 여백을 더해 332px 이고 360px 화면에
-     * 들어갑니다. 크기 변경은 미디어 쿼리로 컴파일되어 런타임 분기가 아닙니다.
-     */
     classes(
       () =>
         'p-3 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(8)] max-md:[--cell-size:--spacing(11)] group/calendar bg-background block in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent',

@@ -3,7 +3,6 @@ import type { components } from './generated/schema';
 export { ENDPOINTS } from './endpoints';
 export { problemDetail } from './problem';
 
-/** 필드 대응만 하는 변환 계층을 두지 않습니다. 14-api-contract.md 2절. */
 export type TaskView = components['schemas']['TaskView'];
 export type CreateTask = components['schemas']['CreateTask'];
 export type EditTask = components['schemas']['EditTask'];

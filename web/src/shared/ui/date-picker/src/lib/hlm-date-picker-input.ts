@@ -78,21 +78,8 @@ export class HlmDatePickerInput<T> extends BrnDateInput<T> implements BrnDatePic
 
   protected readonly _ariaInvalid = computed(() => (this._invalid?.() ? 'true' : null));
 
-  /**
-   * Parses input text into a date value. Return `null` for invalid
-   * input - the picker's date is cleared while the text is preserved so
-   * the user can fix it.
-   *
-   * Defaults to `parseDate` from `HlmDatePickerConfig`.
-   */
   public readonly parseDate = input<(value: string) => T | null>(this._config.parseDate);
 
-  /**
-   * Formats the current date into the input/edit format shown while the
-   * input is focused. On blur the picker's display format is restored.
-   *
-   * Defaults to `formatInputDate` from `HlmDatePickerConfig`.
-   */
   public readonly formatInputDate = input<(date: T) => string>(this._config.formatInputDate);
 
   protected parseValue(value: string): T | null {

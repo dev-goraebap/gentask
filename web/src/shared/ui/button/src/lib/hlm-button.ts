@@ -5,15 +5,6 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { ClassValue } from 'clsx';
 import { injectBrnButtonConfig } from './hlm-button.token';
 
-/*
- * 터치 환경의 최소 크기입니다. 크기 변형마다 값을 흩지 않고 기본 클래스에 바닥을 깝니다.
- * sm 과 icon-sm 에만 붙이면 나중에 추가되는 변형이 조용히 기준을 벗어납니다.
- *
- * 판정 축은 폭입니다. 포인터 쿼리를 쓰지 않는 이유는 07-adaptive-ui.md 2절에 있으며,
- * 이 기기는 마우스가 있어도 coarse 로 보고해 데스크탑에서 바닥이 걸렸습니다.
- * max-md 변형은 미디어 쿼리로 컴파일되므로 런타임 분기가 아닙니다.
- * 값의 근거는 04-design-system.md 3.5절입니다.
- */
 const TOUCH_TARGET = 'max-md:min-h-11 max-md:min-w-11';
 
 export const buttonVariants = cva(

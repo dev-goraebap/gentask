@@ -25,7 +25,6 @@ import { classes, hlm } from '@/shared/ui/utils';
   host: { 'data-slot': 'month-year-calendar' },
   template: `
     <div class="flex flex-col gap-4">
-      <!-- Header -->
       <div class="flex w-full items-center justify-between gap-1.5">
         <button
           brnMonthYearCalendarPreviousButton
@@ -55,7 +54,6 @@ import { classes, hlm } from '@/shared/ui/utils';
         </button>
       </div>
 
-      <!-- Grid -->
       @switch (_picker.view()) {
         @case ('year') {
           <div brnMonthYearCalendarGrid class="grid grid-cols-4 gap-2">
@@ -80,16 +78,12 @@ import { classes, hlm } from '@/shared/ui/utils';
   `,
 })
 export class HlmMonthYearCalendar<T> {
-  /** Access the calendar i18n */
   protected readonly _i18n = injectBrnCalendarI18n();
 
-  /** Access the date adapter */
   protected readonly _dateAdapter = injectDateAdapter<T>();
 
-  /** Access the picker directive */
   protected readonly _picker = inject(BrnMonthYearCalendar<T>);
 
-  /** The heading for the current view. */
   protected readonly _heading = computed(() => {
     const config = this._i18n.config();
 

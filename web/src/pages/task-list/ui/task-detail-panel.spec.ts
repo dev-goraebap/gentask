@@ -6,16 +6,6 @@ import { provideTaskListDatePicker } from '../providers';
 import { TaskDetailPanel } from './task-detail-panel';
 import { toast } from '@/shared/ui/sonner';
 
-/*
- * 조건부 표시와 즉시 반영, 그리고 지우기의 확인 단계를 검증합니다. 대상이 없을 때의 분기,
- * 반영 시점, 확인 없이는 지우지 않는다는 것이 이 화면의 계약입니다. 17-testing.md 3.1절.
- *
- * 저장 버튼이 없으므로 반영은 입력란을 벗어나는 조작으로 확인합니다. 컴포넌트의 메서드를
- * 직접 부르면 템플릿의 배선이 빠져도 통과합니다. 17-testing.md 3.3절.
- *
- * 대상은 입력으로 받고 성공은 (changed) 로만 알립니다. 목록의 조회를 다시 부르는 것은
- * 부모의 몫이므로 여기서는 신호가 나갔는지만 봅니다.
- */
 describe('TaskDetailPanel', () => {
   let update: ReturnType<typeof vi.fn>;
   let toastError: ReturnType<typeof vi.spyOn>;
@@ -61,7 +51,6 @@ describe('TaskDetailPanel', () => {
     });
   });
 
-  // 대화는 오버레이 컨테이너에 그려지므로 컴포넌트 밖에 남습니다. 다음 검사에 섞이지 않게 거둡니다.
   afterEach(() => {
     document.querySelectorAll('.cdk-overlay-container').forEach((node) => node.remove());
   });
@@ -85,10 +74,6 @@ describe('TaskDetailPanel', () => {
     field.dispatchEvent(new Event('input'));
   }
 
-  /**
-   * 미리 알림 팝오버의 시각 열에서 한 칸을 고릅니다. 열은 오전 오후 · 시 · 분 셋이며
-   * 팝오버는 오버레이에 그려집니다.
-   */
   function timeOption(group: string, label: string): HTMLButtonElement {
     const container = [...document.querySelectorAll('.cdk-overlay-container')].at(-1);
     const column = [...(container?.querySelectorAll('[role="group"]') ?? [])].find(
@@ -101,7 +86,6 @@ describe('TaskDetailPanel', () => {
     return button as HTMLButtonElement;
   }
 
-  /** 대화 안의 버튼입니다. 오버레이는 컴포넌트의 DOM 밖에 붙습니다. */
   function dialogButton(label: string): HTMLButtonElement {
     const container = [...document.querySelectorAll('.cdk-overlay-container')].at(-1);
     const button = [...(container?.querySelectorAll('button') ?? [])].find(
@@ -119,7 +103,6 @@ describe('TaskDetailPanel', () => {
     return found;
   }
 
-  /** 화면이 오늘로 판정하는 값입니다. 저장 형식과 같은 규칙으로 만듭니다. */
   function today(): string {
     const now = new Date();
     const month = `${now.getMonth() + 1}`.padStart(2, '0');
@@ -150,7 +133,6 @@ describe('TaskDetailPanel', () => {
   it('저장 버튼을 두지 않는다', () => {
     const fixture = render(seed);
 
-    // 저장 시점이 있으면 저장하지 않은 변경이 생기고 이탈 확인이 따라옵니다. TK-003 의 각 속성은 고친 즉시 갱신됩니다.
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]'),
     ).toBeNull();
@@ -171,7 +153,6 @@ describe('TaskDetailPanel', () => {
       dueDate: null,
       remindAt: null,
     });
-    // 사본을 다시 받는 것은 부모의 몫입니다. 신호가 나갔는지만 봅니다.
     expect(changed).toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
   });
@@ -195,7 +176,6 @@ describe('TaskDetailPanel', () => {
   it('값이 그대로면 반영하지 않는다', async () => {
     const fixture = render(seed);
 
-    // 벗어나기만 해도 반영되면 고치지 않은 항목의 갱신 시각이 바뀝니다.
     query<HTMLTextAreaElement>(fixture, '#task-note').dispatchEvent(new Event('blur'));
     await fixture.whenStable();
 
@@ -207,7 +187,6 @@ describe('TaskDetailPanel', () => {
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
     type(title, '장 보기와 은행');
-    // 저장 버튼이 없으므로 Escape 가 그만두기입니다. 벗어나기 전에 값을 되돌립니다.
     title.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     title.dispatchEvent(new Event('blur'));
     await fixture.whenStable();
@@ -253,7 +232,6 @@ describe('TaskDetailPanel', () => {
       openConfirm(fixture);
 
       expect(remove).not.toHaveBeenCalled();
-      // 무엇을 지우는지와 되돌릴 수 없다는 사실을 함께 보여 줍니다.
       const container = [...document.querySelectorAll('.cdk-overlay-container')].at(-1);
       expect(container?.textContent).toContain('장 보기');
       expect(container?.textContent).toContain('되돌릴 수 없습니다');
@@ -279,7 +257,6 @@ describe('TaskDetailPanel', () => {
 
       expect(remove).toHaveBeenCalledWith('seed-1');
       expect(changed).toHaveBeenCalled();
-      // 지운 항목의 상세는 남을 이유가 없습니다. 경로는 그대로 두고 쿼리 파라미터만 지웁니다.
       expect(navigate).toHaveBeenCalledWith([], {
         queryParams: { task: null },
         queryParamsHandling: 'merge',
@@ -310,7 +287,6 @@ describe('TaskDetailPanel', () => {
     });
 
     it('어제 담긴 것은 오늘의 나의 하루가 아니다', () => {
-      // 담긴 것은 매일 비워집니다. 날짜를 들고 있으면 비우러 다니는 장치가 필요 없습니다.
       const fixture = render({ ...seed, myDayOn: '2020-01-01' });
 
       expect(myDayButton(fixture).getAttribute('aria-pressed')).toBe('false');
@@ -321,8 +297,6 @@ describe('TaskDetailPanel', () => {
     it('기한이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
       const fixture = render({ ...seed, dueDate: '2026-12-25' });
 
-      // 트리거 버튼이 고른 날짜를 표기합니다. 정하지 않았을 때의 문구와 갈립니다.
-      // 일정 카드에 트리거가 둘(미리 알림 · 기한)이라 id 로 특정합니다.
       const trigger = query<HTMLButtonElement>(fixture, '#task-due');
       expect(trigger.textContent?.trim()).toBe('12월 25일까지');
     });
@@ -330,7 +304,6 @@ describe('TaskDetailPanel', () => {
     it('기한을 정하지 않았으면 지우기를 내보내지 않는다', () => {
       const fixture = render(seed);
 
-      // 지울 것이 없는 상태에서 지우기 버튼이 보이면 누를 수 있는 것이 무엇인지 모호해집니다.
       const buttons = Array.from(fixture.nativeElement.querySelectorAll('button'));
       expect(buttons.some((b) => (b as HTMLElement).textContent?.includes('지우기'))).toBe(false);
     });
@@ -344,7 +317,6 @@ describe('TaskDetailPanel', () => {
       clear.click();
       await fixture.whenStable();
 
-      // 날짜는 고르는 즉시 반영합니다. 텍스트와 달리 벗어나는 조작이 따로 없습니다.
       expect(update).toHaveBeenCalledWith('seed-1', {
         title: '장 보기',
         note: '우유와 빵',
@@ -354,10 +326,6 @@ describe('TaskDetailPanel', () => {
     });
   });
 
-  /*
-   * 미리 알림입니다. TK-003 A10. 기한과 갈리는 지점만 봅니다. 값이 시각까지 갖는 것,
-   * 날짜를 고쳐도 정한 시각이 남는 것, 기한과 서로를 정하지 않는 것 셋입니다.
-   */
   describe('TK-003 S8: 미리 알림이 정한 대로 그 작업에 남는다', () => {
     it('미리 알림이 있으면 날짜와 시각을 트리거에 적는다', () => {
       const fixture = render({ ...seed, remindAt: '2026-12-25T15:30' });
@@ -377,14 +345,12 @@ describe('TaskDetailPanel', () => {
     it('시를 고르면 나머지 축과 날짜를 지킨 채 반영한다', async () => {
       const fixture = render({ ...seed, remindAt: '2026-12-25T15:30' });
 
-      // 팝오버 안의 시각 열입니다. 트리거를 눌러야 그려집니다.
       query<HTMLButtonElement>(fixture, '#task-remind').click();
       await fixture.whenStable();
 
       timeOption('시', '7').click();
       await fixture.whenStable();
 
-      // 오후와 30분과 날짜가 그대로입니다. 한 축만 바뀝니다.
       expect(update).toHaveBeenCalledWith('seed-1', {
         title: '장 보기',
         note: '우유와 빵',
@@ -416,7 +382,6 @@ describe('TaskDetailPanel', () => {
       query<HTMLButtonElement>(fixture, '#task-remind').click();
       await fixture.whenStable();
 
-      // 한 목록으로 늘어놓았다면 간격에 걸리지 않아 고를 수 없던 값입니다.
       timeOption('분', '07').click();
       await fixture.whenStable();
 

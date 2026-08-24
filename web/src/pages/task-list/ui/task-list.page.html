@@ -1,24 +1,10 @@
-<!--
-  최초 조회의 베일입니다. 기준 상자는 셸의 스크롤 컨테이너이며, 최초 조회 동안은 내용이
-  없어 스크롤이 생기지 않으므로 그 상자가 곧 보이는 영역입니다. 10-loading.md 7.1절.
--->
 <app-veil [loading]="listLoading()" [failed]="listFailed()" />
 
-<!--
-  읽기 폭을 좁게 잡습니다. 한 줄이 길면 체크박스와 제목 사이 시선 이동이 커집니다.
-  색·간격·곡률은 전부 토큰을 경유합니다. 임의값 기재는 04-design-system.md 3.3절이 금지합니다.
--->
 <section class="mx-auto flex w-full max-w-[40rem] flex-1 flex-col px-4 pt-8 md:pt-12">
   <h1 class="text-2xl font-semibold tracking-tight">{{ title() }}</h1>
 
-  <!-- 목록 갱신을 시각 외의 방법으로도 알립니다. 13-accessibility.md 7절. -->
   <p class="sr-only" aria-live="polite">남은 작업 {{ groups().active.length }}개</p>
 
-  <!--
-    정렬은 메뉴에서 고르고, 고른 뒤에는 칩 하나가 그것을 보여 줍니다. MS To Do 의 구성입니다.
-    칩의 화살표는 방향을 뒤집고 × 는 기본으로 되돌립니다. 고른 값은 메뉴의 aria-pressed 가,
-    방향은 화살표와 이름이 전달하며 색만으로 알리지 않습니다. 13-accessibility.md 4절.
-  -->
   <div class="mt-4 flex flex-wrap items-center gap-2">
     <hlm-popover align="start" sideOffset="4">
       <button hlmPopoverTrigger hlmBtn type="button" variant="ghost" size="sm" class="gap-2">
@@ -79,10 +65,6 @@
 
   <ul class="divide-border border-border mt-3 divide-y border-y">
     @for (task of groups().active; track task.id) {
-      <!--
-        완료하면 체크된 모습이 보인 뒤 사라집니다. 곧바로 빼면 누른 결과를 볼 새가 없습니다.
-        퇴장하는 동안 체크박스는 누른 상태를 그대로 갖습니다.
-      -->
       <li class="flex items-center gap-3 py-3" animate.leave="row-leave">
         <hlm-checkbox
           #box
@@ -92,10 +74,6 @@
           (checkedChange)="setCompleted(task, $event, box)"
         />
         <div class="min-w-0 flex-1">
-          <!--
-            제목은 상세로 가는 이동이므로 링크입니다. 동작이 아니라 이동이라 사용자가
-            새 탭으로 열거나 주소를 복사할 수 있어야 합니다. 13-accessibility.md 2절.
-          -->
           <a
             [id]="'task-' + task.id"
             [routerLink]="routes.taskList(view())"
@@ -105,11 +83,6 @@
           >
             {{ task.title }}
           </a>
-          <!--
-            두 번째 줄입니다. 나의 하루에 담겼는지와 기한을 MS To Do 의 목록처럼 적습니다.
-            지난 기한을 색으로만 알리지 않고 문구를 함께 둡니다. 색각 이상과 흑백
-            출력에서 색은 전달되지 않습니다. 13-accessibility.md 4절.
-          -->
           @if (inMyDay(task) || task.dueDate || task.remindAt) {
             <p
               class="text-foreground-secondary mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs"
@@ -139,10 +112,6 @@
               @if ((inMyDay(task) || task.dueDate) && task.remindAt) {
                 <span aria-hidden="true">·</span>
               }
-              <!--
-                붙인 미리 알림이 목록에 보이지 않으면 붙었는지 확인할 길이 상세뿐입니다.
-                지난 알림은 지난 기한과 같이 색과 문구를 함께 씁니다. 13-accessibility.md 4절.
-              -->
               @if (task.remindAt; as at) {
                 <span
                   class="inline-flex items-center gap-1"
@@ -158,11 +127,6 @@
             </p>
           }
         </div>
-        <!--
-          중요 표시입니다. 켜짐을 aria-pressed 가 전달하며 색과 채움만으로 알리지 않습니다.
-          13-accessibility.md 4절. 이름에 항목 제목을 넣는 이유는 같은 모양의 버튼이 줄마다
-          있어 이름이 같으면 어느 줄의 것인지 구별되지 않기 때문입니다.
-        -->
         <button
           hlmBtn
           type="button"
@@ -175,20 +139,21 @@
           [attr.aria-label]="task.title + ' 중요 표시'"
           (click)="setImportant(task, !task.important)"
         >
-          <!-- 중요한 것은 채운 별입니다. 윤곽만으로는 켜짐과 꺼짐이 멀리서 구분되지 않습니다. -->
           <app-icon name="lucideStar" [class]="task.important ? '[&_svg]:fill-current' : ''" />
         </button>
       </li>
     } @empty {
-      <!--
-        빈 것은 조회가 끝난 뒤에야 사실입니다. 기다리는 동안 안내를 내면 잠깐 "없다"가
-        떴다가 목록으로 바뀝니다. 실패는 빈 상태로 보이지 않게 그 자리에서 알리고 재시도
-        수단을 둡니다. 15-error-handling.md 3.2절 · 3.3절.
-      -->
       @if (listFailed()) {
         <li class="py-8 text-center text-sm">
           <p class="text-foreground-secondary">목록을 불러오지 못했습니다.</p>
-          <button hlmBtn type="button" variant="outline" size="sm" class="mt-3" (click)="taskList.reload()">
+          <button
+            hlmBtn
+            type="button"
+            variant="outline"
+            size="sm"
+            class="mt-3"
+            (click)="taskList.reload()"
+          >
             다시 시도
           </button>
         </li>
@@ -212,7 +177,6 @@
         aria-controls="completed-tasks"
         (click)="toggleCompleted()"
       >
-        <!-- 화살표는 장식이며 상태는 aria-expanded 가 전달합니다. -->
         <app-icon
           name="lucideChevronRight"
           class="transition-transform"
@@ -247,51 +211,14 @@
       }
     </div>
   }
-  <!--
-    적는 자리를 목록 아래에 두고 화면 바닥에 붙입니다. 목록이 길어져도 적는 자리를
-    찾아 올라가지 않아도 되며, 방금 적은 것이 손 가까이에서 목록에 붙습니다.
-
-    겹치지 않고 흐름 안에서 붙습니다. `sticky` 는 자기 자리를 그대로 차지하므로 목록의
-    마지막 줄이 막대 밑으로 들어가지 않습니다. 본문에 아래 여백을 따로 두거나 막대 높이를
-    토큰으로 노출할 일도 없습니다. 06-layout.md 3.2절.
-
-    등록 버튼을 두지 않고 엔터로 추가합니다. 연달아 적는 동안 손이 입력란과 버튼을
-    왕복하게 되기 때문입니다.
-
-    제출은 쓰지 않습니다. 입력란이 하나뿐인 폼은 엔터로 암묵 제출되는데, 그 경로에
-    기대면 나중에 입력란이 하나 더 붙는 순간 조용히 동작이 바뀝니다. 엔터를 직접 받고
-    기본 동작을 막아 경로를 하나로 둡니다.
-
-    검증 표시를 두지 않습니다. 비어 있는 것은 사용자가 잘못한 상태가 아니라 아직 적지
-    않은 상태입니다. 이 자리는 화면이 서 있는 동안 대부분 비어 있으므로, 비었다고 붉은
-    테두리와 사유를 내면 평상시의 모습이 오류가 됩니다. 빈 채로 엔터를 누르면 아무 일도
-    일어나지 않는 것으로 충분합니다.
-
-    novalidate 가 없으면 브라우저 기본 검증이 제출을 가로챕니다. 12-forms.md 1절.
-  -->
   <form
     novalidate
     [formRoot]="addForm"
     (submit)="$event.preventDefault()"
     class="bg-background sticky bottom-0 mt-auto pt-4 pb-[calc(--spacing(6)+env(safe-area-inset-bottom))]"
   >
-    <!--
-      입력란과 아이콘 줄을 한 상자에 담습니다. 붙일 수 있는 것이 무엇인지가 적기 전에
-      보이며, 적고 나서 상세를 열지 않아도 그 자리에서 붙습니다. ST-002 · ST-013.
-
-      펼침으로 두지 않습니다. 접혀 있으면 기한과 미리 알림을 붙일 수 있다는 사실 자체가
-      보이지 않아, 그것을 아는 사람만 쓰는 기능이 됩니다.
-
-      테두리는 상자가 갖고 입력란은 자기 테두리를 벗습니다. 둘 다 두면 상자 안에 상자가
-      그려집니다.
-    -->
     <div class="border-border bg-card border">
-      <!--
-        필드 래퍼가 레이블 연결과 오류 표시 자리를 제공합니다. 날것의 div 로 조립하면
-        그 배선을 매번 직접 해야 합니다. 12-forms.md 7.1절.
-      -->
       <div hlmField>
-        <!-- placeholder 는 이름이 아닙니다. 레이블을 두고 화면에서만 감춥니다. 13-accessibility.md 3절. -->
         <label hlmFieldLabel for="new-task-title" class="sr-only">작업</label>
         <input
           hlmInput
@@ -305,17 +232,9 @@
         />
       </div>
 
-      <!--
-        붙일 것들의 줄입니다. 값이 정해지면 트리거가 아이콘 대신 그 값을 보이므로 붙은
-        것과 붙지 않은 것이 한눈에 갈립니다. 켜짐을 색만으로 알리지 않습니다.
-      -->
       <div class="border-border flex flex-wrap items-center gap-1 border-t px-2 py-1.5">
         <div class="flex items-center">
-          <hlm-date-picker
-            #duePicker
-            [date]="draftDueDate()"
-            (dateChange)="setDraftDue($event)"
-          >
+          <hlm-date-picker #duePicker [date]="draftDueDate()" (dateChange)="setDraftDue($event)">
             <div
               hlmDatePickerHeader
               class="border-border divide-border flex flex-col divide-y border-b"
@@ -348,24 +267,13 @@
           </hlm-date-picker>
 
           @if (draftDueKey()) {
-            <button
-              hlmBtn
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              (click)="setDraftDue(null)"
-            >
+            <button hlmBtn type="button" variant="ghost" size="icon-sm" (click)="setDraftDue(null)">
               <app-icon name="lucideX" />
               <span class="sr-only">기한 지우기</span>
             </button>
           }
         </div>
 
-        <!--
-          미리 알림입니다. 시각 목록은 여기 두지 않습니다. 적는 자리에서 고르는 것은 언제쯤
-          알릴지이고, 분 단위로 맞추는 일은 상세가 갖습니다. 빠른 선택이 준 시각과 달력으로
-          고른 날의 기본 시각(아침 아홉 시)이 그 자리를 채웁니다.
-        -->
         <div class="flex items-center">
           <hlm-date-picker
             #remindPicker
@@ -422,16 +330,8 @@
   </form>
 </section>
 
-<!--
-  상세는 셸의 aside 슬롯에 냅니다. 화면이 자기 레이아웃을 정하지 않으며, 슬롯이 차면
-  본문 영역 전체가 왼쪽으로 밀립니다. 06-layout.md 3.1절과 9절.
--->
 @if (task() && !listLoading()) {
   <ng-template appAside>
-    <!--
-      항목을 찾는 것은 이 화면의 몫입니다. 패널은 목록의 조회를 모른 채 값 하나를 받고,
-      바꾼 뒤에는 (changed) 로만 알립니다. 사본을 다시 받는 것은 조회를 든 쪽의 일입니다.
-    -->
     <app-task-detail-panel [task]="openTask()" (changed)="taskList.reload()" />
   </ng-template>
 }

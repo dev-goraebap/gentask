@@ -33,10 +33,6 @@ import {
   type Task,
 } from './task';
 
-/*
- * 분류와 정렬 규칙을 검증합니다. 화면이 무엇을 위에 보여 줄지가 여기서 정해집니다.
- * 분기가 있는 코드는 단위 테스트 대상입니다. 17-testing.md 2.1절.
- */
 function task(partial: Partial<Task> & Pick<Task, 'id'>): Task {
   return {
     title: partial.id,
@@ -74,12 +70,10 @@ describe('filterByView', () => {
   });
 
   it('나의 하루는 나의 하루에 추가된 것만 고른다', () => {
-    // 어제 담은 것은 오늘의 나의 하루가 아닙니다. 담긴 것은 매일 비워집니다.
     expect(ids('my-day')).toEqual(['오늘담김']);
   });
 
   it('계획된 일정은 기한이 있고 완료하지 않은 것만 고른다', () => {
-    // 기한은 아직 해내지 않은 것을 언제까지 해야 하는가의 값입니다.
     expect(ids('planned')).toEqual(['마감있음']);
   });
 });
@@ -128,7 +122,6 @@ describe('sortActive', () => {
   });
 
   it('기한순에서 정하지 않은 항목은 뒤로 간다', () => {
-    // 기한이 없는 것은 늦은 것이 아니라 기한이 없는 것입니다.
     const sorted = sortActive(
       [task({ id: 'none' }), task({ id: 'far', dueDate: '2099-12-31' })],
       'due',
@@ -240,7 +233,6 @@ describe('toTaskSort', () => {
     expect(toTaskSort('due')).toBe('due');
     expect(toTaskSort('created')).toBe('created');
     expect(toTaskSort(undefined)).toBe('created');
-    // 사용자가 주소를 직접 고친 경우입니다. 화면이 비는 대신 기본 정렬로 뜹니다.
     expect(toTaskSort('없는값')).toBe('created');
   });
 });
@@ -288,12 +280,10 @@ describe('3: 기한', () => {
     expect(isOverdue(task('2026-08-18'), '2026-08-18')).toBe(false);
     expect(isOverdue(task(null), '2026-08-18')).toBe(false);
 
-    // 해낸 것은 늦었더라도 판단 대상이 아닙니다.
     expect(isOverdue(task('2026-08-14', '2026-08-20T00:00:00.000Z'), '2026-08-18')).toBe(false);
   });
 
   it('저장 형식과 달력 값을 오가도 같은 날이 나온다', () => {
-    // new Date('2026-08-25') 로 파싱하면 UTC 자정이 되어 한국 시간대에서 하루 앞당겨집니다.
     const date = fromDateKey('2026-08-25');
     expect(date).not.toBeNull();
     expect(toDateKey(date as Date)).toBe('2026-08-25');
@@ -301,10 +291,6 @@ describe('3: 기한', () => {
   });
 });
 
-/*
- * 미리 알림입니다. TK-001 A3 · TK-003 A10. 기한과 갈리는 것은 값이 시각을 갖는다는
- * 하나이고, 그 하나에서 표기 · 합성 · 지남 판정이 모두 나옵니다.
- */
 describe('미리 알림', () => {
   const remindTask = (remindAt: string | null, completedAt: string | null = null): Task => ({
     id: 'a',
@@ -324,13 +310,11 @@ describe('미리 알림', () => {
   });
 
   it('자정과 정오를 12 로 적는다', () => {
-    // 0 시를 그대로 쓰면 "오전 0:00" 이 됩니다. 12 시간제에 0 시는 없습니다.
     expect(formatTimeOfDay('00:00')).toBe('오전 12:00');
     expect(formatTimeOfDay('12:00')).toBe('오후 12:00');
   });
 
   it('오늘의 알림은 시각만 적는다', () => {
-    // 그 줄에서 가장 잦은 값이 오늘이라 매번 "오늘" 을 붙이면 다른 날이 눈에 띄지 않습니다.
     expect(describeRemind('2026-08-23T15:00', '2026-08-23')).toBe('오후 3:00');
     expect(describeRemind('2026-08-24T09:00', '2026-08-23')).toBe('내일 오전 9:00');
     expect(describeRemind('2026-08-30T09:00', '2026-08-23')).toBe('8월 30일 오전 9:00');
@@ -339,7 +323,6 @@ describe('미리 알림', () => {
   it('날짜와 시각을 저장 형식으로 오간다', () => {
     const at = toDateTimeKey(new Date(2026, 7, 25, 15, 30, 45, 999));
 
-    // 초와 밀리초는 버립니다. 고를 수 있는 단위가 분까지입니다.
     expect(at).toBe('2026-08-25T15:30');
     expect(remindDateKey(at)).toBe('2026-08-25');
     expect(remindTimeKey(at)).toBe('15:30');
@@ -353,7 +336,6 @@ describe('미리 알림', () => {
     const changed = withRemindDate('2026-08-25T15:30', new Date(2026, 8, 1), DEFAULT_REMIND_TIME);
     expect(changed).toBe('2026-09-01T15:30');
 
-    // 아직 정한 것이 없으면 기본 시각이 들어갑니다.
     expect(withRemindDate(null, new Date(2026, 8, 1), DEFAULT_REMIND_TIME)).toBe(
       '2026-09-01T09:00',
     );
@@ -362,7 +344,6 @@ describe('미리 알림', () => {
   it('시각만 바꿀 때 정한 날짜를 지킨다', () => {
     expect(withRemindTime('2026-08-25T15:30', '07:00', '2026-08-23')).toBe('2026-08-25T07:00');
 
-    // 날짜를 아직 정하지 않았으면 넘겨받은 날로 둡니다.
     expect(withRemindTime(null, '07:00', '2026-08-23')).toBe('2026-08-23T07:00');
   });
 
@@ -380,7 +361,6 @@ describe('미리 알림', () => {
   });
 
   it('사전순 비교가 곧 시간순 비교다', () => {
-    // 이 성질이 정렬과 지남 판정에서 별도 변환을 없앱니다. dueDate 와 같은 규칙입니다.
     expect('2026-08-23T09:00' < '2026-08-23T15:00').toBe(true);
     expect('2026-08-23T23:00' < '2026-08-24T01:00').toBe(true);
   });
@@ -392,7 +372,6 @@ describe('미리 알림', () => {
     expect(isRemindPast(remindTask('2026-08-23T15:00'), now)).toBe(false);
     expect(isRemindPast(remindTask(null), now)).toBe(false);
 
-    // 해낸 뒤에는 알릴 이유가 없습니다.
     expect(isRemindPast(remindTask('2026-08-23T09:00', '2026-08-23T10:00:00.000Z'), now)).toBe(
       false,
     );
@@ -407,7 +386,6 @@ describe('미리 알림', () => {
   });
 
   it('자정과 정오가 12시간제에서 모두 12다', () => {
-    // 24시간제의 0시와 12시입니다. 둘을 예외로 두면 합치는 쪽의 분기가 넷으로 늘어납니다.
     expect(splitTime('00:00')).toEqual({ meridiem: '오전', hour12: 12, minute: '00' });
     expect(splitTime('12:00')).toEqual({ meridiem: '오후', hour12: 12, minute: '00' });
 

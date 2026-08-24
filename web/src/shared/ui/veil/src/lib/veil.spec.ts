@@ -2,14 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Veil } from './veil';
 
-/*
- * 베일의 시간 정책을 검증합니다. 지연과 최소 유지, 그리고 실패의 즉시 걷힘이
- * 이 컴포넌트의 계약입니다. 규칙은 docs/architecture/references/10-loading.md 4절입니다.
- *
- * 표시 여부를 클래스 선택자가 아니라 공개 신호로 확인합니다. 가림막은 의도적으로
- * 접근성 트리에서 숨겨져 역할도 이름도 갖지 않으므로 역할로 찾을 대상이 아니며,
- * 놓는 쪽이 aria-busy 를 붙일 때 읽는 것도 이 신호입니다.
- */
 describe('Veil', () => {
   beforeEach(() => {
     vi.useFakeTimers();

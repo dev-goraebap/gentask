@@ -8,13 +8,6 @@ import { provideTaskListDatePicker } from '../providers';
 import { TaskListPage } from './task-list.page';
 import { toast } from '@/shared/ui/sonner';
 
-/*
- * 목록의 계약을 고정합니다. 정렬 순서와 aside 슬롯의 채움·거둠이 이 화면의 몫입니다.
- * 17-testing.md 3.1절.
- *
- * 지우기는 이 화면의 계약이 아닙니다. 상세 패널이 확인 대화와 함께 소유하므로 여기서는
- * 목록에 그 버튼이 없다는 것만 고정합니다.
- */
 describe('TaskListPage', () => {
   let tasks: ReturnType<typeof signal<readonly Task[]>>;
   let status: ReturnType<typeof signal<'idle' | 'loading' | 'reloading' | 'resolved' | 'error'>>;
@@ -70,7 +63,6 @@ describe('TaskListPage', () => {
     setCompleted = vi.fn(async () => {});
     toastError = vi.spyOn(toast, 'error').mockImplementation(() => '' as never);
 
-    // 조회 상자는 신호 셋만 쓰이므로 그 모양만 세웁니다. 실제 요청은 이 화면의 계약이 아닙니다.
     const taskList = { tasks, status, reload } as unknown as TaskList;
     const commands: Partial<TaskCommands> = {
       add: add as unknown as TaskCommands['add'],
@@ -104,7 +96,6 @@ describe('TaskListPage', () => {
     return fixture;
   }
 
-  /** 정렬 메뉴를 열고 그 안의 기준 버튼을 돌려줍니다. 메뉴는 오버레이에 뜹니다. */
   function sortButton(fixture: ComponentFixture<TaskListPage>, label: string): HTMLButtonElement {
     const host = fixture.nativeElement as HTMLElement;
     const trigger = [...host.querySelectorAll('button')].find(
@@ -133,10 +124,6 @@ describe('TaskListPage', () => {
     field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', isComposing, bubbles: true }));
   }
 
-  /**
-   * 적는 자리의 아이콘을 눌러 팝오버를 열고 그 안의 빠른 선택을 누릅니다.
-   * 팝오버는 오버레이에 그려지므로 컴포넌트의 DOM 밖에서 찾습니다.
-   */
   function pickQuick(fixture: ComponentFixture<TaskListPage>, id: string, label: string): void {
     const trigger = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
       `#${id}`,
@@ -146,8 +133,8 @@ describe('TaskListPage', () => {
     fixture.detectChanges();
 
     const container = [...document.querySelectorAll('.cdk-overlay-container')].at(-1);
-    const button = [...(container?.querySelectorAll('button') ?? [])].find(
-      (candidate) => candidate.textContent?.trim().startsWith(label),
+    const button = [...(container?.querySelectorAll('button') ?? [])].find((candidate) =>
+      candidate.textContent?.trim().startsWith(label),
     );
     if (!button) throw new Error(`${label} 을 찾지 못했습니다`);
     (button as HTMLButtonElement).click();
@@ -164,7 +151,6 @@ describe('TaskListPage', () => {
       const fixture = render();
       const input = newTaskInput(fixture);
 
-      // 연달아 적는 동안 손이 입력란과 버튼을 왕복하지 않게 합니다.
       expect(
         (fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]'),
       ).toBeNull();
@@ -177,11 +163,8 @@ describe('TaskListPage', () => {
       await fixture.whenStable();
       TestBed.tick();
 
-      // 전체 관점에는 부여할 성질이 없으므로 씨앗이 비어 있습니다.
       expect(add).toHaveBeenCalledWith('우산 챙기기', {});
-      // 명령은 결과를 싣지 않으므로 사본을 다시 받아야 목록에 보입니다.
       expect(reload).toHaveBeenCalled();
-      // 추가에 성공하면 입력란을 비워 다음 항목을 이어 적을 수 있게 합니다.
       expect(newTaskInput(fixture).value).toBe('');
     });
 
@@ -193,7 +176,6 @@ describe('TaskListPage', () => {
       input.dispatchEvent(new Event('input'));
       fixture.detectChanges();
 
-      // 한글은 마지막 글자를 조합한 채 엔터로 확정합니다. 그것을 추가로 받으면 안 됩니다.
       pressEnter(input, true);
       await fixture.whenStable();
 
@@ -221,10 +203,6 @@ describe('TaskListPage', () => {
     it('적는 자리에는 검증 표시를 두지 않는다', () => {
       const fixture = render();
 
-      /*
-       * 이 자리는 대부분 비어 있고, 비어 있는 것은 잘못이 아니라 아직 적지 않은 상태입니다.
-       * 붉은 테두리가 상시 걸리면 평상시의 모습이 오류가 됩니다.
-       */
       expect(newTaskInput(fixture).getAttribute('data-matches-spartan-invalid')).not.toBe('true');
       expect((fixture.nativeElement as HTMLElement).querySelector('hlm-field-error')).toBeNull();
     });
@@ -234,7 +212,6 @@ describe('TaskListPage', () => {
     const fixture = render();
     const host = fixture.nativeElement as HTMLElement;
 
-    // 파괴적 조작이 줄마다 상시 노출되면 오조작의 기회가 줄 수만큼 늘어납니다.
     const labels = [...host.querySelectorAll('button')].map((button) =>
       button.getAttribute('aria-label'),
     );
@@ -244,7 +221,6 @@ describe('TaskListPage', () => {
   it('TK-002 S2: 중요하다고 표시한 완료되지 않은 작업만 보인다', () => {
     tasks.set([{ ...장보기, important: true }, 전기요금, 건강검진]);
 
-    // 한 항목이 여러 관점에 동시에 나타납니다. 관점은 고르기만 하고 소유하지 않습니다.
     expect(titles(render(undefined, 'important'))).toEqual(['장 보기']);
   });
 
@@ -255,12 +231,10 @@ describe('TaskListPage', () => {
   });
 
   it('TK-002 S1: 모르는 스마트 목록을 요청하면 완료되지 않은 작업 목록이 보인다', () => {
-    // 주소를 직접 고쳤을 때 화면이 비는 대신 전체 목록이 뜨는 편이 낫습니다.
     expect(titles(render(undefined, '없는-관점')).length).toBe(3);
   });
 
   it('조회가 끝나기 전에는 빈 안내를 내지 않는다', () => {
-    // 빈 것은 조회가 끝난 뒤에야 사실입니다. 기다리는 동안 "없다"가 떴다 사라지면 안 됩니다.
     tasks.set([]);
     status.set('loading');
 
@@ -268,7 +242,6 @@ describe('TaskListPage', () => {
   });
 
   it('조회에 실패하면 빈 목록이 아니라 실패와 재시도 수단이 보인다', () => {
-    // 빈 상태로 보이면 사용자는 데이터가 없는 것으로 오해합니다. 15-error-handling.md 3.2절.
     tasks.set([]);
     status.set('error');
     const host = render().nativeElement as HTMLElement;
@@ -289,10 +262,6 @@ describe('TaskListPage', () => {
     expect(host.querySelector('h1')?.textContent?.trim()).toBe('나의 하루');
   });
 
-  /*
-   * 적는 자리의 아이콘 줄입니다. TK-001 A2 · A3. 붙인 값이 씨앗으로 넘어가는지와, 다음
-   * 항목이 앞의 값을 물려받지 않는지를 봅니다. ST-002 · ST-013.
-   */
   describe('TK-001 S2: 적으면서 기한과 미리 알림을 붙인다', () => {
     it('기한을 고르고 적으면 그 기한이 붙은 채로 넘어간다', async () => {
       const fixture = render();
@@ -342,14 +311,12 @@ describe('TaskListPage', () => {
       pressEnter(input);
       await fixture.whenStable();
 
-      // 남겨 두면 다음 항목이 앞의 것과 같은 날짜를 조용히 물려받습니다.
       expect(add).toHaveBeenLastCalledWith('두 번째', {});
     });
 
     it('관점이 주는 기한보다 고른 기한이 이긴다', async () => {
       const fixture = render(undefined, 'planned');
 
-      // 계획된 일정은 기한을 오늘로 씨앗에 넣습니다. 그 자리에서 내일을 고른 경우입니다.
       pickQuick(fixture, 'new-task-due', '내일');
 
       const input = newTaskInput(fixture);
@@ -375,7 +342,6 @@ describe('TaskListPage', () => {
     pressEnter(input);
     await fixture.whenStable();
 
-    // 적은 항목이 그 관점에 나타나지 않으면 적은 사람은 사라진 것으로 봅니다.
     expect(add).toHaveBeenCalledWith('지금 급한 것', { important: true });
   });
 
@@ -386,7 +352,6 @@ describe('TaskListPage', () => {
       (button) => button.getAttribute('aria-label') === '장 보기 중요 표시',
     );
 
-    // 켜짐을 색만으로 알리지 않습니다.
     expect(star?.getAttribute('aria-pressed')).toBe('false');
 
     star?.click();
@@ -401,7 +366,6 @@ describe('TaskListPage', () => {
     const box = host.querySelector<HTMLElement>('li [role="checkbox"]');
 
     box?.click();
-    // 체크된 모습을 보여 주는 시간이 지난 뒤에 저장소에 닿습니다.
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     expect(setCompleted).toHaveBeenCalledWith('seed-2', true);
@@ -414,7 +378,6 @@ describe('TaskListPage', () => {
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
 
-    // 완료된 작업은 완료되지 않은 작업 목록에 없고, 펼친 완료된 작업 목록의 체크는 완료의 반대입니다.
     const active = [...host.querySelectorAll('ul:not(#completed-tasks) li a')].map((a) =>
       a.textContent?.trim(),
     );
@@ -439,14 +402,12 @@ describe('TaskListPage', () => {
     fixture.detectChanges();
 
     expect(titles(fixture)).toEqual(['전기요금 납부', '장 보기', '건강검진 예약']);
-    // 알리고, 적은 것은 다시 적지 않아도 되게 그대로 둡니다. 실패한 명령 뒤에 재조회할 것도 없습니다.
     expect(toastError).toHaveBeenCalled();
     expect(reload).not.toHaveBeenCalled();
     expect(newTaskInput(fixture).value).toBe('우산 챙기기');
   });
 
   it('TK-004 S2: 실패하면 완료 전과 같다', async () => {
-    // 저장소는 응답까지 한 번은 그려질 시간이 있습니다. 같은 턴의 거부는 현실에 없습니다.
     setCompleted.mockImplementationOnce(
       () => new Promise((_, reject) => setTimeout(() => reject(new Error('저장소 없음')))),
     );
@@ -473,7 +434,6 @@ describe('TaskListPage', () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.textContent).toContain('기한으로 정렬');
 
-    // × 는 정렬을 기본으로 되돌립니다.
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     host.querySelector<HTMLButtonElement>('button[aria-label="정렬 해제"]')?.click();
     expect(navigate).toHaveBeenCalledWith([], {
@@ -486,7 +446,6 @@ describe('TaskListPage', () => {
   it('고른 정렬 기준을 aria-pressed 로 알린다', () => {
     const fixture = render();
 
-    // 색만으로 알리면 색각 이상과 흑백 출력에서 전달되지 않습니다. 13-accessibility.md 4절.
     expect(sortButton(fixture, '만든 날짜').getAttribute('aria-pressed')).toBe('true');
     expect(sortButton(fixture, '기한').getAttribute('aria-pressed')).toBe('false');
   });
@@ -495,7 +454,6 @@ describe('TaskListPage', () => {
     const fixture = render();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
-    // 기본(만든 날짜 · 최근 것 앞)을 다시 누르면 오름차순이 되고, 그것은 주소에 적힌다.
     sortButton(fixture, '만든 날짜').click();
     expect(navigate).toHaveBeenCalledWith([], {
       queryParams: { sort: 'created', dir: 'asc' },
@@ -503,7 +461,6 @@ describe('TaskListPage', () => {
       replaceUrl: true,
     });
 
-    // 다른 기준을 고르면 그 기준의 기본 방향이라 dir 은 주소에서 빠진다.
     sortButton(fixture, '기한').click();
     expect(navigate).toHaveBeenLastCalledWith([], {
       queryParams: { sort: 'due', dir: null },
@@ -525,14 +482,9 @@ describe('TaskListPage', () => {
     const host = fixture.nativeElement as HTMLElement;
     const link = host.querySelector<HTMLAnchorElement>('#task-seed-1');
 
-    // 경로가 바뀌면 라우터가 목록을 언마운트해 곁에 둘 수 없습니다. shared/config/routes.ts 의 TASK_PANEL 주석.
     expect(link?.getAttribute('href')).toBe('/tasks/all?task=seed-1');
   });
 
-  /*
-   * 상세는 이 화면의 DOM 이 아니라 셸의 aside 슬롯에 실립니다. 화면이 자기 레이아웃을
-   * 정하지 않기 때문이며, 검증 대상은 슬롯을 채웠는지입니다. 06-layout.md 3.1절.
-   */
   it('열린 항목이 없으면 aside 슬롯을 채우지 않는다', () => {
     render();
 
@@ -545,7 +497,6 @@ describe('TaskListPage', () => {
     fixture.detectChanges();
 
     expect(TestBed.inject(AsideSlot).content()).not.toBeNull();
-    // 화면 자신의 DOM 에는 남지 않습니다.
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('app-task-detail-panel'),
     ).toBeNull();

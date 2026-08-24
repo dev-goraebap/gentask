@@ -37,7 +37,6 @@ import { classes, hlm } from '@/shared/ui/utils';
   host: { 'data-slot': 'calendar' },
   template: `
     <div class="inline-flex flex-col space-y-4">
-      <!-- Header -->
       <div class="flex w-full items-center justify-between gap-1.5">
         <ng-template #month>
           <hlm-select brnCalendarMonthSelect class="order-1">
@@ -139,21 +138,16 @@ import { classes, hlm } from '@/shared/ui/utils';
   `,
 })
 export class HlmCalendarRange<T> {
-  /** Show dropdowns to navigate between months or years. */
   public readonly captionLayout = input<
     'dropdown' | 'label' | 'dropdown-months' | 'dropdown-years'
   >('label');
 
-  /** Access the calendar i18n */
   protected readonly _i18n = injectBrnCalendarI18n();
 
-  /** Access the date time adapter */
   protected readonly _dateAdapter = injectDateAdapter<T>();
 
-  /** Access the calendar directive */
   private readonly _calendar = inject(BrnCalendarRange);
 
-  /** Get the heading for the current month and year */
   protected readonly _heading = computed(() => {
     const config = this._i18n.config();
     const date = this._calendar.focusedDate();

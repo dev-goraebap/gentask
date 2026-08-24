@@ -16,10 +16,6 @@ export class HlmDatePickerAnchor {
   public readonly hlmDatePickerAnchorFor = linkedSignal(this.hlmDatePickerAnchorForInput);
 
   constructor() {
-    /*
-     * compact 에서는 오리진을 비웁니다. 오리진이 붙어 있으면 팝오버가 `positionStrategy`
-     * 입력을 무시하므로 바텀시트가 열리지 않습니다. 07-adaptive-ui.md 4.2절.
-     */
     effect(() => {
       const origin = this._viewport() === 'compact' ? null : this._host.nativeElement;
       this.hlmDatePickerAnchorFor()?.setOrigin(origin);

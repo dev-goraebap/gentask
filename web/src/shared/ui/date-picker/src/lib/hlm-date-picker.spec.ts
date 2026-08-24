@@ -7,14 +7,6 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { HlmDatePicker } from './hlm-date-picker';
 import { HlmDatePickerTrigger } from './hlm-date-picker-trigger';
 
-/*
- * 적응형 컴포넌트라 두 폭을 각각 고정합니다. 한쪽만 검증하면 다른 쪽은 실제 화면에서만
- * 드러납니다. 07-adaptive-ui.md 9절, 17-testing.md 3.1절.
- *
- * 위치 전략은 사용자가 보는 결과이지만 역할이나 접근 가능한 이름으로는 드러나지
- * 않으므로 CDK 가 만든 오버레이 구조로 판정합니다. 연결 위치 전략은 트리거를 기준으로
- * 하는 바운딩 박스를, 전역 위치 전략은 정렬 값을 가진 래퍼를 만듭니다.
- */
 describe('HlmDatePicker', () => {
   afterEach(() => {
     TestBed.inject(OverlayContainer).ngOnDestroy();
@@ -25,7 +17,6 @@ describe('HlmDatePicker', () => {
 
     expect(overlay.querySelector('hlm-calendar')).not.toBeNull();
     expect(overlay.querySelector('.cdk-overlay-connected-position-bounding-box')).not.toBeNull();
-    // 백드롭은 화면을 덮어 뒤쪽 조작을 막습니다. 마우스 사용자에게는 방해입니다.
     expect(overlay.querySelector('.cdk-overlay-backdrop')).toBeNull();
     expect(globalWrapper(overlay)).toBeNull();
   });
@@ -42,10 +33,6 @@ describe('HlmDatePicker', () => {
   });
 
   it('포인터 쿼리가 모두 false 여도 넓으면 팝오버로 연다', async () => {
-    /*
-     * 마우스가 연결되어 동작하는데도 브라우저가 포인터 축을 전부 false 로 보고한
-     * 실측 환경입니다. 그 값을 판정에 쓰면 데스크탑에 시트가 뜹니다. 07-adaptive-ui.md 2절.
-     */
     const overlay = await open({
       '(min-width: 48rem)': true,
       '(pointer: fine)': false,
@@ -70,7 +57,6 @@ describe('HlmDatePicker', () => {
   });
 
   it('트리거가 지정한 id 와 오버레이 연결을 유지한다', async () => {
-    // 레이블이 이 id 를 가리킵니다. brain 트리거를 바꿔 끼울 때 가장 먼저 깨지는 배선입니다.
     const { fixture, trigger } = await render('wide', 'task-due');
     fixture.detectChanges();
 
@@ -95,12 +81,6 @@ class Host {
 
 type Viewport = 'wide' | 'compact';
 
-/**
- * 17-testing.md 3.2절의 대체 구현입니다.
- *
- * 쿼리별 응답을 맵으로 받는 이유는 판정이 어느 쿼리를 보는지까지 고정하기 위해서입니다.
- * 폭만 참으로 두고 포인터 축을 전부 거짓으로 두면, 판정이 포인터를 보는 순간 실패합니다.
- */
 function withViewportClass(source: Viewport | Record<string, boolean>) {
   const breakpoints =
     typeof source === 'string' ? { '(min-width: 48rem)': source === 'wide' } : source;
