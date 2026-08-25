@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ThemeService } from './theme';
+import { ThemeService } from './theme-service';
 
 describe('ThemeService', () => {
   beforeEach(() => {

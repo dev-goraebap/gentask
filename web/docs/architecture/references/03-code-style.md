@@ -18,19 +18,26 @@ Angular 스타일 가이드는 **2025년 개정판**을 기준으로 합니다.
 
 ### 2.1 형식
 
-모든 파일명은 **케밥 케이스**를 사용합니다. 타입 접미사를 붙이지 않습니다.
+모든 파일명은 **케밥 케이스**를 사용합니다. **파일이 클래스를 내보내면 파일명은 그 클래스명을 그대로 옮긴 것이어야 합니다.**
 
-| 대상 | 파일명 |
-| :--- | :--- |
-| 컴포넌트 | `task-row.ts`, `task-row.html` |
-| 라우트 진입 컴포넌트 | `task-list.page.ts`, `task-list.page.html` |
-| 서비스 | `session.ts` |
-| 가드 | `auth-guard.ts` |
-| 인터셉터 | `auth-interceptor.ts` |
-| 파이프 | `format-date.ts` |
-| 모델·타입 | `task.ts` |
+> "File names should generally describe the contents of the code in the file. When the file contains a TypeScript class, the file name should reflect that class name." — [Angular 스타일 가이드](https://angular.dev/style-guide)
 
-가드와 인터셉터는 접미사를 유지합니다. 이름만으로 역할이 드러나지 않으면 라우트 정의나 프로바이더 배열에서 무엇인지 판별할 수 없습니다.
+| 대상 | 클래스 | 파일명 |
+| :--- | :--- | :--- |
+| 컴포넌트 | `TaskRow` | `task-row.ts`, `task-row.html` |
+| 라우트 진입 컴포넌트 | `TaskListPage` | `task-list.page.ts`, `task-list.page.html` |
+| 서비스 | `SessionService` | `session-service.ts` |
+| 디렉티브 | `Autofocus` | `autofocus.ts` |
+| 파이프 | `FormatDate` | `format-date.ts` |
+| 가드 | — | `auth-guard.ts` |
+| 인터셉터 | — | `auth-interceptor.ts` |
+| 모델·타입 | — | `task.ts` |
+
+서비스 파일이 `-service` 로 끝나는 것은 타입 접미사를 되살린 것이 아닙니다. 3.1절이 서비스 클래스에 `Service` 를 붙이므로 파일명이 클래스명을 따라간 결과입니다. **클래스명이 바뀌면 파일명도 함께 바뀝니다.**
+
+**한 파일이 클래스 둘을 내보내면 파일을 나눕니다.** 파일명이 어느 한쪽만 가리키게 되어 나머지 하나를 이름으로 찾을 수 없습니다.
+
+가드와 인터셉터는 클래스가 아니라 함수이므로 접미사를 유지합니다. 이름만으로 역할이 드러나지 않으면 라우트 정의나 프로바이더 배열에서 무엇인지 판별할 수 없습니다.
 
 ### 2.1.1 라우트 진입 컴포넌트
 

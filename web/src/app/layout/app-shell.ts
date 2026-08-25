@@ -25,8 +25,8 @@ import { ROUTES } from '@/shared/config';
 import { AsideSlotService } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
-import { SidebarService } from '../sidebar';
 import { NavigationVeil } from './navigation-veil';
+import { SidebarService } from './sidebar-service';
 import { ThemeToggle } from './theme-toggle';
 
 @Component({

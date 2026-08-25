@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { provideIcons } from '@ng-icons/core';
 import { lucideMonitor, lucideMoon, lucideSun } from '@ng-icons/lucide';
+import { ThemeService, type ThemePreference } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
-import { ThemeService, type ThemePreference } from '../theme';
 
 const LABEL: Record<ThemePreference, string> = {
   system: '시스템 설정',

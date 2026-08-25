@@ -1,4 +1,5 @@
-export { AsideOutlet, AsideSlotService } from './aside/aside-slot';
+export { AsideOutlet } from './aside/aside-outlet';
+export { AsideSlotService } from './aside/aside-slot-service';
 export { injectViewportClass } from './adaptive/viewport-class';
 export {
   openUppyDialog,
@@ -7,3 +8,4 @@ export {
   type UploadedFile,
   type UppyDialogOptions,
 } from './uppy/uppy-uploader';
+export { ThemeService, type ThemePreference } from './theme/theme-service';
