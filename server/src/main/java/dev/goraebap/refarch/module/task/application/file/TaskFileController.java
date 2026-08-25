@@ -1,8 +1,8 @@
-package dev.goraebap.refarch.module.task.application;
+package dev.goraebap.refarch.module.task.application.file;
 
-import dev.goraebap.refarch.module.task.application.TaskFileRequests.AttachTaskFile;
-import dev.goraebap.refarch.module.task.application.TaskFileRequests.PresignTaskFile;
-import dev.goraebap.refarch.module.task.application.TaskFileViews.TaskFileView;
+import dev.goraebap.refarch.module.task.application.file.TaskFileRequests.AttachTaskFile;
+import dev.goraebap.refarch.module.task.application.file.TaskFileRequests.PresignTaskFile;
+import dev.goraebap.refarch.module.task.application.file.TaskFileViews.TaskFileView;
 import dev.goraebap.refarch.shared.storage.PresignedUpload;
 import dev.goraebap.refarch.shared.web.CurrentUser;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -4,9 +4,9 @@ import static dev.goraebap.refarch.jooq.Tables.USERS;
 
 import dev.goraebap.refarch.jooq.tables.records.UsersRecord;
 import dev.goraebap.refarch.module.user.domain.Email;
-import dev.goraebap.refarch.module.user.domain.Nickname;
-import dev.goraebap.refarch.module.user.domain.User;
-import dev.goraebap.refarch.module.user.domain.UserRepository;
+import dev.goraebap.refarch.module.user.domain.user.Nickname;
+import dev.goraebap.refarch.module.user.domain.user.User;
+import dev.goraebap.refarch.module.user.domain.user.UserRepository;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

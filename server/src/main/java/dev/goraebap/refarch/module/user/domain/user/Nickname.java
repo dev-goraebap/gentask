@@ -1,5 +1,6 @@
-package dev.goraebap.refarch.module.user.domain;
+package dev.goraebap.refarch.module.user.domain.user;
 
+import dev.goraebap.refarch.module.user.domain.Email;
 import dev.goraebap.refarch.shared.domain.ValueObject;
 import dev.goraebap.refarch.shared.error.DomainRuleViolation;
 

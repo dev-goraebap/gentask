@@ -3,10 +3,10 @@ package dev.goraebap.refarch.module.task.infrastructure;
 import static dev.goraebap.refarch.jooq.Tables.TASKS;
 
 import dev.goraebap.refarch.jooq.tables.records.TasksRecord;
-import dev.goraebap.refarch.module.task.domain.Task;
-import dev.goraebap.refarch.module.task.domain.TaskNote;
-import dev.goraebap.refarch.module.task.domain.TaskRepository;
-import dev.goraebap.refarch.module.task.domain.TaskTitle;
+import dev.goraebap.refarch.module.task.domain.task.Task;
+import dev.goraebap.refarch.module.task.domain.task.TaskNote;
+import dev.goraebap.refarch.module.task.domain.task.TaskRepository;
+import dev.goraebap.refarch.module.task.domain.task.TaskTitle;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

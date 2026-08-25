@@ -1,13 +1,13 @@
 package dev.goraebap.refarch.module.user.application;
 
-import dev.goraebap.refarch.module.user.domain.Account;
-import dev.goraebap.refarch.module.user.domain.AccountRepository;
 import dev.goraebap.refarch.module.user.domain.Email;
-import dev.goraebap.refarch.module.user.domain.Nickname;
-import dev.goraebap.refarch.module.user.domain.Session;
-import dev.goraebap.refarch.module.user.domain.SessionRepository;
-import dev.goraebap.refarch.module.user.domain.User;
-import dev.goraebap.refarch.module.user.domain.UserRepository;
+import dev.goraebap.refarch.module.user.domain.account.Account;
+import dev.goraebap.refarch.module.user.domain.account.AccountRepository;
+import dev.goraebap.refarch.module.user.domain.session.Session;
+import dev.goraebap.refarch.module.user.domain.session.SessionRepository;
+import dev.goraebap.refarch.module.user.domain.user.Nickname;
+import dev.goraebap.refarch.module.user.domain.user.User;
+import dev.goraebap.refarch.module.user.domain.user.UserRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;

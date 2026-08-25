@@ -1,7 +1,7 @@
 package dev.goraebap.refarch.module.user.application;
 
 import dev.goraebap.refarch.module.user.domain.Email;
-import dev.goraebap.refarch.module.user.domain.Nickname;
+import dev.goraebap.refarch.module.user.domain.user.Nickname;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

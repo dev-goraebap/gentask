@@ -1,7 +1,7 @@
-package dev.goraebap.refarch.module.task.application;
+package dev.goraebap.refarch.module.task.application.task;
 
-import dev.goraebap.refarch.module.task.domain.TaskNote;
-import dev.goraebap.refarch.module.task.domain.TaskTitle;
+import dev.goraebap.refarch.module.task.domain.task.TaskNote;
+import dev.goraebap.refarch.module.task.domain.task.TaskTitle;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -3,8 +3,8 @@ package dev.goraebap.refarch.module.task.infrastructure;
 import static dev.goraebap.refarch.jooq.Tables.TASK_FILES;
 
 import dev.goraebap.refarch.jooq.tables.records.TaskFilesRecord;
-import dev.goraebap.refarch.module.task.domain.TaskFile;
-import dev.goraebap.refarch.module.task.domain.TaskFileRepository;
+import dev.goraebap.refarch.module.task.domain.file.TaskFile;
+import dev.goraebap.refarch.module.task.domain.file.TaskFileRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

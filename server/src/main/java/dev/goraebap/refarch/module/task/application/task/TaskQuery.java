@@ -1,6 +1,6 @@
-package dev.goraebap.refarch.module.task.application;
+package dev.goraebap.refarch.module.task.application.task;
 
-import dev.goraebap.refarch.module.task.application.TaskViews.TaskView;
+import dev.goraebap.refarch.module.task.application.task.TaskViews.TaskView;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

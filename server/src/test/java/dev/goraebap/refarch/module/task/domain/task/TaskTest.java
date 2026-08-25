@@ -1,4 +1,4 @@
-package dev.goraebap.refarch.module.task.domain;
+package dev.goraebap.refarch.module.task.domain.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

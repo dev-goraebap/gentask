@@ -1,4 +1,4 @@
-package dev.goraebap.refarch.module.task.domain;
+package dev.goraebap.refarch.module.task.domain.task;
 
 import dev.goraebap.refarch.shared.domain.ValueObject;
 import dev.goraebap.refarch.shared.error.DomainRuleViolation;

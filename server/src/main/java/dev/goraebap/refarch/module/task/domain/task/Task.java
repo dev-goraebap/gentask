@@ -1,4 +1,4 @@
-package dev.goraebap.refarch.module.task.domain;
+package dev.goraebap.refarch.module.task.domain.task;
 
 import java.time.Instant;
 import java.time.LocalDate;

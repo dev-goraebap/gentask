@@ -1,10 +1,11 @@
-package dev.goraebap.refarch.module.task.application;
+package dev.goraebap.refarch.module.task.application.task;
 
-import dev.goraebap.refarch.module.task.application.TaskViews.TaskView;
-import dev.goraebap.refarch.module.task.domain.Task;
-import dev.goraebap.refarch.module.task.domain.TaskNote;
-import dev.goraebap.refarch.module.task.domain.TaskRepository;
-import dev.goraebap.refarch.module.task.domain.TaskTitle;
+import dev.goraebap.refarch.module.task.application.TaskErrorCode;
+import dev.goraebap.refarch.module.task.application.task.TaskViews.TaskView;
+import dev.goraebap.refarch.module.task.domain.task.Task;
+import dev.goraebap.refarch.module.task.domain.task.TaskNote;
+import dev.goraebap.refarch.module.task.domain.task.TaskRepository;
+import dev.goraebap.refarch.module.task.domain.task.TaskTitle;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -111,8 +112,12 @@ public class TaskService {
      * 없는 것을 고치려 한 경우다. TK-003 A8 · TK-004 A3.
      *
      * 남의 작업도 같은 답을 받는다. 갈라 말하면 남의 식별자가 실재하는지가 응답으로 새어 나간다.
+     *
+     * 붙임 피쳐(TaskFileService)가 소유 확인에 쓰므로 모듈 안에 공개한다. 확인을 그쪽에도
+     * 두면 "남의 것과 없는 것을 같게 답한다" 는 규칙이 두 벌이 되고 한쪽만 바뀔 수 있다.
      */
-    Task find(UUID taskId, UUID userId) {
+    @Transactional(readOnly = true)
+    public Task find(UUID taskId, UUID userId) {
         return taskRepository
                 .findById(taskId)
                 .filter(task -> task.isOwnedBy(userId))

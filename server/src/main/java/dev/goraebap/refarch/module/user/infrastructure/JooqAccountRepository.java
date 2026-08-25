@@ -3,8 +3,8 @@ package dev.goraebap.refarch.module.user.infrastructure;
 import static dev.goraebap.refarch.jooq.Tables.ACCOUNTS;
 
 import dev.goraebap.refarch.jooq.tables.records.AccountsRecord;
-import dev.goraebap.refarch.module.user.domain.Account;
-import dev.goraebap.refarch.module.user.domain.AccountRepository;
+import dev.goraebap.refarch.module.user.domain.account.Account;
+import dev.goraebap.refarch.module.user.domain.account.AccountRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;

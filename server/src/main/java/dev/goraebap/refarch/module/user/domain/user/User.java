@@ -1,5 +1,6 @@
-package dev.goraebap.refarch.module.user.domain;
+package dev.goraebap.refarch.module.user.domain.user;
 
+import dev.goraebap.refarch.module.user.domain.Email;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;

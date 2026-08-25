@@ -3,8 +3,8 @@ package dev.goraebap.refarch.module.user.infrastructure;
 import static dev.goraebap.refarch.jooq.Tables.SESSIONS;
 
 import dev.goraebap.refarch.jooq.tables.records.SessionsRecord;
-import dev.goraebap.refarch.module.user.domain.Session;
-import dev.goraebap.refarch.module.user.domain.SessionRepository;
+import dev.goraebap.refarch.module.user.domain.session.Session;
+import dev.goraebap.refarch.module.user.domain.session.SessionRepository;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

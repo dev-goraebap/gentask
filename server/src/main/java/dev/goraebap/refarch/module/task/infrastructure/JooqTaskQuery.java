@@ -3,8 +3,8 @@ package dev.goraebap.refarch.module.task.infrastructure;
 import static dev.goraebap.refarch.jooq.Tables.TASKS;
 
 import dev.goraebap.refarch.jooq.tables.records.TasksRecord;
-import dev.goraebap.refarch.module.task.application.TaskQuery;
-import dev.goraebap.refarch.module.task.application.TaskViews.TaskView;
+import dev.goraebap.refarch.module.task.application.task.TaskQuery;
+import dev.goraebap.refarch.module.task.application.task.TaskViews.TaskView;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

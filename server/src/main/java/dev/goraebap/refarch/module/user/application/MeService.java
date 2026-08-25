@@ -2,11 +2,11 @@ package dev.goraebap.refarch.module.user.application;
 
 import dev.goraebap.refarch.module.user.application.UserViews.IssuedApiToken;
 import dev.goraebap.refarch.module.user.application.UserViews.MeView;
-import dev.goraebap.refarch.module.user.domain.ApiToken;
-import dev.goraebap.refarch.module.user.domain.ApiTokenRepository;
-import dev.goraebap.refarch.module.user.domain.Nickname;
-import dev.goraebap.refarch.module.user.domain.User;
-import dev.goraebap.refarch.module.user.domain.UserRepository;
+import dev.goraebap.refarch.module.user.domain.apitoken.ApiToken;
+import dev.goraebap.refarch.module.user.domain.apitoken.ApiTokenRepository;
+import dev.goraebap.refarch.module.user.domain.user.Nickname;
+import dev.goraebap.refarch.module.user.domain.user.User;
+import dev.goraebap.refarch.module.user.domain.user.UserRepository;
 import dev.goraebap.refarch.shared.storage.ObjectStorage;
 import dev.goraebap.refarch.shared.storage.PresignedUpload;
 import java.time.Clock;

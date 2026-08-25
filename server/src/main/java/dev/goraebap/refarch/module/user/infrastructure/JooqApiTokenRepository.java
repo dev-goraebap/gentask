@@ -3,8 +3,8 @@ package dev.goraebap.refarch.module.user.infrastructure;
 import static dev.goraebap.refarch.jooq.Tables.API_TOKENS;
 
 import dev.goraebap.refarch.jooq.tables.records.ApiTokensRecord;
-import dev.goraebap.refarch.module.user.domain.ApiToken;
-import dev.goraebap.refarch.module.user.domain.ApiTokenRepository;
+import dev.goraebap.refarch.module.user.domain.apitoken.ApiToken;
+import dev.goraebap.refarch.module.user.domain.apitoken.ApiTokenRepository;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

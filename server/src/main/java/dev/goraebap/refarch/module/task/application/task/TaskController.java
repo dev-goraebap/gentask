@@ -1,11 +1,11 @@
-package dev.goraebap.refarch.module.task.application;
+package dev.goraebap.refarch.module.task.application.task;
 
-import dev.goraebap.refarch.module.task.application.TaskRequests.ChangeCompletion;
-import dev.goraebap.refarch.module.task.application.TaskRequests.ChangeImportance;
-import dev.goraebap.refarch.module.task.application.TaskRequests.ChangeMyDay;
-import dev.goraebap.refarch.module.task.application.TaskRequests.CreateTask;
-import dev.goraebap.refarch.module.task.application.TaskRequests.EditTask;
-import dev.goraebap.refarch.module.task.application.TaskViews.TaskView;
+import dev.goraebap.refarch.module.task.application.task.TaskRequests.ChangeCompletion;
+import dev.goraebap.refarch.module.task.application.task.TaskRequests.ChangeImportance;
+import dev.goraebap.refarch.module.task.application.task.TaskRequests.ChangeMyDay;
+import dev.goraebap.refarch.module.task.application.task.TaskRequests.CreateTask;
+import dev.goraebap.refarch.module.task.application.task.TaskRequests.EditTask;
+import dev.goraebap.refarch.module.task.application.task.TaskViews.TaskView;
 import dev.goraebap.refarch.shared.web.CurrentUser;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;

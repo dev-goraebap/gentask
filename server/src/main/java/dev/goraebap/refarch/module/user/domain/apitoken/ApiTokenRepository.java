@@ -1,4 +1,4 @@
-package dev.goraebap.refarch.module.user.domain;
+package dev.goraebap.refarch.module.user.domain.apitoken;
 
 import java.util.Optional;
 import java.util.UUID;
