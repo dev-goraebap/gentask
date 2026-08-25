@@ -46,7 +46,6 @@ import {
   DEFAULT_REMIND_TIME,
   describeDueBrief,
   describeRemind,
-  formatDueDate,
   fromDateKey,
   fromDateTimeKey,
   isInMyDay,
@@ -58,8 +57,7 @@ import {
   sortActive,
   sortCompleted,
   splitByCompletion,
-  TaskCommands,
-  TaskList,
+  TaskService,
   taskViewLabel,
   toDateKey,
   toTaskSort,
@@ -121,43 +119,45 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskListPage {
+  // --- 상수 --------------------------------------------------------------------------------------
+  protected readonly routes = ROUTES;
+  protected readonly panel = TASK_PANEL;
+  protected readonly sortOptions = TASK_SORTS;
+  private readonly today = toDateKey(new Date());
+  private readonly now = new Date();
+
+  // --- 계약 --------------------------------------------------------------------------------------
   readonly done = input(false, { transform: booleanAttribute });
-
   readonly sort = input<string | undefined>(undefined);
-
-  protected readonly sortKey = computed<TaskSort>(() => toTaskSort(this.sort()));
-
   readonly dir = input<string | undefined>(undefined);
+  readonly view = input<TaskView, string | undefined>('all', { transform: toTaskView });
+  readonly task = input<string | undefined>(undefined);
+
+  // --- 의존 --------------------------------------------------------------------------------------
+  protected readonly taskService = inject(TaskService);
+  private readonly router = inject(Router);
+
+  // --- 질의 --------------------------------------------------------------------------------------
+  protected readonly veil = viewChild.required(Veil);
+
+  // --- 상태 --------------------------------------------------------------------------------------
+  private readonly draft = signal({ title: '' });
+  private readonly draftDue = signal<string | null>(null);
+  private readonly draftRemind = signal<string | null>(null);
+  protected readonly addForm = form(this.draft);
+
+  // --- 파생 --------------------------------------------------------------------------------------
+  protected readonly sortKey = computed<TaskSort>(() => toTaskSort(this.sort()));
 
   protected readonly direction = computed<SortDirection>(() =>
     toSortDirection(this.dir(), this.sortKey()),
   );
 
-  readonly view = input<TaskView, string | undefined>('all', { transform: toTaskView });
-
-  readonly task = input<string | undefined>(undefined);
-
-  protected readonly routes = ROUTES;
-
-  protected readonly taskList = inject(TaskList);
-  private readonly commands = inject(TaskCommands);
-  private readonly router = inject(Router);
-
-  protected readonly listLoading = computed(() => this.taskList.status() === 'loading');
-
-  protected readonly listFailed = computed(() => this.taskList.status() === 'error');
-
-  protected readonly veil = viewChild.required(Veil);
-
-  private readonly draft = signal({ title: '' });
-
-  private readonly draftDue = signal<string | null>(null);
-  private readonly draftRemind = signal<string | null>(null);
-
-  protected readonly addForm = form(this.draft);
+  protected readonly listLoading = computed(() => this.taskService.status() === 'loading');
+  protected readonly listFailed = computed(() => this.taskService.status() === 'error');
 
   protected readonly groups = computed(() => {
-    const chosen = filterByView(this.taskList.tasks(), this.view(), this.today);
+    const chosen = filterByView(this.taskService.list(), this.view(), this.today);
     const { active, completed } = splitByCompletion(chosen);
     return {
       active: sortActive(active, this.sortKey(), this.direction()),
@@ -166,7 +166,6 @@ export class TaskListPage {
   });
 
   protected readonly title = computed(() => taskViewLabel(this.view()));
-
   protected readonly emptyMessage = computed(() => EMPTY_MESSAGES[this.view()]);
 
   private readonly viewSeed = computed<TaskSeed>(() => {
@@ -198,7 +197,6 @@ export class TaskListPage {
   });
 
   protected readonly draftDueKey = computed(() => this.draftDue());
-
   protected readonly draftRemindAt = computed(() => this.draftRemind());
 
   protected readonly draftRemindDate = computed<Date | undefined>(() => {
@@ -214,8 +212,20 @@ export class TaskListPage {
     quickReminds(this.now).map((q, index) => ({ ...q, icon: REMIND_ICONS[index] })),
   );
 
-  private readonly now = new Date();
+  protected readonly sortActive = computed(
+    () => this.sort() !== undefined || this.dir() !== undefined,
+  );
 
+  protected readonly sortChip = computed(
+    () => TASK_SORTS.find((s) => s.value === this.sortKey())?.chip ?? '',
+  );
+
+  protected readonly openTask = computed<Task | undefined>(() => {
+    const id = this.task();
+    return id ? this.taskService.list().find((candidate) => candidate.id === id) : undefined;
+  });
+
+  // --- 동작 --------------------------------------------------------------------------------------
   protected readonly formatRemindChip = (date: Date): string =>
     `알림 ${describeRemind(withRemindDate(this.draftRemind(), date, DEFAULT_REMIND_TIME), this.today)}`;
 
@@ -239,16 +249,6 @@ export class TaskListPage {
     picker.close();
   }
 
-  protected readonly sortOptions = TASK_SORTS;
-
-  protected readonly sortActive = computed(
-    () => this.sort() !== undefined || this.dir() !== undefined,
-  );
-
-  protected readonly sortChip = computed(
-    () => TASK_SORTS.find((s) => s.value === this.sortKey())?.chip ?? '',
-  );
-
   protected flipSort(): void {
     this.setSort(this.sortKey());
   }
@@ -261,16 +261,22 @@ export class TaskListPage {
     });
   }
 
-  protected readonly panel = TASK_PANEL;
-
-  protected readonly openTask = computed<Task | undefined>(() => {
-    const id = this.task();
-    return id ? this.taskList.tasks().find((candidate) => candidate.id === id) : undefined;
-  });
-
-  private readonly today = toDateKey(new Date());
-
-  protected readonly formatDueDate = formatDueDate;
+  protected setSort(next: TaskSort): void {
+    const direction: SortDirection =
+      next === this.sortKey()
+        ? this.direction() === 'asc'
+          ? 'desc'
+          : 'asc'
+        : DEFAULT_DIRECTION[next];
+    void this.router.navigate([], {
+      queryParams: {
+        sort: next,
+        dir: direction === DEFAULT_DIRECTION[next] ? null : direction,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
 
   protected describeDue(due: string): string {
     return describeDueBrief(due, this.today);
@@ -303,57 +309,19 @@ export class TaskListPage {
     void this.add();
   }
 
-  private async add(): Promise<void> {
-    if (!isAddableTitle(this.draft().title)) return;
-
-    try {
-      await this.commands.add(this.draft().title, this.seed());
-    } catch {
-      toast.error('작업을 추가하지 못했습니다.', {
-        action: { label: '다시 시도', onClick: () => void this.add() },
-      });
-      return;
-    }
-
-    this.taskList.reload();
-
-    this.addForm().reset({ title: '' });
-    this.draftDue.set(null);
-    this.draftRemind.set(null);
-  }
-
   protected async setCompleted(task: Task, completed: boolean, box: HlmCheckbox): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, CHECK_DWELL_MS));
     try {
-      await this.commands.setCompleted(task.id, completed);
+      await this.taskService.setCompleted(task.id, completed);
     } catch {
       box.checked.set(!completed);
       toast.error(completed ? '완료하지 못했습니다.' : '되돌리지 못했습니다.');
       return;
     }
-    this.taskList.reload();
   }
 
   protected async setImportant(task: Task, important: boolean): Promise<void> {
-    await this.commands.setImportant(task.id, important);
-    this.taskList.reload();
-  }
-
-  protected setSort(next: TaskSort): void {
-    const direction: SortDirection =
-      next === this.sortKey()
-        ? this.direction() === 'asc'
-          ? 'desc'
-          : 'asc'
-        : DEFAULT_DIRECTION[next];
-    void this.router.navigate([], {
-      queryParams: {
-        sort: next,
-        dir: direction === DEFAULT_DIRECTION[next] ? null : direction,
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
+    await this.taskService.setImportant(task.id, important);
   }
 
   protected toggleCompleted(): void {
@@ -362,6 +330,23 @@ export class TaskListPage {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+
+  private async add(): Promise<void> {
+    if (!isAddableTitle(this.draft().title)) return;
+
+    try {
+      await this.taskService.add(this.draft().title, this.seed());
+    } catch {
+      toast.error('작업을 추가하지 못했습니다.', {
+        action: { label: '다시 시도', onClick: () => void this.add() },
+      });
+      return;
+    }
+
+    this.addForm().reset({ title: '' });
+    this.draftDue.set(null);
+    this.draftRemind.set(null);
   }
 }
 

@@ -25,16 +25,20 @@ import { Veil } from '@/shared/ui/veil';
   template: `<app-veil [loading]="pending()" [failed]="failed()" />`,
 })
 export class NavigationVeil {
+  // --- 의존 --------------------------------------------------------------------------------------
   private readonly router = inject(Router);
 
-  protected readonly pending = signal(false);
-
-  protected readonly failed = signal(false);
-
+  // --- 질의 --------------------------------------------------------------------------------------
   private readonly veil = viewChild.required(Veil);
 
+  // --- 상태 --------------------------------------------------------------------------------------
+  protected readonly pending = signal(false);
+  protected readonly failed = signal(false);
+
+  // --- 파생 --------------------------------------------------------------------------------------
   readonly visible = computed(() => this.veil().visible());
 
+  // --- 생성 --------------------------------------------------------------------------------------
   constructor() {
     if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
 

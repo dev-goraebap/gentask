@@ -7,7 +7,6 @@ import {
   type ElementRef,
   inject,
   input,
-  output,
   signal,
   untracked,
   viewChild,
@@ -30,7 +29,7 @@ import {
   quickReminds,
   remindTimeKey,
   splitTime,
-  TaskCommands,
+  TaskService,
   toDateKey,
   withRemindDate,
   withRemindTime,
@@ -129,13 +128,26 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskDetailPanel {
+  // --- 상수 --------------------------------------------------------------------------------------
+  private readonly today = toDateKey(new Date());
+  private readonly now = new Date();
+  protected readonly meridiems = MERIDIEMS;
+  protected readonly hours12 = HOURS12;
+  protected readonly minutes = MINUTES;
+
+  // --- 계약 --------------------------------------------------------------------------------------
   readonly task = input.required<Task | undefined>();
 
-  readonly changed = output<void>();
-
-  private readonly commands = inject(TaskCommands);
+  // --- 의존 --------------------------------------------------------------------------------------
+  private readonly taskService = inject(TaskService);
   private readonly router = inject(Router);
 
+  // --- 질의 --------------------------------------------------------------------------------------
+  private readonly confirm = viewChild(HlmAlertDialog);
+  private readonly hourList = viewChild<ElementRef<HTMLElement>>('hourList');
+  private readonly minuteList = viewChild<ElementRef<HTMLElement>>('minuteList');
+
+  // --- 상태 --------------------------------------------------------------------------------------
   private readonly draft = signal<TaskDraft>({
     title: '',
     note: '',
@@ -149,8 +161,9 @@ export class TaskDetailPanel {
     );
   });
 
-  private readonly confirm = viewChild(HlmAlertDialog);
+  private readonly loaded = signal<string | null>(null);
 
+  // --- 파생 --------------------------------------------------------------------------------------
   private readonly files = injectTaskFiles(computed(() => this.task()?.id));
 
   protected readonly fileList = computed(() =>
@@ -158,23 +171,6 @@ export class TaskDetailPanel {
   );
 
   protected readonly canAddFiles = computed(() => this.fileList().length < MAX_TASK_FILES);
-
-  private readonly hourList = viewChild<ElementRef<HTMLElement>>('hourList');
-  private readonly minuteList = viewChild<ElementRef<HTMLElement>>('minuteList');
-
-  private readonly loaded = signal<string | null>(null);
-
-  constructor() {
-    effect(() => {
-      const current = this.task();
-      if (!current || untracked(this.loaded) === current.id) return;
-
-      this.loaded.set(current.id);
-      this.draft.set(toDraft(current));
-    });
-
-    inject(DestroyRef).onDestroy(() => void this.commit());
-  }
 
   protected readonly dueDate = computed<Date | undefined>(() => {
     const key = this.draft().dueDate;
@@ -186,40 +182,10 @@ export class TaskDetailPanel {
     return current ? isInMyDay(current, this.today) : false;
   });
 
-  private readonly today = toDateKey(new Date());
-
   protected readonly completed = computed(() => {
     const current = this.task();
     return current ? isCompleted(current) : false;
   });
-
-  protected async setCompleted(completed: boolean, box: HlmCheckbox): Promise<void> {
-    const current = this.task();
-    if (!current) return;
-    try {
-      await this.commands.setCompleted(current.id, completed);
-    } catch {
-      box.checked.set(!completed);
-      toast.error(completed ? '완료하지 못했습니다.' : '되돌리지 못했습니다.');
-      return;
-    }
-    this.changed.emit();
-  }
-
-  protected async setImportant(important: boolean): Promise<void> {
-    const current = this.task();
-    if (!current) return;
-    await this.commands.setImportant(current.id, important);
-    this.changed.emit();
-  }
-
-  protected async toggleMyDay(): Promise<void> {
-    const current = this.task();
-    if (!current) return;
-
-    await this.commands.setMyDay(current.id, !this.inMyDay());
-    this.changed.emit();
-  }
 
   protected readonly draftDueDate = computed(() => this.draft().dueDate);
 
@@ -229,17 +195,6 @@ export class TaskDetailPanel {
       icon: DUE_ICONS[index],
     })),
   );
-
-  protected pickQuick(date: Date, picker: { close(): void }): void {
-    this.setDueDate(date);
-    picker.close();
-  }
-
-  protected readonly quickRemind = computed(() =>
-    quickReminds(this.now).map((q, index) => ({ ...q, icon: REMIND_ICONS[index] })),
-  );
-
-  private readonly now = new Date();
 
   protected readonly draftRemindAt = computed(() => this.draft().remindAt);
 
@@ -257,9 +212,58 @@ export class TaskDetailPanel {
     splitTime(this.remindTime() ?? DEFAULT_REMIND_TIME),
   );
 
-  protected readonly meridiems = MERIDIEMS;
-  protected readonly hours12 = HOURS12;
-  protected readonly minutes = MINUTES;
+  protected readonly quickRemind = computed(() =>
+    quickReminds(this.now).map((q, index) => ({ ...q, icon: REMIND_ICONS[index] })),
+  );
+
+  // --- 생성 --------------------------------------------------------------------------------------
+  constructor() {
+    effect(() => {
+      const current = this.task();
+      if (!current || untracked(this.loaded) === current.id) return;
+
+      this.loaded.set(current.id);
+      this.draft.set(toDraft(current));
+    });
+
+    inject(DestroyRef).onDestroy(() => void this.commit());
+  }
+
+  // --- 동작 --------------------------------------------------------------------------------------
+  protected async setCompleted(completed: boolean, box: HlmCheckbox): Promise<void> {
+    const current = this.task();
+    if (!current) return;
+    try {
+      await this.taskService.setCompleted(current.id, completed);
+    } catch {
+      box.checked.set(!completed);
+      toast.error(completed ? '완료하지 못했습니다.' : '되돌리지 못했습니다.');
+      return;
+    }
+  }
+
+  protected async setImportant(important: boolean): Promise<void> {
+    const current = this.task();
+    if (!current) return;
+    await this.taskService.setImportant(current.id, important);
+  }
+
+  protected async toggleMyDay(): Promise<void> {
+    const current = this.task();
+    if (!current) return;
+
+    await this.taskService.setMyDay(current.id, !this.inMyDay());
+  }
+
+  protected setDueDate(date: Date | null): void {
+    this.draft.update((draft) => ({ ...draft, dueDate: date ? toDateKey(date) : null }));
+    void this.commit();
+  }
+
+  protected pickQuick(date: Date, picker: { close(): void }): void {
+    this.setDueDate(date);
+    picker.close();
+  }
 
   protected setRemindMeridiem(meridiem: Meridiem): void {
     const { hour12, minute } = this.remindParts();
@@ -289,6 +293,11 @@ export class TaskDetailPanel {
     this.setRemindAt(withRemindTime(this.draft().remindAt, time, this.today));
   }
 
+  protected setRemindAt(at: string | null): void {
+    this.draft.update((draft) => ({ ...draft, remindAt: at }));
+    void this.commit();
+  }
+
   protected pickQuickRemind(at: string, picker: { close(): void }): void {
     this.setRemindAt(at);
     picker.close();
@@ -300,16 +309,6 @@ export class TaskDetailPanel {
       center(this.hourList()?.nativeElement, hour12 - 1);
       center(this.minuteList()?.nativeElement, Number(minute));
     });
-  }
-
-  protected setRemindAt(at: string | null): void {
-    this.draft.update((draft) => ({ ...draft, remindAt: at }));
-    void this.commit();
-  }
-
-  protected setDueDate(date: Date | null): void {
-    this.draft.update((draft) => ({ ...draft, dueDate: date ? toDateKey(date) : null }));
-    void this.commit();
   }
 
   protected commitOnEnter(event: KeyboardEvent): void {
@@ -346,14 +345,13 @@ export class TaskDetailPanel {
     if (unchanged) return;
 
     try {
-      await this.commands.update(current.id, next);
+      await this.taskService.update(current.id, next);
     } catch {
       this.draft.set(toDraft(current));
       this.editForm().reset();
       toast.error('바꾸지 못했습니다.');
       return;
     }
-    this.changed.emit();
   }
 
   protected async remove(): Promise<void> {
@@ -361,8 +359,7 @@ export class TaskDetailPanel {
     if (!current) return;
 
     this.confirm()?.close();
-    await this.commands.remove(current.id);
-    this.changed.emit();
+    await this.taskService.remove(current.id);
 
     this.close();
   }
@@ -375,11 +372,8 @@ export class TaskDetailPanel {
       maxNumberOfFiles: MAX_TASK_FILES - this.fileList().length,
       maxFileSize: MAX_TASK_FILE_BYTES,
       note: '작업당 5개, 각 10MB 이하',
-      presign: (file) => this.commands.presignFile(current.id, file.name, file.type, file.size),
-      attach: async (objectKey, file) => {
-        await this.commands.attachFile(current.id, objectKey, file.name, file.type);
-      },
-      onCompleted: () => this.files.reload(),
+      presign: (file) => this.files.presign(current.id, file.name, file.type, file.size),
+      attach: (uploads) => this.files.attachAll(current.id, uploads),
       onAttachError: (message) => toast.error(message),
     });
   }
@@ -389,12 +383,11 @@ export class TaskDetailPanel {
     if (!current) return;
 
     try {
-      await this.commands.detachFile(current.id, fileId);
+      await this.files.detach(current.id, fileId);
     } catch (error) {
       toast.error(problemDetail(error, '파일을 떼지 못했습니다.'));
       return;
     }
-    this.files.reload();
   }
 
   protected formatFileSize(bytes: number): string {

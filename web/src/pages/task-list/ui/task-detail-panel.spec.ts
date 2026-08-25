@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TaskCommands, type Task } from '@/entities/task';
+import { TaskService, type Task } from '@/entities/task';
 import { provideTaskListDatePicker } from '../providers';
 import { TaskDetailPanel } from './task-detail-panel';
 import { toast } from '@/shared/ui/sonner';
@@ -11,7 +11,6 @@ describe('TaskDetailPanel', () => {
   let toastError: ReturnType<typeof vi.spyOn>;
   let remove: ReturnType<typeof vi.fn>;
   let setMyDay: ReturnType<typeof vi.fn>;
-  let changed: ReturnType<typeof vi.fn<() => void>>;
 
   const seed: Task = {
     id: 'seed-1',
@@ -30,22 +29,21 @@ describe('TaskDetailPanel', () => {
     toastError = vi.spyOn(toast, 'error').mockImplementation(() => '' as never);
     remove = vi.fn(async () => {});
     setMyDay = vi.fn(async () => {});
-    changed = vi.fn(() => {});
 
-    const commands: Partial<TaskCommands> = {
+    const taskService = {
       add: async () => {},
       setCompleted: async () => {},
       setImportant: async () => {},
-      setMyDay: setMyDay as unknown as TaskCommands['setMyDay'],
-      remove: remove as unknown as TaskCommands['remove'],
-      update: update as unknown as TaskCommands['update'],
-    };
+      setMyDay,
+      remove,
+      update,
+    } as unknown as TaskService;
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        { provide: TaskCommands, useValue: commands },
+        { provide: TaskService, useValue: taskService },
         ...provideTaskListDatePicker(),
       ],
     });
@@ -58,7 +56,6 @@ describe('TaskDetailPanel', () => {
   function render(task: Task | undefined): ComponentFixture<TaskDetailPanel> {
     const fixture = TestBed.createComponent(TaskDetailPanel);
     fixture.componentRef.setInput('task', task);
-    fixture.componentInstance.changed.subscribe(() => changed());
     fixture.detectChanges();
     return fixture;
   }
@@ -153,7 +150,6 @@ describe('TaskDetailPanel', () => {
       dueDate: null,
       remindAt: null,
     });
-    expect(changed).toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
   });
 
@@ -208,7 +204,6 @@ describe('TaskDetailPanel', () => {
     fixture.detectChanges();
 
     expect(toastError).toHaveBeenCalled();
-    expect(changed).not.toHaveBeenCalled();
     expect(query<HTMLInputElement>(fixture, '#task-title').value).toBe('장 보기');
   });
 
@@ -256,7 +251,6 @@ describe('TaskDetailPanel', () => {
       await fixture.whenStable();
 
       expect(remove).toHaveBeenCalledWith('seed-1');
-      expect(changed).toHaveBeenCalled();
       expect(navigate).toHaveBeenCalledWith([], {
         queryParams: { task: null },
         queryParamsHandling: 'merge',

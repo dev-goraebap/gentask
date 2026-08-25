@@ -3,7 +3,7 @@ import { provideIcons } from '@ng-icons/core';
 import { lucideMonitor, lucideMoon, lucideSun } from '@ng-icons/lucide';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
-import { ThemeStore, type ThemePreference } from '../theme';
+import { ThemeService, type ThemePreference } from '../theme';
 
 const LABEL: Record<ThemePreference, string> = {
   system: '시스템 설정',
@@ -35,19 +35,21 @@ const NEXT: Record<ThemePreference, ThemePreference> = {
       size="icon-sm"
       type="button"
       [attr.aria-label]="label()"
-      (click)="theme.cycle()"
+      (click)="themeService.cycle()"
     >
       <app-icon [name]="icon()" />
     </button>
   `,
 })
 export class ThemeToggle {
-  protected readonly theme = inject(ThemeStore);
+  // --- 의존 --------------------------------------------------------------------------------------
+  protected readonly themeService = inject(ThemeService);
 
-  protected readonly icon = computed(() => ICON[this.theme.preference()]);
+  // --- 파생 --------------------------------------------------------------------------------------
+  protected readonly icon = computed(() => ICON[this.themeService.preference()]);
 
   protected readonly label = computed(() => {
-    const current = this.theme.preference();
+    const current = this.themeService.preference();
     return `색상 모드: ${LABEL[current]}. 눌러서 ${LABEL[NEXT[current]]}(으)로 전환합니다`;
   });
 }

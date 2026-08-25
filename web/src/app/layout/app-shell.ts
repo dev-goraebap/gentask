@@ -20,12 +20,12 @@ import {
   lucideUserRound,
 } from '@ng-icons/lucide';
 import { TASK_VIEWS, type TaskView } from '@/entities/task';
-import { CurrentUser, UserAvatar } from '@/entities/user';
+import { UserAvatar, UserService } from '@/entities/user';
 import { ROUTES } from '@/shared/config';
-import { AsideSlot } from '@/shared/lib';
+import { AsideSlotService } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
-import { SidebarStore } from '../sidebar';
+import { SidebarService } from '../sidebar';
 import { NavigationVeil } from './navigation-veil';
 import { ThemeToggle } from './theme-toggle';
 
@@ -58,7 +58,7 @@ import { ThemeToggle } from './theme-toggle';
   host: { class: 'flex h-dvh overflow-hidden max-md:flex-col' },
   template: `
     <nav id="sidebar" [class]="navClass()" aria-label="탐색">
-      @if (!sidebar.collapsed()) {
+      @if (!sidebarService.collapsed()) {
         <a
           [routerLink]="routes.home()"
           class="mb-1 hidden px-2 py-1 text-base font-semibold tracking-tight md:block"
@@ -75,32 +75,32 @@ import { ThemeToggle } from './theme-toggle';
               routerLinkActive="bg-muted text-foreground"
               #active="routerLinkActive"
               [attr.aria-current]="active.isActive ? 'page' : null"
-              [attr.aria-label]="sidebar.collapsed() ? item.label : null"
-              [attr.title]="sidebar.collapsed() ? item.label : null"
+              [attr.aria-label]="sidebarService.collapsed() ? item.label : null"
+              [attr.title]="sidebarService.collapsed() ? item.label : null"
               [class]="linkClass()"
             >
               <app-icon [name]="icons[item.value]" />
-              <span [class]="sidebar.collapsed() ? 'md:hidden' : ''">{{ item.label }}</span>
+              <span [class]="sidebarService.collapsed() ? 'md:hidden' : ''">{{ item.label }}</span>
             </a>
           </li>
         }
       </ul>
 
-      @if (currentUser.me(); as me) {
+      @if (userService.me(); as me) {
         <a
           [routerLink]="routes.account()"
           routerLinkActive="bg-muted text-foreground"
           class="text-foreground-secondary hover:bg-muted hover:text-foreground mt-auto hidden items-center gap-2.5 rounded-md px-2 py-2 md:flex"
-          [class.md:justify-center]="sidebar.collapsed()"
-          [attr.aria-label]="sidebar.collapsed() ? '계정' : null"
-          [attr.title]="sidebar.collapsed() ? '계정' : null"
+          [class.md:justify-center]="sidebarService.collapsed()"
+          [attr.aria-label]="sidebarService.collapsed() ? '계정' : null"
+          [attr.title]="sidebarService.collapsed() ? '계정' : null"
         >
           <app-user-avatar
             class="size-7 text-xs"
             [name]="me.nickname"
             [imageUrl]="me.profileImageUrl"
           />
-          @if (!sidebar.collapsed()) {
+          @if (!sidebarService.collapsed()) {
             <span class="min-w-0 flex-1 truncate text-sm">{{ me.nickname }}</span>
           }
         </a>
@@ -150,11 +150,13 @@ import { ThemeToggle } from './theme-toggle';
           type="button"
           class="max-md:hidden"
           aria-controls="sidebar"
-          [attr.aria-expanded]="!sidebar.collapsed()"
-          [attr.aria-label]="sidebar.collapsed() ? '사이드바 펼치기' : '사이드바 접기'"
-          (click)="sidebar.toggle()"
+          [attr.aria-expanded]="!sidebarService.collapsed()"
+          [attr.aria-label]="sidebarService.collapsed() ? '사이드바 펼치기' : '사이드바 접기'"
+          (click)="sidebarService.toggle()"
         >
-          <app-icon [name]="sidebar.collapsed() ? 'lucidePanelLeftOpen' : 'lucidePanelLeftClose'" />
+          <app-icon
+            [name]="sidebarService.collapsed() ? 'lucidePanelLeftOpen' : 'lucidePanelLeftClose'"
+          />
         </button>
         <button
           hlmBtn
@@ -220,7 +222,7 @@ import { ThemeToggle } from './theme-toggle';
       </div>
     }
 
-    @if (aside.content(); as content) {
+    @if (asideSlotService.content(); as content) {
       <aside
         class="border-border bg-background flex w-full shrink-0 flex-col overflow-y-auto p-4 [--aside-w:100%] [scrollbar-gutter:stable] md:w-[24rem] md:border-l md:[--aside-w:24rem]"
         animate.enter="aside-enter"
@@ -232,8 +234,8 @@ import { ThemeToggle } from './theme-toggle';
   `,
 })
 export class AppShell {
+  // --- 상수 --------------------------------------------------------------------------------------
   protected readonly routes = ROUTES;
-
   protected readonly views = TASK_VIEWS;
 
   protected readonly icons: Record<TaskView, string> = {
@@ -243,31 +245,33 @@ export class AppShell {
     all: 'lucideHouse',
   };
 
-  protected readonly aside = inject(AsideSlot);
+  // --- 의존 --------------------------------------------------------------------------------------
+  protected readonly asideSlotService = inject(AsideSlotService);
+  protected readonly sidebarService = inject(SidebarService);
+  protected readonly userService = inject(UserService);
 
-  protected readonly sidebar = inject(SidebarStore);
+  // --- 질의 --------------------------------------------------------------------------------------
+  protected readonly veil = viewChild.required(NavigationVeil);
 
-  protected readonly currentUser = inject(CurrentUser);
-
+  // --- 상태 --------------------------------------------------------------------------------------
   protected readonly drawerOpen = signal(false);
 
+  // --- 파생 --------------------------------------------------------------------------------------
   protected readonly navClass = computed(() => {
-    const width = this.sidebar.collapsed() ? 'md:w-14' : 'md:w-56';
+    const width = this.sidebarService.collapsed() ? 'md:w-14' : 'md:w-56';
     const base = `border-border bg-toolbar shrink-0 ${width} md:flex md:flex-col md:overflow-y-auto md:border-r md:p-2 max-md:order-last max-md:border-t max-md:px-2 max-md:pt-1 max-md:pb-[calc(--spacing(1)+env(safe-area-inset-bottom))]`;
-    return this.aside.content() ? `${base} max-md:hidden` : base;
+    return this.asideSlotService.content() ? `${base} max-md:hidden` : base;
   });
 
   protected readonly linkClass = computed(() => {
     const base =
       'text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2 text-sm max-md:min-h-11 max-md:flex-col max-md:justify-center max-md:gap-1 max-md:text-xs';
-    return this.sidebar.collapsed() ? `${base} md:justify-center` : base;
+    return this.sidebarService.collapsed() ? `${base} md:justify-center` : base;
   });
 
   protected readonly columnClass = computed(() =>
-    this.aside.content()
+    this.asideSlotService.content()
       ? 'flex min-w-0 min-h-0 flex-1 flex-col max-md:hidden'
       : 'flex min-w-0 min-h-0 flex-1 flex-col',
   );
-
-  protected readonly veil = viewChild.required(NavigationVeil);
 }

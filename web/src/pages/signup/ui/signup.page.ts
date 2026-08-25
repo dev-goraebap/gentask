@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
-import { AuthCommands } from '@/entities/user';
+import { AuthService } from '@/entities/user';
 import { problemDetail } from '@/shared/api';
 import { ROUTES } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
@@ -82,13 +82,15 @@ import { HlmInput } from '@/shared/ui/input';
   `,
 })
 export class SignupPage {
+  // --- 상수 --------------------------------------------------------------------------------------
   private static readonly PASSWORD_MIN = 8;
-
-  private readonly auth = inject(AuthCommands);
-  private readonly router = inject(Router);
-
   protected readonly routes = ROUTES;
 
+  // --- 의존 --------------------------------------------------------------------------------------
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  // --- 상태 --------------------------------------------------------------------------------------
   private readonly draft = signal({ email: '', password: '' });
 
   protected readonly signupForm = form(this.draft, (path) => {
@@ -107,6 +109,7 @@ export class SignupPage {
   protected readonly failure = signal<string | null>(null);
   protected readonly busy = signal(false);
 
+  // --- 동작 --------------------------------------------------------------------------------------
   protected async submit(): Promise<void> {
     this.signupForm().markAsTouched();
     if (!this.signupForm().valid()) return;
@@ -115,7 +118,7 @@ export class SignupPage {
     this.failure.set(null);
     try {
       const { email, password } = this.draft();
-      await this.auth.signup(email, password);
+      await this.authService.signup(email, password);
     } catch (error) {
       this.failure.set(problemDetail(error, '등록하지 못했습니다. 잠시 후 다시 시도해 주세요'));
       return;
@@ -123,6 +126,6 @@ export class SignupPage {
       this.busy.set(false);
     }
 
-    await this.router.navigateByUrl(ROUTES.taskList());
+    await this.router.navigateByUrl(this.routes.taskList());
   }
 }

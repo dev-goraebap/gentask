@@ -1,26 +1,26 @@
 import { Routes } from '@angular/router';
-import { TaskCommands, TaskList } from '@/entities/task/providers';
+import { TaskService } from '@/entities/task/providers';
 import { authGuard } from '@/entities/user/guard';
-import { AuthCommands, CurrentUser, MeCommands } from '@/entities/user/providers';
+import { AuthService, UserService } from '@/entities/user/providers';
 import { provideTaskListDatePicker } from '@/pages/task-list/providers';
 import { AppShell } from './layout/app-shell';
 
 export const routes: Routes = [
   {
     path: 'login',
-    providers: [AuthCommands],
+    providers: [AuthService],
     loadComponent: () => import('@/pages/login').then((m) => m.LoginPage),
   },
   {
     path: 'signup',
-    providers: [AuthCommands],
+    providers: [AuthService],
     loadComponent: () => import('@/pages/signup').then((m) => m.SignupPage),
   },
   {
     path: '',
     component: AppShell,
     canActivate: [authGuard],
-    providers: [CurrentUser, MeCommands, AuthCommands],
+    providers: [UserService, AuthService],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'tasks' },
       {
@@ -29,7 +29,7 @@ export const routes: Routes = [
       },
       {
         path: 'tasks',
-        providers: [TaskList, TaskCommands, ...provideTaskListDatePicker()],
+        providers: [TaskService, ...provideTaskListDatePicker()],
         children: [
           { path: '', pathMatch: 'full', redirectTo: 'all' },
           {

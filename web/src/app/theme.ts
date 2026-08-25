@@ -7,13 +7,16 @@ const STORAGE_KEY = 'theme';
 const ORDER: readonly ThemePreference[] = ['system', 'light', 'dark'];
 
 @Injectable({ providedIn: 'root' })
-export class ThemeStore {
+export class ThemeService {
+  // --- 의존 --------------------------------------------------------------------------------------
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-  private readonly state = signal<ThemePreference>('system');
 
+  // --- 상태 --------------------------------------------------------------------------------------
+  private readonly state = signal<ThemePreference>('system');
   readonly preference = this.state.asReadonly();
 
+  // --- 생성 --------------------------------------------------------------------------------------
   constructor() {
     if (!this.isBrowser) return;
 
@@ -23,6 +26,7 @@ export class ThemeStore {
     effect(() => this.apply(this.state()));
   }
 
+  // --- 동작 --------------------------------------------------------------------------------------
   select(next: ThemePreference): void {
     this.state.set(next);
     if (!this.isBrowser) return;

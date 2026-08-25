@@ -1,16 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ThemeStore } from './theme';
+import { ThemeService } from './theme';
 
-describe('ThemeStore', () => {
+describe('ThemeService', () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.classList.remove('light', 'dark');
     TestBed.resetTestingModule();
   });
 
-  function create(): ThemeStore {
-    return TestBed.inject(ThemeStore);
+  function create(): ThemeService {
+    return TestBed.inject(ThemeService);
   }
 
   it('기본값은 시스템 설정이며 문서 루트에 클래스를 붙이지 않는다', () => {

@@ -1,11 +1,12 @@
 import { Directive, inject, Injectable, type OnDestroy, signal, TemplateRef } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
-export class AsideSlot {
+export class AsideSlotService {
+  // --- 상태 --------------------------------------------------------------------------------------
   private readonly state = signal<TemplateRef<unknown> | null>(null);
-
   readonly content = this.state.asReadonly();
 
+  // --- 동작 --------------------------------------------------------------------------------------
   set(template: TemplateRef<unknown>): void {
     this.state.set(template);
   }
@@ -17,14 +18,16 @@ export class AsideSlot {
 
 @Directive({ selector: '[appAside]' })
 export class AsideOutlet implements OnDestroy {
-  private readonly slot = inject(AsideSlot);
+  // --- 의존 --------------------------------------------------------------------------------------
+  private readonly asideSlotService = inject(AsideSlotService);
   private readonly template = inject<TemplateRef<unknown>>(TemplateRef);
 
+  // --- 생성 --------------------------------------------------------------------------------------
   constructor() {
-    this.slot.set(this.template);
+    this.asideSlotService.set(this.template);
   }
 
   ngOnDestroy(): void {
-    this.slot.clear(this.template);
+    this.asideSlotService.clear(this.template);
   }
 }

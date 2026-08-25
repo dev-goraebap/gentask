@@ -2,15 +2,15 @@ import { Component, signal, TemplateRef, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CurrentUser } from '@/entities/user';
-import { AsideSlot } from '@/shared/lib';
+import { UserService } from '@/entities/user';
+import { AsideSlotService } from '@/shared/lib';
 import { AppShell } from './app-shell';
 
-const currentUserStub = {
+const userServiceStub = {
   me: signal(undefined),
   status: signal('idle' as const),
   reload: () => {},
-} as unknown as CurrentUser;
+} as unknown as UserService;
 
 @Component({
   selector: 'app-host',
@@ -28,7 +28,7 @@ describe('AppShell 의 aside 슬롯', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: CurrentUser, useValue: currentUserStub }],
+      providers: [provideRouter([]), { provide: UserService, useValue: userServiceStub }],
     });
   });
 
@@ -43,7 +43,7 @@ describe('AppShell 의 aside 슬롯', () => {
     const fixture = TestBed.createComponent(Host);
     fixture.detectChanges();
 
-    TestBed.inject(AsideSlot).set(fixture.componentInstance.panel());
+    TestBed.inject(AsideSlotService).set(fixture.componentInstance.panel());
     fixture.detectChanges();
 
     const aside = (fixture.nativeElement as HTMLElement).querySelector('aside');
@@ -55,7 +55,7 @@ describe('AppShell 의 aside 슬롯', () => {
     const fixture = TestBed.createComponent(Host);
     fixture.detectChanges();
 
-    const slot = TestBed.inject(AsideSlot);
+    const slot = TestBed.inject(AsideSlotService);
     const panel = fixture.componentInstance.panel();
     slot.set(panel);
     fixture.detectChanges();
@@ -70,7 +70,7 @@ describe('AppShell 의 aside 슬롯', () => {
     const fixture = TestBed.createComponent(Host);
     fixture.detectChanges();
 
-    TestBed.inject(AsideSlot).set(fixture.componentInstance.panel());
+    TestBed.inject(AsideSlotService).set(fixture.componentInstance.panel());
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -86,7 +86,7 @@ describe('AppShell 의 사이드바 접기', () => {
     localStorage.clear();
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: CurrentUser, useValue: currentUserStub }],
+      providers: [provideRouter([]), { provide: UserService, useValue: userServiceStub }],
     });
   });
 

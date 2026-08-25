@@ -4,18 +4,22 @@ import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 const STORAGE_KEY = 'sidebar';
 
 @Injectable({ providedIn: 'root' })
-export class SidebarStore {
+export class SidebarService {
+  // --- 의존 --------------------------------------------------------------------------------------
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-  private readonly state = signal(false);
 
+  // --- 상태 --------------------------------------------------------------------------------------
+  private readonly state = signal(false);
   readonly collapsed = this.state.asReadonly();
 
+  // --- 생성 --------------------------------------------------------------------------------------
   constructor() {
     if (!this.isBrowser) return;
     this.state.set(this.read());
   }
 
+  // --- 동작 --------------------------------------------------------------------------------------
   toggle(): void {
     const next = !this.state();
     this.state.set(next);

@@ -9,10 +9,10 @@ import { ROUTES } from '@/shared/config';
 export const authGuard: CanActivateFn = async () => {
   if (isPlatformServer(inject(PLATFORM_ID))) return true;
 
-  const http = inject(HttpClient);
+  const httpClient = inject(HttpClient);
   const router = inject(Router);
   try {
-    await firstValueFrom(http.get(ENDPOINTS.me));
+    await firstValueFrom(httpClient.get(ENDPOINTS.me));
     return true;
   } catch {
     return router.parseUrl(ROUTES.login());

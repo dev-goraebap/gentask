@@ -152,7 +152,7 @@
             variant="outline"
             size="sm"
             class="mt-3"
-            (click)="taskList.reload()"
+            (click)="taskService.reload()"
           >
             다시 시도
           </button>
@@ -332,6 +332,6 @@
 
 @if (task() && !listLoading()) {
   <ng-template appAside>
-    <app-task-detail-panel [task]="openTask()" (changed)="taskList.reload()" />
+    <app-task-detail-panel [task]="openTask()" />
   </ng-template>
 }

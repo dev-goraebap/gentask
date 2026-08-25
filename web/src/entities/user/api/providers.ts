@@ -1,3 +1,2 @@
-export { CurrentUser } from './current-user';
-export { AuthCommands } from './auth-commands';
-export { MeCommands } from './me-commands';
+export { UserService } from './user';
+export { AuthService } from './auth';

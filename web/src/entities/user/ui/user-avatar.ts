@@ -16,9 +16,10 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
   `,
 })
 export class UserAvatar {
+  // --- 계약 --------------------------------------------------------------------------------------
   readonly name = input.required<string>();
-
   readonly imageUrl = input<string | null>(null);
 
+  // --- 파생 --------------------------------------------------------------------------------------
   protected readonly initial = computed(() => [...this.name()][0]?.toUpperCase() ?? '?');
 }

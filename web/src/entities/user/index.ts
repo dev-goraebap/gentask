@@ -1,4 +1,3 @@
-export { CurrentUser } from './api/current-user';
-export { AuthCommands } from './api/auth-commands';
-export { MeCommands } from './api/me-commands';
+export { UserService } from './api/user';
+export { AuthService } from './api/auth';
 export { UserAvatar } from './ui/user-avatar';

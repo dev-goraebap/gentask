@@ -2,8 +2,8 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TaskCommands, TaskList, toDateKey, type Task } from '@/entities/task';
-import { AsideSlot } from '@/shared/lib';
+import { TaskService, toDateKey, type Task } from '@/entities/task';
+import { AsideSlotService } from '@/shared/lib';
 import { provideTaskListDatePicker } from '../providers';
 import { TaskListPage } from './task-list.page';
 import { toast } from '@/shared/ui/sonner';
@@ -63,22 +63,23 @@ describe('TaskListPage', () => {
     setCompleted = vi.fn(async () => {});
     toastError = vi.spyOn(toast, 'error').mockImplementation(() => '' as never);
 
-    const taskList = { tasks, status, reload } as unknown as TaskList;
-    const commands: Partial<TaskCommands> = {
-      add: add as unknown as TaskCommands['add'],
-      setCompleted: setCompleted as unknown as TaskCommands['setCompleted'],
-      setImportant: setImportant as unknown as TaskCommands['setImportant'],
+    const taskService = {
+      list: tasks,
+      status,
+      reload,
+      add,
+      setCompleted,
+      setImportant,
       setMyDay: async () => {},
       update: async () => {},
       remove: async () => {},
-    };
+    } as unknown as TaskService;
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        { provide: TaskList, useValue: taskList },
-        { provide: TaskCommands, useValue: commands },
+        { provide: TaskService, useValue: taskService },
         ...provideTaskListDatePicker(),
       ],
     });
@@ -164,7 +165,6 @@ describe('TaskListPage', () => {
       TestBed.tick();
 
       expect(add).toHaveBeenCalledWith('우산 챙기기', {});
-      expect(reload).toHaveBeenCalled();
       expect(newTaskInput(fixture).value).toBe('');
     });
 
@@ -403,7 +403,6 @@ describe('TaskListPage', () => {
 
     expect(titles(fixture)).toEqual(['전기요금 납부', '장 보기', '건강검진 예약']);
     expect(toastError).toHaveBeenCalled();
-    expect(reload).not.toHaveBeenCalled();
     expect(newTaskInput(fixture).value).toBe('우산 챙기기');
   });
 
@@ -488,7 +487,7 @@ describe('TaskListPage', () => {
   it('열린 항목이 없으면 aside 슬롯을 채우지 않는다', () => {
     render();
 
-    expect(TestBed.inject(AsideSlot).content()).toBeNull();
+    expect(TestBed.inject(AsideSlotService).content()).toBeNull();
   });
 
   it('열린 항목이 있으면 aside 슬롯을 채운다', () => {
@@ -496,7 +495,7 @@ describe('TaskListPage', () => {
     fixture.componentRef.setInput('task', 'seed-1');
     fixture.detectChanges();
 
-    expect(TestBed.inject(AsideSlot).content()).not.toBeNull();
+    expect(TestBed.inject(AsideSlotService).content()).not.toBeNull();
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('app-task-detail-panel'),
     ).toBeNull();
@@ -509,6 +508,6 @@ describe('TaskListPage', () => {
     fixture.componentRef.setInput('task', undefined);
     fixture.detectChanges();
 
-    expect(TestBed.inject(AsideSlot).content()).toBeNull();
+    expect(TestBed.inject(AsideSlotService).content()).toBeNull();
   });
 });

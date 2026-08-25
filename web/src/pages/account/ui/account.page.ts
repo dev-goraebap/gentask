@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router } from '@angular/router';
-import { AuthCommands, CurrentUser, MeCommands, UserAvatar } from '@/entities/user';
+import { AuthService, UserAvatar, UserService } from '@/entities/user';
 import { problemDetail } from '@/shared/api';
 import { ROUTES } from '@/shared/config';
 import { openUppyDialog } from '@/shared/lib';
@@ -143,18 +143,13 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
   `,
 })
 export class AccountPage {
-  private readonly currentUser = inject(CurrentUser);
-  private readonly meCommands = inject(MeCommands);
-  private readonly auth = inject(AuthCommands);
+  // --- 의존 --------------------------------------------------------------------------------------
+  private readonly userService = inject(UserService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  protected readonly me = this.currentUser.me;
-
-  protected readonly veilLoading = computed(() => this.currentUser.status() === 'loading');
-  protected readonly veilFailed = computed(() => this.currentUser.status() === 'error');
-
+  // --- 상태 --------------------------------------------------------------------------------------
   protected readonly issuedToken = signal<string | null>(null);
-
   private readonly draft = signal({ nickname: '' });
 
   protected readonly nicknameForm = form(this.draft, (path) => {
@@ -165,14 +160,10 @@ export class AccountPage {
 
   private readonly loaded = signal<string | null>(null);
 
-  constructor() {
-    effect(() => {
-      const user = this.me();
-      if (!user || untracked(this.loaded) === user.id) return;
-      this.loaded.set(user.id);
-      this.draft.set({ nickname: user.nickname });
-    });
-  }
+  // --- 파생 --------------------------------------------------------------------------------------
+  protected readonly me = this.userService.me;
+  protected readonly veilLoading = computed(() => this.userService.status() === 'loading');
+  protected readonly veilFailed = computed(() => this.userService.status() === 'error');
 
   protected readonly joinedAt = computed(() => {
     const user = this.me();
@@ -184,6 +175,17 @@ export class AccountPage {
     return at ? new Date(at).toLocaleString('ko-KR') : '';
   });
 
+  // --- 생성 --------------------------------------------------------------------------------------
+  constructor() {
+    effect(() => {
+      const user = this.me();
+      if (!user || untracked(this.loaded) === user.id) return;
+      this.loaded.set(user.id);
+      this.draft.set({ nickname: user.nickname });
+    });
+  }
+
+  // --- 동작 --------------------------------------------------------------------------------------
   protected async commitNickname(): Promise<void> {
     const user = this.me();
     if (!user) return;
@@ -195,13 +197,12 @@ export class AccountPage {
     if (next === user.nickname) return;
 
     try {
-      await this.meCommands.changeNickname(next);
+      await this.userService.changeNickname(next);
     } catch (error) {
       this.draft.set({ nickname: user.nickname });
       toast.error(problemDetail(error, '별명을 바꾸지 못했습니다.'));
       return;
     }
-    this.currentUser.reload();
   }
 
   protected commitNicknameOnEnter(event: KeyboardEvent): void {
@@ -216,43 +217,39 @@ export class AccountPage {
       maxFileSize: MAX_IMAGE_BYTES,
       allowedFileTypes: ['image/*'],
       note: '이미지 1개, 10MB 이하',
-      presign: (file) => this.meCommands.presignProfileImage(file.name, file.type, file.size),
-      attach: (objectKey) => this.meCommands.confirmProfileImage(objectKey),
-      onCompleted: () => this.currentUser.reload(),
+      presign: (file) => this.userService.presignProfileImage(file.name, file.type, file.size),
+      attach: ([upload]) => this.userService.confirmProfileImage(upload.objectKey),
       onAttachError: (message) => toast.error(message),
     });
   }
 
   protected async clearImage(): Promise<void> {
     try {
-      await this.meCommands.clearProfileImage();
+      await this.userService.clearProfileImage();
     } catch (error) {
       toast.error(problemDetail(error, '이미지를 지우지 못했습니다.'));
       return;
     }
-    this.currentUser.reload();
   }
 
   protected async issueToken(): Promise<void> {
     try {
-      const issued = await this.meCommands.issueApiToken();
+      const issued = await this.userService.issueApiToken();
       this.issuedToken.set(issued.token);
     } catch (error) {
       toast.error(problemDetail(error, '토큰을 발급하지 못했습니다.'));
       return;
     }
-    this.currentUser.reload();
   }
 
   protected async deleteToken(): Promise<void> {
     try {
-      await this.meCommands.deleteApiToken();
+      await this.userService.deleteApiToken();
     } catch (error) {
       toast.error(problemDetail(error, '토큰을 지우지 못했습니다.'));
       return;
     }
     this.issuedToken.set(null);
-    this.currentUser.reload();
   }
 
   protected async copyToken(): Promise<void> {
@@ -264,12 +261,12 @@ export class AccountPage {
 
   protected async logout(): Promise<void> {
     try {
-      await this.auth.logout();
+      await this.authService.logout();
     } catch {
       toast.error('로그아웃하지 못했습니다.');
       return;
     }
-    this.currentUser.reload();
+    this.userService.reload();
     await this.router.navigateByUrl(ROUTES.login());
   }
 }

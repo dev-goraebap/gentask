@@ -7,12 +7,12 @@ import { ROUTES } from '@/shared/config';
 
 export function unauthorizedInterceptor(request: HttpRequest<unknown>, next: HttpHandlerFn) {
   const router = inject(Router);
-  const browser = isPlatformBrowser(inject(PLATFORM_ID));
+  const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   return next(request).pipe(
     catchError((error: unknown) => {
       if (
-        browser &&
+        isBrowser &&
         error instanceof HttpErrorResponse &&
         error.status === 401 &&
         !request.url.includes('/api/v1/auth/')

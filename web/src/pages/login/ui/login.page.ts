@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
-import { AuthCommands } from '@/entities/user';
+import { AuthService } from '@/entities/user';
 import { problemDetail } from '@/shared/api';
 import { ROUTES } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
@@ -82,11 +82,14 @@ import { HlmInput } from '@/shared/ui/input';
   `,
 })
 export class LoginPage {
-  private readonly auth = inject(AuthCommands);
-  private readonly router = inject(Router);
-
+  // --- 상수 --------------------------------------------------------------------------------------
   protected readonly routes = ROUTES;
 
+  // --- 의존 --------------------------------------------------------------------------------------
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  // --- 상태 --------------------------------------------------------------------------------------
   private readonly draft = signal({ email: '', password: '' });
 
   protected readonly loginForm = form(this.draft, (path) => {
@@ -101,6 +104,7 @@ export class LoginPage {
   protected readonly failure = signal<string | null>(null);
   protected readonly busy = signal(false);
 
+  // --- 동작 --------------------------------------------------------------------------------------
   protected async submit(): Promise<void> {
     this.loginForm().markAsTouched();
     if (!this.loginForm().valid()) return;
@@ -109,7 +113,7 @@ export class LoginPage {
     this.failure.set(null);
     try {
       const { email, password } = this.draft();
-      await this.auth.login(email, password);
+      await this.authService.login(email, password);
     } catch (error) {
       this.failure.set(problemDetail(error, '로그인하지 못했습니다. 잠시 후 다시 시도해 주세요'));
       return;
@@ -117,6 +121,6 @@ export class LoginPage {
       this.busy.set(false);
     }
 
-    await this.router.navigateByUrl(ROUTES.taskList());
+    await this.router.navigateByUrl(this.routes.taskList());
   }
 }

@@ -1,7 +1,9 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { isPlatformServer } from '@angular/common';
+import { HttpClient, httpResource } from '@angular/common/http';
+import { computed, inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ENDPOINTS, type PresignedUpload, type TaskFileView } from '@/shared/api';
+import { ENDPOINTS } from '@/shared/api';
+import type { Task } from '../model/task';
 
 export type TaskSeed = {
   readonly important?: boolean;
@@ -21,9 +23,23 @@ export type TaskDraft = {
 };
 
 @Injectable()
-export class TaskCommands {
-  private readonly http = inject(HttpClient);
+export class TaskService {
+  // --- 의존 --------------------------------------------------------------------------------------
+  private readonly httpClient = inject(HttpClient);
+  private readonly isServer = isPlatformServer(inject(PLATFORM_ID));
 
+  // --- 파생 --------------------------------------------------------------------------------------
+  private readonly resource = httpResource<readonly Task[]>(() =>
+    this.isServer ? undefined : ENDPOINTS.tasks,
+  );
+
+  readonly list = computed<readonly Task[]>(() =>
+    this.resource.hasValue() ? this.resource.value() : [],
+  );
+
+  readonly status = this.resource.status;
+
+  // --- 동작 --------------------------------------------------------------------------------------
   async add(title: string, seed: TaskSeed = {}): Promise<void> {
     const taskId = await this.create(title, seed.dueDate ?? null);
 
@@ -37,65 +53,41 @@ export class TaskCommands {
         remindAt: seed.remindAt,
       });
     }
+    this.resource.reload();
   }
 
   async setCompleted(id: string, completed: boolean): Promise<void> {
     await this.patch(ENDPOINTS.taskCompletion(id), { completed });
+    this.resource.reload();
   }
 
   async setImportant(id: string, important: boolean): Promise<void> {
     await this.patch(ENDPOINTS.taskImportance(id), { important });
+    this.resource.reload();
   }
 
   async setMyDay(id: string, inMyDay: boolean): Promise<void> {
     await this.patch(ENDPOINTS.taskMyDay(id), { inMyDay });
+    this.resource.reload();
   }
 
   async update(id: string, patch: TaskDraft): Promise<void> {
     await this.patch(ENDPOINTS.task(id), patch);
+    this.resource.reload();
   }
 
   async remove(id: string): Promise<void> {
-    await firstValueFrom(this.http.delete<void>(ENDPOINTS.task(id)));
+    await firstValueFrom(this.httpClient.delete<void>(ENDPOINTS.task(id)));
+    this.resource.reload();
   }
 
-  async presignFile(
-    taskId: string,
-    fileName: string,
-    contentType: string,
-    size: number,
-  ): Promise<PresignedUpload> {
-    return firstValueFrom(
-      this.http.post<PresignedUpload>(ENDPOINTS.taskFilePresign(taskId), {
-        fileName,
-        contentType,
-        size,
-      }),
-    );
-  }
-
-  async attachFile(
-    taskId: string,
-    objectKey: string,
-    fileName: string,
-    contentType: string,
-  ): Promise<TaskFileView> {
-    return firstValueFrom(
-      this.http.post<TaskFileView>(ENDPOINTS.taskFiles(taskId), {
-        objectKey,
-        fileName,
-        contentType,
-      }),
-    );
-  }
-
-  async detachFile(taskId: string, fileId: string): Promise<void> {
-    await firstValueFrom(this.http.delete<void>(ENDPOINTS.taskFile(taskId, fileId)));
+  reload(): void {
+    this.resource.reload();
   }
 
   private async create(title: string, dueDate: string | null): Promise<string> {
     const response = await firstValueFrom(
-      this.http.post(ENDPOINTS.tasks, { title, dueDate }, { observe: 'response' }),
+      this.httpClient.post(ENDPOINTS.tasks, { title, dueDate }, { observe: 'response' }),
     );
     const location = response.headers.get('Location');
     if (!location) throw new Error('Location 헤더가 없어 만든 작업을 가리킬 수 없습니다.');
@@ -103,6 +95,6 @@ export class TaskCommands {
   }
 
   private async patch(url: string, body: object): Promise<void> {
-    await firstValueFrom(this.http.patch<void>(url, body));
+    await firstValueFrom(this.httpClient.patch<void>(url, body));
   }
 }

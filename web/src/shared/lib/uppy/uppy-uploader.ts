@@ -9,14 +9,18 @@ export interface PickedFile {
   readonly size: number;
 }
 
+export interface UploadedFile {
+  readonly objectKey: string;
+  readonly file: PickedFile;
+}
+
 export interface UppyDialogOptions {
   readonly maxNumberOfFiles: number;
   readonly maxFileSize: number;
   readonly allowedFileTypes?: readonly string[];
   readonly note?: string;
   readonly presign: (file: PickedFile) => Promise<PresignedTarget>;
-  readonly attach: (objectKey: string, file: PickedFile) => Promise<void>;
-  readonly onCompleted: () => void;
+  readonly attach: (uploads: readonly UploadedFile[]) => Promise<void>;
   readonly onAttachError: (message: string) => void;
 }
 
@@ -63,16 +67,17 @@ export async function openUppyDialog(options: UppyDialogOptions): Promise<void> 
 
   uppy.on('complete', (result) => {
     void (async () => {
-      for (const file of result.successful ?? []) {
-        try {
-          await options.attach(String(file.meta['objectKey']), toPicked(file));
-        } catch (error) {
-          options.onAttachError(
-            error instanceof Error ? error.message : '파일을 붙이지 못했습니다.',
-          );
-        }
+      const uploads = (result.successful ?? []).map((file) => ({
+        objectKey: String(file.meta['objectKey']),
+        file: toPicked(file),
+      }));
+      if (uploads.length === 0) return;
+
+      try {
+        await options.attach(uploads);
+      } catch (error) {
+        options.onAttachError(error instanceof Error ? error.message : '파일을 붙이지 못했습니다.');
       }
-      options.onCompleted();
     })();
   });
 
