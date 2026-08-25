@@ -229,6 +229,18 @@ Angular CLI 가 생성한 평면 파일 구조(`app.config.ts`, `app.routes.ts`)
 
 `app/ui/` 폴더를 만드는 것을 **금지**합니다. Steiger 의 `no-ui-in-app` 규칙이 `app` 계층의 `ui` 세그먼트를 차단하여 빌드가 실패합니다. 루트 컴포넌트 `app.ts` 처럼 개별 파일은 대상이 아니며, 전역 레이아웃 컴포넌트가 필요하면 `app/layout/` 등 목적을 드러내는 이름을 사용합니다.
 
+**레이아웃 컴포넌트는 도메인 어휘를 직접 알지 않습니다.** `app` 계층이 하위 계층을 임포트하는 것 자체는 허용되지만, 그 앎은 조립 지점이 갖고 레이아웃 컴포넌트는 표현 계약만 받습니다. 셸이 도메인 값과 그 값의 아이콘·링크를 직접 들면 도메인이 늘 때마다 셸을 고쳐야 합니다.
+
+```ts
+// app/layout/nav-items.ts — 조립 지점이 도메인을 안다
+export const NAV_ITEMS = new InjectionToken<readonly NavItem[]>('NAV_ITEMS', {
+  factory: () => TASK_VIEWS.map((view) => ({ label: view.label, icon: …, link: … })),
+});
+
+// app/layout/app-shell.ts — 셸은 { label, icon, link } 만 안다
+protected readonly navItems = inject(NAV_ITEMS);
+```
+
 **목적 폴더로 승격할 때는 그 목적에만 속하는 상태 서비스도 함께 옮깁니다.** 컴포넌트만 옮기고 서비스를 `app` 루트에 남기면 폴더를 나갔다 들어오는 참조가 생기고, `app` 루트에 애플리케이션 초기화와 무관한 파일이 쌓입니다. 목적 폴더 밖에서도 쓰이게 되면 그때 `shared` 로 올립니다.
 
 ### 7.2 계층에 속하지 않는 파일

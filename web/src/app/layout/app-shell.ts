@@ -10,22 +10,18 @@ import {
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import {
-  lucideCalendarRange,
-  lucideHouse,
   lucideMenu,
   lucidePanelLeftClose,
   lucidePanelLeftOpen,
-  lucideStar,
-  lucideSun,
   lucideUserRound,
 } from '@ng-icons/lucide';
-import { TASK_VIEWS, type TaskView } from '@/entities/task';
 import { UserAvatar, UserService } from '@/entities/user';
 import { ROUTES } from '@/shared/config';
 import { AsideSlotService } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
 import { NavigationVeil } from './navigation-veil';
+import { NAV_ICONS, NAV_ITEMS } from './nav-items';
 import { SidebarService } from './sidebar-service';
 import { ThemeToggle } from './theme-toggle';
 
@@ -44,13 +40,10 @@ import { ThemeToggle } from './theme-toggle';
   ],
   providers: [
     provideIcons({
-      lucideCalendarRange,
-      lucideHouse,
+      ...NAV_ICONS,
       lucideMenu,
       lucidePanelLeftClose,
       lucidePanelLeftOpen,
-      lucideStar,
-      lucideSun,
       lucideUserRound,
     }),
   ],
@@ -61,16 +54,9 @@ import { ThemeToggle } from './theme-toggle';
 export class AppShell {
   // --- 상수 --------------------------------------------------------------------------------------
   protected readonly routes = ROUTES;
-  protected readonly views = TASK_VIEWS;
-
-  protected readonly icons: Record<TaskView, string> = {
-    'my-day': 'lucideSun',
-    important: 'lucideStar',
-    planned: 'lucideCalendarRange',
-    all: 'lucideHouse',
-  };
 
   // --- 의존 --------------------------------------------------------------------------------------
+  protected readonly navItems = inject(NAV_ITEMS);
   protected readonly asideSlotService = inject(AsideSlotService);
   protected readonly sidebarService = inject(SidebarService);
   protected readonly userService = inject(UserService);
