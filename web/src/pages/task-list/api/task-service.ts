@@ -3,7 +3,7 @@ import { HttpClient, httpResource } from '@angular/common/http';
 import { computed, inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ENDPOINTS } from '@/shared/api';
-import type { Task } from '../model/task';
+import type { Task } from '@/entities/task';
 
 export type TaskSeed = {
   readonly important?: boolean;

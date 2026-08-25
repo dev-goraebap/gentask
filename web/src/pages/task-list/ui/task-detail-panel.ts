@@ -29,19 +29,18 @@ import {
   quickReminds,
   remindTimeKey,
   splitTime,
-  TaskService,
   toDateKey,
   withRemindDate,
   withRemindTime,
   type Meridiem,
   type Task,
-  type TaskDraft,
 } from '@/entities/task';
 import { problemDetail } from '@/shared/api';
 import { TASK_PANEL } from '@/shared/config';
 import { openUppyDialog } from '@/shared/lib';
 import { toast } from '@/shared/ui/sonner';
 import { injectTaskFiles } from '../api/task-files';
+import { TaskService, type TaskDraft } from '../api/task-service';
 import {
   HlmAlertDialog,
   HlmAlertDialogAction,

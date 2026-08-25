@@ -4,7 +4,6 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/shared/ui/button": ["./src/shared/ui/button/src/index.ts"],
-      "@/entities/task/providers": ["./src/entities/task/api/providers.ts"],
       "@/entities/user/guard": ["./src/entities/user/api/auth-guard.ts"],
       "@/entities/user/providers": ["./src/entities/user/api/providers.ts"],
       "@/pages/task-list/providers": ["./src/pages/task-list/providers.ts"],

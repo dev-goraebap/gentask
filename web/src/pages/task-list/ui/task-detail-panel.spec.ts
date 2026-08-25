@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TaskService, type Task } from '@/entities/task';
+import { type Task } from '@/entities/task';
+import { TaskService } from '../api/task-service';
 import { provideTaskListDatePicker } from '../providers';
 import { TaskDetailPanel } from './task-detail-panel';
 import { toast } from '@/shared/ui/sonner';

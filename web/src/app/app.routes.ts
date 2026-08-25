@@ -1,8 +1,7 @@
 import { Routes } from '@angular/router';
-import { TaskService } from '@/entities/task/providers';
 import { authGuard } from '@/entities/user/guard';
 import { AuthService, UserService } from '@/entities/user/providers';
-import { provideTaskListDatePicker } from '@/pages/task-list/providers';
+import { provideTaskListDatePicker, TaskService } from '@/pages/task-list/providers';
 import { AppShell } from './layout/app-shell';
 
 export const routes: Routes = [

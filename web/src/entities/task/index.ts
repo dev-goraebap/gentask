@@ -43,4 +43,3 @@ export {
   toTaskSort,
   toTaskView,
 } from './model/task';
-export { TaskService, type TaskDraft, type TaskSeed } from './api/task-service';

@@ -57,7 +57,6 @@ import {
   sortActive,
   sortCompleted,
   splitByCompletion,
-  TaskService,
   taskViewLabel,
   toDateKey,
   toTaskSort,
@@ -68,10 +67,10 @@ import {
   type SortDirection,
   toTaskView,
   type Task,
-  type TaskSeed,
   type TaskSort,
   type TaskView,
 } from '@/entities/task';
+import { TaskService, type TaskSeed } from '../api/task-service';
 
 @Component({
   selector: 'app-task-list',
