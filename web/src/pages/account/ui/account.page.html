@@ -1,0 +1,93 @@
+<app-veil [loading]="veilLoading()" [failed]="veilFailed()" />
+
+<section class="mx-auto flex w-full max-w-[40rem] flex-1 flex-col gap-6 px-4 pt-8 pb-8 md:pt-12">
+  <h1 class="text-2xl font-semibold tracking-tight">계정</h1>
+
+  @if (me(); as user) {
+    <div class="border-border bg-card border p-4">
+      <div class="flex items-center gap-4">
+        <app-user-avatar
+          class="size-16 text-xl"
+          [name]="user.nickname"
+          [imageUrl]="user.profileImageUrl"
+        />
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-medium">{{ user.nickname }}</p>
+          <p class="text-foreground-secondary truncate text-sm">{{ user.email }}</p>
+          <p class="text-foreground-secondary text-xs">{{ joinedAt() }} 가입</p>
+        </div>
+      </div>
+
+      <div class="mt-3 flex flex-wrap gap-2">
+        <button hlmBtn type="button" variant="outline" size="sm" (click)="uploadImage()">
+          이미지 올리기
+        </button>
+        @if (user.profileImageUrl) {
+          <button hlmBtn type="button" variant="ghost" size="sm" (click)="clearImage()">
+            이미지 지우기
+          </button>
+        }
+      </div>
+
+      <form novalidate [formRoot]="nicknameForm" (submit)="$event.preventDefault()" class="mt-4">
+        <div hlmField>
+          <label hlmFieldLabel for="account-nickname">별명</label>
+          <input
+            hlmInput
+            id="account-nickname"
+            autocomplete="nickname"
+            [formField]="nicknameForm.nickname"
+            (blur)="commitNickname()"
+            (keydown)="commitNicknameOnEnter($event)"
+          />
+          @if (nicknameForm.nickname().touched()) {
+            @for (error of nicknameForm.nickname().errors(); track error.kind) {
+              <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
+            }
+          }
+        </div>
+      </form>
+    </div>
+
+    <div class="border-border bg-card border p-4">
+      <h2 class="font-medium">에이전트 토큰</h2>
+      <p class="text-foreground-secondary mt-1 text-sm">
+        로컬 에이전트(MCP)가 내 계정으로 작업을 다룰 때 쓰는 토큰입니다. 요청의
+        <code class="text-xs">Authorization: Bearer</code> 헤더에 넣습니다.
+      </p>
+
+      @if (issuedToken(); as token) {
+        <div class="border-border bg-muted mt-3 flex items-center gap-2 border p-2">
+          <code class="min-w-0 flex-1 truncate text-xs">{{ token }}</code>
+          <button hlmBtn type="button" variant="outline" size="sm" (click)="copyToken()">
+            복사
+          </button>
+        </div>
+        <p class="text-warning mt-2 text-xs">
+          이 화면을 떠나면 다시 볼 수 없습니다. 지금 복사해 두세요.
+        </p>
+      } @else if (user.apiTokenIssuedAt) {
+        <p class="text-foreground-secondary mt-3 text-sm">
+          {{ tokenIssuedAt() }} 에 발급된 토큰이 있습니다. 원문은 발급할 때만 보입니다.
+        </p>
+      } @else {
+        <p class="text-foreground-secondary mt-3 text-sm">아직 발급한 토큰이 없습니다.</p>
+      }
+
+      <div class="mt-3 flex flex-wrap gap-2">
+        <button hlmBtn type="button" variant="outline" size="sm" (click)="issueToken()">
+          {{ user.apiTokenIssuedAt ? '다시 발급' : '발급' }}
+        </button>
+        @if (user.apiTokenIssuedAt) {
+          <button hlmBtn type="button" variant="ghost" size="sm" (click)="deleteToken()">
+            지우기
+          </button>
+        }
+      </div>
+    </div>
+
+    <div>
+      <button hlmBtn type="button" variant="outline" (click)="logout()">로그아웃</button>
+    </div>
+  }
+</section>

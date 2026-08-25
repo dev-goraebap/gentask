@@ -1,0 +1,170 @@
+<nav id="sidebar" [class]="navClass()" aria-label="탐색">
+  @if (!sidebarService.collapsed()) {
+    <a
+      [routerLink]="routes.home()"
+      class="mb-1 hidden px-2 py-1 text-base font-semibold tracking-tight md:block"
+    >
+      작업
+    </a>
+  }
+
+  <ul class="hidden gap-1 md:flex md:flex-col">
+    @for (item of views; track item.value) {
+      <li>
+        <a
+          [routerLink]="routes.taskList(item.value)"
+          routerLinkActive="bg-muted text-foreground"
+          #active="routerLinkActive"
+          [attr.aria-current]="active.isActive ? 'page' : null"
+          [attr.aria-label]="sidebarService.collapsed() ? item.label : null"
+          [attr.title]="sidebarService.collapsed() ? item.label : null"
+          [class]="linkClass()"
+        >
+          <app-icon [name]="icons[item.value]" />
+          <span [class]="sidebarService.collapsed() ? 'md:hidden' : ''">{{ item.label }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+
+  @if (userService.me(); as me) {
+    <a
+      [routerLink]="routes.account()"
+      routerLinkActive="bg-muted text-foreground"
+      class="text-foreground-secondary hover:bg-muted hover:text-foreground mt-auto hidden items-center gap-2.5 rounded-md px-2 py-2 md:flex"
+      [class.md:justify-center]="sidebarService.collapsed()"
+      [attr.aria-label]="sidebarService.collapsed() ? '계정' : null"
+      [attr.title]="sidebarService.collapsed() ? '계정' : null"
+    >
+      <app-user-avatar
+        class="size-7 text-xs"
+        [name]="me.nickname"
+        [imageUrl]="me.profileImageUrl"
+      />
+      @if (!sidebarService.collapsed()) {
+        <span class="min-w-0 flex-1 truncate text-sm">{{ me.nickname }}</span>
+      }
+    </a>
+  }
+
+  <ul class="flex justify-around gap-1 md:hidden">
+    <li class="flex-1">
+      <a
+        [routerLink]="routes.tasks()"
+        routerLinkActive="bg-muted text-foreground"
+        #tasksActive="routerLinkActive"
+        [attr.aria-current]="tasksActive.isActive ? 'page' : null"
+        [class]="linkClass()"
+      >
+        <app-icon name="lucideHouse" />
+        <span>할일</span>
+      </a>
+    </li>
+    <li class="flex-1">
+      <a
+        [routerLink]="routes.account()"
+        routerLinkActive="bg-muted text-foreground"
+        #accountActive="routerLinkActive"
+        [attr.aria-current]="accountActive.isActive ? 'page' : null"
+        [class]="linkClass()"
+      >
+        <app-icon name="lucideUserRound" />
+        <span>계정</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<div [class]="columnClass()">
+  <a
+    href="#main"
+    class="sr-only focus:not-sr-only focus:bg-primary focus:text-primary-foreground focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:px-4 focus:py-2"
+  >
+    본문으로 건너뛰기
+  </a>
+
+  <header class="bg-toolbar border-border flex h-14 shrink-0 items-center gap-4 border-b px-4">
+    <button
+      hlmBtn
+      variant="ghost"
+      size="icon-sm"
+      type="button"
+      class="max-md:hidden"
+      aria-controls="sidebar"
+      [attr.aria-expanded]="!sidebarService.collapsed()"
+      [attr.aria-label]="sidebarService.collapsed() ? '사이드바 펼치기' : '사이드바 접기'"
+      (click)="sidebarService.toggle()"
+    >
+      <app-icon
+        [name]="sidebarService.collapsed() ? 'lucidePanelLeftOpen' : 'lucidePanelLeftClose'"
+      />
+    </button>
+    <button
+      hlmBtn
+      variant="ghost"
+      size="icon-sm"
+      type="button"
+      class="md:hidden"
+      aria-controls="mobile-drawer"
+      [attr.aria-expanded]="drawerOpen()"
+      aria-label="스마트 목록 열기"
+      (click)="drawerOpen.set(true)"
+    >
+      <app-icon name="lucideMenu" />
+    </button>
+    <a [routerLink]="routes.home()" class="text-base font-semibold tracking-tight md:hidden">
+      작업
+    </a>
+    <span class="flex-1"></span>
+    <app-theme-toggle />
+  </header>
+
+  <main
+    id="main"
+    class="relative flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-gutter:stable]"
+    [attr.aria-busy]="veil().visible() || null"
+  >
+    <app-navigation-veil />
+    <router-outlet />
+  </main>
+</div>
+
+@if (drawerOpen()) {
+  <div class="fixed inset-0 z-40 md:hidden">
+    <div class="bg-veil absolute inset-0" aria-hidden="true" (click)="drawerOpen.set(false)"></div>
+    <nav
+      id="mobile-drawer"
+      class="bg-background border-border absolute inset-y-0 left-0 flex w-64 flex-col border-r p-2"
+      aria-label="스마트 목록"
+    >
+      <p class="px-2 py-1 text-base font-semibold tracking-tight">작업</p>
+      <ul class="mt-1 flex flex-col gap-1">
+        @for (item of views; track item.value) {
+          <li>
+            <a
+              [routerLink]="routes.taskList(item.value)"
+              routerLinkActive="bg-muted text-foreground"
+              #drawerActive="routerLinkActive"
+              [attr.aria-current]="drawerActive.isActive ? 'page' : null"
+              class="text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2 text-sm"
+              (click)="drawerOpen.set(false)"
+            >
+              <app-icon [name]="icons[item.value]" />
+              <span>{{ item.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+  </div>
+}
+
+@if (asideSlotService.content(); as content) {
+  <aside
+    class="border-border bg-background flex w-full shrink-0 flex-col overflow-y-auto p-4 [--aside-w:100%] [scrollbar-gutter:stable] md:w-[24rem] md:border-l md:[--aside-w:24rem]"
+    animate.enter="aside-enter"
+    animate.leave="aside-leave"
+  >
+    <ng-container [ngTemplateOutlet]="content" />
+  </aside>
+}

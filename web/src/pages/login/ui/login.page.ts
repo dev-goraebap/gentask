@@ -22,64 +22,7 @@ import { HlmInput } from '@/shared/ui/input';
   ],
   host: { class: 'flex min-h-dvh items-center justify-center p-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <section class="border-border bg-card w-full max-w-sm border p-6">
-      <h1 class="text-xl font-semibold tracking-tight">로그인</h1>
-      <p class="text-foreground-secondary mt-1 text-sm">내 목록으로 돌아갑니다.</p>
-
-      <form
-        novalidate
-        [formRoot]="loginForm"
-        (submit)="$event.preventDefault(); submit()"
-        class="mt-6 flex flex-col gap-4"
-      >
-        <div hlmField>
-          <label hlmFieldLabel for="login-email">이메일</label>
-          <input
-            hlmInput
-            id="login-email"
-            type="email"
-            autocomplete="email"
-            [formField]="loginForm.email"
-          />
-          @if (loginForm.email().touched()) {
-            @for (error of loginForm.email().errors(); track error.kind) {
-              <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
-            }
-          }
-        </div>
-
-        <div hlmField>
-          <label hlmFieldLabel for="login-password">비밀번호</label>
-          <input
-            hlmInput
-            id="login-password"
-            type="password"
-            autocomplete="current-password"
-            [formField]="loginForm.password"
-          />
-          @if (loginForm.password().touched()) {
-            @for (error of loginForm.password().errors(); track error.kind) {
-              <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
-            }
-          }
-        </div>
-
-        @if (failure(); as message) {
-          <p class="text-destructive text-sm" role="alert">{{ message }}</p>
-        }
-
-        <button hlmBtn type="submit" [disabled]="busy()">로그인</button>
-      </form>
-
-      <p class="text-foreground-secondary mt-4 text-sm">
-        계정이 없나요?
-        <a class="text-primary underline-offset-4 hover:underline" [routerLink]="routes.signup()"
-          >등록</a
-        >
-      </p>
-    </section>
-  `,
+  templateUrl: './login.page.html',
 })
 export class LoginPage {
   // --- 상수 --------------------------------------------------------------------------------------

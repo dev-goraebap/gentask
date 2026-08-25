@@ -1,0 +1,10 @@
+<button
+  hlmBtn
+  variant="ghost"
+  size="icon-sm"
+  type="button"
+  [attr.aria-label]="label()"
+  (click)="themeService.cycle()"
+>
+  <app-icon [name]="icon()" />
+</button>

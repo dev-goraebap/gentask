@@ -28,18 +28,7 @@ const NEXT: Record<ThemePreference, ThemePreference> = {
   imports: [HlmButton, AppIcon],
   providers: [provideIcons({ lucideMonitor, lucideMoon, lucideSun })],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <button
-      hlmBtn
-      variant="ghost"
-      size="icon-sm"
-      type="button"
-      [attr.aria-label]="label()"
-      (click)="themeService.cycle()"
-    >
-      <app-icon [name]="icon()" />
-    </button>
-  `,
+  templateUrl: './theme-toggle.html',
 })
 export class ThemeToggle {
   // --- 의존 --------------------------------------------------------------------------------------
