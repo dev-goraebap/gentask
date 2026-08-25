@@ -35,7 +35,7 @@
 
 애플리케이션 전반에 공통 적용되는 횡단 관심사 규약입니다.
 
-- [03. 명명 규칙](references/03-naming.md) — 파일명·클래스명·선택자 규약
+- [03. 코드 작성 규약](references/03-code-style.md) — 파일명·클래스명·선택자 규약과 클래스 멤버 순서
 - [04. 디자인 시스템](references/04-design-system.md) — UI 킷 구성, 토큰의 그릇과 사용 규칙
 - [06. 레이아웃](references/06-layout.md) — 화면 골격의 종류와 스크롤 컨테이너 규격
 - [07. 적응형 UI](references/07-adaptive-ui.md) — 상호작용 특성에 따른 컴포넌트 교체 규칙

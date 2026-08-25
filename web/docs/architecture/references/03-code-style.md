@@ -1,8 +1,10 @@
-# 03. 명명 규칙
+# 03. 코드 작성 규약
 
-본 문서는 파일명, 클래스명, 선택자, 슬라이스명의 규약을 정의합니다.
+본 문서는 파일명, 클래스명, 선택자, 슬라이스명의 명명 규약과 클래스 본문의 멤버 배치 순서를 정의합니다.
 
-두 개의 규약을 결합합니다. **파일과 클래스는 Angular 스타일 가이드를 따르고, 세그먼트 내부의 파일 분할은 FSD 의 도메인 기반 명명을 따릅니다.**
+명명은 두 규약을 결합합니다. **파일과 클래스는 Angular 스타일 가이드를 따르고, 세그먼트 내부의 파일 분할은 FSD 의 도메인 기반 명명을 따릅니다.**
+
+배치 규약은 컴포넌트(`@Component`)와 서비스(`@Injectable`)에 공통 적용됩니다. 슬라이스 내부의 컴포넌트 분할 기준은 [11. 컴포넌트 설계](11-component-design.md)가 원본입니다.
 
 ## 1. 기준판 고정
 
@@ -80,21 +82,19 @@ Angular 스타일 가이드는 **2025년 개정판**을 기준으로 합니다.
 
 ### 3.1 클래스
 
-**파스칼 케이스**를 사용하며 타입 접미사를 붙이지 않습니다.
+**파스칼 케이스**를 사용합니다. 접미사는 대상에 따라 다릅니다.
 
-| 대상 | 클래스명 |
-| :--- | :--- |
-| 컴포넌트 | `TaskRow` |
-| 라우트 진입 컴포넌트 | `TaskListPage` |
-| 서비스 | `SessionStore` |
-| 디렉티브 | `Autofocus` |
-| 파이프 | `FormatDate` |
+| 대상 | 클래스명 | 접미사 |
+| :--- | :--- | :--- |
+| 컴포넌트 | `TaskRow` | 없음 |
+| 라우트 진입 컴포넌트 | `TaskListPage` | `Page` |
+| 서비스 | `TaskService` | `Service` |
+| 디렉티브 | `Autofocus` | 없음 |
+| 파이프 | `FormatDate` | 없음 |
 
-`TaskRowComponent` 가 아니라 `TaskRow` 입니다. 접미사는 정보를 더하지 않으며 파일 위치(`ui/` 세그먼트)가 이미 역할을 드러냅니다.
+컴포넌트는 `TaskRowComponent` 가 아니라 `TaskRow` 입니다. 접미사가 정보를 더하지 않으며 파일 위치(`ui/` 세그먼트)가 이미 역할을 드러냅니다. 라우트 진입 컴포넌트만 `Page` 로 끝내며, 이것은 Angular 타입이 아니라 역할입니다. 근거는 2.1.1절에 있습니다.
 
-라우트 진입 컴포넌트만 `Page` 로 끝냅니다. 이것은 Angular 타입이 아니라 역할이며 근거는 2.1.1절에 있습니다.
-
-서비스는 역할을 드러내는 명사로 이름 짓습니다. `SessionService` 처럼 `Service` 로 끝내는 대신 `SessionStore`, `InvalidationBus` 처럼 무엇을 하는지 담습니다.
+**서비스는 예외로 `Service` 로 끝냅니다.** 근거는 역할 표시가 아니라 3.4절의 주입 변수명입니다. 클래스명이 `Tasks` 이면 주입 변수가 `tasks` 가 되어 목록을 담은 지역 변수와 충돌하지만, `TaskService` 이면 `taskService` 로 일의적입니다. `Store` · `Commands` · `Bus` 처럼 역할을 담는 이름을 쓰면 같은 성격의 클래스가 서로 다른 접미사를 갖게 되어 주입 변수명도 함께 갈라집니다.
 
 ### 3.2 함수
 
@@ -115,6 +115,26 @@ Angular 스타일 가이드는 **2025년 개정판**을 기준으로 합니다.
 > **주의: 템플릿에 노출되는 식별자에 한글을 쓸 수 없습니다**
 >
 > Angular 템플릿 표현식 파서가 한글 식별자를 `NG5002 Lexer Error` 로 거부합니다. TypeScript 자체는 허용하므로 작성 시점에는 드러나지 않고 컴파일 단계에서야 실패합니다. 템플릿과 호스트 바인딩에 노출되는 멤버는 `protected` 를 포함해 영문으로 쓰고, 한글은 노출되지 않는 지역 변수와 `private` 멤버에만 씁니다.
+
+### 3.4 주입 변수명
+
+**주입 결과를 그대로 담는 필드는 클래스명의 로워 카멜 케이스를 씁니다.**
+
+```ts
+private readonly taskService = inject(TaskService);
+private readonly httpClient = inject(HttpClient);
+private readonly router = inject(Router);
+```
+
+축약하지 않습니다. `inject(HttpClient)` 를 `http` 에 담으면 같은 타입이 파일마다 다른 이름으로 나타나 검색과 대조가 어려워집니다.
+
+주입값을 그대로 담지 않고 **변환한 결과**는 그 값의 의미로 이름 짓습니다.
+
+```ts
+private readonly isServer = isPlatformServer(inject(PLATFORM_ID));
+```
+
+주입 토큰이 클래스가 아닌 경우(`DOCUMENT`, `PLATFORM_ID`)는 토큰명의 로워 카멜 케이스를 씁니다.
 
 ## 4. 선택자
 
@@ -192,7 +212,86 @@ export const TASK_STATUS = {
 export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS];
 ```
 
-## 7. 자동 강제
+## 7. 클래스 멤버 순서
+
+클래스 본문은 아래 여덟 블록의 순서로 배치합니다. 각 블록 앞에 구분선 주석을 두고, 블록 사이는 빈 줄로 구분합니다.
+
+| 순서 | 블록 | 대상 |
+| :--- | :--- | :--- |
+| 1 | 상수 | `static` 값, 템플릿에 재노출하는 외부 심볼, 불변 스칼라 |
+| 2 | 계약 | `input` · `model` · `output` |
+| 3 | 의존 | `inject` |
+| 4 | 질의 | `viewChild` · `contentChild` |
+| 5 | 상태 | `signal` · `linkedSignal` · `form` |
+| 6 | 파생 | `computed` · `resource` · `httpResource` |
+| 7 | 생성 | 생성자 · 라이프사이클 훅 |
+| 8 | 동작 | 템플릿과 외부가 호출하는 메서드를 앞에, `private` 메서드를 뒤에 |
+
+구분선은 `// --- ` 뒤에 블록명을 두고 대시로 **100 컬럼**까지 채웁니다. 들여쓰기를 포함한 폭이며 한글은 두 컬럼으로 셉니다. 100 은 `.prettierrc` 의 `printWidth` 와 같은 값입니다. 블록명을 앞에 두는 이유는 이름이 항상 같은 열에 서서 세로로 훑을 때 눈에 걸리기 때문입니다.
+
+```ts
+  // --- 상수 --------------------------------------------------------------------------------------
+  // --- 계약 --------------------------------------------------------------------------------------
+```
+
+해당하는 멤버가 없는 블록은 주석과 함께 생략합니다. 서비스는 대개 계약 · 질의 · 생성 블록을 갖지 않습니다.
+
+블록 내부의 정렬은 정의하지 않습니다. 연관된 멤버를 인접 배치하는 것으로 충분합니다.
+
+**템플릿에 재노출한 상수는 클래스 안에서도 필드로 씁니다.** Angular 템플릿은 모듈 스코프 심볼에 접근하지 못하므로 상수를 필드로 한 번 얹게 되는데, 이때 코드가 원본 상수를 직접 참조하면 한 파일에 같은 값이 두 이름으로 존재하게 됩니다.
+
+```ts
+protected readonly routes = ROUTES;
+
+async submit(): Promise<void> {
+  await this.router.navigateByUrl(this.routes.taskList());   // ROUTES.taskList() 가 아닙니다
+}
+```
+
+템플릿이 쓰지 않는 상수는 필드로 얹지 않고 모듈 스코프에서 직접 참조합니다. 필드는 재노출이 필요할 때만 만듭니다.
+
+**한 블록은 파일당 한 번만 등장합니다.** 뒤쪽에서 앞 블록으로 되돌아가 멤버를 추가하는 것을 금지합니다.
+
+**참조 방향이 곧 읽는 방향입니다.** 파생은 상태를, 상태는 의존을 참조하므로 참조 대상이 항상 위에 위치합니다. 위에서 아래로 한 번 읽는 동안 미정의 심볼을 만나지 않습니다.
+
+**공개 범위가 넓은 것이 위에 옵니다.** 외부가 보는 계약이 최상단, 외부가 볼 수 없는 `private` 메서드가 최하단입니다.
+
+```ts
+export class TaskListPage {
+  // --- 상수 --------------------------------------------------------------------------------------
+  protected readonly routes = ROUTES;
+  private readonly today = toDateKey(new Date());
+
+  // --- 계약 --------------------------------------------------------------------------------------
+  readonly view = input<TaskView, string | undefined>('all', { transform: toTaskView });
+  readonly task = input<string | undefined>(undefined);
+
+  // --- 의존 --------------------------------------------------------------------------------------
+  protected readonly taskService = inject(TaskService);
+  private readonly router = inject(Router);
+
+  // --- 질의 --------------------------------------------------------------------------------------
+  protected readonly veil = viewChild.required(Veil);
+
+  // --- 상태 --------------------------------------------------------------------------------------
+  private readonly draft = signal({ title: '' });
+  protected readonly addForm = form(this.draft);
+
+  // --- 파생 --------------------------------------------------------------------------------------
+  protected readonly groups = computed(() => sortActive(this.taskService.list()));
+  protected readonly title = computed(() => taskViewLabel(this.view()));
+
+  // --- 동작 --------------------------------------------------------------------------------------
+  protected addOnEnter(event: KeyboardEvent): void {}
+  private async add(): Promise<void> {}
+}
+```
+
+이 배치는 연관된 멤버를 분산시킵니다. `draftDue`(상태) · `draftDueDate`(파생) · `setDraftDue`(동작)가 세 블록에 나뉩니다. 기능 단위로 묶는 대안은 "기능의 경계"라는 판단을 추가로 요구하여 배치 기준이 파편화되므로 채택하지 않습니다. 분산의 부담이 큰 경우 원인은 순서가 아니라 컴포넌트 크기이며, [11. 컴포넌트 설계](11-component-design.md) 2절의 분할 기준을 적용합니다.
+
+외부 UI 킷의 사본(`shared/ui`)은 상류와의 차이를 최소화하기 위해 본 절의 적용 대상에서 제외합니다.
+
+## 8. 자동 강제
 
 | 규칙 | 강제 수단 |
 | :--- | :--- |
@@ -204,3 +303,5 @@ export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS];
 Steiger 의 명명 규칙은 슬라이스와 세그먼트 수준의 위반만 검출합니다. **파일 하나가 여러 도메인을 담고 있는지는 판정하지 못하므로** 코드 리뷰에서 확인합니다.
 
 **라우트 진입 컴포넌트의 `.page` 접미사도 강제되지 않습니다.** ESLint 에 파일명 패턴 규칙이 없고 Steiger 는 접미사를 보지 않습니다. 규칙을 어겨도 빌드가 통과하므로 같은 자리에서 확인합니다.
+
+**클래스 멤버 순서도 강제되지 않습니다.** ESLint 의 `member-ordering` 은 필드 초기화 식을 구분하지 못하여 `input()` · `inject()` · `signal()` 을 모두 동일한 필드로 판정하므로 본 규칙을 검사할 수 없습니다. 같은 자리에서 확인합니다.

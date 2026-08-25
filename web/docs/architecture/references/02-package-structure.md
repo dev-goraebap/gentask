@@ -81,7 +81,7 @@ pages/task-list/
 └── index.ts
 ```
 
-`ui/task-list.page.ts` 가 라우트 진입 컴포넌트이고, `model/task-list.ts` 가 화면 상태와 필터 로직을 담으며, `index.ts` 가 공개 API 입니다. 진입 컴포넌트의 `.page` 접미사는 [03. 명명 규칙](03-naming.md) 2.1.1절이 원본입니다.
+`ui/task-list.page.ts` 가 라우트 진입 컴포넌트이고, `model/task-list.ts` 가 화면 상태와 필터 로직을 담으며, `index.ts` 가 공개 API 입니다. 진입 컴포넌트의 `.page` 접미사는 [03. 코드 작성 규약](03-code-style.md) 2.1.1절이 원본입니다.
 
 ## 3. 배치 판정 트리
 
@@ -296,7 +296,7 @@ ng g component pages/task-list/ui/task-list.page --flat
 
 ## 8. 파일명
 
-파일명은 그 파일이 다루는 **도메인**을 나타냅니다. 기술적 역할을 나타내는 이름을 **금지**합니다. 상세 규약은 [03. 명명 규칙](03-naming.md)이 원본입니다.
+파일명은 그 파일이 다루는 **도메인**을 나타냅니다. 기술적 역할을 나타내는 이름을 **금지**합니다. 상세 규약은 [03. 코드 작성 규약](03-code-style.md)이 원본입니다.
 
 ## 9. 자동 강제
 
