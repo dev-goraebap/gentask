@@ -18,16 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-/**
- * 지키는 경로의 요청마다 세션 또는 에이전트 토큰을 확인한다 (TK-005 A5).
- *
- * 두 경로가 다른 테이블을 본다. 브라우저는 HttpOnly 쿠키의 세션 토큰을, 에이전트는
- * `Authorization: Bearer` 의 발급 토큰(TK-006 A3)을 싣는다. 세션은 만료를 슬라이딩으로
- * 밀되 touch 간격 안에서는 쓰기를 내지 않는다.
- *
- * 어느 쪽도 성립하지 않으면 401 로 끝낸다. 지키지 않는 경로(가입 · 로그인)는 등록 설정이
- * 제외한다.
- */
 @Component
 @RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {

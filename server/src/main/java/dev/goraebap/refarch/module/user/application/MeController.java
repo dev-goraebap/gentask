@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** TK-006. */
 @RestController
 @RequestMapping("/api/v1/me")
 @RequiredArgsConstructor
@@ -40,7 +39,6 @@ public class MeController {
         meService.changeNickname(userId, request.nickname());
     }
 
-    /** TK-006 A3. 토큰 원문이 실리는 유일한 응답이다. */
     @PostMapping("/api-token")
     @ResponseStatus(HttpStatus.CREATED)
     public IssuedApiToken issueApiToken(@CurrentUser UUID userId) {
@@ -53,7 +51,6 @@ public class MeController {
         meService.deleteApiToken(userId);
     }
 
-    /** TK-006 A1. 백엔드는 URL 만 주고 바이트는 브라우저가 보관소로 직접 올린다. */
     @PostMapping("/profile-image/presign")
     public PresignedUpload presignProfileImage(
             @CurrentUser UUID userId, @Valid @RequestBody PresignProfileImage request) {

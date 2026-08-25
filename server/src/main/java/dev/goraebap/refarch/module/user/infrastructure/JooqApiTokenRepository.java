@@ -17,7 +17,6 @@ class JooqApiTokenRepository implements ApiTokenRepository {
 
     private final DSLContext dslContext;
 
-    /** 계정당 하나라는 규칙을 user_id 충돌로 구현한다. 재발급이 곧 교체다. */
     @Override
     public void save(ApiToken apiToken) {
         dslContext

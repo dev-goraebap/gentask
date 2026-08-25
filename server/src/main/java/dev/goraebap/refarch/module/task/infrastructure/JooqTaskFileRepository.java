@@ -18,7 +18,6 @@ class JooqTaskFileRepository implements TaskFileRepository {
 
     private final DSLContext dslContext;
 
-    /** 붙인 파일은 불변이라 갱신 분기가 없다. */
     @Override
     public void save(TaskFile taskFile) {
         dslContext

@@ -3,11 +3,6 @@ package dev.goraebap.refarch.module.task.domain.task;
 import dev.goraebap.refarch.shared.domain.ValueObject;
 import dev.goraebap.refarch.shared.error.DomainRuleViolation;
 
-/**
- * 제목만으로는 담기지 않는 맥락 (TK-003).
- *
- * 사용자에게 "메모가 없다" 와 "메모가 비었다" 는 같으므로 null 을 빈 문자열과 같게 다룬다.
- */
 public record TaskNote(String value) implements ValueObject {
 
     public static final int MAX = 2000;

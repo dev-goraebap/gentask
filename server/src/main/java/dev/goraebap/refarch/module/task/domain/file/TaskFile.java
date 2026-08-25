@@ -7,11 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 
-/**
- * 작업에 붙인 파일 (TK-003 A11). 바이트는 보관소가 갖고 여기는 목록의 한 줄이다.
- *
- * 붙인 뒤 고치는 조작이 없어 전체가 불변이다. 다른 파일로 바꾸는 것은 떼고 다시 붙이는 것이다.
- */
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TaskFile {
@@ -42,7 +37,6 @@ public final class TaskFile {
         return new TaskFile(id, taskId, fileName, contentType, fileSize, objectKey, now);
     }
 
-    /** 저장소만 호출한다. */
     public static TaskFile restore(
             UUID id,
             UUID taskId,

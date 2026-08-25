@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** TK-003 A11. 백엔드는 URL 만 주고 바이트는 브라우저가 보관소와 직접 주고받는다. */
 @RestController
 @RequestMapping("/api/v1/tasks/{taskId}/files")
 @RequiredArgsConstructor

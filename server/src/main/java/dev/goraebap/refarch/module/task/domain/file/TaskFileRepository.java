@@ -8,7 +8,6 @@ public interface TaskFileRepository {
 
     void save(TaskFile taskFile);
 
-    /** 붙인 순서대로. */
     List<TaskFile> findByTaskId(UUID taskId);
 
     Optional<TaskFile> findById(UUID taskFileId);

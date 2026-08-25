@@ -46,7 +46,6 @@ class UserApiTest {
         mockMvc.perform(get("/api/v1/me").cookie(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("signup@example.com"))
-                // 별명을 적지 않으면 이메일 앞부분이 된다.
                 .andExpect(jsonPath("$.nickname").value("signup"))
                 .andExpect(jsonPath("$.profileImageUrl").value(Matchers.nullValue()))
                 .andExpect(jsonPath("$.apiTokenIssuedAt").value(Matchers.nullValue()));
@@ -57,7 +56,6 @@ class UserApiTest {
     void 이미_등록된_이메일은_다시_등록되지_않는다() throws Exception {
         AuthTestSupport.가입한다(mockMvc, "dup@example.com");
 
-        // 대소문자만 달라도 같은 주소다.
         mockMvc.perform(post("/api/v1/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"DUP@example.com\",\"password\":\"password-123\"}"))
@@ -83,7 +81,6 @@ class UserApiTest {
     void 자격이_맞지_않으면_어느_쪽이_틀렸는지_구분하지_않는다() throws Exception {
         AuthTestSupport.가입한다(mockMvc, "wrong@example.com");
 
-        // 비밀번호가 틀린 경우와 계정이 없는 경우가 같은 답을 받는다.
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"wrong@example.com\",\"password\":\"not-the-password\"}"))
@@ -104,7 +101,6 @@ class UserApiTest {
 
         mockMvc.perform(post("/api/v1/auth/logout").cookie(session))
                 .andExpect(status().isNoContent())
-                // 쿠키를 비우는 응답이 함께 온다.
                 .andExpect(cookie().maxAge("session_token", 0));
 
         mockMvc.perform(get("/api/v1/me").cookie(session)).andExpect(status().isUnauthorized());
@@ -171,7 +167,6 @@ class UserApiTest {
                 .getContentAsString();
         String objectKey = JsonPath.read(body, "$.objectKey");
 
-        // presigned PUT 이 끝난 상태를 만든다.
         fakeStorage.put(objectKey, 1024);
 
         mockMvc.perform(put("/api/v1/me/profile-image")
@@ -183,7 +178,6 @@ class UserApiTest {
         mockMvc.perform(get("/api/v1/me").cookie(session))
                 .andExpect(jsonPath("$.profileImageUrl").isNotEmpty());
 
-        // 지우면 기본 아바타로 돌아간다 (TK-006 A2).
         mockMvc.perform(delete("/api/v1/me/profile-image").cookie(session)).andExpect(status().isNoContent());
         mockMvc.perform(get("/api/v1/me").cookie(session))
                 .andExpect(jsonPath("$.profileImageUrl").value(Matchers.nullValue()));

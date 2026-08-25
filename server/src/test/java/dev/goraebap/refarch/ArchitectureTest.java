@@ -16,7 +16,6 @@ import dev.goraebap.refarch.shared.domain.ValueObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** 배치 규칙을 빌드에서 강제한다. */
 @AnalyzeClasses(packages = "dev.goraebap.refarch", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
 
@@ -43,7 +42,6 @@ class ArchitectureTest {
                     "dev.goraebap.refarch.module.(*).application..", "dev.goraebap.refarch.module.(*).infrastructure..")
             .because("도메인은 자기를 쓰는 쪽을 알지 않는다");
 
-    // Lombok 은 런타임 의존이 없으므로 목록에 넣지 않는다.
     @ArchTest
     static final ArchRule 도메인은_프레임워크를_참조하지_않는다 = noClasses()
             .that()
@@ -71,7 +69,6 @@ class ArchitectureTest {
             .haveSimpleNameEndingWith("Query")
             .because("조회 서비스가 전후에 수행하는 가공이 누락된다");
 
-    // 제네릭 인자는 보지 못한다. Optional<TaskView> 는 이 검사를 통과한다.
     @ArchTest
     static final ArchRule 저장소는_화면_타입을_반환하지_않는다 = noMethods()
             .that()
@@ -83,7 +80,6 @@ class ArchitectureTest {
                     javaClass -> javaClass.getPackageName().contains(".application")))
             .because("화면 어휘의 타입이 필요해지는 순간 그것은 조회 포트다");
 
-    // record 의 정규 생성자는 접근 제한을 좁힐 수 없어 언어로 막지 못한다.
     @ArchTest
     static final ArchRule 값_객체의_정규_생성자는_재구성에만_쓴다 = noClasses()
             .that()

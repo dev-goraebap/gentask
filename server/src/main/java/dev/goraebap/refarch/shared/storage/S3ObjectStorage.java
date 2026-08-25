@@ -26,12 +26,6 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
-/**
- * S3 호환 보관소 구현. 로컬은 MinIO, 배포는 R2 다.
- *
- * path-style 을 쓰는 이유는 MinIO 가 가상 호스트 방식을 기본으로 지원하지 않아서다.
- * R2 도 path-style 을 받으므로 갈아 끼울 때 코드가 갈리지 않는다.
- */
 @Slf4j
 @Component
 class S3ObjectStorage implements ObjectStorage {
@@ -59,10 +53,6 @@ class S3ObjectStorage implements ObjectStorage {
                 .build();
     }
 
-    /**
-     * MinIO 는 버킷을 만들어 주지 않아 기동 때 시도한다. 실패해도 기동을 막지 않는다 —
-     * 보관소 없이도 나머지 기능은 성립하고, 테스트는 보관소를 띄우지 않는다.
-     */
     @EventListener(ApplicationReadyEvent.class)
     public void ensureBucket() {
         if (!properties.createBucket()) {
@@ -134,7 +124,6 @@ class S3ObjectStorage implements ObjectStorage {
                 .build());
     }
 
-    /** 파일 이름은 임의 입력이라 RFC 5987 로 인코딩한다. 그대로 실으면 헤더가 깨진다. */
     private static String contentDisposition(String downloadFileName) {
         String encoded =
                 URLEncoder.encode(downloadFileName, StandardCharsets.UTF_8).replace("+", "%20");

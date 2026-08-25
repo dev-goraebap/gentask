@@ -4,7 +4,6 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import org.springframework.stereotype.Component;
 
-/** 세션과 에이전트 토큰의 원문. 256비트 난수를 base64url 로 편다 — 43자, 패딩 없음. */
 @Component
 public class TokenGenerator {
 

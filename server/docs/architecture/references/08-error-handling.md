@@ -96,7 +96,7 @@ public enum TaskErrorCode implements ErrorCode {
 }
 ```
 
-**선언이 상수 목록과 필드 둘로 끝납니다.** 계약이 요구하는 `status()` 와 `message()` 는 생성된 접근자가 그대로 만족합니다 — `lombok.config` 가 접근자를 필드명 그대로 만듭니다([03. 명명 규칙](03-naming.md) 5절).
+**선언이 상수 목록과 필드 둘로 끝납니다.** 계약이 요구하는 `status()` 와 `message()` 는 생성된 접근자가 그대로 만족합니다 — `lombok.config` 가 접근자를 필드명 그대로 만듭니다([03. 코드 작성 규약](03-code-style.md) 5절).
 
 ```java
 throw TASK_NOT_FOUND.raise();

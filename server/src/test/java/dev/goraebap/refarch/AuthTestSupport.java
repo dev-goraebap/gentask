@@ -8,7 +8,6 @@ import jakarta.servlet.http.Cookie;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** API 테스트의 로그인 지원. 가입이 곧 로그인이라 응답 쿠키를 그대로 쓴다. */
 public final class AuthTestSupport {
 
     public static final String PASSWORD = "password-123";

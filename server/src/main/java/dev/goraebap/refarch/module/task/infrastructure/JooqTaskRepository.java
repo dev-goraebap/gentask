@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
-/** jOOQ 에는 변경 감지가 없다. 애그리거트를 고친 뒤에는 항상 save 를 불러야 한다. */
 @Repository
 @RequiredArgsConstructor
 class JooqTaskRepository implements TaskRepository {
@@ -62,7 +61,6 @@ class JooqTaskRepository implements TaskRepository {
         dslContext.deleteFrom(TASKS).where(TASKS.ID.eq(taskId)).execute();
     }
 
-    /** 정규 생성자로 값 객체를 만든다. 검증을 지나지 않는다. */
     private static Task toDomain(TasksRecord tasksRecord) {
         return Task.restore(
                 tasksRecord.getId(),

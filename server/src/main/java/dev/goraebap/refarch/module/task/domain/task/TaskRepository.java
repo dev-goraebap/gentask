@@ -5,7 +5,6 @@ import java.util.UUID;
 
 public interface TaskRepository {
 
-    /** 삽입과 갱신을 하나로 다룬다. */
     void save(Task task);
 
     Optional<Task> findById(UUID taskId);

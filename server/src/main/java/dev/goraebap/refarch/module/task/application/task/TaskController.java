@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** TK-001 ~ TK-004. */
 @RestController
 @RequestMapping("/api/v1/tasks")
 @RequiredArgsConstructor

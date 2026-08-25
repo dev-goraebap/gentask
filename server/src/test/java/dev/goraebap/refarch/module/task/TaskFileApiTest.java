@@ -28,7 +28,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/** TK-003 A11. presigned 절차의 서버 몫 — URL 발급과 확정 시점의 강제 — 만 본다. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import({TestcontainersConfiguration.class, FakeStorageConfiguration.class})
@@ -107,7 +106,6 @@ class TaskFileApiTest {
     @DisplayName("TK-003 A11: 말한 크기가 아니라 보관소의 실측이 강제한다")
     void 말한_크기가_아니라_보관소의_실측이_강제한다() throws Exception {
         String objectKey = 자리를_받는다("속임.zip", "application/zip", 1024);
-        // presign 에는 작게 말하고 실제로는 상한을 넘겨 올린 경우다.
         fakeStorage.put(objectKey, TEN_MEGABYTES + 1);
 
         mockMvc.perform(post("/api/v1/tasks/{taskId}/files", taskId)
@@ -118,7 +116,6 @@ class TaskFileApiTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("TASK_FILE_TOO_LARGE"));
 
-        // 넘긴 바이트는 지워 자리를 남기지 않는다.
         Assertions.assertThat(fakeStorage.contains(objectKey)).isFalse();
     }
 
@@ -168,7 +165,6 @@ class TaskFileApiTest {
                 .andExpect(status().isNotFound());
     }
 
-    /** presign 만 지나 올리기 자리를 받는다. */
     private String 자리를_받는다(String fileName, String contentType, long size) throws Exception {
         String body = mockMvc.perform(post("/api/v1/tasks/{taskId}/files/presign", taskId)
                         .cookie(session)
@@ -183,7 +179,6 @@ class TaskFileApiTest {
         return JsonPath.read(body, "$.objectKey");
     }
 
-    /** presign → (올리기) → 확정까지 지난다. */
     private String 파일을_붙인다(String fileName, String contentType, long size) throws Exception {
         String objectKey = 자리를_받는다(fileName, contentType, size);
         fakeStorage.put(objectKey, size);

@@ -52,7 +52,6 @@ class JooqUserRepository implements UserRepository {
         return dslContext.fetchExists(USERS, USERS.EMAIL_NORMALIZED.eq(emailNormalized));
     }
 
-    /** 정규 생성자로 값 객체를 만든다. 검증을 지나지 않는다. */
     private static User toDomain(UsersRecord usersRecord) {
         return User.restore(
                 usersRecord.getId(),

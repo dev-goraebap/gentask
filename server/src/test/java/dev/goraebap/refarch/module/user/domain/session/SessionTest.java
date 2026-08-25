@@ -8,7 +8,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/** 슬라이딩 만료의 규칙. 값은 설정이 주지만 규칙은 도메인이 갖는다. */
 class SessionTest {
 
     private static final Duration TTL = Duration.ofDays(30);
@@ -45,7 +44,6 @@ class SessionTest {
     void 절대_상한을_넘겨_늘어나지_않는다() {
         Session session = issue();
 
-        // 만료 전마다 써서 계속 살아 있는 세션이다. 그래도 만든 날부터 90일을 넘지 못한다.
         session.touch(origin.plus(Duration.ofDays(25)), TTL, ABSOLUTE_TTL, TOUCH_INTERVAL);
         session.touch(origin.plus(Duration.ofDays(50)), TTL, ABSOLUTE_TTL, TOUCH_INTERVAL);
         session.touch(origin.plus(Duration.ofDays(75)), TTL, ABSOLUTE_TTL, TOUCH_INTERVAL);

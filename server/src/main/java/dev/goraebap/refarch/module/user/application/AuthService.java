@@ -14,13 +14,12 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** TK-005. */
 @Service
 public class AuthService {
 
-    /** 컨트롤러가 쿠키를 굽는 데 쓰는 발급 결과다. 토큰 원문은 응답 밖으로 나가지 않는다. */
     public record IssuedSession(String token, Instant expiresAt) {}
 
+    // --- 의존 --------------------------------------------------------------------------------------------------------
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final SessionRepository sessionRepository;
@@ -30,9 +29,9 @@ public class AuthService {
     private final AuthProperties properties;
     private final Clock clock;
 
-    /** 없는 계정에도 같은 비용의 비교를 수행해 응답 시간이 계정의 존재를 말하지 않게 한다. */
     private final String timingEqualizerHash;
 
+    // --- 생성 --------------------------------------------------------------------------------------------------------
     public AuthService(
             UserRepository userRepository,
             AccountRepository accountRepository,
@@ -53,7 +52,7 @@ public class AuthService {
         this.timingEqualizerHash = passwordHasher.hash("timing-equalizer");
     }
 
-    /** TK-005 A1. 등록이 곧 로그인이다. 등록 직후 로그인 화면을 다시 지나게 할 이유가 없다. */
+    // --- 명령 --------------------------------------------------------------------------------------------------------
     @Transactional
     public IssuedSession signup(String rawEmail, String rawPassword, String rawNickname) {
         Email email = Email.of(rawEmail);
@@ -72,7 +71,6 @@ public class AuthService {
         return issueSession(user.id(), now);
     }
 
-    /** TK-005 기본 흐름과 A2. */
     @Transactional
     public IssuedSession login(String rawEmail, String rawPassword) {
         Email email = Email.of(rawEmail);
@@ -89,12 +87,12 @@ public class AuthService {
         return issueSession(account.userId(), clock.instant());
     }
 
-    /** TK-005 A4. 세션 행을 지우므로 즉시 무효다. */
     @Transactional
     public void logout(UUID sessionId) {
         sessionRepository.deleteById(sessionId);
     }
 
+    // --- 보조 --------------------------------------------------------------------------------------------------------
     private IssuedSession issueSession(UUID userId, Instant now) {
         String token = tokenGenerator.generate();
         Session session = Session.issue(

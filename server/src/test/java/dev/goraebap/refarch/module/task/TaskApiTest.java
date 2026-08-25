@@ -40,7 +40,6 @@ class TaskApiTest {
     @Autowired
     private MockMvc mockMvc;
 
-    /** 모든 작업 경로는 로그인 뒤에 있다 (TK-005). 계정마다 이메일이 달라야 해서 매번 만든다. */
     private Cookie session;
 
     @BeforeEach
@@ -83,7 +82,6 @@ class TaskApiTest {
         Cookie other = AuthTestSupport.가입한다(mockMvc, "other-" + UUID.randomUUID() + "@example.com");
 
         mockMvc.perform(get("/api/v1/tasks").cookie(other)).andExpect(jsonPath("$", hasSize(0)));
-        // 남의 식별자는 없는 것과 같은 답을 받는다. 존재 여부가 새어 나가지 않는다.
         mockMvc.perform(get("/api/v1/tasks/{id}", taskId).cookie(other)).andExpect(status().isNotFound());
         mockMvc.perform(delete("/api/v1/tasks/{id}", taskId).cookie(other)).andExpect(status().isNotFound());
     }
@@ -246,7 +244,6 @@ class TaskApiTest {
                 .andExpect(jsonPath("$.code").value("TASK_NOT_FOUND"));
     }
 
-    /** 만든 것의 식별자는 본문이 아니라 Location 이 전달한다. 07-api-design 2절. */
     private String 작업을_만든다(String body) throws Exception {
         String location = requireNonNull(mockMvc.perform(post("/api/v1/tasks")
                         .cookie(session)

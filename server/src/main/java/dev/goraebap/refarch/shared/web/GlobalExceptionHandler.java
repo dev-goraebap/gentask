@@ -22,16 +22,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-/**
- * 모든 실패를 RFC 9457 로 옮기고 code 와 traceId 를 얹는다.
- *
- * DomainRuleViolation 의 문장만 사용자에게 그대로 나가고, 나머지 예외의 문장은 덮는다.
- */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    /** 입력 검증 실패의 필드별 항목. 값은 담지 않는다. */
     public record InvalidField(String field, String message) {}
 
     @ExceptionHandler(BusinessException.class)
@@ -45,7 +39,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 CommonErrorCode.COMMON_INVALID_REQUEST, domainRuleViolation.getMessage(), httpServletRequest);
     }
 
-    /** 우리가 던지지 않은 인자 예외. 내부 사정이 새어 나가지 않게 문장을 덮는다. */
     @ExceptionHandler(IllegalArgumentException.class)
     ProblemDetail handleIllegalArgument(
             IllegalArgumentException illegalArgumentException, HttpServletRequest httpServletRequest) {
@@ -55,7 +48,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 httpServletRequest);
     }
 
-    /** 유일성 제약이 막은 동시 생성. 어떤 제약이 걸렸는지는 응답에 싣지 않는다. */
     @ExceptionHandler(DataIntegrityViolationException.class)
     ProblemDetail handleConflict(
             DataIntegrityViolationException dataIntegrityViolationException, HttpServletRequest httpServletRequest) {
@@ -83,7 +75,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, problemDetail, headers, status, request);
     }
 
-    /** 표준 예외 응답에도 code 와 traceId 를 얹는다. */
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(
             Exception ex, Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
@@ -110,7 +101,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problemDetail;
     }
 
-    /** 애노테이션에 문구를 적지 않았으면 Bean Validation 기본 문구가 온다. */
     private static String messageOf(FieldError fieldError) {
         return fieldError.getDefaultMessage() == null
                 ? CommonErrorCode.COMMON_INVALID_REQUEST.message()
