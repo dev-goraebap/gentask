@@ -10,7 +10,6 @@
     "lint": "eslint .",
     "lint:fsd": "steiger ./src",
     "check": "npm run lint && npm run lint:fsd && npm test && npm run build",
-    "serve:ssr:web": "node dist/web/server/server.mjs",
     "api:generate": "npx --yes openapi-typescript@7.13.0 ../server/openapi.json -o src/shared/api/generated/schema.d.ts"
   },
   "private": true,
@@ -35,7 +34,6 @@
     "@uppy/locales": "^5.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "express": "^5.1.0",
     "pretendard": "^1.3.9",
     "rxjs": "~7.8.0",
     "tailwind-merge": "^3.6.0",
@@ -48,7 +46,6 @@
     "@eslint/js": "^10.0.1",
     "@spartan-ng/cli": "^1.3.1",
     "@tailwindcss/postcss": "^4.1.12",
-    "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
     "angular-eslint": "^22.1.0",
     "eslint": "^10.8.1",
