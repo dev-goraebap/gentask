@@ -4,7 +4,7 @@ import fsd from '@feature-sliced/steiger-plugin';
 /*
  * FSD 계층 규칙의 강제 지점입니다.
  * 규칙의 근거는 docs/architecture/05-building-block-view.md 5.2 절이 원본이며,
- * 예외의 사유는 docs/architecture/frontend/01-dev-environment.md 7 절에 있습니다.
+ * 예외의 사유는 docs/architecture/concepts/frontend-01-dev-environment.md 7 절에 있습니다.
  */
 export default defineConfig([
   ...fsd.configs.recommended,

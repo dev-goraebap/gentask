@@ -83,6 +83,6 @@
 
 ## 7. API 명세의 생성
 
-프론트엔드가 소비하는 TypeScript 인터페이스 타입은 백엔드가 제공하는 OpenAPI 명세로부터 생성됩니다. 명세는 [`springdoc-openapi`](https://springdoc.org/) 가 애플리케이션 런타임에 제공하며, 클라이언트 코드 생성 절차와 산출물 관리 규격은 [프론트엔드 01. 개발 환경](../frontend/01-dev-environment.md)에 정의되어 있습니다.
+프론트엔드가 소비하는 TypeScript 인터페이스 타입은 백엔드가 제공하는 OpenAPI 명세로부터 생성됩니다. 명세는 [`springdoc-openapi`](https://springdoc.org/) 가 애플리케이션 런타임에 제공하며, 클라이언트 코드 생성 절차와 산출물 관리 규격은 [프론트엔드 01. 개발 환경](./frontend-01-dev-environment.md)에 정의되어 있습니다.
 
 백엔드 엔드포인트 또는 요청/응답 DTO를 변경한 경우, OpenAPI 명세를 기반으로 프론트엔드 타입 생성을 재실행하여 두 컴포넌트 간의 인터페이스 일치성을 유지해야 합니다.
