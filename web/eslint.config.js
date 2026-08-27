@@ -5,7 +5,7 @@ const angular = require('angular-eslint');
 
 /**
  * 코드 규약의 강제 수단입니다.
- * 각 규칙의 근거는 docs/architecture/frontend/ 의 해당 문서가 원본이며,
+ * 각 규칙의 근거는 docs/architecture/ 의 해당 문서가 원본이며,
  * 예외의 사유는 01-dev-environment.md 8절에 모여 있습니다.
  *
  * FSD 계층 규칙은 steiger.config.ts 가 담당하며 여기서 중복하지 않습니다.
@@ -102,7 +102,7 @@ module.exports = tseslint.config(
               ],
               message: 'Signal Forms(@angular/forms/signals)를 사용합니다. 12-forms.md 1절 참조.',
             },
-            // 의존성 주입 — 02-package-structure.md 7.5절
+            // 의존성 주입 — 05-building-block-view.md 5.2.4 절
             // 동적 토큰 주입은 구문 규칙으로 판별할 수 없어 임포트 입구를 막습니다.
             {
               name: '@angular/core',
@@ -162,7 +162,7 @@ module.exports = tseslint.config(
   // Node 진입점은 stdout 이 표준 로깅 채널입니다.
   // no-console 의 근거(브라우저 콘솔로의 개인정보 유출)가 적용되지 않습니다.
   {
-    files: ['src/server.ts', 'src/main.server.ts'],
+    files: ['src/main.server.ts'],
     rules: {
       'no-console': 'off',
       'no-restricted-globals': 'off',
@@ -207,7 +207,7 @@ module.exports = tseslint.config(
     },
   },
 
-  // 전역 프로바이더는 shared 와 app 에서만 선언합니다. — 02-package-structure.md 7.5절
+  // 전역 프로바이더는 shared 와 app 에서만 선언합니다. — 05-building-block-view.md 5.2.4 절
   {
     files: ['src/pages/**/*.ts', 'src/features/**/*.ts', 'src/entities/**/*.ts'],
     rules: {

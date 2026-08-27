@@ -3,8 +3,8 @@ import fsd from '@feature-sliced/steiger-plugin';
 
 /*
  * FSD 계층 규칙의 강제 지점입니다.
- * 규칙의 근거는 docs/architecture/frontend/02-package-structure.md 가 원본이며,
- * 예외의 사유는 docs/architecture/frontend/01-dev-environment.md 8절에 있습니다.
+ * 규칙의 근거는 docs/architecture/05-building-block-view.md 5.2 절이 원본이며,
+ * 예외의 사유는 docs/architecture/frontend/01-dev-environment.md 7 절에 있습니다.
  */
 export default defineConfig([
   ...fsd.configs.recommended,
@@ -15,7 +15,7 @@ export default defineConfig([
      * 실측으로는 등재 전에도 경고되지 않았으나, 향후 규칙이 추가될 때
      * 동작이 바뀌지 않도록 의도를 설정에 남깁니다.
      */
-    ignores: ['./src/main.ts', './src/main.server.ts', './src/server.ts', './src/index.html'],
+    ignores: ['./src/main.ts', './src/main.server.ts', './src/index.html'],
   },
 
   {
