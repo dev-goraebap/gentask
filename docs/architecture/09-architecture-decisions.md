@@ -1,4 +1,4 @@
-# 결정 기록 목차
+# 9. 아키텍처 결정 (Architecture Decisions)
 
 본 문서는 이 저장소의 아키텍처 결정을 시간순으로 나열합니다. 결정의 본문은 각 파일이 소유하고 여기에는 상태와 한 줄 요약만 둡니다.
 
@@ -22,7 +22,7 @@
 
 **검토한 대안과 트레이드오프를 한 문단 이상 진지하게 쓸 수 있는가.** 쓸 수 있으면 결정 기록이고, 쓸 수 없으면 참조 문서 본문에 직접 적습니다. 업계 표준, 취향, 앞선 결정에서 자동으로 따라오는 규칙은 대상이 아닙니다.
 
-템플릿은 [adr.template.md](../templates/adr.template.md)입니다.
+템플릿은 [0000-template.md](./decisions/0000-template.md)입니다.
 
 ## 대체 절차
 
@@ -36,7 +36,7 @@
 
 | 번호 | 축 | 제목 | 상태 | 한 줄 요약 |
 | :--- | :--- | :--- | :--- | :--- |
-| [0001](0001-frontend-design-outside-architecture.md) | frontend | 시각 언어를 아키텍처 밖에 둔다 | 유효 | 토큰의 이름 집합은 아키텍처가, 값과 근거는 `DESIGN.md` 가 소유합니다 |
+| [0001](./decisions/0001-frontend-design-outside-architecture.md) | frontend | 시각 언어를 아키텍처 밖에 둔다 | 유효 | 토큰의 이름 집합은 아키텍처가, 값과 근거는 `DESIGN.md` 가 소유합니다 |
 
 ## 발행 예정
 

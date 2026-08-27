@@ -14,8 +14,8 @@ Angular 프론트엔드와 Spring Boot 백엔드를 함께 담는 모노레포�
 - **개발 프로세스는 [docs/process.md](docs/process.md)를 따릅니다.** 경계 정하기(모델) → 유스케이스 초안 → 슬라이스 착수(백로그 Story) → 구현(듀얼 트랙) → 검증 순서이며, 산출물의 자리와 "흐름은 서술서, 슬라이스는 백로그" 경계가 그 문서에 있습니다. 백로그는 `backlog/` 의 파일이며 `plz-help-issues` 스킬의 형식을 따릅니다.
 - **아키텍처 규칙은 [docs/architecture/index.md](docs/architecture/index.md)부터 진입합니다.** 두 축의 참조 문서가 `frontend/` · `backend/` 로 갈려 있고 둘에 걸치는 것은 `shared/` 입니다. 현재 작업에 해당하는 문서만 읽고 전부 싣지 않습니다.
 - **시각 언어는 [web/docs/design/DESIGN.md](web/docs/design/DESIGN.md)가 소유합니다.** 아키텍처 문서는 토큰의 이름 집합과 하한을, 이 문서는 그 안을 채우는 값과 근거를 갖습니다.
-- **규칙을 바꾸기 전에 [결정 기록](docs/architecture/decisions/index.md)을 먼저 확인합니다.** 대부분의 규칙에는 그것을 그렇게 정한 사유와 기각한 대안이 남아 있습니다.
-- **갈림길 결정은 결정 기록으로 남깁니다.** 검토한 대안과 트레이드오프를 한 문단 이상 쓸 수 있으면 [템플릿](docs/architecture/templates/adr.template.md)으로 작성하고 목차에 등록합니다. 쓸 수 없으면 참조 문서 본문에 직접 적습니다.
+- **규칙을 바꾸기 전에 [9. 아키텍처 결정](docs/architecture/09-architecture-decisions.md)을 먼저 확인합니다.** 대부분의 규칙에는 그것을 그렇게 정한 사유와 기각한 대안이 남아 있습니다.
+- **갈림길 결정은 결정 기록으로 남깁니다.** 검토한 대안과 트레이드오프를 한 문단 이상 쓸 수 있으면 [템플릿](docs/architecture/decisions/0000-template.md)으로 작성하고 목차에 등록합니다. 쓸 수 없으면 참조 문서 본문에 직접 적습니다.
 - **유스케이스 서술서는 [docs/1.analysis/작성지침.md](docs/1.analysis/작성지침.md)를 따릅니다.** 최소 양식과 예제가 그 문서와 `docs/1.analysis/예제/` 에 있습니다.
 
 ## 전역 규칙
@@ -51,4 +51,4 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 
 `web/` 은 Angular 22 + Tailwind CSS 4 위에 Spartan(brain + helm)과 FSD 를 얹은 상태이며, Steiger 와 ESLint 가 배치 규칙을 빌드에서 강제합니다. 화면은 작업 목록과 상세 둘이 백엔드 API 위에 서 있고(조회는 라우트 스코프의 `httpResource`, 명령은 명령 전용 서비스), 셸의 골격은 sidebar 입니다.
 
-요구사항은 [유스케이스 모델](docs/1.analysis/유스케이스-모델.md)에 유스케이스 여섯(TK-001~006)으로 등록되어 있습니다. 작업 넷(TK-001~004)은 대체 흐름까지 구체화되어 실제 서버 연결로 검증되었고(EP-002 닫힘), 계정으로 시작하기(TK-005) · 프로필 관리(TK-006)와 파일 첨부(TK-003 A11)가 그 위에 얹혀 있습니다. 인증은 쿠키&세션(HttpOnly `session_token`, HMAC 해시 저장, 30일 슬라이딩)이고 작업은 계정 단위로 격리됩니다. 파일은 presigned URL 정석 경로(서버는 URL 만, 바이트는 브라우저↔보관소 직접)이며 로컬 보관소는 compose 의 MinIO, R2 전환은 `storage.*` 프로퍼티 교체입니다. 업로드 UI 는 uppy(동적 임포트), 에이전트(MCP)용 Bearer 토큰은 계정 화면에서 발급합니다 — MCP 연동 자체는 후속입니다. 셸은 넓은 화면에서 스마트 목록 사이드바 + 하단 프로필, 좁은 화면에서 할일 · 계정 두 탭 + 스마트 목록 드로어입니다. 배포는 todogen.app(개인 서버, 도커)이며 절차는 [deploy/README.md](deploy/README.md)에 있습니다. 백로그는 `backlog/` 에 Epic 4 · Story 18 · Task 2 로 있고 전부 닫혔습니다 — 첫 사이클이 끝났고 다음 이니셔티브는 리팩토링입니다. GitHub 이슈는 쓰지 않습니다. 미리 알림이 정한 시각에 울리는 쪽과 반복은 나중 구획에 있습니다. 기획은 모델의 배경 · 범위 밖 절이 대신하며 `docs/2.design/` 은 비어 있습니다.
+요구사항은 [유스케이스 모델](docs/1.analysis/유스케이스-모델.md)에 유스케이스 여섯(TK-001~006)으로 등록되어 있습니다. 작업 넷(TK-001~004)은 대체 흐름까지 구체화되어 실제 서버 연결로 검증되었고(EP-002 닫힘), 계정으로 시작하기(TK-005) · 프로필 관리(TK-006)와 파일 첨부(TK-003 A11)가 그 위에 얹혀 있습니다. 인증은 쿠키&세션(HttpOnly `session_token`, HMAC 해시 저장, 30일 슬라이딩)이고 작업은 계정 단위로 격리됩니다. 파일은 presigned URL 정석 경로(서버는 URL 만, 바이트는 브라우저↔보관소 직접)이며 로컬 보관소는 compose 의 MinIO, R2 전환은 `storage.*` 프로퍼티 교체입니다. 업로드 UI 는 uppy(동적 임포트), 에이전트(MCP)용 Bearer 토큰은 계정 화면에서 발급합니다 — MCP 연동 자체는 후속입니다. 셸은 넓은 화면에서 스마트 목록 사이드바 + 하단 프로필, 좁은 화면에서 할일 · 계정 두 탭 + 스마트 목록 드로어입니다. 배포는 todogen.app(개인 서버, 도커)이며 절차는 [7. 배포 뷰](docs/architecture/07-deployment-view.md)에 있습니다. 백로그는 `backlog/` 에 Epic 4 · Story 18 · Task 2 로 있고 전부 닫혔습니다 — 첫 사이클이 끝났고 다음 이니셔티브는 리팩토링입니다. GitHub 이슈는 쓰지 않습니다. 미리 알림이 정한 시각에 울리는 쪽과 반복은 나중 구획에 있습니다. 기획은 모델의 배경 · 범위 밖 절이 대신하며 `docs/2.design/` 은 비어 있습니다.
