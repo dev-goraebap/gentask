@@ -35,14 +35,12 @@ flowchart LR
 
 시스템을 구성하는 주요 요소의 호스트 내 배치 경로 및 역할은 다음과 같습니다.
 
-| 구성 요소 | 배치 위치 및 명세 |
-| :--- | :--- |
-| **API 컨테이너** | `$APP_DIR` — `api/`(jar + Dockerfile), `docker-compose.yml`, `.env` |
-| **프론트엔드 정적 자산** | `$WEB_ROOT` — 릴리스별 디렉터리 `releases/<타임스탬프>/` 와 그중 하나를 가리키는 심볼릭 링크 `current`. nginx 컨테이너에 이 디렉터리를 `/srv/todogen/web` 로 읽기 전용 마운트합니다. `current` 는 **상대 경로 심볼릭 링크**여야 호스트와 컨테이너 양쪽에서 해석됩니다. |
-| **리버스 프록시** | `~/nginx/nginx.conf` 내 `todogen.app` 및 `api.todogen.app` 서버 블록. 정적 자산 제공과 API 프록시를 겸하며, API 는 Docker 내부 네트워크(`my-network`) 상의 컨테이너 이름으로 전달합니다. |
-| **인증서** | Certbot standalone 방식으로 발급받아 `~/nginx/certs/todogen-app-*.pem` 경로로 복사합니다. 인증서 갱신은 `~/nginx/renew-certs.sh` 스크립트를 통해 관리합니다. |
-| **데이터베이스** | 서버 공용 `my-postgres` 인스턴스 내 `todogen` 데이터베이스(전용 롤 `todogen`)를 사용합니다. |
-| **파일 보관소** | Cloudflare R2 버킷 `todogen`. 스토리지 접속 정보(자격 증명)는 서버의 `.env` 파일에서만 관리합니다. |
+- **API 컨테이너** — `$APP_DIR` 아래 `api/`(jar + Dockerfile), `docker-compose.yml`, `.env`
+- **프론트엔드 정적 자산** — `$WEB_ROOT` 아래 릴리스별 디렉터리 `releases/<타임스탬프>/` 와 그중 하나를 가리키는 심볼릭 링크 `current`. nginx 컨테이너에 이 디렉터리를 `/srv/todogen/web` 으로 읽기 전용 마운트합니다. `current` 는 **상대 경로 심볼릭 링크**여야 호스트와 컨테이너 양쪽에서 해석됩니다.
+- **리버스 프록시** — `~/nginx/nginx.conf` 의 `todogen.app` · `api.todogen.app` 블록. 정적 자산 제공과 API 프록시를 겸하며, API 는 Docker 내부 네트워크(`my-network`)의 컨테이너 이름으로 전달합니다.
+- **인증서** — Certbot standalone 으로 발급해 `~/nginx/certs/todogen-app-*.pem` 으로 복사합니다. 갱신은 `~/nginx/renew-certs.sh` 가 관리합니다.
+- **데이터베이스** — 서버 공용 `my-postgres` 인스턴스의 `todogen` 데이터베이스(전용 롤 `todogen`).
+- **파일 보관소** — Cloudflare R2 버킷 `todogen`. 접속 자격 증명은 서버의 `.env` 만 갖습니다.
 
 프론트엔드는 실행 프로세스를 갖지 않습니다. 렌더링 방식과 그 근거는 [결정-0002](./decisions/0002-frontend-static-deployment.md)에 있습니다.
 
