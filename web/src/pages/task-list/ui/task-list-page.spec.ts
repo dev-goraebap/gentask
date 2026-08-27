@@ -6,7 +6,7 @@ import { toDateKey, type Task } from '@/entities/task';
 import { TaskService } from '../api/task-service';
 import { AsideSlotService } from '@/shared/lib';
 import { provideTaskListDatePicker } from '../providers';
-import { TaskListPage } from './task-list.page';
+import { TaskListPage } from './task-list-page';
 import { toast } from '@/shared/ui/sonner';
 
 describe('TaskListPage', () => {

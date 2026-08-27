@@ -114,7 +114,7 @@ import { TaskService, type TaskSeed } from '../api/task-service';
     class: 'flex min-h-0 flex-1 flex-col',
     '[attr.aria-busy]': 'veil().visible() || null',
   },
-  templateUrl: './task-list.page.html',
+  templateUrl: './task-list-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskListPage {

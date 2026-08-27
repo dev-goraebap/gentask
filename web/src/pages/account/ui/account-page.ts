@@ -39,7 +39,7 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
     '[attr.aria-busy]': 'veilLoading() || null',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './account.page.html',
+  templateUrl: './account-page.html',
 })
 export class AccountPage {
   // --- 의존 --------------------------------------------------------------------------------------

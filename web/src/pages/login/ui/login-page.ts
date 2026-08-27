@@ -9,7 +9,7 @@ import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { HlmInput } from '@/shared/ui/input';
 
 @Component({
-  selector: 'app-signup',
+  selector: 'app-login',
   imports: [
     FormRoot,
     FormField,
@@ -22,11 +22,10 @@ import { HlmInput } from '@/shared/ui/input';
   ],
   host: { class: 'flex min-h-dvh items-center justify-center p-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './signup.page.html',
+  templateUrl: './login-page.html',
 })
-export class SignupPage {
+export class LoginPage {
   // --- 상수 --------------------------------------------------------------------------------------
-  private static readonly PASSWORD_MIN = 8;
   protected readonly routes = ROUTES;
 
   // --- 의존 --------------------------------------------------------------------------------------
@@ -36,16 +35,12 @@ export class SignupPage {
   // --- 상태 --------------------------------------------------------------------------------------
   private readonly draft = signal({ email: '', password: '' });
 
-  protected readonly signupForm = form(this.draft, (path) => {
-    validate(path.email, ({ value }) => {
-      const email = value().trim();
-      if (!email) return requiredError({ message: '이메일을 입력해 주세요' });
-      return email.includes('@') ? undefined : requiredError({ message: '이메일 형식이 아닙니다' });
-    });
+  protected readonly loginForm = form(this.draft, (path) => {
+    validate(path.email, ({ value }) =>
+      value().trim() ? undefined : requiredError({ message: '이메일을 입력해 주세요' }),
+    );
     validate(path.password, ({ value }) =>
-      value().length >= SignupPage.PASSWORD_MIN
-        ? undefined
-        : requiredError({ message: '비밀번호는 8자 이상이어야 합니다' }),
+      value() ? undefined : requiredError({ message: '비밀번호를 입력해 주세요' }),
     );
   });
 
@@ -54,16 +49,16 @@ export class SignupPage {
 
   // --- 동작 --------------------------------------------------------------------------------------
   protected async submit(): Promise<void> {
-    this.signupForm().markAsTouched();
-    if (!this.signupForm().valid()) return;
+    this.loginForm().markAsTouched();
+    if (!this.loginForm().valid()) return;
 
     this.busy.set(true);
     this.failure.set(null);
     try {
       const { email, password } = this.draft();
-      await this.authService.signup(email, password);
+      await this.authService.login(email, password);
     } catch (error) {
-      this.failure.set(problemDetail(error, '등록하지 못했습니다. 잠시 후 다시 시도해 주세요'));
+      this.failure.set(problemDetail(error, '로그인하지 못했습니다. 잠시 후 다시 시도해 주세요'));
       return;
     } finally {
       this.busy.set(false);
