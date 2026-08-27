@@ -2,23 +2,23 @@
 
 프론트엔드 애플리케이션의 구성 파일 명세, 실행 명령, 경로 별칭 및 줄바꿈 정책, 자동화 강제 수단의 적용 범위와 예외 규정을 정의합니다.
 
-아키텍처 및 코드 작성 규칙의 원본은 [5. 빌딩 블록 뷰](../05-building-block-view.md), [7. 배포 뷰](../07-deployment-view.md), [프론트엔드 02. 코드 작성 규약](./02-code-style.md)에 정의되어 있으며, 본 문서는 각 규칙이 빌드 및 린트 도구에서 강제되는 지점과 예외 기준을 명시합니다.
+본 문서는 규칙이 빌드 및 린트 도구에서 강제되는 지점과 그 예외 기준을 명시합니다.
 
 ## 1. 구성 파일
 
 설정값을 문서에 중복 기술하지 않고 구성 파일을 단일 진실 공급원(Single Source of Truth)으로 참조합니다. 문서는 규칙과 판정 기준을 정의하고, 구성 파일은 해당 규칙의 구체적인 실행 형태를 관리합니다.
 
-| 파일 | 역할 | 규칙의 원본 |
-| :--- | :--- | :--- |
-| `package.json` | 의존성 및 패키지 버전 관리 | 본 문서에 버전을 중복 기술하지 않음 |
-| `tsconfig.json` | 컴파일러 옵션, 경로 별칭(`paths`) 정의 | [5.2.4 참조 규칙](../05-building-block-view.md) |
-| `angular.json` | 빌드 설정, 번들 예산, 전역 스타일 경로 등록 | 성능 문서 |
-| `steiger.config.ts` | FSD 계층 구조 및 슬라이스 의존성 규칙 강제 | [5.2 레벨 2 — web](../05-building-block-view.md) |
-| `eslint.config.js` | 코드 규약, 전역 프로바이더 위치 제한, 임포트 제한, 템플릿 접근성 검사 | [프론트엔드 02. 코드 작성 규약](./02-code-style.md) |
-| `.postcssrc.json` | Tailwind CSS 플러그인 등록 | 디자인 시스템 문서 |
-| `.prettierrc` · `.editorconfig` | 코드 포맷팅 및 에디터 기본 서식 설정 | [프론트엔드 02. 코드 작성 규약](./02-code-style.md) |
-| `proxy.conf.json` | 로컬 개발 서버의 백엔드 API 프록시 설정 | [7. 배포 뷰](../07-deployment-view.md) |
-| `.gitattributes` (저장소 루트) | 줄바꿈 정책(EOL) 및 바이너리/생성 파일 처리 지정 | 본 문서 4절 |
+| 파일 | 역할 |
+| :--- | :--- |
+| `package.json` | 의존성 및 패키지 버전 관리 |
+| `tsconfig.json` | 컴파일러 옵션, 경로 별칭(`paths`) 정의 |
+| `angular.json` | 빌드 설정, 번들 예산, 전역 스타일 경로 등록 |
+| `steiger.config.ts` | FSD 계층 구조 및 슬라이스 의존성 규칙 강제 |
+| `eslint.config.js` | 코드 규약, 전역 프로바이더 위치 제한, 임포트 제한, 템플릿 접근성 검사 |
+| `.postcssrc.json` | Tailwind CSS 플러그인 등록 |
+| `.prettierrc` · `.editorconfig` | 코드 포맷팅 및 에디터 기본 서식 설정 |
+| `proxy.conf.json` | 로컬 개발 서버의 백엔드 API 프록시 설정 |
+| `.gitattributes` (저장소 루트) | 줄바꿈 정책(EOL) 및 바이너리/생성 파일 처리 지정 |
 
 ## 2. 명령
 
