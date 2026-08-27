@@ -18,7 +18,7 @@
 
 ## 2. 포매팅
 
-**BE-STY-001 (필수)** 포매팅은 도구가 강제하며 Spotless 의 `palantirJavaFormat` 이 유일한 기준입니다. 들여쓰기 · 줄 폭 · 임포트 순서를 이 문서에 적지 않습니다. `./gradlew spotlessApply` 가 고칩니다.
+**BE-STY-001 (필수)** 포매팅은 [Spotless](https://github.com/diffplug/spotless) 의 [`palantirJavaFormat`](https://github.com/palantir/palantir-java-format) 이 강제하며 그 설정이 유일한 기준입니다. 들여쓰기 · 줄 폭 · 임포트 순서를 이 문서에 적지 않습니다. `./gradlew spotlessApply` 가 고칩니다.
 
 **BE-STY-002 (필수)** 별표 임포트와 미사용 임포트를 쓰지 않습니다. Checkstyle 이 막습니다.
 
@@ -32,7 +32,7 @@
 
 ### 3.2 클래스
 
-**BE-STY-005 (필수)** `application` 안에서 프레젠테이션과 애플리케이션을 가르는 것은 폴더가 아니라 **접미사이며 ArchUnit 이 이 이름으로 판정합니다.**
+**BE-STY-005 (필수)** `application` 안에서 프레젠테이션과 애플리케이션을 가르는 것은 폴더가 아니라 **접미사이며 [ArchUnit](https://www.archunit.org/) 이 이 이름으로 판정합니다.**
 
 | 역할 | 식별 | 자리 |
 | :--- | :--- | :--- |
@@ -56,7 +56,7 @@
 
 **BE-STY-010 (필수)** `find` 는 대상이 없을 수 있음을, `get` 은 없으면 실패함을 뜻합니다.
 
-**BE-STY-011 (필수)** 접근자에 `get` 을 붙이지 않습니다. `lombok.config` 의 `lombok.accessors.fluent` 가 `@Getter` 도 같은 형태로 만듭니다.
+**BE-STY-011 (필수)** 접근자에 `get` 을 붙이지 않습니다. `lombok.config` 의 [`lombok.accessors.fluent`](https://projectlombok.org/features/experimental/Accessors) 가 `@Getter` 도 같은 형태로 만듭니다.
 
 **BE-STY-012 (필수)** 필드와 파라미터는 타입명의 카멜케이스입니다. 같은 타입이 둘 이상이면 역할을 앞에 붙입니다. 재정의 대상이 정한 파라미터 이름은 그대로 씁니다.
 
@@ -140,9 +140,9 @@ record 하나에 파일 하나를 두면 작은 타입이 폴더를 채우고, �
 
 **BE-STY-028 (필수)** `@Setter` 를 쓰지 않습니다. `lombok.config` 가 빌드 오류로 막습니다. 상태 변경은 업무 낱말을 가진 메서드가 하고 그 메서드가 불변식을 함께 지키는데, 필드마다 통로를 내면 그 지점이 사라집니다.
 
-**BE-STY-029 (필수)** DTO 는 `record` 입니다. 접근자와 `equals` · `hashCode` 를 컴파일러가 만듭니다.
+**BE-STY-029 (필수)** DTO 는 [`record`](https://docs.oracle.com/en/java/javase/21/language/records.html) 입니다. 접근자와 `equals` · `hashCode` 를 컴파일러가 만듭니다.
 
-**BE-STY-030 (필수)** `Exception` 이나 `RuntimeException` 을 통째로 잡지 않습니다. Checkstyle `IllegalCatch` 가 막습니다. 빈 `catch` 블록도 금지입니다.
+**BE-STY-030 (필수)** `Exception` 이나 `RuntimeException` 을 통째로 잡지 않습니다. [Checkstyle `IllegalCatch`](https://checkstyle.org/checks/coding/illegalcatch.html) 가 막습니다. 빈 `catch` 블록도 금지입니다.
 
 **BE-STY-031 (필수)** 문자열 비교에 `==` 를 쓰지 않습니다. Checkstyle 이 막습니다.
 
@@ -173,7 +173,7 @@ private LocalDate myDayOn;
 
 ## 7. 에러 처리와 로깅
 
-**BE-STY-038 (필수)** 비즈니스 실패는 항상 예외로 던집니다. 컨트롤러가 `ResponseEntity` 를 직접 조립하지 않으며 전역 핸들러가 응답으로 변환합니다.
+**BE-STY-038 (필수)** 비즈니스 실패는 항상 예외로 던집니다. 컨트롤러가 `ResponseEntity` 를 직접 조립하지 않으며 전역 핸들러가 [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html) 응답으로 변환합니다.
 
 | 던지는 것 | 뜻 | 문장의 성격 |
 | :--- | :--- | :--- |

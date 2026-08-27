@@ -13,9 +13,9 @@
 | `package.json` | 의존성 및 패키지 버전 관리 |
 | `tsconfig.json` | 컴파일러 옵션, 경로 별칭(`paths`) 정의 |
 | `angular.json` | 빌드 설정, 번들 예산, 전역 스타일 경로 등록 |
-| `steiger.config.ts` | FSD 계층 구조 및 슬라이스 의존성 규칙 강제 |
+| `steiger.config.ts` | FSD 계층 구조 및 슬라이스 의존성 규칙 강제([Steiger](https://github.com/feature-sliced/steiger)) |
 | `eslint.config.js` | 코드 규약, 전역 프로바이더 위치 제한, 임포트 제한, 템플릿 접근성 검사 |
-| `.postcssrc.json` | Tailwind CSS 플러그인 등록 |
+| `.postcssrc.json` | [Tailwind CSS](https://tailwindcss.com/) 플러그인 등록 |
 | `.prettierrc` · `.editorconfig` | 코드 포맷팅 및 에디터 기본 서식 설정 |
 | `proxy.conf.json` | 로컬 개발 서버의 백엔드 API 프록시 설정 |
 | `.gitattributes` (저장소 루트) | 줄바꿈 정책(EOL) 및 바이너리/생성 파일 처리 지정 |
@@ -41,7 +41,7 @@
 { "compilerOptions": { "paths": { "@/*": ["./src/*"] } } }
 ```
 
-`baseUrl` 설정의 사용을 **금지**합니다. TypeScript 컴파일러에서 폐기 예정으로 지정되어 있으며, 설정 시 `TS5101` 오류가 발생하여 빌드가 차단됩니다. `paths` 매핑만을 정의하고 상대 경로를 값으로 지정합니다.
+[`baseUrl`](https://www.typescriptlang.org/tsconfig/#baseUrl) 설정의 사용을 **금지**합니다. TypeScript 컴파일러에서 폐기 예정으로 지정되어 있으며, 설정 시 `TS5101` 오류가 발생하여 빌드가 차단됩니다. `paths` 매핑만을 정의하고 상대 경로를 값으로 지정합니다.
 
 계층 간 임포트에 상대 경로를 사용하는 것은 ESLint `no-restricted-imports` 규칙으로 차단합니다. Steiger는 상대 경로로 작성된 참조 위반도 검출하므로, 별칭 규칙 적용의 주된 목적은 **파일 이동 내성(Refactoring Resilience)** 확보입니다. 슬라이스를 다른 계층으로 이동할 때 상대 경로는 모두 수정이 필요하지만 경로 별칭은 그대로 유지됩니다.
 
@@ -64,7 +64,7 @@
 
 전역 스타일 파일은 `src/app/styles.css`에 배치하며, `angular.json`의 `styles` 항목에 해당 경로를 등록합니다. 이는 FSD 아키텍처에서 전역 스타일을 최상위 `app` 계층에 배치하도록 규정함에 따른 조치입니다.
 
-**`src/styles.css` 기본 파일을 루트에 잔존시키지 않습니다.** Spartan CLI의 스타일 진입점 자동 탐지 로직은 `angular.json` 설정을 우선 확인하지 않고 `<sourceRoot>/styles.{css,scss,sass,less}` 파일의 존재 여부를 먼저 검사합니다. 기본 경로에 파일이 남아 있는 경우 `angular.json`이 참조하지 않는 파일에 테마 스타일이 잘못 작성될 수 있습니다. UI 컴포넌트 생성기 실행 시 `--stylesEntryPoint` 옵션을 명시하여 탐지 순서와 무관하게 진입점 경로를 고정합니다.
+**`src/styles.css` 기본 파일을 루트에 잔존시키지 않습니다.** [Spartan](https://spartan.ng/) CLI의 스타일 진입점 자동 탐지 로직은 `angular.json` 설정을 우선 확인하지 않고 `<sourceRoot>/styles.{css,scss,sass,less}` 파일의 존재 여부를 먼저 검사합니다. 기본 경로에 파일이 남아 있는 경우 `angular.json`이 참조하지 않는 파일에 테마 스타일이 잘못 작성될 수 있습니다. UI 컴포넌트 생성기 실행 시 `--stylesEntryPoint` 옵션을 명시하여 탐지 순서와 무관하게 진입점 경로를 고정합니다.
 
 **테마 스타일은 스타일시트에서 단독으로 제어합니다.** 라이트 모드 및 다크 모드 전환은 HTML 루트 요소의 클래스 속성으로 제어하므로, 스타일시트 외부에서 배경색이나 `color-scheme`을 직접 정의할 경우 시스템 테마 설정에만 종속되어 애플리케이션의 테마 전환 제어가 무효화됩니다. 따라서 진입점 문서(`index.html`) 내 인라인 스타일로 색상이나 테마를 선언하는 것을 **금지**합니다.
 

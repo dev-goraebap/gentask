@@ -15,15 +15,15 @@
 | `gradle/gradle-daemon-jvm.properties` | Gradle 데몬 실행 JVM 버전 지정 |
 | `compose.yaml` | 로컬 개발용 데이터베이스 및 오브젝트 스토리지 컨테이너 구성 |
 | `src/main/resources/application.properties` | 인프라 접속 정보 및 Flyway 마이그레이션 설정 |
-| `lombok.config` | Lombok 접근자 스타일 지정 및 금지 기능 설정 |
-| `config/checkstyle/` | Checkstyle 코딩 컨벤션 규칙 및 예외 목록 |
-| `config/spotbugs/` | SpotBugs 결함 탐지 오탐 제외 필터 목록 |
+| `lombok.config` | [Lombok](https://projectlombok.org/features/configuration) 접근자 스타일 지정 및 금지 기능 설정 |
+| `config/checkstyle/` | [Checkstyle](https://checkstyle.org/) 코딩 컨벤션 규칙 및 예외 목록 |
+| `config/spotbugs/` | [SpotBugs](https://spotbugs.github.io/) 결함 탐지 오탐 제외 필터 목록 |
 
 ## 2. JVM
 
 컴파일 대상은 Java 21이며, **Gradle 데몬 실행 JVM 역시 21 이상이어야 합니다.**
 
-`build.gradle`의 `toolchain` 설정은 소스 컴파일에만 적용되며, 플러그인은 Gradle 데몬 JVM에서 로드됩니다. jOOQ 코드 생성 플러그인이 JVM 21을 요구하므로 데몬 JVM 버전이 충족되지 않으면 빌드 구성(Configuration) 단계에서 실패합니다. `gradle/gradle-daemon-jvm.properties`에 데몬 JVM 버전을 고정하여 관리하며, 로컬 환경에 적합한 JDK가 없는 경우 Gradle 도구체인 자동 프로비저닝(Auto-provisioning)을 통해 필요한 버전을 내려받습니다.
+`build.gradle`의 `toolchain` 설정은 소스 컴파일에만 적용되며, 플러그인은 Gradle 데몬 JVM에서 로드됩니다. [jOOQ](https://www.jooq.org/) 코드 생성 플러그인이 JVM 21을 요구하므로 데몬 JVM 버전이 충족되지 않으면 빌드 구성(Configuration) 단계에서 실패합니다. `gradle/gradle-daemon-jvm.properties`에 데몬 JVM 버전을 고정하여 관리하며, 로컬 환경에 적합한 JDK가 없는 경우 Gradle 도구체인 자동 프로비저닝(Auto-provisioning)을 통해 필요한 버전을 내려받습니다.
 
 ## 3. 로컬 실행
 
@@ -65,7 +65,7 @@
 | **Spotless** | 코드 포맷팅 (들여쓰기, 줄바꿈, 미사용 임포트 제거 등) | 자동 교정 수행 (`spotlessApply`) |
 | **Checkstyle** | 명명 규칙 및 금지 패턴 검사 | 소스 코드 정적 분석 (위반 시 빌드 차단) |
 | **SpotBugs** | 잠재 결함 패턴 탐지 | 바이트코드 정적 분석 (위반 시 빌드 차단) |
-| **ArchUnit** | 패키지 의존성 및 아키텍처 계층 구조 규칙 검증 | 단위 테스트 단계에서 실행 |
+| **[ArchUnit](https://www.archunit.org/)** | 패키지 의존성 및 아키텍처 계층 구조 규칙 검증 | 단위 테스트 단계에서 실행 |
 
 **Checkstyle에는 포맷팅 검증 규칙을 포함하지 않습니다.** 포맷팅은 Spotless를 통한 자동 교정으로 일원화하여 도구 간 규칙 충돌(자동 교정과 검증 실패의 상충)을 방지합니다.
 
@@ -75,7 +75,7 @@
 
 ## 6. 테스트 실행 요건
 
-**통합 테스트 실행에는 Docker 환경이 필수입니다.** Testcontainers를 통해 실제 PostgreSQL 컨테이너를 구동하고 Flyway 마이그레이션을 적용하여 검증합니다. 로컬에 Docker 환경이 갖춰지지 않은 경우 통합 테스트만 실패하며, 단위 테스트 및 ArchUnit 아키텍처 검증은 정상 실행됩니다.
+**통합 테스트 실행에는 Docker 환경이 필수입니다.** [Testcontainers](https://testcontainers.com/) 를 통해 실제 PostgreSQL 컨테이너를 구동하고 Flyway 마이그레이션을 적용하여 검증합니다. 로컬에 Docker 환경이 갖춰지지 않은 경우 통합 테스트만 실패하며, 단위 테스트 및 ArchUnit 아키텍처 검증은 정상 실행됩니다.
 
 **테스트용 컨테이너는 `compose.yaml`의 로컬 개발용 데이터베이스와 격리하여 실행합니다.** 테스트 데이터와 로컬 개발 데이터의 간섭을 차단하여 테스트의 독립성과 재현성을 보장합니다.
 
@@ -83,6 +83,6 @@
 
 ## 7. API 명세의 생성
 
-프론트엔드가 소비하는 TypeScript 인터페이스 타입은 백엔드가 제공하는 OpenAPI 명세로부터 생성됩니다. 명세는 `springdoc-openapi`가 애플리케이션 런타임에 제공하며, 클라이언트 코드 생성 절차와 산출물 관리 규격은 [프론트엔드 01. 개발 환경](../frontend/01-dev-environment.md)에 정의되어 있습니다.
+프론트엔드가 소비하는 TypeScript 인터페이스 타입은 백엔드가 제공하는 OpenAPI 명세로부터 생성됩니다. 명세는 [`springdoc-openapi`](https://springdoc.org/) 가 애플리케이션 런타임에 제공하며, 클라이언트 코드 생성 절차와 산출물 관리 규격은 [프론트엔드 01. 개발 환경](../frontend/01-dev-environment.md)에 정의되어 있습니다.
 
 백엔드 엔드포인트 또는 요청/응답 DTO를 변경한 경우, OpenAPI 명세를 기반으로 프론트엔드 타입 생성을 재실행하여 두 컴포넌트 간의 인터페이스 일치성을 유지해야 합니다.

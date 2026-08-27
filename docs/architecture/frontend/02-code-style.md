@@ -18,7 +18,7 @@
 
 ## 2. 포매팅
 
-**FE-STY-001 (필수)** 포매팅은 도구가 강제하며 `.prettierrc` 가 유일한 기준입니다. 들여쓰기 · 줄 길이 · 따옴표 · 세미콜론을 이 문서에 적지 않습니다. 도구 설정과 실행은 개발 환경 문서에서 관리합니다.
+**FE-STY-001 (필수)** 포매팅은 [Prettier](https://prettier.io/) 가 강제하며 `.prettierrc` 가 유일한 기준입니다. 들여쓰기 · 줄 길이 · 따옴표 · 세미콜론을 이 문서에 적지 않습니다. 도구 설정과 실행은 개발 환경 문서에서 관리합니다.
 
 ## 3. 네이밍
 
@@ -26,7 +26,7 @@
 
 **FE-STY-002 (필수)** 파일명은 케밥 케이스(kebab-case)입니다.
 
-**FE-STY-003 (필수)** 단일 클래스를 내보내는 파일명은 클래스명을 케밥 케이스로 변환한 이름입니다. 클래스명이 바뀌면 파일명도 함께 변경합니다.
+**FE-STY-003 (필수)** 단일 클래스를 내보내는 파일명은 클래스명을 케밥 케이스로 변환한 이름입니다([Angular 스타일 가이드](https://angular.dev/style-guide)). 클래스명이 바뀌면 파일명도 함께 변경합니다.
 
 | 대상 | 클래스 | 파일 |
 | :--- | :--- | :--- |
@@ -50,7 +50,7 @@ model/types.ts       lib/utils.ts               api/api.ts              // Bad
 
 ### 3.2 심볼
 
-**FE-STY-008 (필수)** 클래스명은 파스칼 케이스이며 `Component` · `Directive` · `Pipe` 접미사를 붙이지 않습니다. 파일 위치가 역할을 나타냅니다.
+**FE-STY-008 (필수)** 클래스명은 파스칼 케이스이며 `Component` · `Directive` · `Pipe` 접미사를 붙이지 않습니다([Angular 스타일 가이드](https://angular.dev/style-guide)). 파일 위치가 역할을 나타냅니다.
 
 **FE-STY-009 (필수)** 서비스 클래스만 `Service` 접미사를 붙입니다. FE-STY-011 에 따른 주입 변수명과 일반 변수명의 충돌을 방지합니다.
 
@@ -78,7 +78,7 @@ private readonly http = inject(HttpClient);         // Bad — 파일마다 이�
 
 ### 3.3 슬라이스
 
-**FE-STY-015 (필수)** 슬라이스명은 케밥 케이스입니다. 동사구는 `features`, 도메인 명사는 `entities` 로 분류합니다.
+**FE-STY-015 (필수)** 슬라이스명은 케밥 케이스입니다. 동사구는 `features`, 도메인 명사는 `entities` 로 분류합니다([FSD 계층](https://feature-sliced.design/docs/reference/layers)).
 
 | 계층 | 품사 | 예 |
 | :--- | :--- | :--- |
@@ -144,7 +144,7 @@ private readonly http = inject(HttpClient);         // Bad — 파일마다 이�
 
 **FE-STY-028 (필수)** `any` 사용을 금지합니다. 타입을 모르면 `unknown` 으로 선언하고 좁힙니다.
 
-**FE-STY-029 (필수)** 열거는 `enum` 대신 `as const` 객체와 유니온 타입입니다. `enum` 의 런타임 코드 생성과 `isolatedModules` 제약을 방지합니다.
+**FE-STY-029 (필수)** 열거는 `enum` 대신 `as const` 객체와 유니온 타입입니다([TypeScript enum](https://www.typescriptlang.org/docs/handbook/enums.html)). `enum` 의 런타임 코드 생성과 `isolatedModules` 제약을 방지합니다.
 
 ```ts
 export const TASK_STATUS = { todo: 'TODO', done: 'DONE' } as const;
@@ -199,7 +199,7 @@ export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS];
 
 **FE-STY-047 (필수)** 프레임워크 동작과 생성된 타입을 검증하지 않습니다. 외부 의존 동작의 변경에 따른 테스트 취약성을 방지합니다.
 
-**FE-STY-048 (필수)** CSS 클래스로 요소를 선택하지 않습니다. 접근성 역할(role)과 접근 가능한 이름으로 요소를 탐색합니다.
+**FE-STY-048 (필수)** CSS 클래스로 요소를 선택하지 않습니다. 접근성 역할(role)과 접근 가능한 이름으로 요소를 탐색합니다([Testing Library 질의 우선순위](https://testing-library.com/docs/queries/about/#priority)).
 
 **FE-STY-049 (필수)** 고정 시간 대기를 쓰지 않습니다. 비동기 상태 완료 이벤트나 상태 대기 헬퍼를 사용합니다.
 
