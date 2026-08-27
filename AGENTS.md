@@ -12,10 +12,10 @@ Angular 프론트엔드와 Spring Boot 백엔드를 함께 담는 모노레포�
 ## 작업 규칙
 
 - **개발 프로세스는 [docs/process.md](docs/process.md)를 따릅니다.** 경계 정하기(모델) → 유스케이스 초안 → 슬라이스 착수(백로그 Story) → 구현(듀얼 트랙) → 검증 순서이며, 산출물의 자리와 "흐름은 서술서, 슬라이스는 백로그" 경계가 그 문서에 있습니다. 백로그는 `backlog/` 의 파일이며 `plz-help-issues` 스킬의 형식을 따릅니다.
-- **아키텍처 규칙은 [docs/architecture/index.md](docs/architecture/index.md)부터 진입합니다.** 두 축의 참조 문서가 `frontend/` · `backend/` 로 갈려 있고 둘에 걸치는 것은 `shared/` 입니다. 현재 작업에 해당하는 문서만 읽고 전부 싣지 않습니다.
+- **아키텍처 규칙은 [docs/architecture/index.md](docs/architecture/index.md)부터 진입합니다.** 횡단 관심사의 하위 문서는 `docs/architecture/concepts/` 에 `<축>-<순번>-<주제>.md` 로 모여 있고, 축은 `frontend` · `backend` · `shared` 입니다. 현재 작업에 해당하는 문서만 읽고 전부 싣지 않습니다.
 - **시각 언어는 [web/docs/design/DESIGN.md](web/docs/design/DESIGN.md)가 소유합니다.** 아키텍처 문서는 토큰의 이름 집합과 하한을, 이 문서는 그 안을 채우는 값과 근거를 갖습니다.
 - **규칙을 바꾸기 전에 [9. 아키텍처 결정](docs/architecture/09-architecture-decisions.md)을 먼저 확인합니다.** 대부분의 규칙에는 그것을 그렇게 정한 사유와 기각한 대안이 남아 있습니다.
-- **갈림길 결정은 결정 기록으로 남깁니다.** 검토한 대안과 트레이드오프를 한 문단 이상 쓸 수 있으면 [템플릿](docs/architecture/decisions/0000-template.md)으로 작성하고 목차에 등록합니다. 쓸 수 없으면 참조 문서 본문에 직접 적습니다.
+- **갈림길 결정은 결정 기록으로 남깁니다.** 구조 · 비기능 특성 · 의존성 · 인터페이스 · 구축 기법 가운데 하나에 영향을 주면 [템플릿](docs/architecture/decisions/0000-template.md)으로 작성하고 목차에 등록합니다. 아니면 참조 문서 본문에 직접 적습니다.
 - **유스케이스 서술서는 [docs/1.analysis/작성지침.md](docs/1.analysis/작성지침.md)를 따릅니다.** 최소 양식과 예제가 그 문서와 `docs/1.analysis/예제/` 에 있습니다.
 
 ## 전역 규칙
