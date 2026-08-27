@@ -38,7 +38,6 @@
 
 | 번호 | 축 | 제목 | 상태 | 한 줄 요약 |
 | :--- | :--- | :--- | :--- | :--- |
-| [0001](./decisions/0001-frontend-design-outside-architecture.md) | frontend | 시각 언어를 아키텍처 밖에 둔다 | 유효 | 토큰의 이름 집합은 아키텍처가, 값과 근거는 `DESIGN.md` 가 소유합니다 |
 | [0002](./decisions/0002-frontend-static-deployment.md) | frontend | 프론트엔드를 정적 산출물로 배포한다 | 유효 | 서버 렌더링 경로가 0 개이므로 실행 프로세스를 두지 않고 nginx 가 산출물을 직접 제공합니다 |
 
 ## 발행 예정
