@@ -2,7 +2,7 @@
 
 본 문서는 UI 킷의 구성 방식, 디자인 토큰의 **그릇**, 그리고 `shared/ui` 의 경계를 정의합니다.
 
-**토큰에 담기는 값은 이 문서가 소유하지 않습니다.** 팔레트·곡률·표면 처리·타이포는 [DESIGN.md](../../design/DESIGN.md)가 소유하며 프로젝트마다 새로 작성합니다. 분리의 근거는 [결정-0001](../decisions/0001-design-outside-architecture.md)에 있습니다.
+**토큰에 담기는 값은 이 문서가 소유하지 않습니다.** 팔레트·곡률·표면 처리·타이포는 [DESIGN.md](../../../web/docs/design/DESIGN.md)가 소유하며 프로젝트마다 새로 작성합니다. 분리의 근거는 [결정-0001](../decisions/0001-frontend-design-outside-architecture.md)에 있습니다.
 
 ## 1. 구성
 
@@ -317,3 +317,11 @@ const TOUCH_TARGET = 'max-md:min-h-11 max-md:min-w-11';
 | 크기·두께 토큰 신설 | Tailwind 척도와 두 벌이 됩니다 |
 | 프리셋의 `dark` 변형을 그대로 사용 | 시스템 모드에서 토큰과 유틸리티의 판정이 어긋납니다 |
 | 본 문서에 팔레트 값 기재 | 결정-0001 이 금지한 구성입니다 |
+
+## 9. 용어
+
+| 용어 | 정의 |
+| :--- | :--- |
+| **brain · helm** | Spartan 의 두 층. brain 은 접근성과 동작을 담당하는 헤드리스 프리미티브이며 npm 의존성입니다. helm 은 시각 층이며 프로젝트로 복사해 소유합니다 |
+| **토큰 이름 집합** | 아키텍처가 고정하고 DESIGN.md 가 전부 채워야 하는 목록. 둘 사이의 계약입니다 |
+| **DESIGN.md** | 시각 언어를 소유하는 문서. YAML 프런트매터에 토큰 값, 본문에 근거를 담습니다. 아키텍처 트리 밖에 두는 근거는 [결정-0001](../decisions/0001-frontend-design-outside-architecture.md)에 있습니다 |

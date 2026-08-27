@@ -5,7 +5,7 @@ const angular = require('angular-eslint');
 
 /**
  * 코드 규약의 강제 수단입니다.
- * 각 규칙의 근거는 docs/architecture/references/ 의 해당 문서가 원본이며,
+ * 각 규칙의 근거는 docs/architecture/frontend/ 의 해당 문서가 원본이며,
  * 예외의 사유는 01-dev-environment.md 8절에 모여 있습니다.
  *
  * FSD 계층 규칙은 steiger.config.ts 가 담당하며 여기서 중복하지 않습니다.

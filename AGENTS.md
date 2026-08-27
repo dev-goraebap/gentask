@@ -7,15 +7,15 @@ Angular 프론트엔드와 Spring Boot 백엔드를 함께 담는 모노레포�
 | 축 | 위치 | 성격 |
 | :--- | :--- | :--- |
 | **요구사항 축** | `docs/` | 프로젝트마다 새로 발견됩니다 |
-| **참조 아키텍처** | `web/docs/` | 프로젝트를 넘나들며 축적됩니다 |
+| **참조 아키텍처** | `docs/architecture/` | 프로젝트를 넘나들며 축적됩니다 |
 
 ## 작업 규칙
 
 - **개발 프로세스는 [docs/process.md](docs/process.md)를 따릅니다.** 경계 정하기(모델) → 유스케이스 초안 → 슬라이스 착수(백로그 Story) → 구현(듀얼 트랙) → 검증 순서이며, 산출물의 자리와 "흐름은 서술서, 슬라이스는 백로그" 경계가 그 문서에 있습니다. 백로그는 `backlog/` 의 파일이며 `plz-help-issues` 스킬의 형식을 따릅니다.
-- **프론트엔드 아키텍처 규칙은 [web/docs/architecture/index.md](web/docs/architecture/index.md)부터 진입합니다.** 현재 작업에 해당하는 참조 문서만 읽고 전부 싣지 않습니다.
+- **아키텍처 규칙은 [docs/architecture/index.md](docs/architecture/index.md)부터 진입합니다.** 두 축의 참조 문서가 `frontend/` · `backend/` 로 갈려 있고 둘에 걸치는 것은 `shared/` 입니다. 현재 작업에 해당하는 문서만 읽고 전부 싣지 않습니다.
 - **시각 언어는 [web/docs/design/DESIGN.md](web/docs/design/DESIGN.md)가 소유합니다.** 아키텍처 문서는 토큰의 이름 집합과 하한을, 이 문서는 그 안을 채우는 값과 근거를 갖습니다.
-- **규칙을 바꾸기 전에 [결정 기록](web/docs/architecture/decisions/index.md)을 먼저 확인합니다.** 대부분의 규칙에는 그것을 그렇게 정한 사유와 기각한 대안이 남아 있습니다.
-- **갈림길 결정은 결정 기록으로 남깁니다.** 검토한 대안과 트레이드오프를 한 문단 이상 쓸 수 있으면 [템플릿](web/docs/templates/adr.template.md)으로 작성하고 목차에 등록합니다. 쓸 수 없으면 참조 문서 본문에 직접 적습니다.
+- **규칙을 바꾸기 전에 [결정 기록](docs/architecture/decisions/index.md)을 먼저 확인합니다.** 대부분의 규칙에는 그것을 그렇게 정한 사유와 기각한 대안이 남아 있습니다.
+- **갈림길 결정은 결정 기록으로 남깁니다.** 검토한 대안과 트레이드오프를 한 문단 이상 쓸 수 있으면 [템플릿](docs/architecture/templates/adr.template.md)으로 작성하고 목차에 등록합니다. 쓸 수 없으면 참조 문서 본문에 직접 적습니다.
 - **유스케이스 서술서는 [docs/1.analysis/작성지침.md](docs/1.analysis/작성지침.md)를 따릅니다.** 최소 양식과 예제가 그 문서와 `docs/1.analysis/예제/` 에 있습니다.
 
 ## 전역 규칙
@@ -45,7 +45,9 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 
 ## 현재 상태
 
-참조 문서 19건은 본문까지 작성되어 있습니다. 도입 순서와 각 문서의 자리는 [아키텍처 진입점](web/docs/architecture/index.md)에 있습니다.
+참조 문서 27건(프론트 18 · 백엔드 9)은 본문까지 작성되어 있습니다. 도입 순서와 각 문서의 자리는 [아키텍처 진입점](docs/architecture/index.md)에 있습니다. `shared/` 는 아직 비어 있습니다.
+
+용어의 정의는 별도 문서로 모으지 않고 그 용어를 도입하는 문서 하단의 `용어` 절이 소유합니다.
 
 `web/` 은 Angular 22 + Tailwind CSS 4 위에 Spartan(brain + helm)과 FSD 를 얹은 상태이며, Steiger 와 ESLint 가 배치 규칙을 빌드에서 강제합니다. 화면은 작업 목록과 상세 둘이 백엔드 API 위에 서 있고(조회는 라우트 스코프의 `httpResource`, 명령은 명령 전용 서비스), 셸의 골격은 sidebar 입니다.
 

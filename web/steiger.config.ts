@@ -3,8 +3,8 @@ import fsd from '@feature-sliced/steiger-plugin';
 
 /*
  * FSD 계층 규칙의 강제 지점입니다.
- * 규칙의 근거는 docs/architecture/references/02-package-structure.md 가 원본이며,
- * 예외의 사유는 docs/architecture/references/01-dev-environment.md 8절에 있습니다.
+ * 규칙의 근거는 docs/architecture/frontend/02-package-structure.md 가 원본이며,
+ * 예외의 사유는 docs/architecture/frontend/01-dev-environment.md 8절에 있습니다.
  */
 export default defineConfig([
   ...fsd.configs.recommended,

@@ -298,3 +298,13 @@ Vitest 에서 `BreakpointObserver` 를 대체 구현으로 주입해 두 경우�
 brain 의 오버레이 확장점, 캘린더의 키보드와 ARIA 범위, `BreakpointObserver` 의 서버 동작은 확인을 마쳤습니다. 결과는 [01. 개발 환경](01-dev-environment.md) 7절이 원본입니다.
 
 helm 의 입력 전달도 확인을 마쳤습니다. `HlmPopover` 사본은 `positionStrategy` 와 `hasBackdrop` 을 brain 으로 전달하도록 입력 목록에 추가했으며, 전달만으로는 부족했던 오리진 우선순위는 4.2절에 있습니다.
+
+## 11. 용어
+
+| 용어 | 정의 |
+| :--- | :--- |
+| **반응형 (Responsive)** | 레이아웃만 바뀌고 DOM 은 같은 방식. CSS 미디어 쿼리로 해결됩니다 |
+| **적응형 (Adaptive)** | 뷰포트 폭에 따라 컴포넌트와 상호작용 모델 자체를 교체하는 방식. 런타임 분기가 필요합니다 |
+| **의미 신호** | 컴포넌트가 미디어 쿼리 문자열을 직접 갖지 않도록 `shared/lib/adaptive` 가 노출하는 판정 결과. 현재는 `wide` 와 `compact` 를 가르는 `injectViewportClass()` 하나입니다 |
+| **바텀시트** | 화면 하단에서 올라오는 오버레이 컨테이너. Select · Dropdown menu · Date picker · Toast 의 `compact` 표현 |
+| **액션시트** | 항목을 나열하는 오버레이 표현. 컨텍스트 메뉴에만 씁니다. 그리드나 임의 콘텐츠의 컨테이너가 아닙니다 |

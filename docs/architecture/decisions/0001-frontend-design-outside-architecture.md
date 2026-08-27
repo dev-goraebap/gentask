@@ -2,7 +2,7 @@
 
 - 상태: 승인됨
 - 날짜: 2026-08-17
-- 관련 문서: [참조 아키텍처 진입점](../index.md), [DESIGN.md](../../design/DESIGN.md)
+- 관련 문서: [참조 아키텍처 진입점](../index.md), [DESIGN.md](../../../web/docs/design/DESIGN.md)
 
 ## 맥락
 
