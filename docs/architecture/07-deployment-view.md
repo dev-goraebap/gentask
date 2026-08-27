@@ -10,7 +10,7 @@ flowchart LR
     r2[("Cloudflare R2")]
 
     subgraph host["개인 서버"]
-        release["releases/타임스탬프<br/>정적 산출물"]
+        release["WEB_ROOT/releases/타임스탬프<br/>정적 산출물"]
         current["current<br/>심볼릭 링크"]
         staging["APP_DIR<br/>app.jar · .env"]
         nginx["nginx<br/>TLS 종단 · 정적 제공 · 리버스 프록시"]
@@ -38,13 +38,15 @@ flowchart LR
 | 구성 요소 | 배치 위치 및 명세 |
 | :--- | :--- |
 | **API 컨테이너** | `$APP_DIR` — `api/`(jar + Dockerfile), `docker-compose.yml`, `.env` |
-| **프론트엔드 정적 자산** | `$WEB_ROOT` — 릴리스별 디렉터리 `releases/<타임스탬프>/` 와 그중 하나를 가리키는 심볼릭 링크 `current`. 링크와 릴리스가 같은 부모 아래 있어야 하므로 nginx 컨테이너에는 이 부모 디렉터리를 읽기 전용으로 마운트합니다. |
+| **프론트엔드 정적 자산** | `$WEB_ROOT` — 릴리스별 디렉터리 `releases/<타임스탬프>/` 와 그중 하나를 가리키는 심볼릭 링크 `current`. nginx 컨테이너에 이 디렉터리를 `/srv/todogen/web` 로 읽기 전용 마운트합니다. `current` 는 **상대 경로 심볼릭 링크**여야 호스트와 컨테이너 양쪽에서 해석됩니다. |
 | **리버스 프록시** | `~/nginx/nginx.conf` 내 `todogen.app` 및 `api.todogen.app` 서버 블록. 정적 자산 제공과 API 프록시를 겸하며, API 는 Docker 내부 네트워크(`my-network`) 상의 컨테이너 이름으로 전달합니다. |
 | **인증서** | Certbot standalone 방식으로 발급받아 `~/nginx/certs/todogen-app-*.pem` 경로로 복사합니다. 인증서 갱신은 `~/nginx/renew-certs.sh` 스크립트를 통해 관리합니다. |
 | **데이터베이스** | 서버 공용 `my-postgres` 인스턴스 내 `todogen` 데이터베이스(전용 롤 `todogen`)를 사용합니다. |
 | **파일 보관소** | Cloudflare R2 버킷 `todogen`. 스토리지 접속 정보(자격 증명)는 서버의 `.env` 파일에서만 관리합니다. |
 
 프론트엔드는 실행 프로세스를 갖지 않습니다. 렌더링 방식과 그 근거는 [결정-0002](./decisions/0002-frontend-static-deployment.md)에 있습니다.
+
+정적 자산의 자리는 홈 디렉터리 아래로 제한됩니다. 서버의 Docker 가 snap 으로 설치되어 있어 홈 밖 경로(`/srv` 등)를 바인드 마운트하면 컨테이너 기동이 `read-only file system` 으로 실패합니다.
 
 ## 7.2 도메인 및 라우팅
 
@@ -56,54 +58,52 @@ flowchart LR
 정적 응답에는 두 가지 진입점이 있습니다. 프리렌더된 경로는 자기 `index.html` 을 받고, `RenderMode.Client` 로 지정된 나머지 경로는 **`index.csr.html`** 로 떨어집니다. 프리렌더된 `index.html` 은 애플리케이션 셸이 아니라 `<meta http-equiv="refresh">` 리다이렉트 문서이므로, 통상적인 `try_files $uri /index.html` 규칙을 적용하면 모든 경로가 이 문서를 받아 리다이렉트가 반복됩니다.
 
 ```nginx
-server {
-    listen 80;
-    server_name todogen.app;
-
-    location /.well-known/acme-challenge/ {
-        root /var/www/html;
-    }
-
-    location / {
+    # todogen.app - HTTP to HTTPS redirect
+    server {
+        listen 80;
+        server_name todogen.app api.todogen.app;
         return 301 https://$host$request_uri;
     }
-}
 
-server {
-    listen 443 ssl;
-    server_name todogen.app;
+    # todogen.app - HTTPS. Static frontend; only /api/ goes to the backend.
+    # Same origin for page and API, so the session cookie (SameSite=Lax) holds.
+    server {
+        listen 443 ssl;
+        server_name todogen.app;
 
-    ssl_certificate     /etc/nginx/certs/todogen-app-fullchain.pem;
-    ssl_certificate_key /etc/nginx/certs/todogen-app-privkey.pem;
+        ssl_certificate /etc/nginx/certs/todogen-app-fullchain.pem;
+        ssl_certificate_key /etc/nginx/certs/todogen-app-privkey.pem;
 
-    # [Backend API] must match before the static fallback.
-    # No trailing slash on proxy_pass: controllers own the /api/v1 prefix.
-    location /api/ {
-        proxy_pass http://todogen-api:8080;
-        proxy_set_header Host              $host;
-        proxy_set_header X-Real-IP         $remote_addr;
-        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        # Must match before the static fallback. No trailing slash on proxy_pass:
+        # controllers own the /api/v1 prefix.
+        location /api/ {
+            proxy_pass http://todogen-api:8080;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_buffering off;
+            proxy_http_version 1.1;
+        }
+
+        # current is a symlink. Deploy = swap the link, rollback = swap it back.
+        root /srv/todogen/web/current;
+        index index.html index.csr.html;
+
+        # Hashed filenames only. 404 instead of falling through to the CSR shell.
+        location ~* \.(?:js|css|woff2?|ttf|eot|png|jpe?g|gif|svg|ico|webp)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            access_log off;
+            try_files $uri =404;
+        }
+
+        # Prerendered routes serve their own index.html; Client routes fall back to
+        # the CSR shell. index.html is a meta-refresh stub, not the app shell.
+        location / {
+            try_files $uri $uri/ /index.csr.html;
+        }
     }
-
-    # [Frontend static assets]
-    # current is a symlink. Deploy = swap the link, rollback = swap it back.
-    root /srv/todogen/web/current;
-    index index.html index.csr.html;
-
-    # Hashed filenames only. 404 instead of falling through to the CSR shell.
-    location ~* \.(?:js|css|woff2?|ttf|eot|png|jpe?g|gif|svg|ico|webp)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        access_log off;
-        try_files $uri =404;
-    }
-
-    # Prerendered routes serve their own index.html; Client routes fall back to the CSR shell.
-    location / {
-        try_files $uri $uri/ /index.csr.html;
-    }
-}
 ```
 
 ## 7.3 배포 절차
@@ -129,12 +129,12 @@ cd web && npm run check               # 테스트 포함. dist/web/browser
 
 # 2. 산출물 운반 (레포는 나르지 않는다)
 REL=$(date +%Y%m%d%H%M%S)
-ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p $WEB_ROOT/releases/$REL"
+ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p ~/$WEB_ROOT/releases/$REL"
 scp -P "$DEPLOY_PORT" -r web/dist/web/browser/.     "$DEPLOY_USER@$DEPLOY_HOST:$WEB_ROOT/releases/$REL/"
-scp -P "$DEPLOY_PORT" server/build/libs/app.jar server/Dockerfile     "$DEPLOY_USER@$DEPLOY_HOST:~/$APP_DIR/api/"
+scp -P "$DEPLOY_PORT" server/build/libs/app.jar server/Dockerfile     "$DEPLOY_USER@$DEPLOY_HOST:$APP_DIR/api/"
 
 # 3. 프론트엔드 링크 교체와 API 이미지 갱신
-ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST"   "ln -sfn $WEB_ROOT/releases/$REL $WEB_ROOT/current    && cd ~/$APP_DIR && docker compose build && docker compose up -d"
+ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST"   "cd ~/$WEB_ROOT && ln -sfn releases/$REL current    && cd ~/$APP_DIR && sudo docker compose up -d --build"
 ```
 
 프론트엔드 롤백은 `current` 링크를 이전 릴리스 디렉터리로 되돌리는 것으로 끝납니다. nginx 재시작은 필요하지 않습니다.
