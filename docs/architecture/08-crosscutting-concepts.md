@@ -16,6 +16,7 @@
 | [프론트엔드 02. 코드 스타일 가이드](./concepts/frontend-02-code-style.md) | 네이밍 · 코드 구조 · TypeScript 관용구 · 주석 · 에러 처리 · 테스트 스타일 (`FE-STY-NNN`) |
 | [프론트엔드 03. 데이터가 오가는 길](./concepts/frontend-03-data-flow.md) | 서버 상태의 조회와 명령, 무효화, 대기와 실패의 표현, API 계약 타입의 생성 |
 | [프론트엔드 04. 화면이 갈리는 방식](./concepts/frontend-04-adaptive-layout.md) | 반응형과 적응형의 구분, 판정 축과 그 근거, 골격과 스크롤 컨테이너, 상태 화면의 자리 |
+| [프론트엔드 05. 디자인 시스템](./concepts/frontend-05-design-system.md) | UI 킷의 두 층, 토큰의 원본과 이름 계약, 치수와 대비 하한, 색상 모드 전환 |
 | [백엔드 01. 개발 환경](./concepts/backend-01-dev-environment.md) | 구성 파일, JVM 요건, 로컬 실행, 빌드 단계, 정적 분석의 분담 |
 | [백엔드 02. 코드 스타일 가이드](./concepts/backend-02-code-style.md) | 네이밍 · 코드 구조 · Java 관용구 · 주석 · 에러 처리 · 테스트 스타일 (`BE-STY-NNN`) |
 | [백엔드 03. 계층과 두 경로](./concepts/backend-03-layers.md) | 요청이 계층을 지나는 흐름, 명령과 조회의 갈림, 도메인·영속 모델의 변환, 트랜잭션 경계 |
