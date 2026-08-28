@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MeService {
 
     // --- 상수 --------------------------------------------------------------------------------------------------------
-    static final long MAX_IMAGE_BYTES = 10L * 1024 * 1024;
+    static final long MAX_IMAGE_BYTES = 1L * 1024 * 1024;
 
     private static final Duration UPLOAD_EXPIRY = Duration.ofMinutes(10);
 

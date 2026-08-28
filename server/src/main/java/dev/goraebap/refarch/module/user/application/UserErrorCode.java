@@ -18,7 +18,7 @@ public enum UserErrorCode implements ErrorCode {
 
     PROFILE_IMAGE_NOT_IMAGE(HttpStatus.BAD_REQUEST, "이미지 파일만 올릴 수 있습니다"),
 
-    PROFILE_IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지는 10MB 를 넘을 수 없습니다"),
+    PROFILE_IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지는 1MB 를 넘을 수 없습니다"),
 
     PROFILE_IMAGE_NOT_UPLOADED(HttpStatus.BAD_REQUEST, "올라간 이미지가 없습니다");
 
