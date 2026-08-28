@@ -48,7 +48,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-001 S1: 제목을 적으면 목록에 그 작업이 있다")
+    @DisplayName("TSK-001 S1: 제목을 적으면 목록에 그 작업이 있다")
     void 제목을_적으면_목록에_그_작업이_있다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
@@ -67,7 +67,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-005 A5: 로그인 없이 작업에 닿을 수 없다")
+    @DisplayName("USR-002 A2: 로그인 없이 작업에 닿을 수 없다")
     void 로그인_없이_작업에_닿을_수_없다() throws Exception {
         mockMvc.perform(get("/api/v1/tasks"))
                 .andExpect(status().isUnauthorized())
@@ -75,7 +75,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-005: 다른 계정의 작업은 목록에도 상세에도 없다")
+    @DisplayName("USR-002: 다른 계정의 작업은 목록에도 상세에도 없다")
     void 다른_계정의_작업은_목록에도_상세에도_없다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"내 것\"}");
 
@@ -87,7 +87,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-001 A2: 기한을 붙이면 목록이 그 기한을 보여 준다")
+    @DisplayName("TSK-001 A2: 기한을 붙이면 목록이 그 기한을 보여 준다")
     void 기한을_붙이면_목록이_그_기한을_보여_준다() throws Exception {
         작업을_만든다("{\"title\":\"장 보기\",\"dueDate\":\"2026-08-30\"}");
 
@@ -98,7 +98,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-001 A2: 지난 날짜도 기한으로 받는다")
+    @DisplayName("TSK-001 A2: 지난 날짜도 기한으로 받는다")
     void 지난_날짜도_기한으로_받는다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"미룬 일\",\"dueDate\":\"2020-01-01\"}");
 
@@ -106,7 +106,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-001 A1: 제목이 비면 목록에 들어가지 않는다")
+    @DisplayName("TSK-001 A1: 제목이 비면 목록에 들어가지 않는다")
     void 제목이_비면_목록에_들어가지_않는다() throws Exception {
         mockMvc.perform(post("/api/v1/tasks")
                         .cookie(session)
@@ -121,7 +121,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-004 S1: 완료했다고 하면 완료된 작업이 된다")
+    @DisplayName("TSK-004 S1: 완료했다고 하면 완료된 작업이 된다")
     void 완료했다고_하면_완료된_작업이_된다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
@@ -131,7 +131,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-004 A2: 완료를 취소하면 완료되지 않은 작업으로 돌아간다")
+    @DisplayName("TSK-004 A2: 완료를 취소하면 완료되지 않은 작업으로 돌아간다")
     void 완료를_취소하면_완료되지_않은_작업으로_돌아간다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
         완료를_바꾼다(taskId, true);
@@ -142,7 +142,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-004 A1: 이미 완료된 것을 다시 완료해도 완료된 작업으로 남는다")
+    @DisplayName("TSK-004 A1: 이미 완료된 것을 다시 완료해도 완료된 작업으로 남는다")
     void 이미_완료된_것을_다시_완료해도_완료된_작업으로_남는다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
         완료를_바꾼다(taskId, true);
@@ -154,7 +154,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 S1: 넷을 고치면 고친 대로 남는다")
+    @DisplayName("TSK-003 S1: 넷을 고치면 고친 대로 남는다")
     void 넷을_고치면_고친_대로_남는다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
@@ -170,7 +170,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A3 · A10: 널을 보내면 기한과 미리 알림이 떨어진다")
+    @DisplayName("TSK-003 A3 · A10: 널을 보내면 기한과 미리 알림이 떨어진다")
     void 널을_보내면_기한과_미리_알림이_떨어진다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\",\"dueDate\":\"2026-09-01\"}");
 
@@ -182,7 +182,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A1: 제목을 비우면 고치지 않는다")
+    @DisplayName("TSK-003 A1: 제목을 비우면 고치지 않는다")
     void 제목을_비우면_고치지_않는다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
@@ -197,7 +197,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A4: 중요 표시를 켜고 끈다")
+    @DisplayName("TSK-003 A4: 중요 표시를 켜고 끈다")
     void 중요_표시를_켜고_끈다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
@@ -209,7 +209,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A5: 나의 하루에 담으면 담은 날짜가 붙는다")
+    @DisplayName("TSK-003 A5: 나의 하루에 담으면 담은 날짜가 붙는다")
     void 나의_하루에_담으면_담은_날짜가_붙는다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
@@ -223,7 +223,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A6: 삭제하면 목록에 없다")
+    @DisplayName("TSK-005 BF: 삭제하면 목록에 없다")
     void 삭제하면_목록에_없다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
@@ -234,7 +234,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A8: 없는 작업은 고치지 못한다")
+    @DisplayName("TSK-003 A8: 없는 작업은 고치지 못한다")
     void 없는_작업은_고치지_못한다() throws Exception {
         mockMvc.perform(patch("/api/v1/tasks/{id}/completion", "00000000-0000-0000-0000-000000000000")
                         .cookie(session)

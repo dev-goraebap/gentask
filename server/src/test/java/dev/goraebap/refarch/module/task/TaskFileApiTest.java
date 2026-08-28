@@ -61,7 +61,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A11: 붙이면 목록에 이름과 크기와 받을 주소가 있다")
+    @DisplayName("TSK-003 A11: 붙이면 목록에 이름과 크기와 받을 주소가 있다")
     void 붙이면_목록에_이름과_크기와_받을_주소가_있다() throws Exception {
         String objectKey = 파일을_붙인다("자료.pdf", "application/pdf", 2048);
 
@@ -76,7 +76,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A11: 여섯 번째 파일은 자리를 받지 못한다")
+    @DisplayName("TSK-003 A11: 여섯 번째 파일은 자리를 받지 못한다")
     void 여섯_번째_파일은_자리를_받지_못한다() throws Exception {
         for (int index = 0; index < 5; index++) {
             파일을_붙인다("파일" + index + ".txt", "text/plain", 10);
@@ -91,7 +91,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A11: 10MB 를 넘는 파일은 자리를 받지 못한다")
+    @DisplayName("TSK-003 A11: 10MB 를 넘는 파일은 자리를 받지 못한다")
     void 십MB_를_넘는_파일은_자리를_받지_못한다() throws Exception {
         mockMvc.perform(post("/api/v1/tasks/{taskId}/files/presign", taskId)
                         .cookie(session)
@@ -103,7 +103,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A11: 말한 크기가 아니라 보관소의 실측이 강제한다")
+    @DisplayName("TSK-003 A11: 말한 크기가 아니라 보관소의 실측이 강제한다")
     void 말한_크기가_아니라_보관소의_실측이_강제한다() throws Exception {
         String objectKey = 자리를_받는다("속임.zip", "application/zip", 1024);
         fakeStorage.put(objectKey, TEN_MEGABYTES + 1);
@@ -120,7 +120,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A11: 올리지 않은 키는 확정되지 않는다")
+    @DisplayName("TSK-003 A11: 올리지 않은 키는 확정되지 않는다")
     void 올리지_않은_키는_확정되지_않는다() throws Exception {
         String objectKey = 자리를_받는다("유령.txt", "text/plain", 10);
 
@@ -134,7 +134,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("TK-003 A11: 떼면 목록과 보관소에서 함께 사라진다")
+    @DisplayName("TSK-003 A11: 떼면 목록과 보관소에서 함께 사라진다")
     void 떼면_목록과_보관소에서_함께_사라진다() throws Exception {
         String objectKey = 파일을_붙인다("지울것.txt", "text/plain", 10);
         String fileId = JsonPath.read(
@@ -154,7 +154,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("TK-005: 남의 작업에는 파일을 붙일 수 없다")
+    @DisplayName("USR-002: 남의 작업에는 파일을 붙일 수 없다")
     void 남의_작업에는_파일을_붙일_수_없다() throws Exception {
         Cookie other = AuthTestSupport.가입한다(mockMvc, "other-" + UUID.randomUUID() + "@example.com");
 

@@ -113,7 +113,7 @@ describe('TaskDetailPanel', () => {
     fixture.detectChanges();
   }
 
-  it('TK-003 S4: 없는 작업은 편집할 수 없다', () => {
+  it('TSK-003 S4: 없는 작업은 편집할 수 없다', () => {
     const fixture = render(undefined);
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
@@ -136,7 +136,7 @@ describe('TaskDetailPanel', () => {
     ).toBeNull();
   });
 
-  it('TK-003 S2: 편집한 메모가 그 작업에 보인다', async () => {
+  it('TSK-003 S2: 편집한 메모가 그 작업에 보인다', async () => {
     const fixture = render(seed);
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
@@ -154,7 +154,7 @@ describe('TaskDetailPanel', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('TK-003 S1: 편집한 제목이 그 작업에 보인다', async () => {
+  it('TSK-003 S1: 편집한 제목이 그 작업에 보인다', async () => {
     const fixture = render(seed);
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
@@ -179,7 +179,7 @@ describe('TaskDetailPanel', () => {
     expect(update).not.toHaveBeenCalled();
   });
 
-  it('TK-003 S1: 그만두면 편집하던 제목은 반영되지 않는다', async () => {
+  it('TSK-003 S1: 그만두면 편집하던 제목은 반영되지 않는다', async () => {
     const fixture = render(seed);
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
@@ -193,7 +193,7 @@ describe('TaskDetailPanel', () => {
     expect(query<HTMLInputElement>(fixture, '#task-title').value).toBe('장 보기');
   });
 
-  it('TK-003 S4: 실패하면 이전 값이 남는다', async () => {
+  it('TSK-003 S4: 실패하면 이전 값이 남는다', async () => {
     update.mockRejectedValueOnce(new Error('저장소 없음'));
     const fixture = render(seed);
 
@@ -208,7 +208,7 @@ describe('TaskDetailPanel', () => {
     expect(query<HTMLInputElement>(fixture, '#task-title').value).toBe('장 보기');
   });
 
-  it('TK-003 S1: 제목이 비면 값이 바뀌지 않는다', async () => {
+  it('TSK-003 S1: 제목이 비면 값이 바뀌지 않는다', async () => {
     const fixture = render(seed);
 
     const title = query<HTMLInputElement>(fixture, '#task-title');
@@ -221,7 +221,7 @@ describe('TaskDetailPanel', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('제목을 입력해 주세요');
   });
 
-  describe('TK-003 S3: 확인하면 그 작업이 목록에 없다', () => {
+  describe('TSK-005 S1: 확인하면 그 작업이 목록에 없다', () => {
     it('지우기를 눌러도 확인 전에는 지우지 않는다', () => {
       const fixture = render(seed);
 
@@ -260,7 +260,7 @@ describe('TaskDetailPanel', () => {
     });
   });
 
-  describe('TK-003 S2: 나의 하루에 추가된 상태가 정한 대로 남는다', () => {
+  describe('TSK-003 S2: 나의 하루에 추가된 상태가 정한 대로 남는다', () => {
     it('나의 하루에 담는다', async () => {
       const fixture = render(seed);
       const button = myDayButton(fixture);
@@ -288,7 +288,7 @@ describe('TaskDetailPanel', () => {
     });
   });
 
-  describe('TK-003 S2: 기한이 정한 대로 그 작업에 남는다', () => {
+  describe('TSK-003 S2: 기한이 정한 대로 그 작업에 남는다', () => {
     it('기한이 있으면 그 날짜를 골라 둔 상태로 연다', () => {
       const fixture = render({ ...seed, dueDate: '2026-12-25' });
 
@@ -321,7 +321,7 @@ describe('TaskDetailPanel', () => {
     });
   });
 
-  describe('TK-003 S8: 미리 알림이 정한 대로 그 작업에 남는다', () => {
+  describe('TSK-003 S8: 미리 알림이 정한 대로 그 작업에 남는다', () => {
     it('미리 알림이 있으면 날짜와 시각을 트리거에 적는다', () => {
       const fixture = render({ ...seed, remindAt: '2026-12-25T15:30' });
 

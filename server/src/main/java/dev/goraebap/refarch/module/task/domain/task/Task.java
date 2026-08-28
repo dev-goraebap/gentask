@@ -16,7 +16,7 @@ public final class Task {
     // 식별자
     @NonNull private final UUID id;
 
-    // 소유자. 작업은 계정 단위로 격리된다 (TK-005)
+    // 소유자. 작업은 계정 단위로 격리된다 (USR-001)
     @NonNull private final UUID userId;
 
     // 제목

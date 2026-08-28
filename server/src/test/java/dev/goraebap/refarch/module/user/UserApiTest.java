@@ -39,7 +39,7 @@ class UserApiTest {
     private FakeObjectStorage fakeStorage;
 
     @Test
-    @DisplayName("TK-005 A1: 등록하면 곧바로 로그인 상태다")
+    @DisplayName("USR-001 BF: 등록하면 곧바로 로그인 상태다")
     void 등록하면_곧바로_로그인_상태다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "signup@example.com");
 
@@ -52,7 +52,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("TK-005 A3: 이미 등록된 이메일은 다시 등록되지 않는다")
+    @DisplayName("USR-001 A1: 이미 등록된 이메일은 다시 등록되지 않는다")
     void 이미_등록된_이메일은_다시_등록되지_않는다() throws Exception {
         AuthTestSupport.가입한다(mockMvc, "dup@example.com");
 
@@ -64,7 +64,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("TK-005 BF: 맞는 자격으로 로그인하면 세션 쿠키를 받는다")
+    @DisplayName("USR-002 BF: 맞는 자격으로 로그인하면 세션 쿠키를 받는다")
     void 맞는_자격으로_로그인하면_세션_쿠키를_받는다() throws Exception {
         AuthTestSupport.가입한다(mockMvc, "login@example.com");
 
@@ -77,7 +77,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("TK-005 A2: 자격이 맞지 않으면 어느 쪽이 틀렸는지 구분하지 않는다")
+    @DisplayName("USR-002 A1: 자격이 맞지 않으면 어느 쪽이 틀렸는지 구분하지 않는다")
     void 자격이_맞지_않으면_어느_쪽이_틀렸는지_구분하지_않는다() throws Exception {
         AuthTestSupport.가입한다(mockMvc, "wrong@example.com");
 
@@ -95,7 +95,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("TK-005 A4: 로그아웃하면 그 세션으로 다시 닿을 수 없다")
+    @DisplayName("USR-004 BF: 로그아웃하면 그 세션으로 다시 닿을 수 없다")
     void 로그아웃하면_그_세션으로_다시_닿을_수_없다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "logout@example.com");
 
@@ -107,7 +107,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("TK-006 BF: 별명을 고치면 프로필이 그 별명을 보여 준다")
+    @DisplayName("USR-003 BF: 별명을 고치면 프로필이 그 별명을 보여 준다")
     void 별명을_고치면_프로필이_그_별명을_보여_준다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "nick@example.com");
 
@@ -122,7 +122,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("TK-006 A3: 발급한 토큰은 Bearer 인증에 성립하고, 재발급하면 이전 것이 죽는다")
+    @DisplayName("USR-003 A3: 발급한 토큰은 Bearer 인증에 성립하고, 재발급하면 이전 것이 죽는다")
     void 발급한_토큰은_Bearer_인증에_성립하고_재발급하면_이전_것이_죽는다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "token@example.com");
 
@@ -140,7 +140,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("TK-006 A3: 토큰을 지우면 그 접근이 끊긴다")
+    @DisplayName("USR-003 A3: 토큰을 지우면 그 접근이 끊긴다")
     void 토큰을_지우면_그_접근이_끊긴다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "revoke@example.com");
         String token = 토큰을_발급한다(session);
@@ -152,7 +152,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("TK-006 A1: 이미지를 올려 확정하면 아바타 주소가 생긴다")
+    @DisplayName("USR-003 A1: 이미지를 올려 확정하면 아바타 주소가 생긴다")
     void 이미지를_올려_확정하면_아바타_주소가_생긴다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "avatar@example.com");
 
@@ -184,7 +184,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("TK-006 A1: 이미지가 아니면 올리기 자리를 내주지 않는다")
+    @DisplayName("USR-003 A1: 이미지가 아니면 올리기 자리를 내주지 않는다")
     void 이미지가_아니면_올리기_자리를_내주지_않는다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "notimage@example.com");
 
@@ -197,7 +197,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("TK-005 A1: 이메일 형식이 아니면 등록되지 않는다")
+    @DisplayName("USR-001 A2: 이메일 형식이 아니면 등록되지 않는다")
     void 이메일_형식이_아니면_등록되지_않는다() throws Exception {
         mockMvc.perform(post("/api/v1/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
