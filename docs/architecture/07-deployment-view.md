@@ -42,7 +42,7 @@ flowchart LR
 - **데이터베이스** — 서버 공용 `my-postgres` 인스턴스의 `todogen` 데이터베이스(전용 롤 `todogen`).
 - **파일 보관소** — Cloudflare R2 버킷 `todogen`. 접속 자격 증명은 서버의 `.env` 만 갖습니다.
 
-프론트엔드는 실행 프로세스를 갖지 않습니다. 렌더링 방식과 그 근거는 [결정-0002](./decisions/0002-frontend-static-deployment.md)에 있습니다.
+프론트엔드는 실행 프로세스를 갖지 않습니다. 서버 렌더링으로 지정된 경로가 없으므로 요청 시점에 HTML 을 생성하는 프로세스가 필요하지 않습니다.
 
 정적 자산의 자리는 홈 디렉터리 아래로 제한됩니다. 서버의 Docker 가 snap 으로 설치되어 있어 홈 밖 경로(`/srv` 등)를 바인드 마운트하면 컨테이너 기동이 `read-only file system` 으로 실패합니다.
 
@@ -110,7 +110,7 @@ flowchart LR
 
 프론트엔드와 API 는 갱신 방식이 다릅니다. 프론트엔드는 릴리스 디렉터리를 새로 올린 뒤 심볼릭 링크를 교체하고, API 는 이미지를 다시 빌드해 컨테이너를 교체합니다.
 
-접속 대상과 서버 내 자리는 값이 아니라 변수로 둡니다. 실제 값은 추적되지 않는 `tmp/deploy.env` 가 소유하며, 절차는 그 파일을 읽어 실행합니다.
+접속 대상과 서버 내 자리는 값이 아니라 변수로 둡니다. 실제 값은 추적되지 않는 `.deploy.env` 가 소유하며, 절차는 그 파일을 읽어 실행합니다.
 
 | 변수 | 무엇 |
 | :--- | :--- |
@@ -119,23 +119,17 @@ flowchart LR
 | `APP_DIR` | API 컨테이너 자리(홈 기준 상대 경로) |
 
 ```bash
-source tmp/deploy.env
-
-# 1. 로컬 빌드
-cd server && ./gradlew build          # 테스트 포함. build/libs/app.jar
-cd web && npm run check               # 테스트 포함. dist/web/browser
-
-# 2. 산출물 운반 (레포는 나르지 않는다)
-REL=$(date +%Y%m%d%H%M%S)
-ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p ~/$WEB_ROOT/releases/$REL"
-scp -P "$DEPLOY_PORT" -r web/dist/web/browser/.     "$DEPLOY_USER@$DEPLOY_HOST:$WEB_ROOT/releases/$REL/"
-scp -P "$DEPLOY_PORT" server/build/libs/app.jar server/Dockerfile     "$DEPLOY_USER@$DEPLOY_HOST:$APP_DIR/api/"
-
-# 3. 프론트엔드 링크 교체와 API 이미지 갱신
-ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST"   "cd ~/$WEB_ROOT && ln -sfn releases/$REL current    && cd ~/$APP_DIR && sudo docker compose up -d --build"
+./scripts/deploy.sh            # 두 축을 함께
+./scripts/deploy-web.sh        # 프론트엔드만
+./scripts/deploy-api.sh        # API 만
+./scripts/rollback-web.sh      # 인자 없이 부르면 서버의 릴리스 목록을 보여 준다
 ```
 
-프론트엔드 롤백은 `current` 링크를 이전 릴리스 디렉터리로 되돌리는 것으로 끝납니다. nginx 재시작은 필요하지 않습니다.
+스크립트는 산출물을 올리기 전에 배포 조건을 판정하고, 하나라도 어긋나면 아무것도 전송하지 않고 중단합니다. 판정 항목과 그 근거는 [결정-0002](./decisions/0002-shared-contributing.md)가 갖습니다.
+
+배포한 커밋 해시는 릴리스 디렉터리의 `RELEASE_SHA` 에 남습니다. 서버에 올라간 산출물이 어느 커밋에서 나왔는지 되짚는 유일한 경로입니다.
+
+프론트엔드 롤백은 `current` 링크를 이전 릴리스 디렉터리로 되돌리는 것으로 끝납니다. nginx 재시작은 필요하지 않습니다. API 는 이 경로가 없습니다. 컨테이너를 교체하는 방식이므로 되돌리려면 이전 커밋에서 다시 배포합니다.
 
 ## 7.4 환경 설정 및 운영 제약
 
