@@ -152,7 +152,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("ST-016 AC1: 이미지를 올려 확정하면 아바타 주소가 생긴다")
+    @DisplayName("이미지를 올려 확정하면 프로필 응답에 아바타 주소가 실린다")
     void 이미지를_올려_확정하면_아바타_주소가_생긴다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "avatar@example.com");
 
@@ -184,7 +184,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("ST-016 AC2, AC4: 이미지가 아니면 올리기 자리를 내주지 않는다")
+    @DisplayName("이미지가 아니면 올리기 자리를 내주지 않는다")
     void 이미지가_아니면_올리기_자리를_내주지_않는다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "notimage@example.com");
 
