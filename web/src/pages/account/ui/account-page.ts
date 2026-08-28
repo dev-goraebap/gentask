@@ -19,7 +19,7 @@ import { HlmInput } from '@/shared/ui/input';
 import { toast } from '@/shared/ui/sonner';
 import { Veil } from '@/shared/ui/veil';
 
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
 
 @Component({
   selector: 'app-account',
@@ -115,7 +115,7 @@ export class AccountPage {
       maxNumberOfFiles: 1,
       maxFileSize: MAX_IMAGE_BYTES,
       allowedFileTypes: ['image/*'],
-      note: '이미지 1개, 10MB 이하',
+      note: '이미지 1개, 1MB 이하',
       presign: (file) => this.userService.presignProfileImage(file.name, file.type, file.size),
       attach: ([upload]) => this.userService.confirmProfileImage(upload.objectKey),
       onAttachError: (message) => toast.error(message),

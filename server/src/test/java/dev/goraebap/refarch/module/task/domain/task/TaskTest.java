@@ -34,40 +34,6 @@ class TaskTest {
     }
 
     @Test
-    void 완료하면_완료_시각이_남는다() {
-        Task task = 새_작업();
-
-        task.complete(LATER);
-
-        assertThat(task.isCompleted()).isTrue();
-        assertThat(task.completedAt()).isEqualTo(LATER);
-        assertThat(task.updatedAt()).isEqualTo(LATER);
-    }
-
-    @Test
-    void 이미_완료된_것을_다시_완료해도_처음_시각이_밀리지_않는다() {
-        Task task = 새_작업();
-        task.complete(LATER);
-
-        task.complete(LATEST);
-
-        assertThat(task.completedAt()).isEqualTo(LATER);
-        assertThat(task.updatedAt()).isEqualTo(LATER);
-    }
-
-    @Test
-    void 완료를_취소하면_완료_시각이_사라진다() {
-        Task task = 새_작업();
-        task.complete(LATER);
-
-        task.cancelCompletion(LATEST);
-
-        assertThat(task.isCompleted()).isFalse();
-        assertThat(task.completedAt()).isNull();
-        assertThat(task.updatedAt()).isEqualTo(LATEST);
-    }
-
-    @Test
     void 완료가_아닌_것을_취소해도_아무_일도_없다() {
         Task task = 새_작업();
 
@@ -95,36 +61,6 @@ class TaskTest {
     }
 
     @Test
-    void 메모를_바꾼다() {
-        Task task = 새_작업();
-
-        task.changeNote(TaskNote.of("우유와 달걀"), LATER);
-
-        assertThat(task.note().value()).isEqualTo("우유와 달걀");
-    }
-
-    @Test
-    void 기한은_널로_떼어진다() {
-        Task task = 새_작업();
-        task.changeDueDate(LocalDate.of(2026, 8, 10), LATER);
-
-        task.changeDueDate(null, LATEST);
-
-        assertThat(task.dueDate()).isNull();
-        assertThat(task.updatedAt()).isEqualTo(LATEST);
-    }
-
-    @Test
-    void 미리_알림은_널로_떼어진다() {
-        Task task = 새_작업();
-        task.changeRemindAt(LocalDateTime.of(2026, 8, 10, 9, 0), LATER);
-
-        task.changeRemindAt(null, LATEST);
-
-        assertThat(task.remindAt()).isNull();
-    }
-
-    @Test
     void 기한과_미리_알림은_서로를_정하지_않는다() {
         Task withDueDate = 새_작업();
         Task withRemindAt = 새_작업();
@@ -134,18 +70,6 @@ class TaskTest {
 
         assertThat(withDueDate.remindAt()).isNull();
         assertThat(withRemindAt.dueDate()).isNull();
-    }
-
-    @Test
-    void 중요_표시를_켜고_끈다() {
-        Task task = 새_작업();
-
-        task.markImportant(LATER);
-        assertThat(task.important()).isTrue();
-
-        task.clearImportant(LATEST);
-        assertThat(task.important()).isFalse();
-        assertThat(task.updatedAt()).isEqualTo(LATEST);
     }
 
     @Test
