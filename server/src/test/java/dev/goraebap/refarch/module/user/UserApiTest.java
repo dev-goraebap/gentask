@@ -107,7 +107,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("ST-015 AC3: 별명을 고치면 프로필이 그 별명을 보여 준다")
+    @DisplayName("별명을 고치면 그 별명이 프로필 응답에 남는다")
     void 별명을_고치면_프로필이_그_별명을_보여_준다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "nick@example.com");
 

@@ -77,11 +77,11 @@ export async function 빈_계정으로_바꾼다(page: Page): Promise<void> {
   expect(response.status(), '빈 계정을 만들지 못했습니다').toBe(201);
 }
 
-/** 작업의 하위 자원을 바꾼다. `importance` 와 `my-day` 가 대상이다. */
+/** 작업의 하위 자원을 바꾼다. `importance` 와 `my-day` 와 `completion` 이 대상이다. */
 export async function 하위_자원을_바꾼다(
   request: APIRequestContext,
   taskId: string,
-  segment: 'importance' | 'my-day',
+  segment: 'importance' | 'my-day' | 'completion',
   body: Record<string, unknown>,
 ): Promise<void> {
   const response = await request.patch(`/api/v1/tasks/${taskId}/${segment}`, { data: body });
