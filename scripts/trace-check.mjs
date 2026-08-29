@@ -9,13 +9,16 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..');
-const KEY = /(ST-\d{3})((?:\s+AC\d+)(?:,\s*AC\d+)*)/g;
+const KEY = /(TG-\d{3}(?:\.\d{2})?)((?:\s+#\d+)(?:,\s*#\d+)*)/g;
 
 const SOURCES = [
   ['E2E', join(ROOT, 'web', 'e2e'), (n) => n.endsWith('.spec.ts')],
   ['BE', join(ROOT, 'server', 'src', 'test'), (n) => n.endsWith('.java')],
   ['FE', join(ROOT, 'web', 'src'), (n) => n.endsWith('.spec.ts')],
 ];
+
+// cleanup 이 오래 닫힌 항목을 completed/ 로 옮기므로 두 자리를 함께 읽는다.
+const ITEMS = [join(ROOT, 'backlog', 'tasks'), join(ROOT, 'backlog', 'completed')];
 
 function walk(dir, matches, out = []) {
   let entries;
@@ -34,30 +37,39 @@ function walk(dir, matches, out = []) {
 }
 
 const criteria = [];
-for (const file of walk(join(ROOT, 'backlog', 'stories'), (n) => n.endsWith('.md'))) {
-  const story = /^(ST-\d{3})/.exec(file.split(/[\\/]/).pop())?.[1];
-  if (!story) continue;
-  let inSection = false;
-  for (const line of readFileSync(file, 'utf8').split('\n')) {
-    if (line.startsWith('## ')) inSection = line.trim() === '## 인수 조건';
-    if (!inSection) continue;
-    const m = /^- \[[ x]\] \*\*AC(\d+)\*\* (.+)$/.exec(line);
-    if (!m) continue;
-    const text = m[2].trim();
-    // [서버] 는 브라우저로 도달할 수 없음을 뜻하며 E2E 열을 면제한다. 이 저장소의 표기이며
-    // ISO/IEC/IEEE 29148 의 검증 방법 속성과는 축이 다르다. 규약은 결정-0008 이 갖는다.
-    const serverOnly = text.startsWith('[서버]');
-    criteria.push({ key: `${story} AC${m[1]}`, text: text.replace(/^\[서버\]\s*/, ''), serverOnly });
+for (const dir of ITEMS) {
+  for (const file of walk(dir, (n) => n.endsWith('.md'))) {
+    const body = readFileSync(file, 'utf8');
+    const id = /^id:\s*(TG-[\d.]+)\s*$/m.exec(body)?.[1];
+    if (!id) continue;
+    // 인수 조건은 도구가 심는 마커 안에만 있다. 절 제목에 기대지 않는다.
+    const block = /<!-- AC:BEGIN -->\n([\s\S]*?)<!-- AC:END -->/.exec(body)?.[1];
+    if (!block) continue;
+    for (const line of block.split('\n')) {
+      const m = /^- \[[ x]\] #(\d+) (.+)$/.exec(line);
+      if (!m) continue;
+      const text = m[2].trim();
+      // 결번은 번호를 비워 두기 위한 자리이며 검증 대상이 아니다. 규약은 AGENTS.md 의 번호 불변.
+      if (text === '(결번)') continue;
+      // [서버] 는 브라우저로 도달할 수 없음을 뜻하며 E2E 열을 면제한다. 이 저장소의 표기이며
+      // ISO/IEC/IEEE 29148 의 검증 방법 속성과는 축이 다르다. 규약은 결정-0008 이 갖는다.
+      const serverOnly = text.startsWith('[서버]');
+      criteria.push({ key: `${id} #${m[1]}`, text: text.replace(/^\[서버\]\s*/, ''), serverOnly });
+    }
   }
 }
+
+criteria.sort((a, b) =>
+  a.key.localeCompare(b.key, 'en', { numeric: true, sensitivity: 'base' }),
+);
 
 const referenced = new Map();
 for (const [layer, dir, matches] of SOURCES) {
   for (const file of walk(dir, matches)) {
     const body = readFileSync(file, 'utf8');
     for (const m of body.matchAll(KEY)) {
-      for (const ac of m[2].matchAll(/AC(\d+)/g)) {
-        const key = `${m[1]} AC${ac[1]}`;
+      for (const ac of m[2].matchAll(/#(\d+)/g)) {
+        const key = `${m[1]} #${ac[1]}`;
         if (!referenced.has(key)) referenced.set(key, { layers: new Set(), file: relative(ROOT, file) });
         referenced.get(key).layers.add(layer);
       }
@@ -79,7 +91,7 @@ for (const c of criteria) {
   const covered = layers.size > 0;
   const state = !covered ? '미검증' : c.serverOnly ? '닫힘[서버]' : layers.has('E2E') ? '닫힘' : '열림';
   console.log(
-    `${c.key.padEnd(12)} ${c.serverOnly ? 'E2E 면제' : mark('E2E')}  ${mark('BE')}  ${mark('FE')}   ${state.padEnd(10)} ${c.text.slice(0, 40)}`,
+    `${c.key.padEnd(14)} ${c.serverOnly ? 'E2E 면제' : mark('E2E')}  ${mark('BE')}  ${mark('FE')}   ${state.padEnd(10)} ${c.text.slice(0, 40)}`,
   );
 }
 

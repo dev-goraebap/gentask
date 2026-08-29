@@ -46,7 +46,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("ST-019 AC3: 로그인 없이 작업에 닿을 수 없다")
+    @DisplayName("TG-003.05 #3: 로그인 없이 작업에 닿을 수 없다")
     void 로그인_없이_작업에_닿을_수_없다() throws Exception {
         mockMvc.perform(get("/api/v1/tasks"))
                 .andExpect(status().isUnauthorized())
@@ -74,7 +74,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("ST-012 AC1: 이미 완료된 것을 다시 완료해도 완료된 작업으로 남는다")
+    @DisplayName("TG-002.11 #1: 이미 완료된 것을 다시 완료해도 완료된 작업으로 남는다")
     void 이미_완료된_것을_다시_완료해도_완료된_작업으로_남는다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
         완료를_바꾼다(taskId, true);
@@ -124,7 +124,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("ST-012 AC2: 없는 작업은 완료하지 못한다")
+    @DisplayName("TG-002.11 #2: 없는 작업은 완료하지 못한다")
     void 없는_작업은_고치지_못한다() throws Exception {
         mockMvc.perform(patch("/api/v1/tasks/{id}/completion", "00000000-0000-0000-0000-000000000000")
                         .cookie(session)

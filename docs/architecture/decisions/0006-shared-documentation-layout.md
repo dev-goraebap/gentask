@@ -20,7 +20,7 @@
 ```text
 docs/spec/           요구사항 축 — 유스케이스 서술서
 docs/prd.md          요구사항 축 — 제품 요구사항
-backlog/             요구사항 축 — 에픽과 스토리
+backlog/tasks/       요구사항 축 — Epic · Story · Task
 docs/architecture/   참조 아키텍처 축
 ```
 
@@ -30,6 +30,8 @@ docs/architecture/   참조 아키텍처 축
 
 - 횡단 관심사는 `concepts/<축>-<순번>-<주제>.md` 이며 축은 `frontend` · `backend` · `shared` 입니다.
 - 결정 기록은 `decisions/NNNN-<축>-<슬러그>.md` 이며 순번은 축과 무관한 단일 수열입니다.
+
+**백로그**: `backlog/` 아래의 구조는 [Backlog.md](https://github.com/MrLesk/Backlog.md) 가 정의하며 이 결정이 규정하지 않습니다. 항목은 유형과 무관하게 `tasks/` 하나에 들어가고 `type` 필드가 Epic · Story · Task 를 가릅니다. 오래 닫힌 항목은 `completed/` 로 옮겨지며 지워지지 않습니다.
 
 **참조 방향**: 하위 문서는 상위 문서를 참조하지 않습니다. 하위 문서 사이의 참조는 허용하되 단방향으로 유지합니다.
 

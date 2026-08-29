@@ -122,7 +122,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("ST-017 AC2, AC3: 발급한 토큰은 Bearer 인증에 성립하고, 재발급하면 이전 것이 죽는다")
+    @DisplayName("TG-003.04 #2, #3: 발급한 토큰은 Bearer 인증에 성립하고, 재발급하면 이전 것이 죽는다")
     void 발급한_토큰은_Bearer_인증에_성립하고_재발급하면_이전_것이_죽는다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "token@example.com");
 
@@ -140,7 +140,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("ST-017 AC4: 토큰을 지우면 그 접근이 끊긴다")
+    @DisplayName("TG-003.04 #4: 토큰을 지우면 그 접근이 끊긴다")
     void 토큰을_지우면_그_접근이_끊긴다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "revoke@example.com");
         String token = 토큰을_발급한다(session);
