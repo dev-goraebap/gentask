@@ -65,6 +65,7 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 - 인수 조건은 `<!-- AC:BEGIN -->` 마커 안에만 둡니다. 추적 검사기가 그 자리만 읽습니다.
 - 결번은 `backlog task edit <ID> --remove-ac` 로 만들지 않습니다. 그 명령이 뒤 번호를 당깁니다. 문장을 `(결번)` 으로 바꿉니다.
 - 서술서가 아직 없는 후보는 Draft 로 둡니다. 착수 순서는 Draft 번호가 갖습니다 — `ordinal` 은 Draft 목록의 정렬에 쓰이지 않습니다.
+- Epic 소속은 선택입니다. 사용자 가치를 직접 내지 않는 기술 작업은 최상위 Task 로 두고, 자식 하나뿐인 Epic 을 만들지 않습니다.
 
 ```bash
 backlog task list --plain          # 목록
