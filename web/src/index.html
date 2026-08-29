@@ -2,10 +2,20 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>Web</title>
+    <title>todogen</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <!--
+      홈 화면에 설치할 수 있게 만든다. iOS 는 설치된 자리에서만 웹 푸시를 허용하므로
+      알림을 받으려면 이것이 있어야 한다. 근거는 NTF-001 의 A5 다.
+
+      apple-touch-icon 은 iOS 가 manifest 의 icons 를 읽지 않아 따로 둔다.
+    -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <meta name="theme-color" content="#2563eb" />
   </head>
   <body>
     <app-root></app-root>

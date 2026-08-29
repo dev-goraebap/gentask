@@ -1,11 +1,15 @@
 const TASKS = '/api/v1/tasks';
 const ATTACHMENTS = '/api/v1/attachments';
+const PUSH = '/api/v1/push';
 const AUTH = '/api/v1/auth';
 const ME = '/api/v1/me';
 
 export const ENDPOINTS = {
   // 올릴 자리 발급은 어디에 붙일지와 무관하므로 자리가 하나다. 붙이는 것은 도메인 경로가 받는다.
   attachmentPresign: `${ATTACHMENTS}/presign`,
+
+  pushConfig: `${PUSH}/config`,
+  pushSubscription: `${PUSH}/subscription`,
 
   tasks: TASKS,
   task: (taskId: string) => `${TASKS}/${taskId}`,

@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router } from '@angular/router';
+import { PushService } from '../api/push-service';
 import { AuthService, UserAvatar, UserService } from '@/entities/user';
 import { injectAttachmentPresign, problemDetail } from '@/shared/api';
 import { ROUTES } from '@/shared/config';
@@ -38,6 +39,7 @@ const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
     class: 'flex min-h-0 flex-1 flex-col',
     '[attr.aria-busy]': 'veilLoading() || null',
   },
+  providers: [PushService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './account-page.html',
 })
@@ -46,7 +48,11 @@ export class AccountPage {
   private readonly userService = inject(UserService);
   private readonly presign = injectAttachmentPresign();
   private readonly authService = inject(AuthService);
+  private readonly pushService = inject(PushService);
   private readonly router = inject(Router);
+
+  // --- 파생 --------------------------------------------------------------------------------------
+  protected readonly pushState = this.pushService.state;
 
   // --- 상태 --------------------------------------------------------------------------------------
   protected readonly issuedToken = signal<string | null>(null);
@@ -83,6 +89,7 @@ export class AccountPage {
       this.loaded.set(user.id);
       this.draft.set({ nickname: user.nickname });
     });
+    void this.pushService.refresh();
   }
 
   // --- 동작 --------------------------------------------------------------------------------------
@@ -129,6 +136,22 @@ export class AccountPage {
     } catch (error) {
       toast.error(problemDetail(error, '이미지를 지우지 못했습니다.'));
       return;
+    }
+  }
+
+  protected async enablePush(): Promise<void> {
+    try {
+      await this.pushService.enable();
+    } catch (error) {
+      toast.error(problemDetail(error, '알림을 켜지 못했습니다.'));
+    }
+  }
+
+  protected async disablePush(): Promise<void> {
+    try {
+      await this.pushService.disable();
+    } catch (error) {
+      toast.error(problemDetail(error, '알림을 끄지 못했습니다.'));
     }
   }
 

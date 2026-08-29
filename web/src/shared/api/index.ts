@@ -16,3 +16,4 @@ export type MeView = components['schemas']['MeView'];
 export type IssuedApiToken = components['schemas']['IssuedApiToken'];
 export type Signup = components['schemas']['Signup'];
 export type Login = components['schemas']['Login'];
+export type PushConfigView = components['schemas']['PushConfigView'];
