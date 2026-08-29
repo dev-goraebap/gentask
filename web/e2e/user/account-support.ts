@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { type Page, expect } from '@playwright/test';
 
 // 로그인 이전을 지나는 Story 셋(TG-003.01 · TG-003.05 · TG-003.06)이 함께 쓴다.
@@ -8,7 +9,7 @@ export const 로그인_전 = { storageState: { cookies: [], origins: [] } };
 export const 비밀번호 = 'e2e-password-1234';
 
 export function 새_이메일(): string {
-  return `e2e-acc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+  return `e2e-acc-${randomUUID()}@example.com`;
 }
 
 export async function 등록한다(page: Page, email: string): Promise<void> {

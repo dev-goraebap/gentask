@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { type APIRequestContext, type Page, expect, request, test as base } from '@playwright/test';
@@ -23,7 +24,7 @@ export const test = base.extend<Record<string, never>, WorkerFixtures>({
     // eslint-disable-next-line no-empty-pattern
     async ({}, use, workerInfo) => {
       await use({
-        email: `e2e-w${workerInfo.parallelIndex}-${Date.now()}@example.com`,
+        email: `e2e-w${workerInfo.parallelIndex}-${randomUUID()}@example.com`,
         password: 'e2e-password-1234',
         nickname: `E2E${workerInfo.parallelIndex}`,
       });
@@ -69,7 +70,7 @@ export async function 작업을_만든다(
 export async function 빈_계정으로_바꾼다(page: Page): Promise<void> {
   const response = await page.request.post('/api/v1/auth/signup', {
     data: {
-      email: `e2e-empty-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`,
+      email: `e2e-empty-${randomUUID()}@example.com`,
       password: 'e2e-password-1234',
       nickname: '빈계정',
     },
