@@ -86,7 +86,7 @@ class TaskFileApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"fileName\":\"여섯.txt\",\"contentType\":\"text/plain\",\"size\":10}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("TASK_FILE_LIMIT_EXCEEDED"));
+                .andExpect(jsonPath("$.code").value("FILE_LIMIT_EXCEEDED"));
     }
 
     @Test
@@ -98,7 +98,7 @@ class TaskFileApiTest {
                         .content("{\"fileName\":\"큰것.zip\",\"contentType\":\"application/zip\",\"size\":"
                                 + (TEN_MEGABYTES + 1) + "}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("TASK_FILE_TOO_LARGE"));
+                .andExpect(jsonPath("$.code").value("FILE_TOO_LARGE"));
     }
 
     @Test
@@ -113,7 +113,7 @@ class TaskFileApiTest {
                         .content("{\"objectKey\":\"" + objectKey
                                 + "\",\"fileName\":\"속임.zip\",\"contentType\":\"application/zip\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("TASK_FILE_TOO_LARGE"));
+                .andExpect(jsonPath("$.code").value("FILE_TOO_LARGE"));
 
         Assertions.assertThat(fakeStorage.contains(objectKey)).isFalse();
     }
@@ -129,7 +129,7 @@ class TaskFileApiTest {
                         .content("{\"objectKey\":\"" + objectKey
                                 + "\",\"fileName\":\"유령.txt\",\"contentType\":\"text/plain\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("TASK_FILE_NOT_UPLOADED"));
+                .andExpect(jsonPath("$.code").value("FILE_NOT_UPLOADED"));
     }
 
     @Test

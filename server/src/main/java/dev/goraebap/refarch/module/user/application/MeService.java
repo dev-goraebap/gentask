@@ -1,5 +1,8 @@
 package dev.goraebap.refarch.module.user.application;
 
+import dev.goraebap.refarch.module.file.AttachmentSlot;
+import dev.goraebap.refarch.module.file.AttachmentView;
+import dev.goraebap.refarch.module.file.Attachments;
 import dev.goraebap.refarch.module.user.application.UserViews.IssuedApiToken;
 import dev.goraebap.refarch.module.user.application.UserViews.MeView;
 import dev.goraebap.refarch.module.user.domain.apitoken.ApiToken;
@@ -7,10 +10,8 @@ import dev.goraebap.refarch.module.user.domain.apitoken.ApiTokenRepository;
 import dev.goraebap.refarch.module.user.domain.user.Nickname;
 import dev.goraebap.refarch.module.user.domain.user.User;
 import dev.goraebap.refarch.module.user.domain.user.UserRepository;
-import dev.goraebap.refarch.shared.storage.ObjectStorage;
 import dev.goraebap.refarch.shared.storage.PresignedUpload;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -22,16 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class MeService {
 
     // --- 상수 --------------------------------------------------------------------------------------------------------
-    static final long MAX_IMAGE_BYTES = 1L * 1024 * 1024;
-
-    private static final Duration UPLOAD_EXPIRY = Duration.ofMinutes(10);
-
-    private static final Duration VIEW_EXPIRY = Duration.ofMinutes(30);
+    private static final AttachmentSlot SLOT = AttachmentSlot.USER_PROFILE_IMAGE;
 
     // --- 의존 --------------------------------------------------------------------------------------------------------
     private final UserRepository userRepository;
     private final ApiTokenRepository apiTokenRepository;
-    private final ObjectStorage objectStorage;
+    private final Attachments attachments;
     private final TokenHasher tokenHasher;
     private final TokenGenerator tokenGenerator;
     private final Clock clock;
@@ -42,9 +39,8 @@ public class MeService {
         User user = find(userId);
         Instant tokenIssuedAt =
                 apiTokenRepository.findByUserId(userId).map(ApiToken::createdAt).orElse(null);
-        String profileImageUrl = user.profileImageKey() == null
-                ? null
-                : objectStorage.presignGet(user.profileImageKey(), null, VIEW_EXPIRY);
+        String profileImageUrl =
+                attachments.findSingle(SLOT, userId).map(AttachmentView::url).orElse(null);
         return new MeView(
                 user.id(),
                 user.email().value(),
@@ -54,17 +50,10 @@ public class MeService {
                 user.createdAt());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PresignedUpload presignProfileImage(UUID userId, String fileName, String contentType, long size) {
         find(userId);
-        if (!contentType.startsWith("image/")) {
-            throw UserErrorCode.PROFILE_IMAGE_NOT_IMAGE.raise();
-        }
-        if (size > MAX_IMAGE_BYTES) {
-            throw UserErrorCode.PROFILE_IMAGE_TOO_LARGE.raise();
-        }
-        String objectKey = "users/" + userId + "/avatar/" + UUID.randomUUID();
-        return new PresignedUpload(objectKey, objectStorage.presignPut(objectKey, contentType, UPLOAD_EXPIRY));
+        return attachments.presign(SLOT, userId, fileName, contentType, size);
     }
 
     // --- 명령 --------------------------------------------------------------------------------------------------------
@@ -92,33 +81,15 @@ public class MeService {
 
     @Transactional
     public void confirmProfileImage(UUID userId, String objectKey) {
-        User user = find(userId);
-        if (!objectKey.startsWith("users/" + userId + "/")) {
-            throw UserErrorCode.PROFILE_IMAGE_NOT_UPLOADED.raise();
-        }
-        long actualSize = objectStorage.sizeOf(objectKey).orElseThrow(UserErrorCode.PROFILE_IMAGE_NOT_UPLOADED::raise);
-        if (actualSize > MAX_IMAGE_BYTES) {
-            objectStorage.delete(objectKey);
-            throw UserErrorCode.PROFILE_IMAGE_TOO_LARGE.raise();
-        }
-
-        String previousKey = user.profileImageKey();
-        user.changeProfileImage(objectKey, clock.instant());
-        userRepository.save(user);
-        if (previousKey != null) {
-            objectStorage.delete(previousKey);
-        }
+        find(userId);
+        // 자리 하나뿐인 slot 이라 붙이는 것이 곧 앞의 것을 밀어내는 것이다
+        attachments.attach(SLOT, userId, objectKey);
     }
 
     @Transactional
     public void clearProfileImage(UUID userId) {
-        User user = find(userId);
-        String previousKey = user.profileImageKey();
-        user.clearProfileImage(clock.instant());
-        userRepository.save(user);
-        if (previousKey != null) {
-            objectStorage.delete(previousKey);
-        }
+        find(userId);
+        attachments.detachAll(SLOT, userId);
     }
 
     // --- 보조 --------------------------------------------------------------------------------------------------------

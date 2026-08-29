@@ -27,13 +27,11 @@ class JooqUserRepository implements UserRepository {
                 .set(USERS.EMAIL, user.email().value())
                 .set(USERS.EMAIL_NORMALIZED, user.email().normalized())
                 .set(USERS.NICKNAME, user.nickname().value())
-                .set(USERS.PROFILE_IMAGE_KEY, user.profileImageKey())
                 .set(USERS.CREATED_AT, user.createdAt())
                 .set(USERS.UPDATED_AT, user.updatedAt())
                 .onConflict(USERS.ID)
                 .doUpdate()
                 .set(USERS.NICKNAME, user.nickname().value())
-                .set(USERS.PROFILE_IMAGE_KEY, user.profileImageKey())
                 .set(USERS.UPDATED_AT, user.updatedAt())
                 .execute();
     }
@@ -57,7 +55,6 @@ class JooqUserRepository implements UserRepository {
                 usersRecord.getId(),
                 new Email(usersRecord.getEmail()),
                 new Nickname(usersRecord.getNickname()),
-                usersRecord.getProfileImageKey(),
                 usersRecord.getCreatedAt(),
                 usersRecord.getUpdatedAt());
     }

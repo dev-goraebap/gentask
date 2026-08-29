@@ -21,9 +21,6 @@ public final class User {
     // 별명
     @NonNull private Nickname nickname;
 
-    // 프로필 이미지의 보관 키. 없으면 기본 아바타다
-    private String profileImageKey;
-
     // 만든 시각
     @NonNull private final Instant createdAt;
 
@@ -31,26 +28,15 @@ public final class User {
     @NonNull private Instant updatedAt;
 
     public static User create(UUID id, Email email, Nickname nickname, Instant now) {
-        return new User(id, email, nickname, null, now, now);
+        return new User(id, email, nickname, now, now);
     }
 
-    public static User restore(
-            UUID id, Email email, Nickname nickname, String profileImageKey, Instant createdAt, Instant updatedAt) {
-        return new User(id, email, nickname, profileImageKey, createdAt, updatedAt);
+    public static User restore(UUID id, Email email, Nickname nickname, Instant createdAt, Instant updatedAt) {
+        return new User(id, email, nickname, createdAt, updatedAt);
     }
 
     public void changeNickname(@NonNull Nickname nickname, Instant now) {
         this.nickname = nickname;
-        this.updatedAt = now;
-    }
-
-    public void changeProfileImage(@NonNull String profileImageKey, Instant now) {
-        this.profileImageKey = profileImageKey;
-        this.updatedAt = now;
-    }
-
-    public void clearProfileImage(Instant now) {
-        this.profileImageKey = null;
         this.updatedAt = now;
     }
 }

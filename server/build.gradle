@@ -103,6 +103,16 @@ jooq {
 						key = 'unqualifiedSchema'
 						value = 'public'
 					}
+					/*
+					 * 데이터 이전 DML 을 파서에서 뺀다. DDLDatabase 는 인메모리 H2 로
+					 * 스크립트를 재생하는데 gen_random_uuid 나 split_part 같은 PostgreSQL
+					 * 함수가 거기 없어 파싱이 실패한다. 생성물에 필요한 것은 스키마뿐이므로
+					 * `[jooq ignore start]` 로 감싼 구간을 건너뛴다.
+					 */
+					property {
+						key = 'parseIgnoreComments'
+						value = 'true'
+					}
 				}
 				/*
 				 * DDLDatabase 는 인메모리 H2 를 쓰므로 스키마 이름이 대문자 PUBLIC 으로 잡힌다.

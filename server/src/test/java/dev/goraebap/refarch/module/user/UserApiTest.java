@@ -193,7 +193,7 @@ class UserApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"fileName\":\"a.pdf\",\"contentType\":\"application/pdf\",\"size\":1024}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("PROFILE_IMAGE_NOT_IMAGE"));
+                .andExpect(jsonPath("$.code").value("FILE_TYPE_NOT_ALLOWED"));
     }
 
     @Test

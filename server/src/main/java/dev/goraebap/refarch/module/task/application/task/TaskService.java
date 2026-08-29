@@ -1,5 +1,7 @@
 package dev.goraebap.refarch.module.task.application.task;
 
+import dev.goraebap.refarch.module.file.AttachmentSlot;
+import dev.goraebap.refarch.module.file.Attachments;
 import dev.goraebap.refarch.module.task.application.TaskErrorCode;
 import dev.goraebap.refarch.module.task.application.task.TaskViews.TaskView;
 import dev.goraebap.refarch.module.task.domain.task.Task;
@@ -23,6 +25,7 @@ public class TaskService {
     // --- 의존 --------------------------------------------------------------------------------------------------------
     private final TaskRepository taskRepository;
     private final TaskQuery taskQuery;
+    private final Attachments attachments;
     private final Clock clock;
 
     // --- 조회 --------------------------------------------------------------------------------------------------------
@@ -104,6 +107,8 @@ public class TaskService {
     @Transactional
     public void remove(UUID userId, UUID taskId) {
         find(taskId, userId);
+        // 첨부는 다형 연결이라 외래 키가 없다. 작업을 지울 때 함께 걷지 않으면 보관소에 남는다
+        attachments.detachAll(AttachmentSlot.TASK_FILES, taskId);
         taskRepository.deleteById(taskId);
     }
 }
