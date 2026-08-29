@@ -34,8 +34,11 @@ class WebPushSender implements PushSender {
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    /** 기록 칸의 크기. 넘치면 저장이 실패하고 그것이 발송 실패를 가린다. */
+    private static final int MAX_DETAIL = 500;
+
     @Override
-    public Result send(PushSubscription subscription, String payload) {
+    public Outcome send(PushSubscription subscription, String payload) {
         try {
             PushService pushService = new PushService(vapid.publicKey(), vapid.privateKey(), vapid.subject());
             Notification notification =
@@ -43,17 +46,23 @@ class WebPushSender implements PushSender {
 
             int status = pushService.send(notification).getStatusLine().getStatusCode();
             if (status == NOT_FOUND || status == GONE) {
-                return Result.GONE;
+                return Outcome.gone("푸시 서비스가 " + status + " 로 답했다");
             }
             if (status >= 200 && status < 300) {
-                return Result.SENT;
+                return Outcome.sent();
             }
             LOG.warn("푸시 발송이 거절되었다. status={}", status);
-            return Result.FAILED;
+            return Outcome.failed("푸시 서비스가 " + status + " 로 답했다");
         } catch (Exception exception) {
             // 한 자리의 실패가 나머지 발송을 멈추면 안 된다. 다음 회차가 다시 시도한다
             LOG.warn("푸시 발송에 실패했다", exception);
-            return Result.FAILED;
+            return Outcome.failed(describe(exception));
         }
+    }
+
+    private static String describe(Exception exception) {
+        String message = exception.getClass().getSimpleName()
+                + (exception.getMessage() == null ? "" : ": " + exception.getMessage());
+        return message.length() <= MAX_DETAIL ? message : message.substring(0, MAX_DETAIL);
     }
 }

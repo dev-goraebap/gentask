@@ -19,5 +19,32 @@ public interface PushSender {
         FAILED
     }
 
-    Result send(PushSubscription subscription, String payload);
+    /**
+     * 결과와 그 사유.
+     *
+     * <p>사유를 함께 내는 것은 관리 화면이 "왜 못 갔는가"에 답해야 하기 때문이다. 결과만으로는 상태
+     * 코드가 무엇이었는지도, 어떤 예외였는지도 남지 않는다.
+     *
+     * @param detail 사람이 읽을 짧은 설명. 성공이면 없다
+     */
+    record Outcome(Result result, String detail) {
+
+        public static Outcome sent() {
+            return new Outcome(Result.SENT, null);
+        }
+
+        public static Outcome gone(String detail) {
+            return new Outcome(Result.GONE, detail);
+        }
+
+        public static Outcome failed(String detail) {
+            return new Outcome(Result.FAILED, detail);
+        }
+
+        public boolean isSent() {
+            return result == Result.SENT;
+        }
+    }
+
+    Outcome send(PushSubscription subscription, String payload);
 }

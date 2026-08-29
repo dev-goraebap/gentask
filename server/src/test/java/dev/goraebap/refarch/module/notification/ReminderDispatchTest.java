@@ -9,6 +9,8 @@ import dev.goraebap.refarch.FakeStorageConfiguration;
 import dev.goraebap.refarch.TestcontainersConfiguration;
 import dev.goraebap.refarch.module.notification.application.PushSender;
 import dev.goraebap.refarch.module.notification.application.ReminderDispatchService;
+import dev.goraebap.refarch.module.notification.domain.failure.PushDeliveryFailure;
+import dev.goraebap.refarch.module.notification.domain.failure.PushFailureQuery;
 import dev.goraebap.refarch.module.notification.domain.subscription.PushSubscription;
 import jakarta.servlet.http.Cookie;
 import java.time.Clock;
@@ -54,12 +56,16 @@ class ReminderDispatchTest {
     private FakeSender fakeSender;
 
     @Autowired
+    private PushFailureQuery pushFailureQuery;
+
+    @Autowired
     private Clock clock;
 
     @BeforeEach
     void 보낸_것을_비운다() {
         fakeSender.sent.clear();
         fakeSender.gone.clear();
+        fakeSender.failed.clear();
     }
 
     @Test
@@ -120,6 +126,48 @@ class ReminderDispatchTest {
     }
 
     @Test
+    @DisplayName("TG-008.02 #1: 발송이 실패하면 그 자리와 사유와 시각을 남긴다")
+    void 발송이_실패하면_기록을_남긴다() throws Exception {
+        Cookie session = 가입한다();
+        String endpoint = "https://push.example.com/failed-" + UUID.randomUUID();
+        구독한다(session, endpoint);
+        작업을_만든다(session, "닿지 않는 알림", 지난_시각());
+        fakeSender.failed.add(endpoint);
+
+        reminderDispatchService.dispatchDue();
+
+        PushDeliveryFailure recorded = 기록을_찾는다(endpoint);
+        assertThat(recorded).isNotNull();
+        assertThat(recorded.reason()).isEqualTo(PushDeliveryFailure.Reason.FAILED);
+        assertThat(recorded.detail()).isEqualTo("시험이 실패로 정했다");
+        assertThat(recorded.occurredAt()).isNotNull();
+        assertThat(recorded.isResolved()).isFalse();
+    }
+
+    @Test
+    @DisplayName("TG-008.02 #5: 자리가 사라졌다고 답하면 스스로 거두고 그 사실을 남긴다")
+    void 자리가_사라지면_거두고_남긴다() throws Exception {
+        Cookie session = 가입한다();
+        String endpoint = "https://push.example.com/gone-record-" + UUID.randomUUID();
+        구독한다(session, endpoint);
+        작업을_만든다(session, "사라진 자리", 지난_시각());
+        fakeSender.gone.add(endpoint);
+
+        reminderDispatchService.dispatchDue();
+
+        PushDeliveryFailure recorded = 기록을_찾는다(endpoint);
+        assertThat(recorded).isNotNull();
+        assertThat(recorded.reason()).isEqualTo(PushDeliveryFailure.Reason.GONE);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                                "/api/v1/push/subscription")
+                        .cookie(session)
+                        .param("endpoint", endpoint))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.registered")
+                        .value(false));
+    }
+
+    @Test
     @DisplayName("아직 시각이 오지 않은 미리 알림은 보내지 않는다")
     void 아직_시각이_오지_않으면_보내지_않는다() throws Exception {
         Cookie session = 가입한다();
@@ -132,6 +180,14 @@ class ReminderDispatchTest {
     }
 
     // --- 보조 --------------------------------------------------------------------------------------------------------
+
+    /** 이 회차가 남긴 기록을 endpoint 로 집어낸다. 다른 시험의 기록이 함께 있으므로 걸러 낸다. */
+    private PushDeliveryFailure 기록을_찾는다(String endpoint) {
+        return pushFailureQuery.search(true, 200, 0).stream()
+                .filter(failure -> failure.endpoint().equals(endpoint))
+                .findFirst()
+                .orElse(null);
+    }
 
     private String 지난_시각() {
         return LocalDateTime.now(clock).minusMinutes(1).format(REMIND_AT);
@@ -169,14 +225,18 @@ class ReminderDispatchTest {
     static class FakeSender implements PushSender {
         final List<String> sent = new ArrayList<>();
         final List<String> gone = new ArrayList<>();
+        final List<String> failed = new ArrayList<>();
 
         @Override
-        public Result send(PushSubscription subscription, String payload) {
+        public Outcome send(PushSubscription subscription, String payload) {
             if (gone.contains(subscription.endpoint())) {
-                return Result.GONE;
+                return Outcome.gone("시험이 죽은 자리로 정했다");
+            }
+            if (failed.contains(subscription.endpoint())) {
+                return Outcome.failed("시험이 실패로 정했다");
             }
             sent.add(payload);
-            return Result.SENT;
+            return Outcome.sent();
         }
     }
 

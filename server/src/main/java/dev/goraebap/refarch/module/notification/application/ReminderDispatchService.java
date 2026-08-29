@@ -1,5 +1,7 @@
 package dev.goraebap.refarch.module.notification.application;
 
+import dev.goraebap.refarch.module.notification.domain.failure.PushDeliveryFailure;
+import dev.goraebap.refarch.module.notification.domain.failure.PushDeliveryFailureRepository;
 import dev.goraebap.refarch.module.notification.domain.reminder.DueReminder;
 import dev.goraebap.refarch.module.notification.domain.reminder.DueReminderQuery;
 import dev.goraebap.refarch.module.notification.domain.reminder.SentReminderRepository;
@@ -9,6 +11,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +38,7 @@ public class ReminderDispatchService {
     private final SentReminderRepository sentReminderRepository;
     private final PushSubscriptionRepository subscriptionRepository;
     private final PushSender pushSender;
+    private final PushDeliveryFailureRepository failureRepository;
     private final VapidProperties vapid;
     private final Clock clock;
 
@@ -77,19 +81,39 @@ public class ReminderDispatchService {
     private boolean dispatch(DueReminder reminder) {
         List<PushSubscription> subscriptions = subscriptionRepository.findByUserId(reminder.userId());
         String payload = payloadOf(reminder);
+        Instant now = Instant.now(clock);
 
         boolean anySent = false;
         for (PushSubscription subscription : subscriptions) {
-            PushSender.Result result = pushSender.send(subscription, payload);
-            if (result == PushSender.Result.GONE) {
+            PushSender.Outcome outcome = pushSender.send(subscription, payload);
+            if (outcome.isSent()) {
+                anySent = true;
+                continue;
+            }
+            // 닿지 않은 회차를 남긴다. 로그로만 두면 관리자가 서버에 들어가야 보고, 어느 사용자가
+            // 몇 번 놓쳤는지 세지 못한다. TG-008.02 다
+            record(subscription, reminder, outcome, now);
+            if (outcome.result() == PushSender.Result.GONE) {
                 // 브라우저 데이터를 지우거나 오래 쓰지 않으면 자리가 만료된다. NTF-001 의 A4 다
                 subscriptionRepository.deleteById(subscription.id());
-            } else if (result == PushSender.Result.SENT) {
-                anySent = true;
             }
         }
-        sentReminderRepository.markSent(reminder.taskId(), reminder.remindAt(), Instant.now(clock));
+        sentReminderRepository.markSent(reminder.taskId(), reminder.remindAt(), now);
         return anySent;
+    }
+
+    private void record(PushSubscription subscription, DueReminder reminder, PushSender.Outcome outcome, Instant now) {
+        PushDeliveryFailure.Reason reason = outcome.result() == PushSender.Result.GONE
+                ? PushDeliveryFailure.Reason.GONE
+                : PushDeliveryFailure.Reason.FAILED;
+        failureRepository.save(PushDeliveryFailure.occur(
+                UUID.randomUUID(),
+                subscription.userId(),
+                subscription.endpoint(),
+                reminder.taskId(),
+                reason,
+                outcome.detail(),
+                now));
     }
 
     /** 서비스 워커가 읽는 형식. 필드 이름이 `sw.js` 의 것과 맞아야 한다. */
