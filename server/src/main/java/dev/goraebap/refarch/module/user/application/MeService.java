@@ -44,6 +44,7 @@ public class MeService {
                 user.id(),
                 user.email().value(),
                 user.nickname().value(),
+                user.role().name(),
                 profileImageUrl,
                 tokenIssuedAt,
                 user.createdAt());

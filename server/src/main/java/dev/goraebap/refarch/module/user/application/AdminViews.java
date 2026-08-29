@@ -2,14 +2,15 @@ package dev.goraebap.refarch.module.user.application;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
-public final class UserViews {
+public final class AdminViews {
 
-    private UserViews() {}
+    private AdminViews() {}
 
-    @Schema(name = "MeView")
-    public record MeView(
+    @Schema(name = "AdminUserView")
+    public record AdminUserView(
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             UUID id,
 
@@ -24,25 +25,26 @@ public final class UserViews {
                     allowableValues = {"USER", "ADMIN"})
             String role,
 
-            @Schema(
-                    requiredMode = Schema.RequiredMode.REQUIRED,
-                    types = {"string", "null"})
-            String profileImageUrl,
-
-            @Schema(
-                    requiredMode = Schema.RequiredMode.REQUIRED,
-                    types = {"string", "null"},
-                    format = "date-time")
-            Instant apiTokenIssuedAt,
-
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             Instant createdAt) {}
 
-    @Schema(name = "IssuedApiToken")
-    public record IssuedApiToken(
+    @Schema(name = "AdminUserPageView")
+    public record AdminUserPageView(
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            String token,
+            List<AdminUserView> items,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Instant issuedAt) {}
+            long total,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            int page,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            int size) {
+
+        /** 담아 온 목록을 그대로 쥐지 않는다. 부르는 쪽이 뒤에 고치면 이 값이 함께 바뀐다. */
+        public AdminUserPageView {
+            items = List.copyOf(items);
+        }
+    }
 }

@@ -6,6 +6,7 @@ import dev.goraebap.refarch.module.user.domain.account.AccountRepository;
 import dev.goraebap.refarch.module.user.domain.session.Session;
 import dev.goraebap.refarch.module.user.domain.session.SessionRepository;
 import dev.goraebap.refarch.module.user.domain.user.Nickname;
+import dev.goraebap.refarch.module.user.domain.user.Role;
 import dev.goraebap.refarch.module.user.domain.user.User;
 import dev.goraebap.refarch.module.user.domain.user.UserRepository;
 import java.time.Clock;
@@ -27,6 +28,7 @@ public class AuthService {
     private final TokenHasher tokenHasher;
     private final TokenGenerator tokenGenerator;
     private final AuthProperties properties;
+    private final AdminProperties adminProperties;
     private final Clock clock;
 
     private final String timingEqualizerHash;
@@ -40,6 +42,7 @@ public class AuthService {
             TokenHasher tokenHasher,
             TokenGenerator tokenGenerator,
             AuthProperties properties,
+            AdminProperties adminProperties,
             Clock clock) {
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
@@ -48,6 +51,7 @@ public class AuthService {
         this.tokenHasher = tokenHasher;
         this.tokenGenerator = tokenGenerator;
         this.properties = properties;
+        this.adminProperties = adminProperties;
         this.clock = clock;
         this.timingEqualizerHash = passwordHasher.hash("timing-equalizer");
     }
@@ -64,6 +68,10 @@ public class AuthService {
         Nickname nickname =
                 rawNickname == null || rawNickname.isBlank() ? Nickname.fromEmail(email) : Nickname.of(rawNickname);
         User user = User.create(UUID.randomUUID(), email, nickname, now);
+        // 설정이 가리키는 계정이 뒤늦게 가입할 수 있다. 기동 시의 승격만 두면 그 계정이 일반 사용자로 남는다.
+        if (adminProperties.designates(email.normalized())) {
+            user.changeRole(Role.ADMIN, now);
+        }
         userRepository.save(user);
         accountRepository.save(
                 Account.createCredential(UUID.randomUUID(), user.id(), email, passwordHasher.hash(rawPassword), now));

@@ -5,6 +5,7 @@ import static dev.goraebap.refarch.jooq.Tables.USERS;
 import dev.goraebap.refarch.jooq.tables.records.UsersRecord;
 import dev.goraebap.refarch.module.user.domain.Email;
 import dev.goraebap.refarch.module.user.domain.user.Nickname;
+import dev.goraebap.refarch.module.user.domain.user.Role;
 import dev.goraebap.refarch.module.user.domain.user.User;
 import dev.goraebap.refarch.module.user.domain.user.UserRepository;
 import java.util.Optional;
@@ -27,11 +28,13 @@ class JooqUserRepository implements UserRepository {
                 .set(USERS.EMAIL, user.email().value())
                 .set(USERS.EMAIL_NORMALIZED, user.email().normalized())
                 .set(USERS.NICKNAME, user.nickname().value())
+                .set(USERS.ROLE, user.role().name())
                 .set(USERS.CREATED_AT, user.createdAt())
                 .set(USERS.UPDATED_AT, user.updatedAt())
                 .onConflict(USERS.ID)
                 .doUpdate()
                 .set(USERS.NICKNAME, user.nickname().value())
+                .set(USERS.ROLE, user.role().name())
                 .set(USERS.UPDATED_AT, user.updatedAt())
                 .execute();
     }
@@ -46,6 +49,15 @@ class JooqUserRepository implements UserRepository {
     }
 
     @Override
+    public Optional<User> findByEmailNormalized(String emailNormalized) {
+        return dslContext
+                .selectFrom(USERS)
+                .where(USERS.EMAIL_NORMALIZED.eq(emailNormalized))
+                .fetchOptional()
+                .map(JooqUserRepository::toDomain);
+    }
+
+    @Override
     public boolean existsByEmailNormalized(String emailNormalized) {
         return dslContext.fetchExists(USERS, USERS.EMAIL_NORMALIZED.eq(emailNormalized));
     }
@@ -55,6 +67,7 @@ class JooqUserRepository implements UserRepository {
                 usersRecord.getId(),
                 new Email(usersRecord.getEmail()),
                 new Nickname(usersRecord.getNickname()),
+                Role.valueOf(usersRecord.getRole()),
                 usersRecord.getCreatedAt(),
                 usersRecord.getUpdatedAt());
     }
