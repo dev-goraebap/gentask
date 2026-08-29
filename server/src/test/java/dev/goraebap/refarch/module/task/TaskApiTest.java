@@ -46,7 +46,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("ST-014 AC6: 로그인 없이 작업에 닿을 수 없다")
+    @DisplayName("ST-019 AC3: 로그인 없이 작업에 닿을 수 없다")
     void 로그인_없이_작업에_닿을_수_없다() throws Exception {
         mockMvc.perform(get("/api/v1/tasks"))
                 .andExpect(status().isUnauthorized())

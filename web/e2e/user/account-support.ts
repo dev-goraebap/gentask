@@ -1,0 +1,37 @@
+import { type Page, expect } from '@playwright/test';
+
+// 로그인 이전을 지나는 Story 셋(ST-014 · ST-019 · ST-020)이 함께 쓴다.
+
+/** 워커의 세션을 쓰지 않는다. 이 Story 들은 로그인 화면을 직접 지나야 한다. */
+export const 로그인_전 = { storageState: { cookies: [], origins: [] } };
+
+export const 비밀번호 = 'e2e-password-1234';
+
+export function 새_이메일(): string {
+  return `e2e-acc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+}
+
+export async function 등록한다(page: Page, email: string): Promise<void> {
+  await page.goto('/signup');
+  await page.locator('#signup-email').fill(email);
+  await page.locator('#signup-password').fill(비밀번호);
+  await page.getByRole('button', { name: '등록' }).click();
+}
+
+/** 등록이 끝나 세션이 붙을 때까지 기다린다. 기다리지 않고 이동하면 요청이 끊긴다. */
+export async function 등록하고_들어간다(page: Page, email: string): Promise<void> {
+  await 등록한다(page, email);
+  await expect(page).toHaveURL(/\/tasks\//);
+}
+
+export async function 로그아웃한다(page: Page): Promise<void> {
+  await page.goto('/account');
+  await page.getByRole('button', { name: '로그아웃' }).click();
+}
+
+export async function 로그인한다(page: Page, email: string, password: string): Promise<void> {
+  await page.goto('/login');
+  await page.locator('#login-email').fill(email);
+  await page.locator('#login-password').fill(password);
+  await page.getByRole('button', { name: '로그인' }).click();
+}
