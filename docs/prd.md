@@ -46,6 +46,12 @@
 - [USR-005 비밀번호 재설정](<./spec/user/USR-005(비밀번호 재설정).md>)
 - [USR-006 계정 탈퇴](<./spec/user/USR-006(계정 탈퇴).md>)
 
+### 3.3 알림 도메인 (Notification)
+
+- [NTF-001 알림 받기](<./spec/notification/NTF-001(알림 받기).md>)
+
+정한 시각에 알림을 보내는 동작은 주 액터가 없어 서술서를 두지 않습니다. 트리거가 시각이며 사용자가 개시하지 않으므로, 해당 요구사항은 Story 의 인수 조건이 갖습니다.
+
 ## 4. 연계 문서 (Related Documents)
 
 - **품질 목표 및 이해관계자**: [1. 서론과 목표](./architecture/01-introduction-and-goals.md)
