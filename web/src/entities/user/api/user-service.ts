@@ -2,7 +2,7 @@ import { isPlatformServer } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { computed, inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ENDPOINTS, type IssuedApiToken, type MeView, type PresignedUpload } from '@/shared/api';
+import { ENDPOINTS, type IssuedApiToken, type MeView } from '@/shared/api';
 
 @Injectable()
 export class UserService {
@@ -38,20 +38,6 @@ export class UserService {
   async deleteApiToken(): Promise<void> {
     await firstValueFrom(this.httpClient.delete<void>(ENDPOINTS.apiToken));
     this.resource.reload();
-  }
-
-  async presignProfileImage(
-    fileName: string,
-    contentType: string,
-    size: number,
-  ): Promise<PresignedUpload> {
-    return firstValueFrom(
-      this.httpClient.post<PresignedUpload>(ENDPOINTS.profileImagePresign, {
-        fileName,
-        contentType,
-        size,
-      }),
-    );
   }
 
   async confirmProfileImage(objectKey: string): Promise<void> {

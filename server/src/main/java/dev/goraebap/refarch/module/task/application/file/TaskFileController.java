@@ -1,9 +1,7 @@
 package dev.goraebap.refarch.module.task.application.file;
 
 import dev.goraebap.refarch.module.task.application.file.TaskFileRequests.AttachTaskFile;
-import dev.goraebap.refarch.module.task.application.file.TaskFileRequests.PresignTaskFile;
 import dev.goraebap.refarch.module.task.application.file.TaskFileViews.TaskFileView;
-import dev.goraebap.refarch.shared.storage.PresignedUpload;
 import dev.goraebap.refarch.shared.web.CurrentUser;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -26,12 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class TaskFileController {
 
     private final TaskFileService taskFileService;
-
-    @PostMapping("/presign")
-    public PresignedUpload presign(
-            @CurrentUser UUID userId, @PathVariable UUID taskId, @Valid @RequestBody PresignTaskFile request) {
-        return taskFileService.presign(userId, taskId, request.fileName(), request.contentType(), request.size());
-    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

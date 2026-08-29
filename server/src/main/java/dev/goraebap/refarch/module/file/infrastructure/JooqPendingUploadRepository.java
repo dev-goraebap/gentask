@@ -23,11 +23,10 @@ class JooqPendingUploadRepository implements PendingUploadRepository {
                 .insertInto(PENDING_UPLOADS)
                 .set(PENDING_UPLOADS.ID, pendingUpload.id())
                 .set(PENDING_UPLOADS.STORAGE_KEY, pendingUpload.storageKey())
-                .set(PENDING_UPLOADS.OWNER_TYPE, pendingUpload.ownerType())
-                .set(PENDING_UPLOADS.OWNER_ID, pendingUpload.ownerId())
-                .set(PENDING_UPLOADS.NAME, pendingUpload.name())
+                .set(PENDING_UPLOADS.SLOT, pendingUpload.slot())
                 .set(PENDING_UPLOADS.FILE_NAME, pendingUpload.fileName())
                 .set(PENDING_UPLOADS.CONTENT_TYPE, pendingUpload.contentType())
+                .set(PENDING_UPLOADS.ISSUED_BY, pendingUpload.issuedBy())
                 .set(PENDING_UPLOADS.CREATED_AT, pendingUpload.createdAt())
                 .execute();
     }
@@ -53,11 +52,10 @@ class JooqPendingUploadRepository implements PendingUploadRepository {
         return PendingUpload.restore(
                 pendingUploadsRecord.getId(),
                 pendingUploadsRecord.getStorageKey(),
-                pendingUploadsRecord.getOwnerType(),
-                pendingUploadsRecord.getOwnerId(),
-                pendingUploadsRecord.getName(),
+                pendingUploadsRecord.getSlot(),
                 pendingUploadsRecord.getFileName(),
                 pendingUploadsRecord.getContentType(),
+                pendingUploadsRecord.getIssuedBy(),
                 pendingUploadsRecord.getCreatedAt());
     }
 }

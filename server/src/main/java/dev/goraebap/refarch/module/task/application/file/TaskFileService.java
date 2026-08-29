@@ -5,7 +5,6 @@ import dev.goraebap.refarch.module.file.AttachmentView;
 import dev.goraebap.refarch.module.file.Attachments;
 import dev.goraebap.refarch.module.task.application.file.TaskFileViews.TaskFileView;
 import dev.goraebap.refarch.module.task.application.task.TaskService;
-import dev.goraebap.refarch.shared.storage.PresignedUpload;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -37,11 +36,6 @@ public class TaskFileService {
     }
 
     // --- 명령 --------------------------------------------------------------------------------------------------------
-    @Transactional
-    public PresignedUpload presign(UUID userId, UUID taskId, String fileName, String contentType, long size) {
-        taskService.find(taskId, userId);
-        return attachments.presign(SLOT, taskId, fileName, contentType, size);
-    }
 
     /**
      * 이름과 형식은 발급 때 받아 둔 것을 쓰므로 이 요청의 값을 보지 않는다. 두 요청이 같은 파일을
@@ -50,7 +44,7 @@ public class TaskFileService {
     @Transactional
     public TaskFileView attach(UUID userId, UUID taskId, String objectKey, String fileName, String contentType) {
         taskService.find(taskId, userId);
-        return toView(attachments.attach(SLOT, taskId, objectKey));
+        return toView(attachments.attach(SLOT, taskId, userId, objectKey));
     }
 
     @Transactional

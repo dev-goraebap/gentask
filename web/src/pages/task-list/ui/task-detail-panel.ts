@@ -35,7 +35,7 @@ import {
   type Meridiem,
   type Task,
 } from '@/entities/task';
-import { problemDetail } from '@/shared/api';
+import { injectAttachmentPresign, problemDetail } from '@/shared/api';
 import { TASK_PANEL } from '@/shared/config';
 import { openUppyDialog } from '@/shared/lib';
 import { toast } from '@/shared/ui/sonner';
@@ -139,6 +139,7 @@ export class TaskDetailPanel {
 
   // --- 의존 --------------------------------------------------------------------------------------
   private readonly taskService = inject(TaskService);
+  private readonly presign = injectAttachmentPresign();
   private readonly router = inject(Router);
 
   // --- 질의 --------------------------------------------------------------------------------------
@@ -371,7 +372,7 @@ export class TaskDetailPanel {
       maxNumberOfFiles: MAX_TASK_FILES - this.fileList().length,
       maxFileSize: MAX_TASK_FILE_BYTES,
       note: '작업당 5개, 각 10MB 이하',
-      presign: (file) => this.files.presign(current.id, file.name, file.type, file.size),
+      presign: (file) => this.presign('TASK_FILES', file.name, file.type, file.size),
       attach: (uploads) => this.files.attachAll(current.id, uploads),
       onAttachError: (message) => toast.error(message),
     });

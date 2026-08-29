@@ -10,7 +10,7 @@ import {
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import { AuthService, UserAvatar, UserService } from '@/entities/user';
-import { problemDetail } from '@/shared/api';
+import { injectAttachmentPresign, problemDetail } from '@/shared/api';
 import { ROUTES } from '@/shared/config';
 import { openUppyDialog } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
@@ -44,6 +44,7 @@ const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
 export class AccountPage {
   // --- 의존 --------------------------------------------------------------------------------------
   private readonly userService = inject(UserService);
+  private readonly presign = injectAttachmentPresign();
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -116,7 +117,7 @@ export class AccountPage {
       maxFileSize: MAX_IMAGE_BYTES,
       allowedFileTypes: ['image/*'],
       note: '이미지 1개, 1MB 이하',
-      presign: (file) => this.userService.presignProfileImage(file.name, file.type, file.size),
+      presign: (file) => this.presign('USER_PROFILE_IMAGE', file.name, file.type, file.size),
       attach: ([upload]) => this.userService.confirmProfileImage(upload.objectKey),
       onAttachError: (message) => toast.error(message),
     });

@@ -1,6 +1,7 @@
 import type { components } from './generated/schema';
 
 export { ENDPOINTS } from './endpoints';
+export { injectAttachmentPresign, type AttachmentSlot } from './attachments';
 export { problemDetail } from './problem';
 
 export type TaskView = components['schemas']['TaskView'];

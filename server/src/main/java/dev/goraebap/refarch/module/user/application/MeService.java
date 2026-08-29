@@ -10,7 +10,6 @@ import dev.goraebap.refarch.module.user.domain.apitoken.ApiTokenRepository;
 import dev.goraebap.refarch.module.user.domain.user.Nickname;
 import dev.goraebap.refarch.module.user.domain.user.User;
 import dev.goraebap.refarch.module.user.domain.user.UserRepository;
-import dev.goraebap.refarch.shared.storage.PresignedUpload;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
@@ -50,12 +49,6 @@ public class MeService {
                 user.createdAt());
     }
 
-    @Transactional
-    public PresignedUpload presignProfileImage(UUID userId, String fileName, String contentType, long size) {
-        find(userId);
-        return attachments.presign(SLOT, userId, fileName, contentType, size);
-    }
-
     // --- 명령 --------------------------------------------------------------------------------------------------------
     @Transactional
     public void changeNickname(UUID userId, String rawNickname) {
@@ -83,7 +76,7 @@ public class MeService {
     public void confirmProfileImage(UUID userId, String objectKey) {
         find(userId);
         // 자리 하나뿐인 slot 이라 붙이는 것이 곧 앞의 것을 밀어내는 것이다
-        attachments.attach(SLOT, userId, objectKey);
+        attachments.attach(SLOT, userId, userId, objectKey);
     }
 
     @Transactional

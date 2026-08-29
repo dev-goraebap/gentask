@@ -2,10 +2,8 @@ package dev.goraebap.refarch.module.user.application;
 
 import dev.goraebap.refarch.module.user.application.UserRequests.ChangeNickname;
 import dev.goraebap.refarch.module.user.application.UserRequests.ConfirmProfileImage;
-import dev.goraebap.refarch.module.user.application.UserRequests.PresignProfileImage;
 import dev.goraebap.refarch.module.user.application.UserViews.IssuedApiToken;
 import dev.goraebap.refarch.module.user.application.UserViews.MeView;
-import dev.goraebap.refarch.shared.storage.PresignedUpload;
 import dev.goraebap.refarch.shared.web.CurrentUser;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -49,12 +47,6 @@ public class MeController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteApiToken(@CurrentUser UUID userId) {
         meService.deleteApiToken(userId);
-    }
-
-    @PostMapping("/profile-image/presign")
-    public PresignedUpload presignProfileImage(
-            @CurrentUser UUID userId, @Valid @RequestBody PresignProfileImage request) {
-        return meService.presignProfileImage(userId, request.fileName(), request.contentType(), request.size());
     }
 
     @PutMapping("/profile-image")

@@ -4,9 +4,10 @@ title: 첨부 파일을 file 모듈로 모은다
 status: 닫힘
 assignee: []
 created_date: '2026-08-29 07:49'
-updated_date: '2026-08-29 10:30'
+updated_date: '2026-08-29 12:00'
 labels: []
 dependencies: []
+type: task
 ordinal: 26000
 ---
 

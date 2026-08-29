@@ -2,18 +2,12 @@ import { isPlatformServer } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { inject, PLATFORM_ID, type Signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ENDPOINTS, type PresignedUpload, type TaskFileView } from '@/shared/api';
+import { ENDPOINTS, type TaskFileView } from '@/shared/api';
 import type { UploadedFile } from '@/shared/lib';
 
 export interface TaskFiles {
   value: Signal<TaskFileView[] | undefined>;
   hasValue(): boolean;
-  presign(
-    taskId: string,
-    fileName: string,
-    contentType: string,
-    size: number,
-  ): Promise<PresignedUpload>;
   attachAll(taskId: string, uploads: readonly UploadedFile[]): Promise<void>;
   detach(taskId: string, fileId: string): Promise<void>;
 }
@@ -31,16 +25,6 @@ export function injectTaskFiles(taskId: Signal<string | undefined>): TaskFiles {
   return {
     value: resource.value,
     hasValue: () => resource.hasValue(),
-
-    presign(taskId, fileName, contentType, size) {
-      return firstValueFrom(
-        httpClient.post<PresignedUpload>(ENDPOINTS.taskFilePresign(taskId), {
-          fileName,
-          contentType,
-          size,
-        }),
-      );
-    },
 
     async attachAll(taskId, uploads) {
       const failed: string[] = [];

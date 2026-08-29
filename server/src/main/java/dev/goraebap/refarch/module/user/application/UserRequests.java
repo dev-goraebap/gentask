@@ -4,8 +4,6 @@ import dev.goraebap.refarch.module.user.domain.Email;
 import dev.goraebap.refarch.module.user.domain.user.Nickname;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public final class UserRequests {
@@ -31,16 +29,6 @@ public final class UserRequests {
     public record ChangeNickname(
             @NotBlank(message = Nickname.REQUIRED) @Size(max = Nickname.MAX) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             String nickname) {}
-
-    public record PresignProfileImage(
-            @NotBlank @Size(max = 255) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            String fileName,
-
-            @NotBlank @Size(max = 100) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            String contentType,
-
-            @NotNull @Positive @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Long size) {}
 
     public record ConfirmProfileImage(
             @NotBlank @Size(max = 400) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

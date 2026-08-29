@@ -75,16 +75,21 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("여섯 번째 파일은 자리를 받지 못한다")
-    void 여섯_번째_파일은_자리를_받지_못한다() throws Exception {
+    @DisplayName("여섯 번째 파일은 붙지 못한다")
+    void 여섯_번째_파일은_붙지_못한다() throws Exception {
         for (int index = 0; index < 5; index++) {
             파일을_붙인다("파일" + index + ".txt", "text/plain", 10);
         }
 
-        mockMvc.perform(post("/api/v1/tasks/{taskId}/files/presign", taskId)
+        // 자리 발급은 붙을 작업을 모르므로 개수를 세지 못한다. 강제는 붙이는 자리가 갖는다
+        String objectKey = 자리를_받는다("여섯.txt", "text/plain", 10);
+        fakeStorage.put(objectKey, 10);
+
+        mockMvc.perform(post("/api/v1/tasks/{taskId}/files", taskId)
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"fileName\":\"여섯.txt\",\"contentType\":\"text/plain\",\"size\":10}"))
+                        .content("{\"objectKey\":\"" + objectKey
+                                + "\",\"fileName\":\"여섯.txt\",\"contentType\":\"text/plain\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("FILE_LIMIT_EXCEEDED"));
     }
@@ -92,11 +97,11 @@ class TaskFileApiTest {
     @Test
     @DisplayName("10MB 를 넘는 파일은 자리를 받지 못한다")
     void 십MB_를_넘는_파일은_자리를_받지_못한다() throws Exception {
-        mockMvc.perform(post("/api/v1/tasks/{taskId}/files/presign", taskId)
+        mockMvc.perform(post("/api/v1/attachments/presign")
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"fileName\":\"큰것.zip\",\"contentType\":\"application/zip\",\"size\":"
-                                + (TEN_MEGABYTES + 1) + "}"))
+                        .content("{\"slot\":\"TASK_FILES\",\"fileName\":\"큰것.zip\","
+                                + "\"contentType\":\"application/zip\",\"size\":" + (TEN_MEGABYTES + 1) + "}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("FILE_TOO_LARGE"));
     }
@@ -137,19 +142,28 @@ class TaskFileApiTest {
     void 남의_작업에는_파일을_붙일_수_없다() throws Exception {
         Cookie other = AuthTestSupport.가입한다(mockMvc, "other-" + UUID.randomUUID() + "@example.com");
 
-        mockMvc.perform(post("/api/v1/tasks/{taskId}/files/presign", taskId)
+        // 자리 발급은 누구나 받는다. 막는 것은 그 자리를 남의 작업에 매려는 순간이다
+        String objectKey = 자리를_받는다(other, "침입.txt", "text/plain", 10);
+        fakeStorage.put(objectKey, 10);
+
+        mockMvc.perform(post("/api/v1/tasks/{taskId}/files", taskId)
                         .cookie(other)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"fileName\":\"침입.txt\",\"contentType\":\"text/plain\",\"size\":10}"))
+                        .content("{\"objectKey\":\"" + objectKey
+                                + "\",\"fileName\":\"침입.txt\",\"contentType\":\"text/plain\"}"))
                 .andExpect(status().isNotFound());
     }
 
     private String 자리를_받는다(String fileName, String contentType, long size) throws Exception {
-        String body = mockMvc.perform(post("/api/v1/tasks/{taskId}/files/presign", taskId)
-                        .cookie(session)
+        return 자리를_받는다(session, fileName, contentType, size);
+    }
+
+    private String 자리를_받는다(Cookie who, String fileName, String contentType, long size) throws Exception {
+        String body = mockMvc.perform(post("/api/v1/attachments/presign")
+                        .cookie(who)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"fileName\":\"" + fileName + "\",\"contentType\":\"" + contentType + "\",\"size\":"
-                                + size + "}"))
+                        .content("{\"slot\":\"TASK_FILES\",\"fileName\":\"" + fileName + "\",\"contentType\":\""
+                                + contentType + "\",\"size\":" + size + "}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url").isNotEmpty())
                 .andReturn()

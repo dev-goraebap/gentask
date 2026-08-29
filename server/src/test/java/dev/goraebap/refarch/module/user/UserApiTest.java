@@ -156,10 +156,11 @@ class UserApiTest {
     void 이미지를_올려_확정하면_아바타_주소가_생긴다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "avatar@example.com");
 
-        String body = mockMvc.perform(post("/api/v1/me/profile-image/presign")
+        String body = mockMvc.perform(post("/api/v1/attachments/presign")
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"fileName\":\"me.png\",\"contentType\":\"image/png\",\"size\":1024}"))
+                        .content("{\"slot\":\"USER_PROFILE_IMAGE\",\"fileName\":\"me.png\","
+                                + "\"contentType\":\"image/png\",\"size\":1024}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url").isNotEmpty())
                 .andReturn()
@@ -188,10 +189,11 @@ class UserApiTest {
     void 이미지가_아니면_올리기_자리를_내주지_않는다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, "notimage@example.com");
 
-        mockMvc.perform(post("/api/v1/me/profile-image/presign")
+        mockMvc.perform(post("/api/v1/attachments/presign")
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"fileName\":\"a.pdf\",\"contentType\":\"application/pdf\",\"size\":1024}"))
+                        .content("{\"slot\":\"USER_PROFILE_IMAGE\",\"fileName\":\"a.pdf\","
+                                + "\"contentType\":\"application/pdf\",\"size\":1024}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("FILE_TYPE_NOT_ALLOWED"));
     }

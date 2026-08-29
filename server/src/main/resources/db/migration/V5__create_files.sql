@@ -36,16 +36,19 @@ create index ix_attachments_owner on attachments (owner_type, owner_id, name);
 -- presign 만 하고 붙지 않은 업로드. 보관소에는 객체가 있으나 어디에도 매이지 않은
 -- 상태이며, 청소가 이 목록을 근거로 삼는다.
 --
--- 붙일 때 owner 일치를 이 행으로 확인한다. 보관소 키의 접두어를 검사하는 방식은
--- 키 형식이 owner 를 담고 있어야만 성립하므로 두지 않는다.
+-- 붙을 대상(owner)을 갖지 않는다. 자리 발급은 보관소에 자리를 잡는 일일 뿐이고 어느
+-- 레코드에 붙을지는 그때 정해지지 않기 때문이다. Active Storage 의 direct upload 도
+-- blob 만 만들고 소유자를 모른다.
+--
+-- 대신 발급한 사람을 갖는다. 붙일 때 이 값으로 발급자와 붙이는 사람이 같은지 본다.
+-- 그 레코드에 붙일 자격이 있는지는 소유 모듈이 그 앞에서 판정한다.
 create table pending_uploads (
     id           uuid         primary key,
     storage_key  varchar(512) not null,
-    owner_type   varchar(32)  not null,
-    owner_id     uuid         not null,
-    name         varchar(32)  not null,
+    slot         varchar(32)  not null,
     file_name    varchar(255) not null,
     content_type varchar(100) not null,
+    issued_by    uuid         not null,
     created_at   timestamptz  not null,
     constraint uq_pending_uploads_storage_key unique (storage_key)
 );
