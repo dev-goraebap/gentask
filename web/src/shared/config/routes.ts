@@ -9,6 +9,8 @@ export const ROUTES = {
 
   login: () => '/login',
   signup: () => '/signup',
+
+  admin: () => '/admin',
 } as const;
 
 export const TASK_PANEL = {

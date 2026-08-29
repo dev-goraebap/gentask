@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '@/entities/user/guard';
+import { adminGuard, authGuard } from '@/entities/user/guard';
 import { AuthService, UserService } from '@/entities/user/providers';
 import { provideTaskListDatePicker, TaskService } from '@/pages/task-list/providers';
 import { AppShell } from './layout/app-shell';
@@ -25,6 +25,11 @@ export const routes: Routes = [
       {
         path: 'account',
         loadComponent: () => import('@/pages/account').then((m) => m.AccountPage),
+      },
+      {
+        path: 'admin',
+        canActivate: [adminGuard],
+        loadComponent: () => import('@/pages/admin').then((m) => m.AdminPage),
       },
       {
         path: 'tasks',

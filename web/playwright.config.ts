@@ -2,6 +2,8 @@ import { join } from 'node:path';
 
 import { defineConfig } from '@playwright/test';
 
+import { 관리자_이메일 } from './e2e/env';
+
 const 서버 = join(__dirname, '..', 'server');
 
 // 종단 테스트 설정. 규약은 결정-0008 이 갖는다.
@@ -24,6 +26,7 @@ export default defineConfig({
     {
       command: process.platform === 'win32' ? `"${join(서버, 'gradlew.bat')}" bootRun` : './gradlew bootRun',
       cwd: 서버,
+      env: { ADMIN_EMAIL: 관리자_이메일 },
       url: 'http://localhost:8080/v3/api-docs',
       reuseExistingServer: true,
       timeout: 300_000,

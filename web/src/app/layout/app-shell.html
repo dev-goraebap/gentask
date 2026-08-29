@@ -45,6 +45,20 @@
         <span class="min-w-0 flex-1 truncate text-sm">{{ me.nickname }}</span>
       }
     </a>
+
+    @if (me.role === 'ADMIN') {
+      <a
+        [routerLink]="routes.admin()"
+        routerLinkActive="bg-muted text-foreground"
+        class="hidden md:flex"
+        [class]="linkClass()"
+        [attr.aria-label]="sidebarService.collapsed() ? '관리' : null"
+        [attr.title]="sidebarService.collapsed() ? '관리' : null"
+      >
+        <app-icon name="lucideShield" />
+        <span [class]="sidebarService.collapsed() ? 'md:hidden' : ''">관리</span>
+      </a>
+    }
   }
 
   <ul class="flex justify-around gap-1 md:hidden">

@@ -1,0 +1,207 @@
+<app-veil [loading]="veilLoading()" [failed]="veilFailed()" />
+
+<section class="mx-auto flex w-full max-w-[60rem] flex-1 flex-col gap-6 px-4 pt-8 pb-8 md:pt-12">
+  <h1 class="text-2xl font-semibold tracking-tight">관리</h1>
+
+  <div class="border-border flex gap-1 border-b" role="tablist">
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="sm"
+      role="tab"
+      [attr.aria-selected]="tab() === 'users'"
+      [class.border-foreground]="tab() === 'users'"
+      class="rounded-none border-b-2 border-transparent"
+      (click)="show('users')"
+    >
+      사용자
+    </button>
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="sm"
+      role="tab"
+      [attr.aria-selected]="tab() === 'failures'"
+      [class.border-foreground]="tab() === 'failures'"
+      class="rounded-none border-b-2 border-transparent"
+      (click)="show('failures')"
+    >
+      알림 문제
+    </button>
+  </div>
+
+  @if (tab() === 'users') {
+    <div class="flex flex-col gap-3">
+      <div class="flex gap-2">
+        <input
+          hlmInput
+          id="admin-user-search"
+          class="flex-1"
+          placeholder="이메일 또는 별명"
+          aria-label="사용자 검색"
+          [value]="draftKeyword()"
+          (input)="draftKeyword.set($any($event.target).value)"
+          (keydown)="searchOnEnter($event)"
+        />
+        <button hlmBtn type="button" variant="outline" size="sm" (click)="search()">찾기</button>
+      </div>
+
+      @if (users(); as page) {
+        <p class="text-foreground-secondary text-sm">사용자 {{ page.total }}명</p>
+
+        <div class="border-border overflow-x-auto border">
+          <table class="w-full text-sm">
+            <thead class="bg-muted text-foreground-secondary">
+              <tr>
+                <th scope="col" class="px-3 py-2 text-left font-medium">별명</th>
+                <th scope="col" class="px-3 py-2 text-left font-medium">이메일</th>
+                <th scope="col" class="px-3 py-2 text-left font-medium">권한</th>
+                <th scope="col" class="px-3 py-2 text-left font-medium">가입</th>
+                <th scope="col" class="px-3 py-2 text-right font-medium">
+                  <span class="sr-only">동작</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of page.items; track user.id) {
+                <tr class="border-border border-t">
+                  <td class="px-3 py-2">{{ user.nickname }}</td>
+                  <td class="px-3 py-2">{{ user.email }}</td>
+                  <td class="px-3 py-2">{{ user.role === 'ADMIN' ? '관리자' : '사용자' }}</td>
+                  <td class="text-foreground-secondary px-3 py-2">{{ formatAt(user.createdAt) }}</td>
+                  <td class="px-3 py-2 text-right">
+                    @if (user.id === myId()) {
+                      <span class="text-foreground-secondary text-xs">나</span>
+                    } @else if (user.role === 'ADMIN') {
+                      <button hlmBtn type="button" variant="ghost" size="sm" (click)="demote(user)">
+                        사용자로
+                      </button>
+                    } @else {
+                      <button
+                        hlmBtn
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        (click)="promote(user)"
+                      >
+                        관리자로
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr class="border-border border-t">
+                  <td class="text-foreground-secondary px-3 py-6 text-center" colspan="5">
+                    찾은 사용자가 없습니다.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <button hlmBtn type="button" variant="ghost" size="sm" (click)="movePage(-1)">이전</button>
+          <span class="text-foreground-secondary text-sm">
+            {{ userPage() + 1 }} / {{ userPageCount() }}
+          </span>
+          <button hlmBtn type="button" variant="ghost" size="sm" (click)="movePage(1)">다음</button>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <p class="text-foreground-secondary text-sm">
+          알림이 닿지 않은 자리입니다. 자리를 거두면 그 기기는 더 이상 보낼 대상이 아닙니다.
+        </p>
+        <button hlmBtn type="button" variant="outline" size="sm" (click)="toggleResolved()">
+          {{ includeResolved() ? '처리 안 된 것만' : '처리된 것도' }}
+        </button>
+      </div>
+
+      @if (failures(); as page) {
+        <p class="text-foreground-secondary text-sm">항목 {{ page.total }}건</p>
+
+        <div class="border-border overflow-x-auto border">
+          <table class="w-full text-sm">
+            <thead class="bg-muted text-foreground-secondary">
+              <tr>
+                <th scope="col" class="px-3 py-2 text-left font-medium">사용자</th>
+                <th scope="col" class="px-3 py-2 text-left font-medium">사유</th>
+                <th scope="col" class="px-3 py-2 text-left font-medium">자리</th>
+                <th scope="col" class="px-3 py-2 text-left font-medium">일어난 때</th>
+                <th scope="col" class="px-3 py-2 text-right font-medium">
+                  <span class="sr-only">동작</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (failure of page.items; track failure.id) {
+                <tr class="border-border border-t">
+                  <td class="px-3 py-2">
+                    {{ failure.email ?? '(지워진 사용자)' }}
+                  </td>
+                  <td class="px-3 py-2">
+                    {{ failure.reason === 'GONE' ? '자리 사라짐' : '보내지 못함' }}
+                    @if (failure.detail) {
+                      <span class="text-foreground-secondary block text-xs">{{
+                        failure.detail
+                      }}</span>
+                    }
+                  </td>
+                  <td class="text-foreground-secondary px-3 py-2 font-mono text-xs">
+                    {{ shorten(failure.endpoint) }}
+                  </td>
+                  <td class="text-foreground-secondary px-3 py-2">
+                    {{ formatAt(failure.occurredAt) }}
+                  </td>
+                  <td class="px-3 py-2 text-right whitespace-nowrap">
+                    @if (failure.resolvedAt) {
+                      <span class="text-foreground-secondary text-xs">처리됨</span>
+                    } @else {
+                      <button
+                        hlmBtn
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        (click)="resolve(failure)"
+                      >
+                        처리
+                      </button>
+                      <button
+                        hlmBtn
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        (click)="revoke(failure)"
+                      >
+                        자리 거두기
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr class="border-border border-t">
+                  <td class="text-foreground-secondary px-3 py-6 text-center" colspan="5">
+                    닿지 않은 자리가 없습니다.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <button hlmBtn type="button" variant="ghost" size="sm" (click)="movePage(-1)">이전</button>
+          <span class="text-foreground-secondary text-sm">
+            {{ failurePage() + 1 }} / {{ failurePageCount() }}
+          </span>
+          <button hlmBtn type="button" variant="ghost" size="sm" (click)="movePage(1)">다음</button>
+        </div>
+      }
+    </div>
+  }
+</section>

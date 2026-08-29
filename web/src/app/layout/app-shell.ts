@@ -13,6 +13,7 @@ import {
   lucideMenu,
   lucidePanelLeftClose,
   lucidePanelLeftOpen,
+  lucideShield,
   lucideUserRound,
 } from '@ng-icons/lucide';
 import { UserAvatar, UserService } from '@/entities/user';
@@ -44,6 +45,7 @@ import { ThemeToggle } from './theme-toggle';
       lucideMenu,
       lucidePanelLeftClose,
       lucidePanelLeftOpen,
+      lucideShield,
       lucideUserRound,
     }),
   ],

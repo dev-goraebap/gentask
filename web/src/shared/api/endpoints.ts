@@ -3,6 +3,7 @@ const ATTACHMENTS = '/api/v1/attachments';
 const PUSH = '/api/v1/push';
 const AUTH = '/api/v1/auth';
 const ME = '/api/v1/me';
+const ADMIN = '/api/v1/admin';
 
 export const ENDPOINTS = {
   // 올릴 자리 발급은 어디에 붙일지와 무관하므로 자리가 하나다. 붙이는 것은 도메인 경로가 받는다.
@@ -26,4 +27,10 @@ export const ENDPOINTS = {
   me: ME,
   apiToken: `${ME}/api-token`,
   profileImage: `${ME}/profile-image`,
+
+  adminUsers: `${ADMIN}/users`,
+  adminUserRole: (userId: string) => `${ADMIN}/users/${userId}/role`,
+  adminPushFailures: `${ADMIN}/push/failures`,
+  adminPushFailureResolve: (failureId: string) => `${ADMIN}/push/failures/${failureId}/resolve`,
+  adminPushFailureRevoke: (failureId: string) => `${ADMIN}/push/failures/${failureId}/revoke`,
 } as const;
