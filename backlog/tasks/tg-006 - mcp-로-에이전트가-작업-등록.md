@@ -5,12 +5,8 @@ status: 열림
 assignee: []
 created_date: '2026-08-29 15:00'
 updated_date: '2026-08-29 15:00'
-labels:
-  - '후보'
+labels: []
 dependencies: []
-documentation: []
-type: task
-ordinal: 100
 ---
 
 ## Description
@@ -19,4 +15,4 @@ TG-003.04 의 토큰을 로컬 에이전트의 MCP 설정에 넣어 등록이 �
 
 ## 승격 조건
 
-서술서와 인수 조건이 정해지면 Story 로 승격한다. 착수 순서는 `ordinal` 이 갖는다.
+서술서와 인수 조건이 정해지면 Story 로 승격한다. 착수 순서는 DRAFT 번호가 갖는다.

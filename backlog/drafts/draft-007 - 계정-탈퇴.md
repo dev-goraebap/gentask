@@ -1,17 +1,14 @@
 ---
-id: TG-012
+id: DRAFT-007
 title: 계정 탈퇴
-status: 열림
+status: Draft
 assignee: []
 created_date: '2026-08-29 15:00'
 updated_date: '2026-08-29 15:00'
-labels:
-  - '후보'
+labels: []
 dependencies: []
 documentation:
   - docs/spec/user/USR-006(계정 탈퇴).md
-type: task
-ordinal: 700
 ---
 
 ## Description
@@ -20,4 +17,4 @@ ordinal: 700
 
 ## 승격 조건
 
-서술서와 인수 조건이 정해지면 Story 로 승격한다. 착수 순서는 `ordinal` 이 갖는다.
+서술서와 인수 조건이 정해지면 Story 로 승격한다. 착수 순서는 DRAFT 번호가 갖는다.

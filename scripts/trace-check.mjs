@@ -20,6 +20,10 @@ const SOURCES = [
 // cleanup 이 오래 닫힌 항목을 completed/ 로 옮기므로 두 자리를 함께 읽는다.
 const ITEMS = [join(ROOT, 'backlog', 'tasks'), join(ROOT, 'backlog', 'completed')];
 
+// 줄바꿈이 CRLF 로 섞여 들어와도 대조가 깨지지 않게 읽는 자리에서 고른다.
+// 어긋난 파일 하나가 인수 조건을 조용히 빠뜨리는 것보다 여기서 흡수하는 편이 안전하다.
+const read = (file) => readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+
 function walk(dir, matches, out = []) {
   let entries;
   try {
@@ -39,7 +43,7 @@ function walk(dir, matches, out = []) {
 const criteria = [];
 for (const dir of ITEMS) {
   for (const file of walk(dir, (n) => n.endsWith('.md'))) {
-    const body = readFileSync(file, 'utf8');
+    const body = read(file);
     const id = /^id:\s*(TG-[\d.]+)\s*$/m.exec(body)?.[1];
     if (!id) continue;
     // 인수 조건은 도구가 심는 마커 안에만 있다. 절 제목에 기대지 않는다.
@@ -66,7 +70,7 @@ criteria.sort((a, b) =>
 const referenced = new Map();
 for (const [layer, dir, matches] of SOURCES) {
   for (const file of walk(dir, matches)) {
-    const body = readFileSync(file, 'utf8');
+    const body = read(file);
     for (const m of body.matchAll(KEY)) {
       for (const ac of m[2].matchAll(/#(\d+)/g)) {
         const key = `${m[1]} #${ac[1]}`;

@@ -17,7 +17,7 @@ Angular 프론트엔드와 Spring Boot 백엔드 모노레포의 참조 아키�
 - **코드 스타일**: 코드를 작성하기 전에 해당 축의 코드 스타일 가이드(`FE-STY-NNN` · `BE-STY-NNN`)를 확인합니다.
 - **아키텍처 결정**: 규칙이나 설계를 변경하기 전에 [9. 아키텍처 결정](docs/architecture/09-architecture-decisions.md)을 확인합니다.
 - **유스케이스 서술서**: [docs/spec/작성지침.md](docs/spec/작성지침.md)를 따릅니다.
-- **백로그 항목**: Epic · Story · Task 가 `backlog/tasks/` 에 함께 있고 프런트매터의 `type` 이 유형을 가릅니다. 오래 닫힌 항목은 `backlog/completed/` 로 옮겨져 있습니다.
+- **백로그 항목**: Epic · Story · Task 가 `backlog/tasks/` 에 함께 있고 프런트매터의 `type` 이 유형을 가릅니다. 착수 전 후보는 `backlog/drafts/`, 오래 닫힌 항목은 `backlog/completed/` 에 있습니다.
 - **문서 참조 범위**: 현재 작업에 필요한 문서만 읽고 전체 문서를 불필요하게 적재하지 않습니다.
 
 ## 전역 규칙
@@ -64,9 +64,12 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 - 상태, 소속, 인수 조건을 바꿀 때는 `backlog` CLI 를 씁니다. 프런트매터를 직접 고치면 항목 사이의 관계가 어긋납니다.
 - 인수 조건은 `<!-- AC:BEGIN -->` 마커 안에만 둡니다. 추적 검사기가 그 자리만 읽습니다.
 - 결번은 `backlog task edit <ID> --remove-ac` 로 만들지 않습니다. 그 명령이 뒤 번호를 당깁니다. 문장을 `(결번)` 으로 바꿉니다.
+- 서술서가 아직 없는 후보는 Draft 로 둡니다. 착수 순서는 Draft 번호가 갖습니다 — `ordinal` 은 Draft 목록의 정렬에 쓰이지 않습니다.
 
 ```bash
 backlog task list --plain          # 목록
 backlog task view <ID> --json      # 항목 하나
+backlog draft list --plain         # 착수 전 후보
+backlog draft promote <ID>         # 후보를 TG 채번으로 올린다
 backlog browser --port 6420        # 웹 GUI
 ```

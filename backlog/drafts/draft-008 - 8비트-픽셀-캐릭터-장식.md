@@ -1,16 +1,13 @@
 ---
-id: TG-013
+id: DRAFT-008
 title: 8비트 픽셀 캐릭터 장식
-status: 열림
+status: Draft
 assignee: []
 created_date: '2026-08-29 15:00'
 updated_date: '2026-08-29 15:00'
-labels:
-  - '후보'
+labels: []
 dependencies: []
 documentation: []
-type: task
-ordinal: 800
 ---
 
 ## Description
@@ -19,4 +16,4 @@ ordinal: 800
 
 ## 승격 조건
 
-서술서와 인수 조건이 정해지면 Story 로 승격한다. 착수 순서는 `ordinal` 이 갖는다.
+서술서와 인수 조건이 정해지면 Story 로 승격한다. 착수 순서는 DRAFT 번호가 갖는다.
