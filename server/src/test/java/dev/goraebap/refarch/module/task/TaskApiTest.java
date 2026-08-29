@@ -54,7 +54,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("ST-014 AC8: 다른 계정의 작업은 목록에도 상세에도 없다")
+    @DisplayName("다른 계정의 작업은 목록에도 상세에도 없다")
     void 다른_계정의_작업은_목록에도_상세에도_없다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"내 것\"}");
 

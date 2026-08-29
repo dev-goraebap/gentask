@@ -133,7 +133,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("ST-014 AC8: 남의 작업에는 파일을 붙일 수 없다")
+    @DisplayName("남의 작업에는 파일을 붙일 수 없다")
     void 남의_작업에는_파일을_붙일_수_없다() throws Exception {
         Cookie other = AuthTestSupport.가입한다(mockMvc, "other-" + UUID.randomUUID() + "@example.com");
 
