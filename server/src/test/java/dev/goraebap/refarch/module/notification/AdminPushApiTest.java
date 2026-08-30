@@ -7,11 +7,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import dev.goraebap.refarch.AuthTestSupport;
+import dev.goraebap.refarch.FakeMailConfiguration;
 import dev.goraebap.refarch.FakeStorageConfiguration;
 import dev.goraebap.refarch.TestcontainersConfiguration;
 import dev.goraebap.refarch.module.notification.application.PushSender;
 import dev.goraebap.refarch.module.notification.application.ReminderDispatchService;
 import dev.goraebap.refarch.module.notification.domain.subscription.PushSubscription;
+import dev.goraebap.refarch.shared.mail.E2eMailSupport.RecordingMailSender;
 import jakarta.servlet.http.Cookie;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -41,6 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 @Import({
     TestcontainersConfiguration.class,
+    FakeMailConfiguration.class,
     FakeStorageConfiguration.class,
     AdminPushApiTest.AlwaysFailingSenderConfig.class
 })
@@ -52,6 +55,9 @@ class AdminPushApiTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private RecordingMailSender mail;
 
     @Autowired
     private ReminderDispatchService reminderDispatchService;
@@ -122,12 +128,12 @@ class AdminPushApiTest {
     // --- 준비 --------------------------------------------------------------------------------------------------------
 
     private Cookie 관리자로_가입한다() throws Exception {
-        return AuthTestSupport.가입하거나_로그인한다(mockMvc, ADMIN_EMAIL);
+        return AuthTestSupport.가입하거나_로그인한다(mockMvc, mail, ADMIN_EMAIL);
     }
 
     /** 미리 알림 하나를 시각이 지난 채로 두고 회차를 돌려 실패 기록을 만든다. */
     private String 실패를_하나_만든다() throws Exception {
-        Cookie session = AuthTestSupport.가입한다(mockMvc, "failing-" + UUID.randomUUID() + "@example.com");
+        Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "failing-" + UUID.randomUUID() + "@example.com");
         String endpoint = "https://push.example.com/admin-" + UUID.randomUUID();
         구독한다(session, endpoint);
         작업을_만든다(session, "닿지 않는 알림");

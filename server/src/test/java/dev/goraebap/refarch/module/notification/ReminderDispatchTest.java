@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import dev.goraebap.refarch.AuthTestSupport;
+import dev.goraebap.refarch.FakeMailConfiguration;
 import dev.goraebap.refarch.FakeStorageConfiguration;
 import dev.goraebap.refarch.TestcontainersConfiguration;
 import dev.goraebap.refarch.module.notification.application.PushSender;
@@ -12,6 +13,7 @@ import dev.goraebap.refarch.module.notification.application.ReminderDispatchServ
 import dev.goraebap.refarch.module.notification.domain.failure.PushDeliveryFailure;
 import dev.goraebap.refarch.module.notification.domain.failure.PushFailureQuery;
 import dev.goraebap.refarch.module.notification.domain.subscription.PushSubscription;
+import dev.goraebap.refarch.shared.mail.E2eMailSupport.RecordingMailSender;
 import jakarta.servlet.http.Cookie;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -40,7 +42,11 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({TestcontainersConfiguration.class, FakeStorageConfiguration.class, ReminderDispatchTest.FakeSenderConfig.class
+@Import({
+    TestcontainersConfiguration.class,
+    FakeMailConfiguration.class,
+    FakeStorageConfiguration.class,
+    ReminderDispatchTest.FakeSenderConfig.class
 })
 class ReminderDispatchTest {
 
@@ -48,6 +54,9 @@ class ReminderDispatchTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private RecordingMailSender mail;
 
     @Autowired
     private ReminderDispatchService reminderDispatchService;
@@ -194,7 +203,7 @@ class ReminderDispatchTest {
     }
 
     private Cookie 가입한다() throws Exception {
-        return AuthTestSupport.가입한다(mockMvc, "reminder-" + UUID.randomUUID() + "@example.com");
+        return AuthTestSupport.가입한다(mockMvc, mail, "reminder-" + UUID.randomUUID() + "@example.com");
     }
 
     private void 구독한다(Cookie session, String endpoint) throws Exception {

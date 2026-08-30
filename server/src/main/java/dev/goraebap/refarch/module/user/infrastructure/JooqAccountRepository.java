@@ -6,6 +6,7 @@ import dev.goraebap.refarch.jooq.tables.records.AccountsRecord;
 import dev.goraebap.refarch.module.user.domain.account.Account;
 import dev.goraebap.refarch.module.user.domain.account.AccountRepository;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
@@ -40,6 +41,16 @@ class JooqAccountRepository implements AccountRepository {
                 .selectFrom(ACCOUNTS)
                 .where(ACCOUNTS.PROVIDER.eq(Account.CREDENTIAL))
                 .and(ACCOUNTS.PROVIDER_ACCOUNT_ID.eq(emailNormalized))
+                .fetchOptional()
+                .map(JooqAccountRepository::toDomain);
+    }
+
+    @Override
+    public Optional<Account> findCredentialByUserId(UUID userId) {
+        return dslContext
+                .selectFrom(ACCOUNTS)
+                .where(ACCOUNTS.PROVIDER.eq(Account.CREDENTIAL))
+                .and(ACCOUNTS.USER_ID.eq(userId))
                 .fetchOptional()
                 .map(JooqAccountRepository::toDomain);
     }

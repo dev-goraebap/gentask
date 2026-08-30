@@ -49,4 +49,18 @@ public final class Account {
             Instant updatedAt) {
         return new Account(id, userId, provider, providerAccountId, passwordHash, createdAt, updatedAt);
     }
+
+    /**
+     * 비밀번호를 갈아 끼운다.
+     *
+     * <p>credential 이 아닌 자격에는 비밀번호가 없으므로 이 자리에 오지 않는다. 소셜이 붙으면 그
+     * 자격은 provider 쪽이 갖는다.
+     */
+    public void changePassword(String newPasswordHash, Instant now) {
+        if (!CREDENTIAL.equals(provider)) {
+            throw new IllegalStateException("비밀번호를 갖지 않는 자격입니다");
+        }
+        this.passwordHash = newPasswordHash;
+        this.updatedAt = now;
+    }
 }

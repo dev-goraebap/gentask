@@ -10,9 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import dev.goraebap.refarch.AuthTestSupport;
+import dev.goraebap.refarch.FakeMailConfiguration;
 import dev.goraebap.refarch.FakeStorageConfiguration;
 import dev.goraebap.refarch.FakeStorageConfiguration.FakeObjectStorage;
 import dev.goraebap.refarch.TestcontainersConfiguration;
+import dev.goraebap.refarch.shared.mail.E2eMailSupport.RecordingMailSender;
 import jakarta.servlet.http.Cookie;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
@@ -29,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({TestcontainersConfiguration.class, FakeStorageConfiguration.class})
+@Import({TestcontainersConfiguration.class, FakeMailConfiguration.class, FakeStorageConfiguration.class})
 @Transactional
 class TaskFileApiTest {
 
@@ -39,6 +41,9 @@ class TaskFileApiTest {
     private MockMvc mockMvc;
 
     @Autowired
+    private RecordingMailSender mail;
+
+    @Autowired
     private FakeObjectStorage fakeStorage;
 
     private Cookie session;
@@ -46,7 +51,7 @@ class TaskFileApiTest {
 
     @BeforeEach
     void 로그인하고_작업을_만든다() throws Exception {
-        session = AuthTestSupport.가입한다(mockMvc, "files-" + UUID.randomUUID() + "@example.com");
+        session = AuthTestSupport.가입한다(mockMvc, mail, "files-" + UUID.randomUUID() + "@example.com");
         String location = requireNonNull(mockMvc.perform(post("/api/v1/tasks")
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -140,7 +145,7 @@ class TaskFileApiTest {
     @Test
     @DisplayName("남의 작업에는 파일을 붙일 수 없다")
     void 남의_작업에는_파일을_붙일_수_없다() throws Exception {
-        Cookie other = AuthTestSupport.가입한다(mockMvc, "other-" + UUID.randomUUID() + "@example.com");
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
         // 자리 발급은 누구나 받는다. 막는 것은 그 자리를 남의 작업에 매려는 순간이다
         String objectKey = 자리를_받는다(other, "침입.txt", "text/plain", 10);

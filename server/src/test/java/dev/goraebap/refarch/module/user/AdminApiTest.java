@@ -5,8 +5,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import dev.goraebap.refarch.AuthTestSupport;
+import dev.goraebap.refarch.FakeMailConfiguration;
 import dev.goraebap.refarch.FakeStorageConfiguration;
 import dev.goraebap.refarch.TestcontainersConfiguration;
+import dev.goraebap.refarch.shared.mail.E2eMailSupport.RecordingMailSender;
 import jakarta.servlet.http.Cookie;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @SpringBootTest(properties = "app.admin.email=" + AdminApiTest.ADMIN_EMAIL)
 @AutoConfigureMockMvc
-@Import({TestcontainersConfiguration.class, FakeStorageConfiguration.class})
+@Import({TestcontainersConfiguration.class, FakeMailConfiguration.class, FakeStorageConfiguration.class})
 @Transactional
 class AdminApiTest {
 
@@ -33,6 +35,9 @@ class AdminApiTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private RecordingMailSender mail;
 
     @Test
     @DisplayName("TG-008.01 #1: 관리자가 목록을 열면 가입한 사용자가 최근 가입 순으로 온다")
@@ -75,10 +80,10 @@ class AdminApiTest {
     // --- 준비 --------------------------------------------------------------------------------------------------------
 
     private Cookie 관리자로_가입한다() throws Exception {
-        return AuthTestSupport.가입한다(mockMvc, ADMIN_EMAIL);
+        return AuthTestSupport.가입한다(mockMvc, mail, ADMIN_EMAIL);
     }
 
     private Cookie 가입한다(String mark) throws Exception {
-        return AuthTestSupport.가입한다(mockMvc, mark + "-" + UUID.randomUUID() + "@example.com");
+        return AuthTestSupport.가입한다(mockMvc, mail, mark + "-" + UUID.randomUUID() + "@example.com");
     }
 }

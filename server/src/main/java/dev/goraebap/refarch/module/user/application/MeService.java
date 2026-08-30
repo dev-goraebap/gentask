@@ -5,8 +5,12 @@ import dev.goraebap.refarch.module.file.AttachmentView;
 import dev.goraebap.refarch.module.file.Attachments;
 import dev.goraebap.refarch.module.user.application.UserViews.IssuedApiToken;
 import dev.goraebap.refarch.module.user.application.UserViews.MeView;
+import dev.goraebap.refarch.module.user.domain.Password;
+import dev.goraebap.refarch.module.user.domain.account.Account;
+import dev.goraebap.refarch.module.user.domain.account.AccountRepository;
 import dev.goraebap.refarch.module.user.domain.apitoken.ApiToken;
 import dev.goraebap.refarch.module.user.domain.apitoken.ApiTokenRepository;
+import dev.goraebap.refarch.module.user.domain.session.SessionRepository;
 import dev.goraebap.refarch.module.user.domain.user.Nickname;
 import dev.goraebap.refarch.module.user.domain.user.User;
 import dev.goraebap.refarch.module.user.domain.user.UserRepository;
@@ -26,7 +30,10 @@ public class MeService {
 
     // --- 의존 --------------------------------------------------------------------------------------------------------
     private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
+    private final SessionRepository sessionRepository;
     private final ApiTokenRepository apiTokenRepository;
+    private final PasswordHasher passwordHasher;
     private final Attachments attachments;
     private final TokenHasher tokenHasher;
     private final TokenGenerator tokenGenerator;
@@ -56,6 +63,33 @@ public class MeService {
         User user = find(userId);
         user.changeNickname(Nickname.of(rawNickname), clock.instant());
         userRepository.save(user);
+    }
+
+    /**
+     * 비밀번호를 갈아 끼우고 지금 쓰는 자리를 뺀 나머지 세션을 거둔다.
+     *
+     * <p>현재 비밀번호를 다시 받는 것은, 로그인 상태만으로 바꾸게 하면 자리를 비운 사이 남이 그
+     * 화면을 열어 주인을 밀어낼 수 있기 때문이다.
+     *
+     * <p>API 토큰은 남긴다. 그것을 거두는 자리는 비밀번호 재설정이며, 비밀번호를 모르는 채 지나는
+     * 그 경로만이 앞선 자리들을 의심할 근거를 갖는다.
+     *
+     * @param currentSessionId 남길 자리. Bearer 토큰으로 부르면 없으며 그때는 모두 거둔다
+     */
+    @Transactional
+    public void changePassword(UUID userId, UUID currentSessionId, String rawCurrent, String rawNew) {
+        Account account =
+                accountRepository.findCredentialByUserId(userId).orElseThrow(UserErrorCode.USER_NOT_FOUND::raise);
+        if (!passwordHasher.matches(rawCurrent, account.passwordHash())) {
+            throw UserErrorCode.CURRENT_PASSWORD_MISMATCH.raise();
+        }
+        Password newPassword = Password.of(rawNew);
+        if (passwordHasher.matches(newPassword.value(), account.passwordHash())) {
+            throw UserErrorCode.SAME_PASSWORD.raise();
+        }
+        account.changePassword(passwordHasher.hash(newPassword.value()), clock.instant());
+        accountRepository.save(account);
+        sessionRepository.deleteByUserIdExcept(userId, currentSessionId);
     }
 
     @Transactional

@@ -14,7 +14,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import dev.goraebap.refarch.AuthTestSupport;
+import dev.goraebap.refarch.FakeMailConfiguration;
 import dev.goraebap.refarch.TestcontainersConfiguration;
+import dev.goraebap.refarch.shared.mail.E2eMailSupport.RecordingMailSender;
 import jakarta.servlet.http.Cookie;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,18 +33,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, FakeMailConfiguration.class})
 @Transactional
 class TaskApiTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private RecordingMailSender mail;
+
     private Cookie session;
 
     @BeforeEach
     void 로그인한다() throws Exception {
-        session = AuthTestSupport.가입한다(mockMvc, "tester-" + UUID.randomUUID() + "@example.com");
+        session = AuthTestSupport.가입한다(mockMvc, mail, "tester-" + UUID.randomUUID() + "@example.com");
     }
 
     @Test
@@ -58,7 +63,7 @@ class TaskApiTest {
     void 다른_계정의_작업은_목록에도_상세에도_없다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"내 것\"}");
 
-        Cookie other = AuthTestSupport.가입한다(mockMvc, "other-" + UUID.randomUUID() + "@example.com");
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
         mockMvc.perform(get("/api/v1/tasks").cookie(other)).andExpect(jsonPath("$", hasSize(0)));
         mockMvc.perform(get("/api/v1/tasks/{id}", taskId).cookie(other)).andExpect(status().isNotFound());

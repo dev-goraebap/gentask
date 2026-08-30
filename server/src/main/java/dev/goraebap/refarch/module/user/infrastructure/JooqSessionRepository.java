@@ -48,6 +48,21 @@ class JooqSessionRepository implements SessionRepository {
         dslContext.deleteFrom(SESSIONS).where(SESSIONS.ID.eq(sessionId)).execute();
     }
 
+    @Override
+    public void deleteByUserId(UUID userId) {
+        dslContext.deleteFrom(SESSIONS).where(SESSIONS.USER_ID.eq(userId)).execute();
+    }
+
+    @Override
+    public void deleteByUserIdExcept(UUID userId, UUID keepSessionId) {
+        // 남길 자리가 없으면 모두 거둔다. Bearer 토큰으로 부른 경우가 그것이다.
+        var condition = SESSIONS.USER_ID.eq(userId);
+        dslContext
+                .deleteFrom(SESSIONS)
+                .where(keepSessionId == null ? condition : condition.and(SESSIONS.ID.ne(keepSessionId)))
+                .execute();
+    }
+
     private static Session toDomain(SessionsRecord sessionsRecord) {
         return Session.restore(
                 sessionsRecord.getId(),

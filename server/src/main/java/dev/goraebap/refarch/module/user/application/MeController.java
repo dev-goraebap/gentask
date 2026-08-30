@@ -1,10 +1,12 @@
 package dev.goraebap.refarch.module.user.application;
 
 import dev.goraebap.refarch.module.user.application.UserRequests.ChangeNickname;
+import dev.goraebap.refarch.module.user.application.UserRequests.ChangePassword;
 import dev.goraebap.refarch.module.user.application.UserRequests.ConfirmProfileImage;
 import dev.goraebap.refarch.module.user.application.UserViews.IssuedApiToken;
 import dev.goraebap.refarch.module.user.application.UserViews.MeView;
 import dev.goraebap.refarch.shared.web.CurrentUser;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,16 @@ public class MeController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void changeNickname(@CurrentUser UUID userId, @Valid @RequestBody ChangeNickname request) {
         meService.changeNickname(userId, request.nickname());
+    }
+
+    /** 남길 자리는 지금 요청이 지나온 세션이다. Bearer 로 부르면 그 자리가 없어 모두 거둔다. */
+    @PutMapping("/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changePassword(
+            @CurrentUser UUID userId, @Valid @RequestBody ChangePassword request, HttpServletRequest servletRequest) {
+        Object sessionId = servletRequest.getAttribute(AuthRequestAttributes.SESSION_ID);
+        meService.changePassword(
+                userId, sessionId instanceof UUID id ? id : null, request.currentPassword(), request.newPassword());
     }
 
     @PostMapping("/api-token")
