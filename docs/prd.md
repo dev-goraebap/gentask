@@ -47,7 +47,11 @@
 - [USR-006 비밀번호 변경](<./spec/user/USR-006(비밀번호 변경).md>)
 - [USR-007 계정 탈퇴](<./spec/user/USR-007(계정 탈퇴).md>)
 
-### 3.3 알림 도메인 (Notification)
+### 3.3 에이전트 도메인 (Agent)
+
+- [AGT-001 에이전트로 작업 다루기](<./spec/agent/AGT-001(에이전트로 작업 다루기).md>)
+
+### 3.4 알림 도메인 (Notification)
 
 - [NTF-001 알림 받기](<./spec/notification/NTF-001(알림 받기).md>)
 
