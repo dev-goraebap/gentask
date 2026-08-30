@@ -13,7 +13,8 @@ import { HGI_ICONS, type IconName } from './hugeicons';
   imports: [NgIcon],
   providers: [provideIcons(HGI_ICONS)],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'inline-flex shrink-0' },
+  // align-middle 이 없으면 상자 아래가 글줄에 맞춰져 그림이 글자보다 위로 올라간다.
+  host: { class: 'inline-flex shrink-0 align-middle' },
   template: `<ng-icon
     [name]="name()"
     [attr.aria-hidden]="label() ? null : 'true'"

@@ -6,7 +6,9 @@ import {
   inject,
   viewChild,
 } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map } from 'rxjs';
 import { UserAvatar, UserService } from '@/entities/user';
 import { ROUTES } from '@/shared/config';
 import { AsideSlotService } from '@/shared/lib';
@@ -51,6 +53,7 @@ export class AppShell {
   protected readonly asideSlotService = inject(AsideSlotService);
   protected readonly sidebarService = inject(SidebarService);
   protected readonly userService = inject(UserService);
+  private readonly router = inject(Router);
 
   // --- 질의 --------------------------------------------------------------------------------------
   protected readonly veil = viewChild.required(NavigationVeil);
@@ -69,8 +72,27 @@ export class AppShell {
 
   protected readonly linkClass = computed(() => {
     const base =
-      'text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm';
+      'text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-(--radius-nav) px-2 py-2 text-sm';
     return this.sidebarService.collapsed() ? `${base} md:justify-center` : base;
+  });
+
+  /**
+   * 지금 자리가 그 축의 첫 단계인가.
+   *
+   * <p>좁은 화면에서 앞 단계로 돌아가는 길을 보일지 가른다. 첫 단계에는 돌아갈 앞이 없으므로 그
+   * 자리에 서비스의 이름을 둔다.
+   */
+  private readonly url = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
+
+  protected readonly atRoot = computed(() => {
+    const path = this.url().split('?')[0].replace(/\/$/, '');
+    return path === '' || path === '/tasks' || path === '/admin';
   });
 
   /** 로고를 누르면 가는 자리. 머리에 서는 이름은 자리와 무관하게 서비스의 것이다. */

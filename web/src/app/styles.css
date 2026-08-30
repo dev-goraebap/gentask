@@ -60,6 +60,9 @@ html {
 
   --radius: 0;
 
+  /* 고른 메뉴와 눌리는 아이콘의 배경에만 주는 라운드. 화면 전체는 각진 채로 둔다. */
+  --radius-nav: 0.375rem;
+
   --header-height: 3.5rem;
   --bottom-nav-height: 3.5rem;
 
@@ -136,16 +139,22 @@ html {
   color-scheme: dark;
 }
 
+/*
+ * 곁자리는 제 자리를 즉시 차지하고 그림만 미끄러져 들어온다.
+ *
+ * 마진으로 밀면 그 값이 레이아웃에 셈해져 본문 폭이 프레임마다 바뀌고, 그 사이 가로 스크롤과 세로
+ * 스크롤바가 생겼다 사라진다. transform 은 레이아웃을 건드리지 않아 그 흔들림이 없다.
+ */
 @keyframes aside-enter {
   from {
-    margin-right: calc(-1 * var(--aside-w));
+    transform: translateX(100%);
     opacity: 0;
   }
 }
 
 @keyframes aside-leave {
   to {
-    margin-right: calc(-1 * var(--aside-w));
+    transform: translateX(100%);
     opacity: 0;
   }
 }

@@ -6,7 +6,7 @@
       <li>
         <a
           [routerLink]="routes.taskList(view.value)"
-          class="text-foreground hover:bg-muted flex min-h-12 items-center gap-3 rounded-lg px-3"
+          class="text-foreground hover:bg-muted flex min-h-12 items-center gap-3 rounded-(--radius-nav) px-3"
         >
           <app-icon [name]="view.icon" class="text-foreground-secondary" />
           <span class="flex-1 text-base">{{ view.label }}</span>
@@ -22,7 +22,7 @@
       @if (user.role === 'ADMIN') {
         <a
           [routerLink]="routes.adminUsers()"
-          class="text-foreground-secondary hover:bg-muted hover:text-foreground flex min-h-12 items-center gap-3 rounded-lg px-3"
+          class="text-foreground-secondary hover:bg-muted hover:text-foreground flex min-h-12 items-center gap-3 rounded-(--radius-nav) px-3"
         >
           <app-icon name="hgiShield" />
           <span class="flex-1 text-sm">관리자 페이지</span>
@@ -30,7 +30,7 @@
       }
       <a
         [routerLink]="routes.account()"
-        class="text-foreground-secondary hover:bg-muted hover:text-foreground flex min-h-12 items-center gap-3 rounded-lg px-3"
+        class="text-foreground-secondary hover:bg-muted hover:text-foreground flex min-h-12 items-center gap-3 rounded-(--radius-nav) px-3"
       >
         <app-user-avatar class="size-7 text-xs" [name]="user.nickname" [imageUrl]="user.profileImageUrl" />
         <span class="min-w-0 flex-1 truncate text-sm">{{ user.nickname }}</span>
