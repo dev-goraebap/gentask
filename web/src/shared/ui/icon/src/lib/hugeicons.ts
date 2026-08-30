@@ -11,6 +11,7 @@ import Calendar02Icon from '@hugeicons/core-free-icons/Calendar02Icon';
 import Calendar03Icon from '@hugeicons/core-free-icons/Calendar03Icon';
 import CalendarCheckIn01Icon from '@hugeicons/core-free-icons/CalendarCheckIn01Icon';
 import Cancel01Icon from '@hugeicons/core-free-icons/Cancel01Icon';
+import CatIcon from '@hugeicons/core-free-icons/CatIcon';
 import CheckmarkCircle02Icon from '@hugeicons/core-free-icons/CheckmarkCircle02Icon';
 import CircleArrowRight01Icon from '@hugeicons/core-free-icons/CircleArrowRight01Icon';
 import Clock01Icon from '@hugeicons/core-free-icons/Clock01Icon';
@@ -30,6 +31,7 @@ import SidebarLeftIcon from '@hugeicons/core-free-icons/SidebarLeftIcon';
 import StarIcon from '@hugeicons/core-free-icons/StarIcon';
 import Sun03Icon from '@hugeicons/core-free-icons/Sun03Icon';
 import Task01Icon from '@hugeicons/core-free-icons/Task01Icon';
+import Timer01Icon from '@hugeicons/core-free-icons/Timer01Icon';
 import Tick02Icon from '@hugeicons/core-free-icons/Tick02Icon';
 import TriangleAlertIcon from '@hugeicons/core-free-icons/TriangleAlertIcon';
 import UserCircleIcon from '@hugeicons/core-free-icons/UserCircleIcon';
@@ -94,6 +96,7 @@ export const HGI_ICONS = {
   hgiCalendarCheck: toSvg(CalendarCheckIn01Icon),
   hgiCalendarRange: toSvg(Calendar03Icon),
   hgiCancel: toSvg(Cancel01Icon),
+  hgiCat: toSvg(CatIcon),
   hgiCheck: toSvg(Tick02Icon),
   hgiCheckCircle: toSvg(CheckmarkCircle02Icon),
   hgiCircleArrowRight: toSvg(CircleArrowRight01Icon),
@@ -114,6 +117,7 @@ export const HGI_ICONS = {
   hgiStar: toSvg(StarIcon),
   hgiSun: toSvg(Sun03Icon),
   hgiTask: toSvg(Task01Icon),
+  hgiTimer: toSvg(Timer01Icon),
   hgiTrash: toSvg(Delete02Icon),
   hgiUser: toSvg(UserCircleIcon),
   hgiUsers: toSvg(UserGroupIcon),

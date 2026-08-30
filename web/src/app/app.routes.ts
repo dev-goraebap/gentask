@@ -3,7 +3,7 @@ import { adminGuard, authGuard } from '@/entities/user/guard';
 import { AuthService, UserService } from '@/entities/user/providers';
 import { provideTaskListDatePicker, TaskService } from '@/pages/task-list/providers';
 import { AppShell } from './layout/app-shell';
-import { ADMIN_NAV_ITEMS, NAV_ITEMS, SHELL_AREA } from './layout/nav-items';
+import { ADMIN_NAV_GROUPS, NAV_GROUPS, SHELL_AREA } from './layout/nav-items';
 
 export const routes: Routes = [
   {
@@ -42,7 +42,7 @@ export const routes: Routes = [
     providers: [
       UserService,
       AuthService,
-      { provide: NAV_ITEMS, useValue: ADMIN_NAV_ITEMS },
+      { provide: NAV_GROUPS, useValue: ADMIN_NAV_GROUPS },
       { provide: SHELL_AREA, useValue: 'admin' },
     ],
     children: [
@@ -68,6 +68,15 @@ export const routes: Routes = [
       {
         path: 'account',
         loadComponent: () => import('@/pages/account').then((m) => m.AccountPage),
+      },
+      // 아직 자리만 잡아 둔 시안이다. 규격이 서면 서술서와 인수 조건이 먼저 생긴다.
+      {
+        path: 'pets',
+        loadComponent: () => import('@/pages/pet').then((m) => m.PetPage),
+      },
+      {
+        path: 'pomodoro',
+        loadComponent: () => import('@/pages/pomodoro').then((m) => m.PomodoroPage),
       },
       {
         path: 'tasks',

@@ -9,7 +9,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { TASK_VIEWS } from '@/entities/task';
 import { UserAvatar, UserService } from '@/entities/user';
-import { ROUTES } from '@/shared/config';
+import { MORE_NAV_ITEMS, ROUTES } from '@/shared/config';
 import { AppIcon } from '@/shared/ui/icon';
 
 /** 이 폭부터는 사이드바가 목록들을 이미 보여 준다. 껍데기의 md 와 같은 값이어야 한다. */
@@ -42,6 +42,7 @@ export class TaskListsPage {
 
   // --- 파생 --------------------------------------------------------------------------------------
   protected readonly views = TASK_VIEWS;
+  protected readonly moreItems = MORE_NAV_ITEMS;
   protected readonly me = this.userService.me;
   protected readonly routes = ROUTES;
 

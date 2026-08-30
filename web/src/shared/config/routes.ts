@@ -7,6 +7,9 @@ export const ROUTES = {
 
   account: () => '/account',
 
+  pets: () => '/pets',
+  pomodoro: () => '/pomodoro',
+
   login: () => '/login',
   signup: () => '/signup',
   passwordReset: () => '/password-reset',

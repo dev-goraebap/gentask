@@ -15,7 +15,7 @@ import { AsideSlotService } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon, type IconName } from '@/shared/ui/icon';
 import { NavigationVeil } from './navigation-veil';
-import { NAV_ITEMS, SHELL_AREA } from './nav-items';
+import { NAV_GROUPS, SHELL_AREA } from './nav-items';
 import { SidebarService } from './sidebar-service';
 import { ThemeToggle } from './theme-toggle';
 
@@ -48,7 +48,7 @@ export class AppShell {
   protected readonly routes = ROUTES;
 
   // --- 의존 --------------------------------------------------------------------------------------
-  protected readonly navItems = inject(NAV_ITEMS);
+  protected readonly navGroups = inject(NAV_GROUPS);
   protected readonly area = inject(SHELL_AREA);
   protected readonly asideSlotService = inject(AsideSlotService);
   protected readonly sidebarService = inject(SidebarService);
