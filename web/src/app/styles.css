@@ -175,9 +175,6 @@ html {
  */
 @keyframes aside-enter {
   from {
-    width: 0;
-    padding-inline: 0;
-    border-inline-start-width: 0;
     transform: translateX(100%);
     opacity: 0;
   }
@@ -185,17 +182,41 @@ html {
 
 @keyframes aside-leave {
   to {
-    width: 0;
-    padding-inline: 0;
-    border-inline-start-width: 0;
     transform: translateX(100%);
     opacity: 0;
   }
 }
 
-.aside-enter,
-.aside-leave {
-  overflow: hidden;
+/*
+ * 폭을 함께 움직이는 것은 곁자리가 본문 옆에 서는 넓은 화면에서만이다. 좁은 화면에서는 곁자리가
+ * 화면을 덮으므로 폭을 줄이면 본문이 들어오는 자리의 높이 계산이 프레임마다 흔들려, 아래에 붙는
+ * 적는 자리가 더 크게 튄다.
+ */
+@media (width >= 48rem) {
+  @keyframes aside-enter {
+    from {
+      width: 0;
+      padding-inline: 0;
+      border-inline-start-width: 0;
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes aside-leave {
+    to {
+      width: 0;
+      padding-inline: 0;
+      border-inline-start-width: 0;
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+
+  .aside-enter,
+  .aside-leave {
+    overflow: hidden;
+  }
 }
 
 .aside-enter {

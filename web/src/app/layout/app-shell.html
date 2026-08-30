@@ -126,8 +126,13 @@
 </div>
 
 @if (asideSlotService.content(); as content) {
+  <!--
+    좁은 화면에서는 레이아웃에서 빼고 겹친다. 세로로 쌓이는 자리에 두면 닫는 동안 본문과 함께
+    공간을 나눠 갖고, 본문이 그만큼 짧아졌다가 곁자리가 걷힌 뒤에야 제 높이를 찾는다. 그 사이
+    아래에 붙는 적는 자리가 떠올랐다 내려앉는다.
+  -->
   <aside
-    class="border-border bg-background flex w-full shrink-0 flex-col overflow-y-auto p-4 [--aside-w:100%] [scrollbar-gutter:stable] md:w-[24rem] md:border-l md:[--aside-w:24rem]"
+    class="border-border bg-background flex w-full shrink-0 flex-col overflow-y-auto p-4 [scrollbar-gutter:stable] max-md:absolute max-md:inset-0 max-md:z-20 md:w-[24rem] md:border-l"
     animate.enter="aside-enter"
     animate.leave="aside-leave"
   >

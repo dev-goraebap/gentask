@@ -116,6 +116,15 @@ export class TaskListPage {
   );
 
   protected readonly listLoading = computed(() => this.taskService.status() === 'loading');
+
+  /**
+   * 방금 완료를 눌러 목록에서 빠질 행.
+   *
+   * <p>사라지는 것을 그리는 대상을 이 하나로 좁힌다. 모든 행에 걸면 뷰를 옮길 때 옛 목록 전체가
+   * 자리를 쥔 채 사라지고, 그 동안 빈 안내가 아래로 밀려 상자가 컸다가 줄어든다. 목록이 통째로
+   * 갈리는 것은 무엇이 없어진 일이 아니므로 그릴 것도 없다.
+   */
+  protected readonly leavingId = signal<string | null>(null);
   protected readonly listFailed = computed(() => this.taskService.status() === 'error');
 
   protected readonly groups = computed(() => {
@@ -272,6 +281,7 @@ export class TaskListPage {
   }
 
   protected async setCompleted(task: Task, completed: boolean, box: HlmCheckbox): Promise<void> {
+    this.leavingId.set(task.id);
     await new Promise((resolve) => setTimeout(resolve, CHECK_DWELL_MS));
     try {
       await this.taskService.setCompleted(task.id, completed);

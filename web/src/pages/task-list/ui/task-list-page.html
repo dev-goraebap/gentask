@@ -65,7 +65,7 @@
 
   <ul class="divide-border border-border mt-3 divide-y border-y">
     @for (task of groups().active; track task.id) {
-      <li class="flex items-center gap-3 py-3" animate.leave="row-leave">
+      <li class="flex items-center gap-3 py-3" [animate.leave]="task.id === leavingId() ? 'row-leave' : ''">
         <hlm-checkbox
           #box
           class="size-5 [&_ng-icon]:text-[length:--spacing(4)]"
@@ -188,7 +188,7 @@
       @if (done()) {
         <ul id="completed-tasks" class="divide-border border-border mt-2 divide-y border-y">
           @for (task of groups().completed; track task.id) {
-            <li class="flex items-center gap-3 py-3" animate.leave="row-leave">
+            <li class="flex items-center gap-3 py-3" [animate.leave]="task.id === leavingId() ? 'row-leave' : ''">
               <hlm-checkbox
                 #doneBox
                 class="size-5 [&_ng-icon]:text-[length:--spacing(4)]"

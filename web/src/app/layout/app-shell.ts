@@ -40,7 +40,7 @@ interface Crossing {
     UserAvatar,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex h-dvh overflow-hidden max-md:flex-col' },
+  host: { class: 'relative flex h-dvh overflow-hidden max-md:flex-col' },
   templateUrl: './app-shell.html',
 })
 export class AppShell {
