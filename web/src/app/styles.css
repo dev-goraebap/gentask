@@ -272,3 +272,28 @@ app-shell:has(.aside-enter, .aside-leave) header {
     @apply font-mono;
   }
 }
+
+/*
+ * 삽화는 그림 파일을 그대로 얹지 않고 마스크로 쓴다.
+ *
+ * 셋 다 단색 선화이며 404 와 500 은 검정이 박혀 있어 그대로 두면 어두운 배경에서 묻힌다. 마스크는
+ * 알파 채널만 읽으므로 색을 이 자리에서 토큰으로 정할 수 있고, 라이트와 다크가 한 벌로 선다.
+ */
+.illustration {
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.illustration-empty {
+  mask-image: url('/illustrations/empty.svg');
+}
+
+.illustration-404 {
+  mask-image: url('/illustrations/404.svg');
+}
+
+.illustration-500 {
+  mask-image: url('/illustrations/500.svg');
+}

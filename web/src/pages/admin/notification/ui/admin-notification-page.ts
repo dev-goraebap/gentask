@@ -3,6 +3,7 @@ import { AdminNotificationService } from '../api/admin-notification-service';
 import { problemDetail, type PushFailureView } from '@/shared/api';
 import { HlmButton } from '@/shared/ui/button';
 import { toast } from '@/shared/ui/sonner';
+import { EmptyState } from '@/shared/ui/empty-state';
 import { Veil } from '@/shared/ui/veil';
 
 /** 한 쪽에 보여 줄 수. 서비스가 요청에 싣는 값과 같아야 쪽 수가 맞는다. */
@@ -10,7 +11,7 @@ const PAGE_SIZE = 20;
 
 @Component({
   selector: 'app-admin-notification',
-  imports: [HlmButton, Veil],
+  imports: [EmptyState, HlmButton, Veil],
   host: {
     class: 'flex min-h-0 flex-1 flex-col',
     '[attr.aria-busy]': 'veilLoading() || null',

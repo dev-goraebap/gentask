@@ -25,7 +25,7 @@ test.describe('TG-002.03 완료되지 않은 작업 보기', () => {
 
     await page.goto('/tasks/all');
 
-    await expect(page.getByText('작업이 없습니다.')).toBeVisible();
+    await expect(page.getByText('작업이 없습니다')).toBeVisible();
   });
 
   test('TG-002.03 #4: 해당하는 작업이 없으면 다음 행동을 안내한다', async ({ page }) => {

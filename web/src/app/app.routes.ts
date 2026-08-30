@@ -17,6 +17,17 @@ export const routes: Routes = [
     loadComponent: () => import('@/pages/signup').then((m) => m.SignupPage),
   },
   {
+    // 실패한 자리는 로그인하지 않아도 보여야 하므로 껍데기 밖에 둔다.
+    path: '404',
+    data: { kind: '404' },
+    loadComponent: () => import('@/pages/error').then((m) => m.ErrorPage),
+  },
+  {
+    path: '500',
+    data: { kind: '500' },
+    loadComponent: () => import('@/pages/error').then((m) => m.ErrorPage),
+  },
+  {
     // 비밀번호를 모르는 채 지나는 자리라 가드를 두지 않는다. 신원은 일회용 코드가 판정한다.
     path: 'password-reset',
     providers: [AuthService],
@@ -78,4 +89,5 @@ export const routes: Routes = [
       },
     ],
   },
+  { path: '**', redirectTo: '404' },
 ];

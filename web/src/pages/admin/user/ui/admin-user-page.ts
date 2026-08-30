@@ -3,6 +3,7 @@ import { AdminUserService } from '../api/admin-user-service';
 import { UserAvatar } from '@/entities/user';
 import { HlmButton } from '@/shared/ui/button';
 import { HlmInput } from '@/shared/ui/input';
+import { EmptyState } from '@/shared/ui/empty-state';
 import { Veil } from '@/shared/ui/veil';
 
 /** 한 쪽에 보여 줄 수. 서비스가 요청에 싣는 값과 같아야 쪽 수가 맞는다. */
@@ -10,7 +11,7 @@ const PAGE_SIZE = 20;
 
 @Component({
   selector: 'app-admin-user',
-  imports: [HlmButton, HlmInput, UserAvatar, Veil],
+  imports: [EmptyState, HlmButton, HlmInput, UserAvatar, Veil],
   host: {
     class: 'flex min-h-0 flex-1 flex-col',
     '[attr.aria-busy]': 'veilLoading() || null',

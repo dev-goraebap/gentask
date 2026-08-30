@@ -13,6 +13,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { AsideOutlet } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
+import { EmptyState } from '@/shared/ui/empty-state';
 import { Veil } from '@/shared/ui/veil';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmDatePicker, HlmDatePickerTrigger } from '@/shared/ui/date-picker';
@@ -71,6 +72,7 @@ import { TaskService, type TaskSeed } from '../api/task-service';
     HlmFieldLabel,
     TaskDetailPanel,
     AsideOutlet,
+    EmptyState,
     Veil,
   ],
   host: {
@@ -324,11 +326,24 @@ export class TaskListPage {
 
 const CHECK_DWELL_MS = 240;
 
-const EMPTY_MESSAGES: Record<TaskView, string> = {
-  'my-day': '오늘 할 것으로 담은 항목이 없습니다. 항목을 열어 나의 하루에 담아 보세요.',
-  important: '중요 표시를 켠 항목이 없습니다. 목록에서 별을 눌러 표시할 수 있습니다.',
-  planned: '기한을 정한 항목이 없습니다. 항목을 열어 기한을 정해 보세요.',
-  all: '작업이 없습니다. 아래에 입력해 하나 추가해 보세요.',
+/** 보여 줄 것이 없을 때의 제목과 안내. 제목은 무엇이 없는지, 안내는 무엇을 하면 되는지를 갖는다. */
+const EMPTY_MESSAGES: Record<TaskView, { readonly title: string; readonly description: string }> = {
+  'my-day': {
+    title: '오늘 할 것으로 담은 항목이 없습니다',
+    description: '항목을 열어 나의 하루에 담아 보세요.',
+  },
+  important: {
+    title: '중요 표시를 켠 항목이 없습니다',
+    description: '목록에서 별을 눌러 표시할 수 있습니다.',
+  },
+  planned: {
+    title: '기한을 정한 항목이 없습니다',
+    description: '항목을 열어 기한을 정해 보세요.',
+  },
+  all: {
+    title: '작업이 없습니다',
+    description: '아래에 입력해 하나 추가해 보세요.',
+  },
 };
 
 const DUE_ICONS: readonly IconName[] = ['hgiCalendarCheck', 'hgiCalendarDue', 'hgiCalendarRange'];

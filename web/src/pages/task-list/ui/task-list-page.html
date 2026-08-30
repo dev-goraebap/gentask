@@ -144,22 +144,24 @@
       </li>
     } @empty {
       @if (listFailed()) {
-        <li class="py-8 text-center text-sm">
-          <p class="text-foreground-secondary">목록을 불러오지 못했습니다.</p>
-          <button
-            hlmBtn
-            type="button"
-            variant="outline"
-            size="sm"
-            class="mt-3"
-            (click)="taskService.reload()"
+        <li>
+          <app-empty-state
+            illustration="error-500"
+            title="목록을 불러오지 못했습니다"
+            description="인터넷 연결을 확인하고 다시 시도해 주세요."
           >
-            다시 시도
-          </button>
+            <button hlmBtn type="button" variant="outline" size="sm" (click)="taskService.reload()">
+              다시 시도
+            </button>
+          </app-empty-state>
         </li>
       } @else if (!listLoading()) {
-        <li class="text-foreground-secondary py-8 text-center text-sm">
-          {{ emptyMessage() }}
+        <!-- 불러오는 중은 이 자리가 아니다. 조회가 끝나고 결과가 비었을 때만 그린다. -->
+        <li>
+          <app-empty-state
+            [title]="emptyMessage().title"
+            [description]="emptyMessage().description"
+          />
         </li>
       }
     }
