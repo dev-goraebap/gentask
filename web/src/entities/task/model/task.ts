@@ -1,4 +1,5 @@
 import type { TaskView as TaskResponse } from '@/shared/api';
+import type { IconName } from '@/shared/ui/icon';
 
 export type Task = TaskResponse;
 
@@ -94,11 +95,18 @@ export function sortCompleted(tasks: readonly Task[]): readonly Task[] {
 
 export type TaskView = 'all' | 'my-day' | 'important' | 'planned';
 
-export const TASK_VIEWS: readonly { readonly value: TaskView; readonly label: string }[] = [
-  { value: 'my-day', label: '나의 하루' },
-  { value: 'important', label: '중요' },
-  { value: 'planned', label: '계획된 일정' },
-  { value: 'all', label: '작업' },
+/** 스마트 목록 하나. 그림을 함께 두는 것은 사이드바와 목록들 화면이 같은 것을 그려야 하기 때문이다. */
+export interface TaskViewItem {
+  readonly value: TaskView;
+  readonly label: string;
+  readonly icon: IconName;
+}
+
+export const TASK_VIEWS: readonly TaskViewItem[] = [
+  { value: 'my-day', label: '나의 하루', icon: 'hgiSun' },
+  { value: 'important', label: '중요', icon: 'hgiStar' },
+  { value: 'planned', label: '계획된 일정', icon: 'hgiCalendarRange' },
+  { value: 'all', label: '작업', icon: 'hgiHome' },
 ];
 
 export function taskViewLabel(view: TaskView): string {

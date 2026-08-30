@@ -56,7 +56,14 @@ export const routes: Routes = [
         path: 'tasks',
         providers: [TaskService, ...provideTaskListDatePicker()],
         children: [
-          { path: '', pathMatch: 'full', redirectTo: 'all' },
+          // 좁은 화면의 첫 자리는 목록들이다. 넓은 화면에서는 사이드바가 그것을 이미 보여 주므로
+          // 그 화면이 스스로 기본 목록으로 옮긴다. 옮기는 판정에 화면 폭이 필요해 리다이렉트로
+          // 두지 않는다 — 서버는 폭을 모른다.
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () => import('@/pages/task-lists').then((m) => m.TaskListsPage),
+          },
           {
             path: ':view',
             loadComponent: () => import('@/pages/task-list').then((m) => m.TaskListPage),

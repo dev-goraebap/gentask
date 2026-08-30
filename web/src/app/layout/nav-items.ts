@@ -1,5 +1,5 @@
 import { InjectionToken } from '@angular/core';
-import { TASK_VIEWS, type TaskView } from '@/entities/task';
+import { TASK_VIEWS } from '@/entities/task';
 import type { IconName } from '@/shared/ui/icon';
 import { ROUTES } from '@/shared/config';
 
@@ -9,18 +9,11 @@ export interface NavItem {
   readonly link: string;
 }
 
-const TASK_ICONS: Record<TaskView, IconName> = {
-  'my-day': 'hgiSun',
-  important: 'hgiStar',
-  planned: 'hgiCalendarRange',
-  all: 'hgiHome',
-};
-
 export const NAV_ITEMS = new InjectionToken<readonly NavItem[]>('NAV_ITEMS', {
   factory: () =>
     TASK_VIEWS.map((view) => ({
       label: view.label,
-      icon: TASK_ICONS[view.value],
+      icon: view.icon,
       link: ROUTES.taskList(view.value),
     })),
 });
