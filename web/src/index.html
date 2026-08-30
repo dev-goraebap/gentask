@@ -2,10 +2,15 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>todogen</title>
+    <title>Todogen</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!--
+      PNG 로 둔다. 지금 브라우저는 모두 이것을 읽으며, ico 는 여러 크기를 한 파일에 담기 위한
+      옛 형식이라 우리가 이미 크기별로 나눠 둔 것과 겹친다.
+    -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
 
     <!--
       홈 화면에 설치할 수 있게 만든다. iOS 는 설치된 자리에서만 웹 푸시를 허용하므로
