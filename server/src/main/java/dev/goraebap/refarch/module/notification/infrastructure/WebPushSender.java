@@ -3,9 +3,13 @@ package dev.goraebap.refarch.module.notification.infrastructure;
 import dev.goraebap.refarch.module.notification.application.PushSender;
 import dev.goraebap.refarch.module.notification.application.VapidProperties;
 import dev.goraebap.refarch.module.notification.domain.subscription.PushSubscription;
+import java.nio.charset.StandardCharsets;
 import java.security.Security;
 import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushService;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,15 +31,15 @@ class WebPushSender implements PushSender {
 
     private static final int GONE = 410;
 
+    /** 기록 칸의 크기. 넘치면 저장이 실패하고 그것이 발송 실패를 가린다. */
+    private static final int MAX_DETAIL = 500;
+
     private final VapidProperties vapid;
 
     WebPushSender(VapidProperties vapid) {
         this.vapid = vapid;
         Security.addProvider(new BouncyCastleProvider());
     }
-
-    /** 기록 칸의 크기. 넘치면 저장이 실패하고 그것이 발송 실패를 가린다. */
-    private static final int MAX_DETAIL = 500;
 
     @Override
     public Outcome send(PushSubscription subscription, String payload) {
@@ -44,15 +48,19 @@ class WebPushSender implements PushSender {
             Notification notification =
                     new Notification(subscription.endpoint(), subscription.p256dh(), subscription.auth(), payload);
 
-            int status = pushService.send(notification).getStatusLine().getStatusCode();
-            if (status == NOT_FOUND || status == GONE) {
-                return Outcome.gone("푸시 서비스가 " + status + " 로 답했다");
-            }
+            HttpResponse response = pushService.send(notification);
+            int status = response.getStatusLine().getStatusCode();
             if (status >= 200 && status < 300) {
                 return Outcome.sent();
             }
-            LOG.warn("푸시 발송이 거절되었다. status={}", status);
-            return Outcome.failed("푸시 서비스가 " + status + " 로 답했다");
+
+            // 본문에 사유가 담겨 온다. 상태 코드만 남기면 "왜 거절했는가"에 답할 수 없다
+            String reason = describe(status, response);
+            if (status == NOT_FOUND || status == GONE) {
+                return Outcome.gone(reason);
+            }
+            LOG.warn("푸시 발송이 거절되었다. {}", reason);
+            return Outcome.failed(reason);
         } catch (Exception exception) {
             // 한 자리의 실패가 나머지 발송을 멈추면 안 된다. 다음 회차가 다시 시도한다
             LOG.warn("푸시 발송에 실패했다", exception);
@@ -60,9 +68,36 @@ class WebPushSender implements PushSender {
         }
     }
 
+    private static String describe(int status, HttpResponse response) {
+        String body = readBody(response);
+        return trim("푸시 서비스가 " + status + " 로 답했다" + (body.isEmpty() ? "" : ": " + body));
+    }
+
+    /**
+     * 응답 본문을 읽는다.
+     *
+     * <p>읽지 못해도 발송 결과의 판정은 바뀌지 않는다. 사유가 비는 것과 발송이 실패한 것은 다른 일이며,
+     * 여기서 터지면 앞의 것이 뒤의 것을 가린다.
+     */
+    private static String readBody(HttpResponse response) {
+        HttpEntity entity = response.getEntity();
+        if (entity == null) {
+            return "";
+        }
+        try {
+            return EntityUtils.toString(entity, StandardCharsets.UTF_8).strip();
+        } catch (Exception exception) {
+            LOG.warn("푸시 서비스의 응답 본문을 읽지 못했다", exception);
+            return "";
+        }
+    }
+
     private static String describe(Exception exception) {
-        String message = exception.getClass().getSimpleName()
-                + (exception.getMessage() == null ? "" : ": " + exception.getMessage());
+        return trim(exception.getClass().getSimpleName()
+                + (exception.getMessage() == null ? "" : ": " + exception.getMessage()));
+    }
+
+    private static String trim(String message) {
         return message.length() <= MAX_DETAIL ? message : message.substring(0, MAX_DETAIL);
     }
 }
