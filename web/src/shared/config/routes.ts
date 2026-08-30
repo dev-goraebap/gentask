@@ -9,6 +9,7 @@ export const ROUTES = {
 
   login: () => '/login',
   signup: () => '/signup',
+  passwordReset: () => '/password-reset',
 
   admin: () => '/admin',
   adminUsers: () => '/admin/users',

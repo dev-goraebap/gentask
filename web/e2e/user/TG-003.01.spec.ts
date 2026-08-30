@@ -1,5 +1,12 @@
 import { expect, test } from '../fixtures';
-import { 등록하고_들어간다, 등록한다, 로그인_전, 비밀번호, 새_이메일 } from './account-support';
+import {
+  등록하고_들어간다,
+  등록한다,
+  로그인_전,
+  비밀번호,
+  새_이메일,
+  코드를_받는다,
+} from './account-support';
 
 // TG-003.01 계정 만들기
 
@@ -12,7 +19,7 @@ test.describe('TG-003.01 계정 만들기', () => {
     // 세션이 붙을 때까지 기다린다. 누르자마자 물으면 등록 요청이 아직 가는 중일 수 있다.
     await 등록하고_들어간다(page, email);
 
-    // 계정이 만들어졌으면 같은 이메일로 다시 등록할 수 없다.
+    // 계정이 만들어졌으면 같은 이메일로는 가입을 시작할 수도 없다.
     const 응답 = await page.request.post('/api/v1/auth/signup', {
       data: { email, password: 비밀번호, nickname: '중복' },
     });
@@ -32,7 +39,8 @@ test.describe('TG-003.01 계정 만들기', () => {
     const email = 새_이메일();
     await 등록하고_들어간다(page, email);
 
-    await 등록한다(page, email);
+    // 첫 단계에서 걸린다. 코드를 보내기 전에 그 주소가 쓰이고 있음이 드러난다.
+    await 코드를_받는다(page, email);
 
     await expect(page.getByRole('alert')).toBeVisible();
   });

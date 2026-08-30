@@ -10,7 +10,13 @@ import {
 import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import { PushService } from '../api/push-service';
-import { AuthService, UserAvatar, UserService } from '@/entities/user';
+import {
+  AuthService,
+  describePasswordViolation,
+  PASSWORD_RULE_HINT,
+  UserAvatar,
+  UserService,
+} from '@/entities/user';
 import { injectAttachmentPresign, problemDetail } from '@/shared/api';
 import { ROUTES } from '@/shared/config';
 import { openUppyDialog } from '@/shared/lib';
@@ -44,6 +50,9 @@ const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
   templateUrl: './account-page.html',
 })
 export class AccountPage {
+  // --- 상수 --------------------------------------------------------------------------------------
+  protected readonly passwordHint = PASSWORD_RULE_HINT;
+
   // --- 의존 --------------------------------------------------------------------------------------
   private readonly userService = inject(UserService);
   private readonly presign = injectAttachmentPresign();
@@ -63,6 +72,20 @@ export class AccountPage {
       value().trim() ? undefined : requiredError({ message: '별명을 입력해 주세요' }),
     );
   });
+
+  private readonly passwordDraft = signal({ currentPassword: '', newPassword: '' });
+
+  protected readonly passwordForm = form(this.passwordDraft, (path) => {
+    validate(path.currentPassword, ({ value }) =>
+      value() ? undefined : requiredError({ message: '현재 비밀번호를 입력해 주세요' }),
+    );
+    validate(path.newPassword, ({ value }) => {
+      const violation = describePasswordViolation(value());
+      return violation ? requiredError({ message: violation }) : undefined;
+    });
+  });
+
+  protected readonly changingPassword = signal(false);
 
   private readonly loaded = signal<string | null>(null);
 
@@ -116,6 +139,26 @@ export class AccountPage {
     if (event.key !== 'Enter' || event.isComposing) return;
     event.preventDefault();
     void this.commitNickname();
+  }
+
+  /** 현재 비밀번호를 다시 받는다. 로그인 상태만으로 바꾸게 하면 자리를 비운 사이 남이 갈 수 있다. */
+  protected async commitPassword(): Promise<void> {
+    this.passwordForm().markAsTouched();
+    if (!this.passwordForm().valid()) return;
+
+    const { currentPassword, newPassword } = this.passwordDraft();
+    this.changingPassword.set(true);
+    try {
+      await this.authService.changePassword(currentPassword, newPassword);
+    } catch (error) {
+      toast.error(problemDetail(error, '비밀번호를 바꾸지 못했습니다.'));
+      return;
+    } finally {
+      this.changingPassword.set(false);
+    }
+    this.passwordDraft.set({ currentPassword: '', newPassword: '' });
+    this.passwordForm().reset();
+    toast.success('비밀번호를 바꿨습니다. 다른 기기의 로그인은 끊겼습니다.');
   }
 
   protected uploadImage(): void {

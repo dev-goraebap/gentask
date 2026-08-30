@@ -9,7 +9,7 @@ import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { HlmInput } from '@/shared/ui/input';
 
 @Component({
-  selector: 'app-signup',
+  selector: 'app-password-reset',
   imports: [
     FormRoot,
     FormField,
@@ -22,9 +22,9 @@ import { HlmInput } from '@/shared/ui/input';
   ],
   host: { class: 'flex min-h-dvh' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './signup-page.html',
+  templateUrl: './password-reset-page.html',
 })
-export class SignupPage {
+export class PasswordResetPage {
   // --- 상수 --------------------------------------------------------------------------------------
   protected readonly routes = ROUTES;
   protected readonly passwordHint = PASSWORD_RULE_HINT;
@@ -34,29 +34,28 @@ export class SignupPage {
   private readonly router = inject(Router);
 
   // --- 상태 --------------------------------------------------------------------------------------
-  /** 자격을 적는 단계와 받은 코드를 적는 단계. 계정은 두 번째가 끝나야 생긴다. */
-  protected readonly stage = signal<'credentials' | 'code'>('credentials');
+  protected readonly stage = signal<'email' | 'code'>('email');
   protected readonly sentTo = signal('');
 
-  private readonly draft = signal({ email: '', password: '' });
-  private readonly codeDraft = signal({ code: '' });
+  private readonly emailDraft = signal({ email: '' });
+  private readonly resetDraft = signal({ code: '', newPassword: '' });
 
-  protected readonly signupForm = form(this.draft, (path) => {
+  protected readonly emailForm = form(this.emailDraft, (path) => {
     validate(path.email, ({ value }) => {
       const email = value().trim();
       if (!email) return requiredError({ message: '이메일을 입력해 주세요' });
       return email.includes('@') ? undefined : requiredError({ message: '이메일 형식이 아닙니다' });
     });
-    validate(path.password, ({ value }) => {
-      const violation = describePasswordViolation(value());
-      return violation ? requiredError({ message: violation }) : undefined;
-    });
   });
 
-  protected readonly codeForm = form(this.codeDraft, (path) => {
+  protected readonly resetForm = form(this.resetDraft, (path) => {
     validate(path.code, ({ value }) =>
       value().trim() ? undefined : requiredError({ message: '받은 코드를 입력해 주세요' }),
     );
+    validate(path.newPassword, ({ value }) => {
+      const violation = describePasswordViolation(value());
+      return violation ? requiredError({ message: violation }) : undefined;
+    });
   });
 
   protected readonly failure = signal<string | null>(null);
@@ -64,43 +63,46 @@ export class SignupPage {
   protected readonly busy = signal(false);
 
   // --- 동작 --------------------------------------------------------------------------------------
-  protected async submit(): Promise<void> {
-    this.signupForm().markAsTouched();
-    if (!this.signupForm().valid()) return;
+  /** 그 주소로 계정이 있든 없든 같은 자리로 넘어간다. 구분해 알리면 가입 여부가 드러난다. */
+  protected async request(): Promise<void> {
+    this.emailForm().markAsTouched();
+    if (!this.emailForm().valid()) return;
 
-    const { email, password } = this.draft();
-    await this.run(async () => {
-      await this.authService.requestSignup(email, password);
-      this.sentTo.set(email.trim());
+    const email = this.emailDraft().email.trim();
+    const done = await this.run(
+      () => this.authService.requestPasswordReset(email),
+      '코드를 보내지 못했습니다. 잠시 후 다시 시도해 주세요',
+    );
+    if (done) {
+      this.sentTo.set(email);
       this.stage.set('code');
       this.notice.set(null);
-    }, '등록하지 못했습니다. 잠시 후 다시 시도해 주세요');
+    }
   }
 
   protected async confirm(): Promise<void> {
-    this.codeForm().markAsTouched();
-    if (!this.codeForm().valid()) return;
+    this.resetForm().markAsTouched();
+    if (!this.resetForm().valid()) return;
 
-    const done = await this.run(async () => {
-      await this.authService.confirmSignup(this.sentTo(), this.codeDraft().code.trim());
-    }, '코드를 확인하지 못했습니다');
-    if (done) await this.router.navigateByUrl(this.routes.taskList());
+    const { code, newPassword } = this.resetDraft();
+    const done = await this.run(
+      () => this.authService.confirmPasswordReset(this.sentTo(), code.trim(), newPassword),
+      '비밀번호를 바꾸지 못했습니다',
+    );
+    // 앞서 열린 자리를 모두 거두었으므로 새 비밀번호로 다시 들어와야 한다.
+    if (done) await this.router.navigateByUrl(this.routes.login());
   }
 
   protected async resend(): Promise<void> {
     const done = await this.run(
-      () => this.authService.resendSignupCode(this.sentTo()),
+      () => this.authService.resendPasswordResetCode(this.sentTo()),
       '코드를 다시 보내지 못했습니다',
     );
-    if (done) {
-      this.codeDraft.set({ code: '' });
-      this.notice.set('코드를 다시 보냈습니다.');
-    }
+    if (done) this.notice.set('코드를 다시 보냈습니다.');
   }
 
-  /** 앞의 단계로 돌아간다. 적어 둔 자격은 그대로 두어 다시 치지 않게 한다. */
   protected back(): void {
-    this.stage.set('credentials');
+    this.stage.set('email');
     this.failure.set(null);
     this.notice.set(null);
   }

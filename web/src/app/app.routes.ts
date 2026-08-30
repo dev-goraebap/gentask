@@ -17,6 +17,12 @@ export const routes: Routes = [
     loadComponent: () => import('@/pages/signup').then((m) => m.SignupPage),
   },
   {
+    // 비밀번호를 모르는 채 지나는 자리라 가드를 두지 않는다. 신원은 일회용 코드가 판정한다.
+    path: 'password-reset',
+    providers: [AuthService],
+    loadComponent: () => import('@/pages/password-reset').then((m) => m.PasswordResetPage),
+  },
+  {
     // 관리 자리는 껍데기를 따로 세운다. 메뉴 구성만 다르고 나머지는 같으므로 껍데기를 복제하지 않고
     // 자리와 메뉴를 주입으로 가른다.
     path: 'admin',

@@ -21,10 +21,16 @@ export const ENDPOINTS = {
   taskFile: (taskId: string, fileId: string) => `${TASKS}/${taskId}/files/${fileId}`,
 
   signup: `${AUTH}/signup`,
+  signupConfirm: `${AUTH}/signup/confirm`,
+  signupResend: `${AUTH}/signup/resend`,
   login: `${AUTH}/login`,
   logout: `${AUTH}/logout`,
+  passwordReset: `${AUTH}/password-reset`,
+  passwordResetConfirm: `${AUTH}/password-reset/confirm`,
+  passwordResetResend: `${AUTH}/password-reset/resend`,
 
   me: ME,
+  password: `${ME}/password`,
   apiToken: `${ME}/api-token`,
   profileImage: `${ME}/profile-image`,
 

@@ -37,8 +37,7 @@ export const test = base.extend<Record<string, never>, WorkerFixtures>({
       const path = resolve(workerInfo.project.outputDir, `.auth/${workerInfo.parallelIndex}.json`);
       const context = await request.newContext({ baseURL: 'http://localhost:4200' });
 
-      const response = await context.post('/api/v1/auth/signup', { data: 계정 });
-      expect(response.status(), '계정을 만들지 못했습니다').toBe(201);
+      await API로_가입한다(context, 계정);
 
       const state = await context.storageState();
       await mkdir(dirname(path), { recursive: true });
@@ -55,6 +54,32 @@ export const test = base.extend<Record<string, never>, WorkerFixtures>({
 
 export { expect } from '@playwright/test';
 
+/**
+ * 서버가 보낸 마지막 코드를 꺼낸다.
+ *
+ * 브라우저는 메일함을 열지 못하므로 이 자리 없이는 가입도 재설정도 화면에서 지날 수 없다.
+ * `e2e` 프로파일에서만 서는 경로이며 배포는 프로파일을 지정하지 않는다.
+ */
+export async function 받은_코드(context: APIRequestContext, email: string): Promise<string> {
+  const response = await context.get(`/e2e/last-code?email=${encodeURIComponent(email)}`);
+  expect(response.status(), `보낸 코드가 없습니다: ${email}`).toBe(200);
+  return ((await response.json()) as { code: string }).code;
+}
+
+/** 가입은 두 단계다. 코드를 꺼내 두 번째 단계에 넣는다. */
+export async function API로_가입한다(
+  context: APIRequestContext,
+  계정: { email: string; password: string; nickname?: string },
+): Promise<void> {
+  const requested = await context.post('/api/v1/auth/signup', { data: 계정 });
+  expect(requested.status(), '가입을 시작하지 못했습니다').toBe(202);
+
+  const confirmed = await context.post('/api/v1/auth/signup/confirm', {
+    data: { email: 계정.email, code: await 받은_코드(context, 계정.email) },
+  });
+  expect(confirmed.status(), '계정을 만들지 못했습니다').toBe(201);
+}
+
 /** 준비 데이터는 화면 조작이 아니라 API 로 만든다. 결정-0008. */
 export async function 작업을_만든다(
   request: APIRequestContext,
@@ -68,14 +93,11 @@ export async function 작업을_만든다(
 
 /** 목록이 비어 있어야 하는 테스트를 위해 브라우저 문맥의 세션을 새 계정으로 바꾼다. */
 export async function 빈_계정으로_바꾼다(page: Page): Promise<void> {
-  const response = await page.request.post('/api/v1/auth/signup', {
-    data: {
-      email: `e2e-empty-${randomUUID()}@example.com`,
-      password: 'e2e-password-1234',
-      nickname: '빈계정',
-    },
+  await API로_가입한다(page.request, {
+    email: `e2e-empty-${randomUUID()}@example.com`,
+    password: 'e2e-password-1234',
+    nickname: '빈계정',
   });
-  expect(response.status(), '빈 계정을 만들지 못했습니다').toBe(201);
 }
 
 /** 작업의 하위 자원을 바꾼다. `importance` 와 `my-day` 와 `completion` 이 대상이다. */

@@ -59,6 +59,14 @@
   </form>
 
   <p class="text-foreground-secondary mt-4 text-sm">
+    <a
+      class="text-primary underline-offset-4 hover:underline"
+      [routerLink]="routes.passwordReset()"
+      >비밀번호를 잊으셨나요?</a
+    >
+  </p>
+
+  <p class="text-foreground-secondary mt-4 text-sm">
     계정이 없나요?
     <a class="text-primary underline-offset-4 hover:underline" [routerLink]="routes.signup()"
       >등록</a

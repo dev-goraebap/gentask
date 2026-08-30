@@ -26,7 +26,10 @@ export default defineConfig({
     {
       command: process.platform === 'win32' ? `"${join(서버, 'gradlew.bat')}" bootRun` : './gradlew bootRun',
       cwd: 서버,
-      env: { ADMIN_EMAIL: 관리자_이메일 },
+      // e2e 프로파일이 실제 발송을 가짜로 덮고 마지막 코드를 꺼내는 경로를 연다. 브라우저는
+      // 메일함을 열지 못해 이것 없이는 가입도 재설정도 화면에서 지날 수 없다. 배포는 프로파일을
+      // 지정하지 않으므로 운영에는 그 자리가 없다.
+      env: { ADMIN_EMAIL: 관리자_이메일, SPRING_PROFILES_ACTIVE: 'e2e' },
       url: 'http://localhost:8080/v3/api-docs',
       reuseExistingServer: true,
       timeout: 300_000,

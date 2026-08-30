@@ -109,6 +109,67 @@
 
     <div class="grid gap-4 md:grid-cols-[12rem_1fr]">
       <div>
+        <h2 class="font-medium">비밀번호</h2>
+        <p class="text-foreground-secondary mt-1 text-sm">
+          바꾸면 이 자리는 그대로 두고 다른 기기의 로그인이 끊깁니다.
+        </p>
+      </div>
+      <div class="[&>*:first-child]:mt-0">
+        <form
+          novalidate
+          [formRoot]="passwordForm"
+          (submit)="$event.preventDefault(); commitPassword()"
+          class="mt-3 flex flex-col gap-4"
+        >
+          <div hlmField>
+            <label hlmFieldLabel for="account-current-password">현재 비밀번호</label>
+            <input
+              hlmInput
+              id="account-current-password"
+              type="password"
+              autocomplete="current-password"
+              [formField]="passwordForm.currentPassword"
+            />
+            @if (passwordForm.currentPassword().touched()) {
+              @for (error of passwordForm.currentPassword().errors(); track error.kind) {
+                <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
+              }
+            }
+          </div>
+
+          <div hlmField>
+            <label hlmFieldLabel for="account-new-password">새 비밀번호</label>
+            <input
+              hlmInput
+              id="account-new-password"
+              type="password"
+              autocomplete="new-password"
+              [formField]="passwordForm.newPassword"
+            />
+            <p class="text-foreground-secondary text-xs">{{ passwordHint }}</p>
+            @if (passwordForm.newPassword().touched()) {
+              @for (error of passwordForm.newPassword().errors(); track error.kind) {
+                <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
+              }
+            }
+          </div>
+
+          <button
+            hlmBtn
+            type="submit"
+            id="account-change-password"
+            variant="outline"
+            class="self-start"
+            [disabled]="changingPassword()"
+          >
+            비밀번호 바꾸기
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-[12rem_1fr]">
+      <div>
         <h2 class="font-medium">에이전트 토큰</h2>
         <p class="text-foreground-secondary mt-1 text-sm">
           로컬 에이전트(MCP)가 내 계정으로 작업을 다룰 때 쓰는 토큰입니다. 요청의

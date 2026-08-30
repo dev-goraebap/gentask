@@ -194,7 +194,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("TG-009.03 #4: 현재 비밀번호가 맞지 않으면 아무것도 바뀌지 않는다")
+    @DisplayName("현재 비밀번호가 맞지 않으면 CURRENT_PASSWORD_MISMATCH 를 낸다")
     void 현재_비밀번호가_맞지_않으면_바뀌지_않는다() throws Exception {
         String email = 주소("wrong-current");
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, email);
