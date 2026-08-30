@@ -2,7 +2,7 @@ import { isPlatformServer } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ENDPOINTS, type PushConfigView } from '@/shared/api';
+import { ENDPOINTS, type PushConfigView, type PushSubscriptionStateView } from '@/shared/api';
 import {
   currentSubscription,
   resolveInstallState,
@@ -52,7 +52,32 @@ export class PushService {
       return;
     }
     const keys = await currentSubscription();
-    this._state.set(keys ? 'on' : 'off');
+    if (!keys) {
+      this._state.set('off');
+      return;
+    }
+    // 브라우저의 구독은 기기에 남고 계정과 무관하다. 서버가 이 자리를 아는지 함께 묻지 않으면,
+    // 다른 계정으로 들어왔거나 서버가 죽은 자리를 걷은 뒤에도 받는 상태로 그려진다.
+    this._state.set((await this.isRegistered(keys.endpoint)) ? 'on' : 'off');
+  }
+
+  /**
+   * 서버가 이 자리를 받을 대상으로 알고 있는지 묻는다.
+   *
+   * <p>묻지 못하면 꺼진 것으로 둔다. 반대로 두면 받지 못하는 상태를 받는다고 그리게 되고, 사용자는
+   * 알림이 오지 않는 이유를 알 자리가 없다. 꺼진 것으로 두면 켜기를 눌러 다시 등록된다.
+   */
+  private async isRegistered(endpoint: string): Promise<boolean> {
+    try {
+      const view = await firstValueFrom(
+        this.httpClient.get<PushSubscriptionStateView>(ENDPOINTS.pushSubscription, {
+          params: { endpoint },
+        }),
+      );
+      return view.registered;
+    } catch {
+      return false;
+    }
   }
 
   /** 알림을 켠다. 권한 요청이 사용자의 조작에서 곧바로 이어져야 하므로 클릭 처리에서 부른다. */

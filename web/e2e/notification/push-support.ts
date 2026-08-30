@@ -84,3 +84,23 @@ export async function 가짜_구독을_만들게_한다(page: Page, endpoint: st
     PushManager.prototype.subscribe = () => Promise.resolve(구독 as unknown as PushSubscription);
   }, endpoint);
 }
+
+/**
+ * 브라우저에는 받을 자리가 남아 있으나 서버는 그것을 모르는 상태로 만든다.
+ *
+ * <p>구독은 기기에 남고 계정에 묶이지 않는다. 서버가 자리를 걷거나 다른 계정으로 들어오면 이 어긋남이
+ * 생기며, 화면이 브라우저만 보고 그리면 받지 못하는 상태를 받는다고 알리게 된다.
+ */
+export async function 브라우저에만_구독이_남게_한다(page: Page, endpoint: string): Promise<void> {
+  await page.addInitScript((자리: string) => {
+    const keys = { p256dh: 'e2e-p256dh', auth: 'e2e-auth' };
+    const 구독 = {
+      endpoint: 자리,
+      toJSON: () => ({ endpoint: 자리, keys }),
+      unsubscribe: () => Promise.resolve(true),
+    };
+    const 등록 = { pushManager: { getSubscription: () => Promise.resolve(구독) } };
+    navigator.serviceWorker.getRegistration = () =>
+      Promise.resolve(등록 as unknown as ServiceWorkerRegistration);
+  }, endpoint);
+}

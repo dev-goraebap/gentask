@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '../fixtures';
-import { 가짜_구독을_만들게_한다, 권한을_정한다, 푸시를_지원하지_않게_한다 } from './push-support';
+import {
+  가짜_구독을_만들게_한다,
+  권한을_정한다,
+  브라우저에만_구독이_남게_한다,
+  푸시를_지원하지_않게_한다,
+} from './push-support';
 
 // TG-007.01 이 기기로 알림 받기
 //
@@ -31,6 +36,19 @@ test.describe('TG-007.01 이 기기로 알림 받기', () => {
     await page.getByRole('button', { name: '켜기' }).click();
 
     await expect(page.getByText('브라우저 설정에서 이 사이트의 알림을 허용')).toBeVisible();
+  });
+
+  test('TG-007.01 #7: 서버가 이 자리를 모르면 브라우저에 구독이 남아 있어도 받지 않는 상태로 보여 준다', async ({
+    page,
+  }) => {
+    await 권한을_정한다(page, 'granted');
+    // 서버에 등록하는 단계를 지나지 않는다. 브라우저에만 자리가 남은 상태다.
+    await 브라우저에만_구독이_남게_한다(page, `https://e2e.example/push/${randomUUID()}`);
+
+    await page.goto('/account');
+
+    await expect(page.getByText('이 기기는 알림을 받지 않습니다.')).toBeVisible();
+    await expect(page.getByRole('button', { name: '켜기' })).toBeVisible();
   });
 
   test('TG-007.01 #6: 웹 푸시를 지원하지 않으면 이 기기에서 받을 수 없음을 알린다', async ({

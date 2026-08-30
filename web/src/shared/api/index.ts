@@ -17,6 +17,7 @@ export type IssuedApiToken = components['schemas']['IssuedApiToken'];
 export type Signup = components['schemas']['Signup'];
 export type Login = components['schemas']['Login'];
 export type PushConfigView = components['schemas']['PushConfigView'];
+export type PushSubscriptionStateView = components['schemas']['PushSubscriptionStateView'];
 export type AdminUserView = components['schemas']['AdminUserView'];
 export type AdminUserPageView = components['schemas']['AdminUserPageView'];
 export type PushFailureView = components['schemas']['PushFailureView'];
