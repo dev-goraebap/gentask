@@ -85,9 +85,7 @@ export class AppShell {
     return this.sidebarService.collapsed() ? `${base} md:justify-center` : base;
   });
 
-  /** 사이드바 머리의 이름과 그 자리의 첫 화면. */
-  protected readonly areaTitle = computed(() => (this.area === 'admin' ? '관리' : '작업'));
-
+  /** 로고를 누르면 가는 자리. 머리에 서는 이름은 자리와 무관하게 서비스의 것이다. */
   protected readonly areaHome = computed(() =>
     this.area === 'admin' ? ROUTES.adminUsers() : ROUTES.home(),
   );
