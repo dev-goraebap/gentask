@@ -8,11 +8,6 @@ import { Veil } from '@/shared/ui/veil';
 /** 한 쪽에 보여 줄 수. 서비스가 요청에 싣는 값과 같아야 쪽 수가 맞는다. */
 const PAGE_SIZE = 20;
 
-/** 자리 주소를 줄여 보여 줄 길이. 줄을 넘기면 표가 가로로 늘어난다. */
-const ENDPOINT_HEAD = 24;
-
-const ENDPOINT_TAIL = 16;
-
 @Component({
   selector: 'app-admin-notification',
   imports: [HlmButton, Veil],
@@ -69,10 +64,4 @@ export class AdminNotificationPage {
     return new Date(at).toLocaleString('ko-KR');
   }
 
-  /** 자리 주소는 길어 줄을 넘긴다. 어느 자리인지 가릴 만큼만 보여 준다. */
-  protected shorten(endpoint: string): string {
-    return endpoint.length <= ENDPOINT_HEAD + ENDPOINT_TAIL
-      ? endpoint
-      : `${endpoint.slice(0, ENDPOINT_HEAD)}…${endpoint.slice(-ENDPOINT_TAIL)}`;
-  }
 }

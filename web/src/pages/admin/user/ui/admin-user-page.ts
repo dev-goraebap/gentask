@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AdminUserService } from '../api/admin-user-service';
+import { UserAvatar } from '@/entities/user';
 import { HlmButton } from '@/shared/ui/button';
 import { HlmInput } from '@/shared/ui/input';
 import { Veil } from '@/shared/ui/veil';
@@ -9,7 +10,7 @@ const PAGE_SIZE = 20;
 
 @Component({
   selector: 'app-admin-user',
-  imports: [HlmButton, HlmInput, Veil],
+  imports: [HlmButton, HlmInput, UserAvatar, Veil],
   host: {
     class: 'flex min-h-0 flex-1 flex-col',
     '[attr.aria-busy]': 'veilLoading() || null',
@@ -49,6 +50,11 @@ export class AdminUserPage {
 
   protected movePage(delta: number): void {
     this.page.update((current) => Math.min(Math.max(current + delta, 0), this.pageCount() - 1));
+  }
+
+  /** 쪽을 넘겨도 이어지는 번호. 줄의 자리가 아니라 목록에서의 순서를 가리킨다. */
+  protected ordinal(index: number): number {
+    return this.page() * PAGE_SIZE + index + 1;
   }
 
   protected formatAt(at: string): string {

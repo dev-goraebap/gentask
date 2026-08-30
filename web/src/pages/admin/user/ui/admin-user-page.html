@@ -18,33 +18,44 @@
       (input)="draftKeyword.set($any($event.target).value)"
       (keydown)="searchOnEnter($event)"
     />
-    <button hlmBtn type="button" variant="outline" size="sm" (click)="search()">찾기</button>
+    <button hlmBtn type="button" variant="outline" (click)="search()">찾기</button>
   </div>
 
   @if (users(); as found) {
     <p class="text-foreground-secondary text-sm">사용자 {{ found.total }}명</p>
 
     <div class="border-border overflow-x-auto border">
-      <table class="w-full text-sm">
+      <!-- 칸 너비를 고정한다. 내용에 맞춰 늘어나면 긴 이메일 하나가 표 전체를 밀어낸다. -->
+      <table class="w-full table-fixed text-sm">
         <thead class="bg-muted text-foreground-secondary">
           <tr>
-            <th scope="col" class="px-3 py-2 text-left font-medium">별명</th>
+            <th scope="col" class="w-14 px-3 py-2 text-right font-medium">#</th>
+            <th scope="col" class="w-12 px-3 py-2 text-left font-medium">
+              <span class="sr-only">아바타</span>
+            </th>
+            <th scope="col" class="w-[30%] px-3 py-2 text-left font-medium">별명</th>
             <th scope="col" class="px-3 py-2 text-left font-medium">이메일</th>
-            <th scope="col" class="px-3 py-2 text-left font-medium">권한</th>
-            <th scope="col" class="px-3 py-2 text-left font-medium">가입</th>
+            <th scope="col" class="w-44 px-3 py-2 text-left font-medium">가입</th>
           </tr>
         </thead>
         <tbody>
-          @for (user of found.items; track user.id) {
+          @for (user of found.items; track user.id; let index = $index) {
             <tr class="border-border border-t">
-              <td class="px-3 py-2">{{ user.nickname }}</td>
-              <td class="px-3 py-2">{{ user.email }}</td>
-              <td class="px-3 py-2">{{ user.role === 'ADMIN' ? '관리자' : '사용자' }}</td>
-              <td class="text-foreground-secondary px-3 py-2">{{ formatAt(user.createdAt) }}</td>
+              <td class="text-foreground-secondary px-3 py-2 text-right tabular-nums">
+                {{ ordinal(index) }}
+              </td>
+              <td class="px-3 py-2">
+                <app-user-avatar class="size-7 text-xs" [name]="user.nickname" />
+              </td>
+              <td class="truncate px-3 py-2" [title]="user.nickname">{{ user.nickname }}</td>
+              <td class="truncate px-3 py-2" [title]="user.email">{{ user.email }}</td>
+              <td class="text-foreground-secondary truncate px-3 py-2" [title]="formatAt(user.createdAt)">
+                {{ formatAt(user.createdAt) }}
+              </td>
             </tr>
           } @empty {
             <tr class="border-border border-t">
-              <td class="text-foreground-secondary px-3 py-6 text-center" colspan="4">
+              <td class="text-foreground-secondary px-3 py-6 text-center" colspan="5">
                 찾은 사용자가 없습니다.
               </td>
             </tr>

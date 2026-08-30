@@ -74,7 +74,7 @@ export class AppShell {
 
   // --- 파생 --------------------------------------------------------------------------------------
   protected readonly navClass = computed(() => {
-    const width = this.sidebarService.collapsed() ? 'md:w-14' : 'md:w-56';
+    const width = this.sidebarService.collapsed() ? 'md:w-14' : 'md:w-64';
     const base = `border-border bg-toolbar shrink-0 ${width} md:flex md:flex-col md:overflow-y-auto md:border-r md:p-2 max-md:order-last max-md:border-t max-md:px-2 max-md:pt-1 max-md:pb-[calc(--spacing(1)+env(safe-area-inset-bottom))]`;
     return this.asideSlotService.content() ? `${base} max-md:hidden` : base;
   });

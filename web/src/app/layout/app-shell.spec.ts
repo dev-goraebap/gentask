@@ -103,7 +103,7 @@ describe('AppShell 의 사이드바 접기', () => {
 
     expect(toggle(host).getAttribute('aria-expanded')).toBe('true');
     expect(toggle(host).getAttribute('aria-label')).toBe('사이드바 접기');
-    expect(host.querySelector('nav')?.className).toContain('md:w-56');
+    expect(host.querySelector('nav')?.className).toContain('md:w-64');
   });
 
   it('누르면 접히고 항목은 이름을 속성으로 갖는다', () => {

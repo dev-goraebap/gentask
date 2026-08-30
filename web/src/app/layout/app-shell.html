@@ -1,19 +1,21 @@
 <nav id="sidebar" [class]="navClass()" aria-label="탐색">
-  @if (!sidebarService.collapsed()) {
-    <a
-      [routerLink]="areaHome()"
-      class="mb-1 hidden px-2 py-1 text-base font-semibold tracking-tight md:block"
-    >
-      {{ areaTitle() }}
-    </a>
-  }
+  <!-- 사이드바의 패딩을 상쇄해 이 자리가 헤더와 같은 높이의 띠가 되게 한다. -->
+  <a
+    [routerLink]="areaHome()"
+    class="border-border -mx-2 -mt-2 mb-2 hidden h-14 shrink-0 items-center justify-center gap-2 border-b px-2 md:flex"
+  >
+    <img src="icon-192.png" alt="" class="size-6 shrink-0" width="24" height="24" />
+    @if (!sidebarService.collapsed()) {
+      <span class="text-base font-semibold tracking-tight">{{ areaTitle() }}</span>
+    }
+  </a>
 
   <ul class="hidden gap-1 md:flex md:flex-col">
     @for (item of navItems; track item.link) {
       <li>
         <a
           [routerLink]="item.link"
-          routerLinkActive="bg-muted text-foreground"
+          routerLinkActive="bg-nav-active text-foreground"
           #active="routerLinkActive"
           [attr.aria-current]="active.isActive ? 'page' : null"
           [attr.aria-label]="sidebarService.collapsed() ? item.label : null"
@@ -44,7 +46,7 @@
     @if (userService.me(); as me) {
       <a
         [routerLink]="routes.account()"
-        routerLinkActive="bg-muted text-foreground"
+        routerLinkActive="bg-nav-active text-foreground"
         class="text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2"
         [class.md:justify-center]="sidebarService.collapsed()"
         [attr.aria-label]="sidebarService.collapsed() ? '계정' : null"
@@ -66,7 +68,7 @@
     <li class="flex-1">
       <a
         [routerLink]="routes.tasks()"
-        routerLinkActive="bg-muted text-foreground"
+        routerLinkActive="bg-nav-active text-foreground"
         #tasksActive="routerLinkActive"
         [attr.aria-current]="tasksActive.isActive ? 'page' : null"
         [class]="linkClass()"
@@ -78,7 +80,7 @@
     <li class="flex-1">
       <a
         [routerLink]="routes.account()"
-        routerLinkActive="bg-muted text-foreground"
+        routerLinkActive="bg-nav-active text-foreground"
         #accountActive="routerLinkActive"
         [attr.aria-current]="accountActive.isActive ? 'page' : null"
         [class]="linkClass()"
@@ -158,7 +160,7 @@
           <li>
             <a
               [routerLink]="item.link"
-              routerLinkActive="bg-muted text-foreground"
+              routerLinkActive="bg-nav-active text-foreground"
               #drawerActive="routerLinkActive"
               [attr.aria-current]="drawerActive.isActive ? 'page' : null"
               class="text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2 text-sm"

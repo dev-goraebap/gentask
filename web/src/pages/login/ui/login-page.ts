@@ -20,7 +20,7 @@ import { HlmInput } from '@/shared/ui/input';
     HlmFieldError,
     HlmFieldLabel,
   ],
-  host: { class: 'flex min-h-dvh items-center justify-center p-4' },
+  host: { class: 'flex min-h-dvh' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login-page.html',
 })
