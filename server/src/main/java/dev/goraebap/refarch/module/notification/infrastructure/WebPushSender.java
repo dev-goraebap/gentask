@@ -5,6 +5,7 @@ import dev.goraebap.refarch.module.notification.application.VapidProperties;
 import dev.goraebap.refarch.module.notification.domain.subscription.PushSubscription;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
+import nl.martijndwars.webpush.Encoding;
 import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushService;
 import org.apache.http.HttpEntity;
@@ -20,6 +21,9 @@ import org.springframework.stereotype.Component;
  *
  * <p>BouncyCastle 을 JCE 공급자로 등록하는 것은 표준 JDK 가 이 조합의 타원곡선 연산을 갖지 않기
  * 때문이다. 라이브러리가 요구하는 절차다.
+ *
+ * <p>인코딩을 aes128gcm 으로 못박는다. 라이브러리의 기본값이 옛 방식이라 그대로 두면 푸시 서비스가
+ * 헤더 형식을 문제 삼아 거절한다.
  */
 @Component
 class WebPushSender implements PushSender {
@@ -48,7 +52,10 @@ class WebPushSender implements PushSender {
             Notification notification =
                     new Notification(subscription.endpoint(), subscription.p256dh(), subscription.auth(), payload);
 
-            HttpResponse response = pushService.send(notification);
+            // 인코딩을 명시한다. 라이브러리의 기본값은 옛 aesgcm 이며 그 방식은 Crypto-Key 헤더에
+            // 키 둘을 함께 싣는데, 푸시 서비스가 그 형식을 더 이상 받지 않고 403 으로 답한다.
+            // aes128gcm 은 RFC 8291 의 방식이며 키를 Authorization 헤더 하나로 보낸다.
+            HttpResponse response = pushService.send(notification, Encoding.AES128GCM);
             int status = response.getStatusLine().getStatusCode();
             if (status >= 200 && status < 300) {
                 return Outcome.sent();
