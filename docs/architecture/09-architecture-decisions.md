@@ -58,6 +58,8 @@
 | [0008](./decisions/0008-shared-testing.md) | shared | 테스트의 소유를 나누고 인수 테스트를 인수 조건에 대응시킨다 | 유효 | 작업자는 인수 테스트와 백엔드 단위 테스트만 읽고 판단하며, 나머지는 에이전트가 소유합니다 |
 | [0009](./decisions/0009-backend-layered-structure.md) | backend | 백엔드를 계층과 모듈로 자르고 DDD 의 일부만 차용한다 | 유효 | 도메인이 프레임워크 없이 검증되는 대신 공개 범위와 협력 방향을 규약으로만 지킵니다 |
 | [0010](./decisions/0010-backend-attachment-storage.md) | backend | 첨부 파일을 Active Storage 방식으로 file 모듈이 소유한다 | 유효 | 보관 절차가 한 벌이 되는 대신 다형 연결의 생명주기를 표가 아니라 소유 모듈이 지킵니다 |
+| [0011](./decisions/0011-backend-outbound-email.md) | backend | 메일을 Gmail SMTP 로 보내고 발송을 포트 뒤에 둔다 | 유효 | 배포가 셸 스크립트 하나로 남는 대신 하루 500통과 반송을 알지 못하는 것을 받습니다 |
+| [0012](./decisions/0012-shared-credential-policy.md) | shared | 비밀번호에 구성 규칙을 걸고 이메일 소유를 일회용 코드로 확인한다 | 유효 | 확인된 주소만 계정이 되는 대신 구성 규칙에는 NIST 의 반대 근거가 붙어 있습니다 |
 
 ## 발행 예정
 

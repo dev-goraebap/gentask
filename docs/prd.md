@@ -44,7 +44,8 @@
 - [USR-003 프로필 관리](<./spec/user/USR-003(프로필 관리).md>)
 - [USR-004 계정 로그아웃](<./spec/user/USR-004(계정 로그아웃).md>)
 - [USR-005 비밀번호 재설정](<./spec/user/USR-005(비밀번호 재설정).md>)
-- [USR-006 계정 탈퇴](<./spec/user/USR-006(계정 탈퇴).md>)
+- [USR-006 비밀번호 변경](<./spec/user/USR-006(비밀번호 변경).md>)
+- [USR-007 계정 탈퇴](<./spec/user/USR-007(계정 탈퇴).md>)
 
 ### 3.3 알림 도메인 (Notification)
 
