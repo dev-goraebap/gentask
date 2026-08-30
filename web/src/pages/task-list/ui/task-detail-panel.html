@@ -1,11 +1,27 @@
 <section class="flex min-h-0 flex-1 flex-col gap-3">
   @if (task(); as current) {
-    <div class="flex justify-end">
+    <!--
+      좁은 화면에서는 이 자리가 화면 전체이므로 닫기가 아니라 되돌아가는 일이다. 넓은 화면에서는
+      목록 옆에 붙은 자리라 닫는 것이 맞다. 그림과 자리를 그에 맞춰 가른다.
+    -->
+    <div class="flex md:justify-end">
       <button
         hlmBtn
         type="button"
         variant="ghost"
         size="icon-sm"
+        class="md:hidden"
+        aria-label="목록으로 돌아가기"
+        (click)="close()"
+      >
+        <app-icon name="hgiArrowLeft" />
+      </button>
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        class="max-md:hidden"
         aria-label="편집 닫기"
         (click)="close()"
       >

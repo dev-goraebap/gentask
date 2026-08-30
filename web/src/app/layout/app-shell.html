@@ -47,7 +47,7 @@
       <a
         [routerLink]="routes.account()"
         routerLinkActive="bg-nav-active text-foreground"
-        class="text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2"
+        class="text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-lg px-2 py-2"
         [class.md:justify-center]="sidebarService.collapsed()"
         [attr.aria-label]="sidebarService.collapsed() ? '계정' : null"
         [attr.title]="sidebarService.collapsed() ? '계정' : null"

@@ -217,8 +217,9 @@
     (submit)="$event.preventDefault()"
     class="bg-background sticky bottom-0 mt-auto pt-4 pb-[calc(--spacing(6)+env(safe-area-inset-bottom))]"
   >
-    <div class="border-border bg-card border">
-      <div hlmField>
+    <!-- 적는 자리와 붙이는 자리를 좌우로 둔다. 아래에 두면 상자가 두 줄이 되어 목록을 밀어낸다. -->
+    <div class="border-border bg-card flex items-center gap-1 border pr-1.5">
+      <div hlmField class="min-w-0 flex-1">
         <label hlmFieldLabel for="new-task-title" class="sr-only">작업</label>
         <input
           hlmInput
@@ -232,7 +233,7 @@
         />
       </div>
 
-      <div class="border-border flex flex-wrap items-center gap-1 border-t px-2 py-1.5">
+      <div class="flex shrink-0 items-center gap-1">
         <div class="flex items-center">
           <hlm-date-picker #duePicker [date]="draftDueDate()" (dateChange)="setDraftDue($event)">
             <div

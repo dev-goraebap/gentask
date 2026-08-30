@@ -68,7 +68,7 @@ export class AppShell {
 
   protected readonly linkClass = computed(() => {
     const base =
-      'text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2 text-sm max-md:min-h-11 max-md:flex-col max-md:justify-center max-md:gap-1 max-md:text-xs';
+      'text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm max-md:min-h-11 max-md:flex-col max-md:justify-center max-md:gap-1 max-md:text-xs';
     return this.sidebarService.collapsed() ? `${base} md:justify-center` : base;
   });
 
