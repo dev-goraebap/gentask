@@ -14,7 +14,7 @@
 | `settings.gradle` | 프로젝트 명칭 및 플러그인 저장소 설정 |
 | `gradle/gradle-daemon-jvm.properties` | Gradle 데몬 실행 JVM 버전 지정 |
 | `compose.yaml` | 로컬 개발용 데이터베이스 및 오브젝트 스토리지 컨테이너 구성 |
-| `src/main/resources/application.properties` | 인프라 접속 정보 및 Flyway 마이그레이션 설정 |
+| `src/main/resources/application.properties` | 설정의 골격. 환경마다 다른 값은 `${VAR}` 자리로만 두고 값을 갖지 않습니다 |
 | `lombok.config` | [Lombok](https://projectlombok.org/features/configuration) 접근자 스타일 지정 및 금지 기능 설정 |
 | `config/checkstyle/` | [Checkstyle](https://checkstyle.org/) 코딩 컨벤션 규칙 및 예외 목록 |
 | `config/spotbugs/` | [SpotBugs](https://spotbugs.github.io/) 결함 탐지 오탐 제외 필터 목록 |
@@ -27,6 +27,8 @@
 
 ## 3. 로컬 실행
 
+저장소를 처음 받으면 `server/.env` 를 만들고 `application.properties` 가 `${VAR}` 로 선언한 키를 채웁니다. 이 파일은 추적되지 않으며 없으면 기동이 실패합니다.
+
 ```bash
 ./gradlew bootRun
 ```
@@ -35,7 +37,9 @@
 
 **Compose 서비스 중 일부가 이미 실행 중인 경우 전체 기동을 건너뜁니다.** 특정 컨테이너만 기동된 상태에서 `bootRun`을 실행하면 나머지 의존 서비스가 기동되지 않으므로, 이때는 필요한 서비스를 수동으로 기동해야 합니다.
 
-접속 정보 기본값은 `compose.yaml`과 동기화되어 있으며, 배포 환경별 접속 정보는 환경변수로 주입합니다. 환경변수 명칭의 원본은 `application.properties`의 선언을 따르며, 자격증명은 형상 관리 저장소에 평문으로 커밋하지 않습니다.
+접속 정보는 `.env` 하나가 갖습니다. 애플리케이션은 `spring.config.import` 로, `compose.yaml` 은 docker compose 의 자동 로딩으로 **같은 파일**을 읽으므로 한쪽만 고쳐 어긋나는 일이 없습니다. 배포 환경에서는 같은 키를 컨테이너 환경변수로 주입합니다.
+
+**`application.properties` 는 자격증명의 기본값을 갖지 않습니다.** 기본값을 두면 배포 환경에서 주입을 빠뜨려도 로컬 값으로 기동이 성립하며, 그 상태는 로그에 드러나지 않습니다. 값이 없으면 기동이 실패하도록 하여 누락을 배포 시점에 드러냅니다. 기본값을 유지하는 것은 정책값(세션 수명 · 코드 자릿수 등)과 자격이 아닌 값에 한정합니다.
 
 **호스트 포트는 데이터베이스 기본 포트를 사용하지 않습니다.** 로컬 개발 환경에서 실행 중인 다른 인스턴스와의 포트 충돌을 방지하기 위함이며, 실제 포트 바인딩 값은 `compose.yaml`에서 관리합니다.
 

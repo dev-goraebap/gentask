@@ -28,6 +28,9 @@ tmp
 # 배포 대상과 서버 내 자리. 값은 이 파일만 갖는다.
 .deploy.env
 
+# 환경마다 다른 값과 자격 증명. 키 목록과 로컬 값은 server/.env.example 이 갖는다.
+server/.env
+
 ### Claude Code ###
 # .claude/ 는 설정(settings.json)과 AGENTS.md 브리지(CLAUDE.md)만 팀 공유하고 나머지는 개인 영역입니다.
 .claude/*
