@@ -1,0 +1,75 @@
+<app-veil [loading]="veilLoading()" [failed]="veilFailed()" />
+
+<section class="mx-auto flex w-full max-w-[60rem] flex-1 flex-col gap-4 px-4 pt-8 pb-8 md:pt-12">
+  <h1 class="text-2xl font-semibold tracking-tight">알림 문제</h1>
+
+  <div class="flex items-center justify-between gap-4">
+    <p class="text-foreground-secondary text-sm">
+      알림이 닿지 않은 자리입니다. 자리를 거두면 그 기기는 더 이상 보낼 대상이 아닙니다.
+    </p>
+    <button hlmBtn type="button" variant="outline" size="sm" (click)="toggleResolved()">
+      {{ includeResolved() ? '처리 안 된 것만' : '처리된 것도' }}
+    </button>
+  </div>
+
+  @if (failures(); as found) {
+    <p class="text-foreground-secondary text-sm">항목 {{ found.total }}건</p>
+
+    <div class="border-border overflow-x-auto border">
+      <table class="w-full text-sm">
+        <thead class="bg-muted text-foreground-secondary">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left font-medium">사용자</th>
+            <th scope="col" class="px-3 py-2 text-left font-medium">사유</th>
+            <th scope="col" class="px-3 py-2 text-left font-medium">자리</th>
+            <th scope="col" class="px-3 py-2 text-left font-medium">일어난 때</th>
+            <th scope="col" class="px-3 py-2 text-right font-medium">
+              <span class="sr-only">동작</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (failure of found.items; track failure.id) {
+            <tr class="border-border border-t">
+              <td class="px-3 py-2">{{ failure.email ?? '(지워진 사용자)' }}</td>
+              <td class="px-3 py-2">
+                {{ failure.reason === 'GONE' ? '자리 사라짐' : '보내지 못함' }}
+                @if (failure.detail) {
+                  <span class="text-foreground-secondary block text-xs">{{ failure.detail }}</span>
+                }
+              </td>
+              <td class="text-foreground-secondary px-3 py-2 font-mono text-xs">
+                {{ shorten(failure.endpoint) }}
+              </td>
+              <td class="text-foreground-secondary px-3 py-2">{{ formatAt(failure.occurredAt) }}</td>
+              <td class="px-3 py-2 text-right whitespace-nowrap">
+                @if (failure.resolvedAt) {
+                  <span class="text-foreground-secondary text-xs">처리됨</span>
+                } @else {
+                  <button hlmBtn type="button" variant="ghost" size="sm" (click)="resolve(failure)">
+                    처리
+                  </button>
+                  <button hlmBtn type="button" variant="outline" size="sm" (click)="revoke(failure)">
+                    자리 거두기
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr class="border-border border-t">
+              <td class="text-foreground-secondary px-3 py-6 text-center" colspan="5">
+                닿지 않은 자리가 없습니다.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <button hlmBtn type="button" variant="ghost" size="sm" (click)="movePage(-1)">이전</button>
+      <span class="text-foreground-secondary text-sm">{{ page() + 1 }} / {{ pageCount() }}</span>
+      <button hlmBtn type="button" variant="ghost" size="sm" (click)="movePage(1)">다음</button>
+    </div>
+  }
+</section>

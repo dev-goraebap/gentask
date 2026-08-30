@@ -10,6 +10,7 @@ import {
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import {
+  lucideListTodo,
   lucideMenu,
   lucidePanelLeftClose,
   lucidePanelLeftOpen,
@@ -22,7 +23,7 @@ import { AsideSlotService } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
 import { NavigationVeil } from './navigation-veil';
-import { NAV_ICONS, NAV_ITEMS } from './nav-items';
+import { NAV_ICONS, NAV_ITEMS, SHELL_AREA } from './nav-items';
 import { SidebarService } from './sidebar-service';
 import { ThemeToggle } from './theme-toggle';
 
@@ -44,6 +45,7 @@ import { ThemeToggle } from './theme-toggle';
       ...NAV_ICONS,
       lucideMenu,
       lucidePanelLeftClose,
+      lucideListTodo,
       lucidePanelLeftOpen,
       lucideShield,
       lucideUserRound,
@@ -59,6 +61,7 @@ export class AppShell {
 
   // --- 의존 --------------------------------------------------------------------------------------
   protected readonly navItems = inject(NAV_ITEMS);
+  protected readonly area = inject(SHELL_AREA);
   protected readonly asideSlotService = inject(AsideSlotService);
   protected readonly sidebarService = inject(SidebarService);
   protected readonly userService = inject(UserService);
@@ -80,6 +83,27 @@ export class AppShell {
     const base =
       'text-foreground-secondary hover:bg-muted hover:text-foreground flex items-center gap-2.5 rounded-md px-2 py-2 text-sm max-md:min-h-11 max-md:flex-col max-md:justify-center max-md:gap-1 max-md:text-xs';
     return this.sidebarService.collapsed() ? `${base} md:justify-center` : base;
+  });
+
+  /** 사이드바 머리의 이름과 그 자리의 첫 화면. */
+  protected readonly areaTitle = computed(() => (this.area === 'admin' ? '관리' : '작업'));
+
+  protected readonly areaHome = computed(() =>
+    this.area === 'admin' ? ROUTES.adminUsers() : ROUTES.home(),
+  );
+
+  /**
+   * 다른 자리로 건너가는 단추.
+   *
+   * <p>관리자가 아니면 없다. 관리 자리에 있는 사람은 이미 관리자이므로 그 판정을 다시 하지 않는다.
+   */
+  protected readonly crossing = computed(() => {
+    if (this.area === 'admin') {
+      return { label: '사용자 페이지', icon: 'lucideListTodo', link: ROUTES.tasks() };
+    }
+    return this.userService.me()?.role === 'ADMIN'
+      ? { label: '관리자 페이지', icon: 'lucideShield', link: ROUTES.adminUsers() }
+      : null;
   });
 
   protected readonly columnClass = computed(() =>

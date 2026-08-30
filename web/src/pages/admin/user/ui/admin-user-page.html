@@ -1,0 +1,62 @@
+<app-veil [loading]="veilLoading()" [failed]="veilFailed()" />
+
+<section class="mx-auto flex w-full max-w-[60rem] flex-1 flex-col gap-4 px-4 pt-8 pb-8 md:pt-12">
+  <h1 class="text-2xl font-semibold tracking-tight">사용자 관리</h1>
+  <p class="text-foreground-secondary text-sm">
+    가입한 사용자를 최근 가입 순으로 보여 줍니다. 권한은 서버 설정이 정하므로 이 자리에서 바꾸지
+    않습니다.
+  </p>
+
+  <div class="flex gap-2">
+    <input
+      hlmInput
+      id="admin-user-search"
+      class="flex-1"
+      placeholder="이메일 또는 별명"
+      aria-label="사용자 검색"
+      [value]="draftKeyword()"
+      (input)="draftKeyword.set($any($event.target).value)"
+      (keydown)="searchOnEnter($event)"
+    />
+    <button hlmBtn type="button" variant="outline" size="sm" (click)="search()">찾기</button>
+  </div>
+
+  @if (users(); as found) {
+    <p class="text-foreground-secondary text-sm">사용자 {{ found.total }}명</p>
+
+    <div class="border-border overflow-x-auto border">
+      <table class="w-full text-sm">
+        <thead class="bg-muted text-foreground-secondary">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left font-medium">별명</th>
+            <th scope="col" class="px-3 py-2 text-left font-medium">이메일</th>
+            <th scope="col" class="px-3 py-2 text-left font-medium">권한</th>
+            <th scope="col" class="px-3 py-2 text-left font-medium">가입</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of found.items; track user.id) {
+            <tr class="border-border border-t">
+              <td class="px-3 py-2">{{ user.nickname }}</td>
+              <td class="px-3 py-2">{{ user.email }}</td>
+              <td class="px-3 py-2">{{ user.role === 'ADMIN' ? '관리자' : '사용자' }}</td>
+              <td class="text-foreground-secondary px-3 py-2">{{ formatAt(user.createdAt) }}</td>
+            </tr>
+          } @empty {
+            <tr class="border-border border-t">
+              <td class="text-foreground-secondary px-3 py-6 text-center" colspan="4">
+                찾은 사용자가 없습니다.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <button hlmBtn type="button" variant="ghost" size="sm" (click)="movePage(-1)">이전</button>
+      <span class="text-foreground-secondary text-sm">{{ page() + 1 }} / {{ pageCount() }}</span>
+      <button hlmBtn type="button" variant="ghost" size="sm" (click)="movePage(1)">다음</button>
+    </div>
+  }
+</section>

@@ -22,6 +22,8 @@ test.describe('TG-002.01 제목만으로 작업 추가', () => {
 
   test('TG-002.01 #2: 제목이 공백뿐이면 작업을 넣지 않는다', async ({ page }) => {
     const 입력 = page.getByPlaceholder('작업 추가');
+    // 목록이 서기 전에 세면 사이드바만 세고, 뒤늦게 선 빈 목록 안내가 개수를 바꾼다.
+    await expect(page.getByRole('main').getByRole('listitem')).not.toHaveCount(0);
     const 이전 = await page.getByRole('listitem').count();
 
     await 입력.fill('   ');
@@ -32,6 +34,8 @@ test.describe('TG-002.01 제목만으로 작업 추가', () => {
 
   test('TG-002.01 #3: 추가를 그만두면 목록을 그대로 둔다', async ({ page }) => {
     const 입력 = page.getByPlaceholder('작업 추가');
+    // 목록이 서기 전에 세면 사이드바만 세고, 뒤늦게 선 빈 목록 안내가 개수를 바꾼다.
+    await expect(page.getByRole('main').getByRole('listitem')).not.toHaveCount(0);
     const 이전 = await page.getByRole('listitem').count();
 
     await 입력.fill('적다 만 작업');

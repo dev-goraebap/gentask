@@ -29,7 +29,6 @@ export const ENDPOINTS = {
   profileImage: `${ME}/profile-image`,
 
   adminUsers: `${ADMIN}/users`,
-  adminUserRole: (userId: string) => `${ADMIN}/users/${userId}/role`,
   adminPushFailures: `${ADMIN}/push/failures`,
   adminPushFailureResolve: (failureId: string) => `${ADMIN}/push/failures/${failureId}/resolve`,
   adminPushFailureRevoke: (failureId: string) => `${ADMIN}/push/failures/${failureId}/revoke`,

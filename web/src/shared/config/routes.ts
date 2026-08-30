@@ -11,6 +11,8 @@ export const ROUTES = {
   signup: () => '/signup',
 
   admin: () => '/admin',
+  adminUsers: () => '/admin/users',
+  adminNotifications: () => '/admin/notifications',
 } as const;
 
 export const TASK_PANEL = {
