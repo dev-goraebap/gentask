@@ -73,7 +73,7 @@
         [attr.aria-current]="tasksActive.isActive ? 'page' : null"
         [class]="linkClass()"
       >
-        <app-icon name="lucideHouse" />
+        <app-icon name="hgiHome" />
         <span>할일</span>
       </a>
     </li>
@@ -85,7 +85,7 @@
         [attr.aria-current]="accountActive.isActive ? 'page' : null"
         [class]="linkClass()"
       >
-        <app-icon name="lucideUserRound" />
+        <app-icon name="hgiUser" />
         <span>계정</span>
       </a>
     </li>
@@ -113,7 +113,7 @@
       (click)="sidebarService.toggle()"
     >
       <app-icon
-        [name]="sidebarService.collapsed() ? 'lucidePanelLeftOpen' : 'lucidePanelLeftClose'"
+        [name]="sidebarService.collapsed() ? 'hgiSidebarOpen' : 'hgiSidebarClose'"
       />
     </button>
     <button
@@ -127,7 +127,7 @@
       aria-label="스마트 목록 열기"
       (click)="drawerOpen.set(true)"
     >
-      <app-icon name="lucideMenu" />
+      <app-icon name="hgiMenu" />
     </button>
     <a [routerLink]="routes.home()" class="text-base font-semibold tracking-tight md:hidden">
       작업

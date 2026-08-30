@@ -8,24 +8,22 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { provideIcons } from '@ng-icons/core';
-import {
-  lucideListTodo,
-  lucideMenu,
-  lucidePanelLeftClose,
-  lucidePanelLeftOpen,
-  lucideShield,
-  lucideUserRound,
-} from '@ng-icons/lucide';
 import { UserAvatar, UserService } from '@/entities/user';
 import { ROUTES } from '@/shared/config';
 import { AsideSlotService } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
-import { AppIcon } from '@/shared/ui/icon';
+import { AppIcon, type IconName } from '@/shared/ui/icon';
 import { NavigationVeil } from './navigation-veil';
-import { NAV_ICONS, NAV_ITEMS, SHELL_AREA } from './nav-items';
+import { NAV_ITEMS, SHELL_AREA } from './nav-items';
 import { SidebarService } from './sidebar-service';
 import { ThemeToggle } from './theme-toggle';
+
+/** 다른 자리로 건너가는 단추 하나. */
+interface Crossing {
+  readonly label: string;
+  readonly icon: IconName;
+  readonly link: string;
+}
 
 @Component({
   selector: 'app-shell',
@@ -39,17 +37,6 @@ import { ThemeToggle } from './theme-toggle';
     ThemeToggle,
     NavigationVeil,
     UserAvatar,
-  ],
-  providers: [
-    provideIcons({
-      ...NAV_ICONS,
-      lucideMenu,
-      lucidePanelLeftClose,
-      lucideListTodo,
-      lucidePanelLeftOpen,
-      lucideShield,
-      lucideUserRound,
-    }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex h-dvh overflow-hidden max-md:flex-col' },
@@ -95,12 +82,12 @@ export class AppShell {
    *
    * <p>관리자가 아니면 없다. 관리 자리에 있는 사람은 이미 관리자이므로 그 판정을 다시 하지 않는다.
    */
-  protected readonly crossing = computed(() => {
+  protected readonly crossing = computed<Crossing | null>(() => {
     if (this.area === 'admin') {
-      return { label: '사용자 페이지', icon: 'lucideListTodo', link: ROUTES.tasks() };
+      return { label: '사용자 페이지', icon: 'hgiTask', link: ROUTES.tasks() };
     }
     return this.userService.me()?.role === 'ADMIN'
-      ? { label: '관리자 페이지', icon: 'lucideShield', link: ROUTES.adminUsers() }
+      ? { label: '관리자 페이지', icon: 'hgiShield', link: ROUTES.adminUsers() }
       : null;
   });
 

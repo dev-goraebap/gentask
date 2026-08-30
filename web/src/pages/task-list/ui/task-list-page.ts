@@ -10,24 +10,6 @@ import {
 } from '@angular/core';
 import { form, FormField, FormRoot } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
-import { provideIcons } from '@ng-icons/core';
-import {
-  lucideAlarmClock,
-  lucideArrowDown,
-  lucideArrowUp,
-  lucideArrowDownUp,
-  lucideCalendar,
-  lucideCalendarArrowDown,
-  lucideCalendarCheck,
-  lucideCalendarRange,
-  lucideChevronRight,
-  lucideChevronsRight,
-  lucideCircleArrowRight,
-  lucideClock,
-  lucideStar,
-  lucideSun,
-  lucideX,
-} from '@ng-icons/lucide';
 import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { AsideOutlet } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
@@ -35,7 +17,7 @@ import { Veil } from '@/shared/ui/veil';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmDatePicker, HlmDatePickerTrigger } from '@/shared/ui/date-picker';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
-import { AppIcon } from '@/shared/ui/icon';
+import { AppIcon, type IconName } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmPopoverImports } from '@/shared/ui/popover';
 import { toast } from '@/shared/ui/sonner';
@@ -90,25 +72,6 @@ import { TaskService, type TaskSeed } from '../api/task-service';
     TaskDetailPanel,
     AsideOutlet,
     Veil,
-  ],
-  providers: [
-    provideIcons({
-      lucideAlarmClock,
-      lucideArrowDown,
-      lucideArrowUp,
-      lucideArrowDownUp,
-      lucideCalendar,
-      lucideCalendarArrowDown,
-      lucideCalendarCheck,
-      lucideCalendarRange,
-      lucideChevronRight,
-      lucideChevronsRight,
-      lucideCircleArrowRight,
-      lucideClock,
-      lucideStar,
-      lucideSun,
-      lucideX,
-    }),
   ],
   host: {
     class: 'flex min-h-0 flex-1 flex-col',
@@ -358,6 +321,6 @@ const EMPTY_MESSAGES: Record<TaskView, string> = {
   all: '작업이 없습니다. 아래에 입력해 하나 추가해 보세요.',
 };
 
-const DUE_ICONS = ['lucideCalendarCheck', 'lucideCalendarArrowDown', 'lucideCalendarRange'];
+const DUE_ICONS: readonly IconName[] = ['hgiCalendarCheck', 'hgiCalendarDue', 'hgiCalendarRange'];
 
-const REMIND_ICONS = ['lucideClock', 'lucideCircleArrowRight', 'lucideChevronsRight'];
+const REMIND_ICONS: readonly IconName[] = ['hgiClock', 'hgiCircleArrowRight', 'hgiArrowRightDouble'];

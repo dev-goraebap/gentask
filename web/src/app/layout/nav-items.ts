@@ -1,35 +1,19 @@
 import { InjectionToken } from '@angular/core';
-import {
-  lucideBellOff,
-  lucideCalendarRange,
-  lucideHouse,
-  lucideStar,
-  lucideSun,
-  lucideUsers,
-} from '@ng-icons/lucide';
 import { TASK_VIEWS, type TaskView } from '@/entities/task';
+import type { IconName } from '@/shared/ui/icon';
 import { ROUTES } from '@/shared/config';
 
 export interface NavItem {
   readonly label: string;
-  readonly icon: string;
+  readonly icon: IconName;
   readonly link: string;
 }
 
-export const NAV_ICONS = {
-  lucideBellOff,
-  lucideCalendarRange,
-  lucideHouse,
-  lucideStar,
-  lucideSun,
-  lucideUsers,
-};
-
-const TASK_ICONS: Record<TaskView, string> = {
-  'my-day': 'lucideSun',
-  important: 'lucideStar',
-  planned: 'lucideCalendarRange',
-  all: 'lucideHouse',
+const TASK_ICONS: Record<TaskView, IconName> = {
+  'my-day': 'hgiSun',
+  important: 'hgiStar',
+  planned: 'hgiCalendarRange',
+  all: 'hgiHome',
 };
 
 export const NAV_ITEMS = new InjectionToken<readonly NavItem[]>('NAV_ITEMS', {
@@ -55,6 +39,6 @@ export const SHELL_AREA = new InjectionToken<ShellArea>('SHELL_AREA', {
 
 /** 관리 자리의 메뉴. 사용자 자리의 것과 겹치지 않는다. */
 export const ADMIN_NAV_ITEMS: readonly NavItem[] = [
-  { label: '사용자 관리', icon: 'lucideUsers', link: ROUTES.adminUsers() },
-  { label: '알림 문제', icon: 'lucideBellOff', link: ROUTES.adminNotifications() },
+  { label: '사용자 관리', icon: 'hgiUsers', link: ROUTES.adminUsers() },
+  { label: '알림 문제', icon: 'hgiNotificationOff', link: ROUTES.adminNotifications() },
 ];

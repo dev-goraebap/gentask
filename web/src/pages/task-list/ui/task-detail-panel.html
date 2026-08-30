@@ -9,7 +9,7 @@
         aria-label="편집 닫기"
         (click)="close()"
       >
-        <app-icon name="lucideX" />
+        <app-icon name="hgiCancel" />
       </button>
     </div>
 
@@ -51,7 +51,7 @@
             aria-label="중요로 표시"
             (click)="setImportant(!current.important)"
           >
-            <app-icon name="lucideStar" [class]="current.important ? '[&_svg]:fill-current' : ''" />
+            <app-icon name="hgiStar" [class]="current.important ? '[&_svg]:fill-current' : ''" />
           </button>
         </div>
       </div>
@@ -67,7 +67,7 @@
           [attr.aria-pressed]="inMyDay()"
           (click)="toggleMyDay()"
         >
-          <app-icon name="lucideSun" />
+          <app-icon name="hgiSun" />
           {{ inMyDay() ? '나의 하루에 추가됨' : '나의 하루에 추가' }}
         </button>
         @if (inMyDay()) {
@@ -79,7 +79,7 @@
             class="mr-1"
             (click)="toggleMyDay()"
           >
-            <app-icon name="lucideX" />
+            <app-icon name="hgiCancel" />
             <span class="sr-only">나의 하루에서 빼기</span>
           </button>
         }
@@ -194,7 +194,7 @@
               [class.text-warning]="draftRemindAt()"
               (click)="scrollToRemindTime()"
             >
-              <app-icon name="lucideAlarmClock" />
+              <app-icon name="hgiAlarmClock" />
               미리 알림
             </hlm-date-picker-trigger>
           </hlm-date-picker>
@@ -208,7 +208,7 @@
               class="mr-1"
               (click)="setRemindAt(null)"
             >
-              <app-icon name="lucideX" />
+              <app-icon name="hgiCancel" />
               <span class="sr-only">미리 알림 지우기</span>
             </button>
           }
@@ -247,7 +247,7 @@
               class="w-full [&>button]:h-10 [&>button]:w-full [&>button]:justify-start [&>button]:gap-3 [&>button]:px-3"
               [class.text-warning]="draftDueDate()"
             >
-              <app-icon name="lucideCalendar" />
+              <app-icon name="hgiCalendar" />
               기한 설정
             </hlm-date-picker-trigger>
           </hlm-date-picker>
@@ -261,7 +261,7 @@
               class="mr-1"
               (click)="setDueDate(null)"
             >
-              <app-icon name="lucideX" />
+              <app-icon name="hgiCancel" />
               <span class="sr-only">기한 지우기</span>
             </button>
           }
@@ -271,7 +271,7 @@
       <div class="border-border bg-card divide-border flex flex-col divide-y border">
         @for (file of fileList(); track file.id) {
           <div class="flex items-center gap-2 px-3 py-2">
-            <app-icon name="lucideFile" class="text-foreground-secondary shrink-0" />
+            <app-icon name="hgiFile" class="text-foreground-secondary shrink-0" />
             <a
               [href]="file.url"
               class="min-w-0 flex-1 truncate text-sm underline-offset-4 hover:underline"
@@ -288,7 +288,7 @@
               size="icon-sm"
               (click)="removeFile(file.id)"
             >
-              <app-icon name="lucideX" />
+              <app-icon name="hgiCancel" />
               <span class="sr-only">{{ file.fileName }} 떼기</span>
             </button>
           </div>
@@ -302,7 +302,7 @@
           [disabled]="!canAddFiles()"
           (click)="addFiles()"
         >
-          <app-icon name="lucidePaperclip" />
+          <app-icon name="hgiAttachment" />
           파일 추가
           <span class="text-muted-foreground ml-auto text-xs">{{ fileList().length }}/5</span>
         </button>
@@ -334,7 +334,7 @@
           class="text-foreground-secondary hover:text-warning"
           aria-label="작업 삭제"
         >
-          <app-icon name="lucideTrash2" />
+          <app-icon name="hgiTrash" />
         </button>
 
         <hlm-alert-dialog-content *hlmAlertDialogPortal>

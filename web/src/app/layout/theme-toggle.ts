@@ -1,9 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { provideIcons } from '@ng-icons/core';
-import { lucideMonitor, lucideMoon, lucideSun } from '@ng-icons/lucide';
 import { ThemeService, type ThemePreference } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
-import { AppIcon } from '@/shared/ui/icon';
+import { AppIcon, type IconName } from '@/shared/ui/icon';
 
 const LABEL: Record<ThemePreference, string> = {
   system: '시스템 설정',
@@ -11,10 +9,10 @@ const LABEL: Record<ThemePreference, string> = {
   dark: '다크',
 };
 
-const ICON: Record<ThemePreference, string> = {
-  system: 'lucideMonitor',
-  light: 'lucideSun',
-  dark: 'lucideMoon',
+const ICON: Record<ThemePreference, IconName> = {
+  system: 'hgiMonitor',
+  light: 'hgiSun',
+  dark: 'hgiMoon',
 };
 
 const NEXT: Record<ThemePreference, ThemePreference> = {
@@ -26,7 +24,6 @@ const NEXT: Record<ThemePreference, ThemePreference> = {
 @Component({
   selector: 'app-theme-toggle',
   imports: [HlmButton, AppIcon],
-  providers: [provideIcons({ lucideMonitor, lucideMoon, lucideSun })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './theme-toggle.html',
 })

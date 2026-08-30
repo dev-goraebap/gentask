@@ -57,26 +57,9 @@ import { HlmButton } from '@/shared/ui/button';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmDatePicker, HlmDatePickerTrigger } from '@/shared/ui/date-picker';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
-import { AppIcon } from '@/shared/ui/icon';
+import { AppIcon, type IconName } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmTextarea } from '@/shared/ui/textarea';
-import { provideIcons } from '@ng-icons/core';
-import {
-  lucideAlarmClock,
-  lucideCalendar,
-  lucideCalendarArrowDown,
-  lucideCalendarCheck,
-  lucideCalendarRange,
-  lucideChevronsRight,
-  lucideCircleArrowRight,
-  lucideClock,
-  lucideFile,
-  lucidePaperclip,
-  lucideStar,
-  lucideSun,
-  lucideTrash2,
-  lucideX,
-} from '@ng-icons/lucide';
 
 @Component({
   selector: 'app-task-detail-panel',
@@ -103,24 +86,6 @@ import {
     HlmAlertDialogPortal,
     HlmAlertDialogTitle,
     HlmAlertDialogTrigger,
-  ],
-  providers: [
-    provideIcons({
-      lucideAlarmClock,
-      lucideCalendar,
-      lucideCalendarArrowDown,
-      lucideCalendarCheck,
-      lucideCalendarRange,
-      lucideChevronsRight,
-      lucideCircleArrowRight,
-      lucideClock,
-      lucideFile,
-      lucidePaperclip,
-      lucideStar,
-      lucideSun,
-      lucideTrash2,
-      lucideX,
-    }),
   ],
   host: { class: 'flex min-h-0 flex-1 flex-col' },
   templateUrl: './task-detail-panel.html',
@@ -409,9 +374,9 @@ const MAX_TASK_FILES = 5;
 
 const MAX_TASK_FILE_BYTES = 10 * 1024 * 1024;
 
-const DUE_ICONS = ['lucideCalendarCheck', 'lucideCalendarArrowDown', 'lucideCalendarRange'];
+const DUE_ICONS: readonly IconName[] = ['hgiCalendarCheck', 'hgiCalendarDue', 'hgiCalendarRange'];
 
-const REMIND_ICONS = ['lucideClock', 'lucideCircleArrowRight', 'lucideChevronsRight'];
+const REMIND_ICONS: readonly IconName[] = ['hgiClock', 'hgiCircleArrowRight', 'hgiArrowRightDouble'];
 
 function toDraft(task: Task): TaskDraft {
   return {

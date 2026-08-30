@@ -8,7 +8,7 @@
   <div class="mt-4 flex flex-wrap items-center gap-2">
     <hlm-popover align="start" sideOffset="4">
       <button hlmPopoverTrigger hlmBtn type="button" variant="ghost" size="sm" class="gap-2">
-        <app-icon name="lucideArrowDownUp" />
+        <app-icon name="hgiSort" />
         정렬
       </button>
       <hlm-popover-content *hlmPopoverPortal="let ctx" class="w-52 p-1">
@@ -46,7 +46,7 @@
           "
           (click)="flipSort()"
         >
-          <app-icon [name]="direction() === 'asc' ? 'lucideArrowUp' : 'lucideArrowDown'" />
+          <app-icon [name]="direction() === 'asc' ? 'hgiArrowUp' : 'hgiArrowDown'" />
           {{ sortChip() }}
         </button>
         <button
@@ -57,7 +57,7 @@
           aria-label="정렬 해제"
           (click)="clearSort()"
         >
-          <app-icon name="lucideX" />
+          <app-icon name="hgiCancel" />
         </button>
       </div>
     }
@@ -89,7 +89,7 @@
             >
               @if (inMyDay(task)) {
                 <span class="inline-flex items-center gap-1">
-                  <app-icon name="lucideSun" class="text-[length:--spacing(3)]" />
+                  <app-icon name="hgiSun" class="text-[length:--spacing(3)]" />
                   오늘 할 일
                 </span>
               }
@@ -102,7 +102,7 @@
                   [class.text-warning]="isOverdue(task)"
                   [class.text-primary]="isDueToday(task)"
                 >
-                  <app-icon name="lucideCalendar" class="text-[length:--spacing(3)]" />
+                  <app-icon name="hgiCalendar" class="text-[length:--spacing(3)]" />
                   {{ describeDue(due) }}
                   @if (isOverdue(task)) {
                     <span class="sr-only">지남</span>
@@ -117,7 +117,7 @@
                   class="inline-flex items-center gap-1"
                   [class.text-warning]="isRemindPast(task)"
                 >
-                  <app-icon name="lucideAlarmClock" class="text-[length:--spacing(3)]" />
+                  <app-icon name="hgiAlarmClock" class="text-[length:--spacing(3)]" />
                   {{ describeRemind(at) }}
                   @if (isRemindPast(task)) {
                     <span class="sr-only">지남</span>
@@ -139,7 +139,7 @@
           [attr.aria-label]="task.title + ' 중요 표시'"
           (click)="setImportant(task, !task.important)"
         >
-          <app-icon name="lucideStar" [class]="task.important ? '[&_svg]:fill-current' : ''" />
+          <app-icon name="hgiStar" [class]="task.important ? '[&_svg]:fill-current' : ''" />
         </button>
       </li>
     } @empty {
@@ -178,7 +178,7 @@
         (click)="toggleCompleted()"
       >
         <app-icon
-          name="lucideChevronRight"
+          name="hgiArrowRight"
           class="transition-transform"
           [class.rotate-90]="done()"
         />
@@ -261,14 +261,14 @@
               class="[&>button]:h-8 [&>button]:gap-1.5 [&>button]:px-2 [&>button]:text-xs"
               [class.text-warning]="draftDueKey()"
             >
-              <app-icon name="lucideCalendar" />
+              <app-icon name="hgiCalendar" />
               <span class="sr-only">기한 설정</span>
             </hlm-date-picker-trigger>
           </hlm-date-picker>
 
           @if (draftDueKey()) {
             <button hlmBtn type="button" variant="ghost" size="icon-sm" (click)="setDraftDue(null)">
-              <app-icon name="lucideX" />
+              <app-icon name="hgiCancel" />
               <span class="sr-only">기한 지우기</span>
             </button>
           }
@@ -307,7 +307,7 @@
               class="[&>button]:h-8 [&>button]:gap-1.5 [&>button]:px-2 [&>button]:text-xs"
               [class.text-warning]="draftRemindAt()"
             >
-              <app-icon name="lucideAlarmClock" />
+              <app-icon name="hgiAlarmClock" />
               <span class="sr-only">미리 알림 설정</span>
             </hlm-date-picker-trigger>
           </hlm-date-picker>
@@ -320,7 +320,7 @@
               size="icon-sm"
               (click)="setDraftRemindDate(null)"
             >
-              <app-icon name="lucideX" />
+              <app-icon name="hgiCancel" />
               <span class="sr-only">미리 알림 지우기</span>
             </button>
           }
