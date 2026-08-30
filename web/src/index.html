@@ -9,6 +9,15 @@
       PNG 로 둔다. 지금 브라우저는 모두 이것을 읽으며, ico 는 여러 크기를 한 파일에 담기 위한
       옛 형식이라 우리가 이미 크기별로 나눠 둔 것과 겹친다.
     -->
+    <!-- 이름을 그리는 글꼴. 첫 화면에 곧바로 서므로 미리 받는다. -->
+    <link
+      rel="preload"
+      href="fonts/unbounded-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
 
