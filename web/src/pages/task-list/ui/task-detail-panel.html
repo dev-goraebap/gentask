@@ -102,7 +102,12 @@
       </div>
 
       <div class="border-border bg-card divide-border flex flex-col divide-y border">
-        <div class="flex items-center">
+        <div class="relative flex items-center">
+          <app-icon
+            name="hgiAlarmClock"
+            class="pointer-events-none absolute left-3 z-10"
+            [class.text-warning]="draftRemindAt()"
+          />
           <hlm-date-picker
             #remindPicker
             [date]="remindDate()"
@@ -206,11 +211,10 @@
               buttonId="task-remind"
               variant="ghost"
               [showTrigger]="false"
-              class="w-full [&>button]:h-10 [&>button]:w-full [&>button]:justify-start [&>button]:gap-3 [&>button]:px-3"
+              class="w-full [&>button]:h-10 [&>button]:w-full [&>button]:justify-start [&>button]:gap-3 [&>button]:pr-3 [&>button]:pl-10"
               [class.text-warning]="draftRemindAt()"
               (click)="scrollToRemindTime()"
             >
-              <app-icon name="hgiAlarmClock" />
               미리 알림
             </hlm-date-picker-trigger>
           </hlm-date-picker>
@@ -230,7 +234,12 @@
           }
         </div>
 
-        <div class="flex items-center">
+        <div class="relative flex items-center">
+          <app-icon
+            name="hgiCalendar"
+            class="pointer-events-none absolute left-3 z-10"
+            [class.text-warning]="draftDueDate()"
+          />
           <hlm-date-picker
             #picker
             [date]="dueDate()"
@@ -260,10 +269,9 @@
               buttonId="task-due"
               variant="ghost"
               [showTrigger]="false"
-              class="w-full [&>button]:h-10 [&>button]:w-full [&>button]:justify-start [&>button]:gap-3 [&>button]:px-3"
+              class="w-full [&>button]:h-10 [&>button]:w-full [&>button]:justify-start [&>button]:gap-3 [&>button]:pr-3 [&>button]:pl-10"
               [class.text-warning]="draftDueDate()"
             >
-              <app-icon name="hgiCalendar" />
               기한 설정
             </hlm-date-picker-trigger>
           </hlm-date-picker>

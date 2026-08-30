@@ -164,8 +164,20 @@ html {
  * 마진으로 밀면 그 값이 레이아웃에 셈해져 본문 폭이 프레임마다 바뀌고, 그 사이 가로 스크롤과 세로
  * 스크롤바가 생겼다 사라진다. transform 은 레이아웃을 건드리지 않아 그 흔들림이 없다.
  */
+/*
+ * 곁자리는 미끄러져 들어오고 나가되, 그 폭이 함께 움직여야 본문이 같이 밀린다.
+ *
+ * 미끄러짐만 애니메이션하면 자리는 DOM 에 들어온 순간 이미 차지되고 나갈 때는 끝나야 비워진다.
+ * 그래서 들어올 때는 본문이 먼저 줄고 곁자리가 뒤따라 오며, 나갈 때는 곁자리가 먼저 사라진 뒤
+ * 본문이 늦게 늘어난다. 폭과 여백과 테두리를 같은 시간과 곡선에 태워 그 어긋남을 없앤다.
+ *
+ * 도는 동안 넘치는 것을 감추는 것은 폭이 0 에 가까울 때 안의 것이 삐져나오기 때문이다.
+ */
 @keyframes aside-enter {
   from {
+    width: 0;
+    padding-inline: 0;
+    border-inline-start-width: 0;
     transform: translateX(100%);
     opacity: 0;
   }
@@ -173,9 +185,17 @@ html {
 
 @keyframes aside-leave {
   to {
+    width: 0;
+    padding-inline: 0;
+    border-inline-start-width: 0;
     transform: translateX(100%);
     opacity: 0;
   }
+}
+
+.aside-enter,
+.aside-leave {
+  overflow: hidden;
 }
 
 .aside-enter {
@@ -183,7 +203,7 @@ html {
 }
 
 .aside-leave {
-  animation: aside-leave 200ms cubic-bezier(0.32, 0.72, 0, 1);
+  animation: aside-leave 240ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /*
