@@ -1,0 +1,23 @@
+{
+  "name": "todogen-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "todogen 의 작업을 에이전트가 다루게 하는 MCP 서버 (AGT-001)",
+  "bin": { "todogen-mcp": "./dist/index.js" },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "check": "npm test && npm run build",
+    "api:generate": "npx --yes openapi-typescript@7.13.0 ../server/openapi.json -o src/generated/schema.d.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "~6.0.2",
+    "vitest": "^4.0.8"
+  }
+}

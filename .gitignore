@@ -1,5 +1,6 @@
 # 빌드 산출물
 /web/dist
+/mcp/dist
 /web/out-tsc
 /web/.angular/cache
 
@@ -8,6 +9,7 @@ node_modules
 
 # 생성물
 /web/src/shared/api/generated
+/mcp/src/generated
 
 # 에디터와 시스템
 .idea/
