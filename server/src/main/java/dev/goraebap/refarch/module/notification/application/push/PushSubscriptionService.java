@@ -1,5 +1,7 @@
-package dev.goraebap.refarch.module.notification.application;
+package dev.goraebap.refarch.module.notification.application.push;
 
+import dev.goraebap.refarch.module.notification.application.NotificationErrorCode;
+import dev.goraebap.refarch.module.notification.application.VapidProperties;
 import dev.goraebap.refarch.module.notification.domain.subscription.PushSubscription;
 import dev.goraebap.refarch.module.notification.domain.subscription.PushSubscriptionRepository;
 import java.time.Clock;

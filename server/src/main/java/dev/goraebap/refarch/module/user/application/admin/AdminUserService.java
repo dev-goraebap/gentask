@@ -1,7 +1,7 @@
-package dev.goraebap.refarch.module.user.application;
+package dev.goraebap.refarch.module.user.application.admin;
 
-import dev.goraebap.refarch.module.user.application.AdminViews.AdminUserPageView;
-import dev.goraebap.refarch.module.user.application.AdminViews.AdminUserView;
+import dev.goraebap.refarch.module.user.application.admin.AdminViews.AdminUserPageView;
+import dev.goraebap.refarch.module.user.application.admin.AdminViews.AdminUserView;
 import dev.goraebap.refarch.module.user.domain.user.UserSummary;
 import dev.goraebap.refarch.module.user.domain.user.UserSummaryQuery;
 import java.util.List;

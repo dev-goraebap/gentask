@@ -1,9 +1,9 @@
-package dev.goraebap.refarch.module.notification.application;
+package dev.goraebap.refarch.module.notification.application.push;
 
-import dev.goraebap.refarch.module.notification.application.PushRequests.RegisterPushSubscription;
-import dev.goraebap.refarch.module.notification.application.PushRequests.UnregisterPushSubscription;
-import dev.goraebap.refarch.module.notification.application.PushViews.PushConfigView;
-import dev.goraebap.refarch.module.notification.application.PushViews.PushSubscriptionStateView;
+import dev.goraebap.refarch.module.notification.application.push.PushRequests.RegisterPushSubscription;
+import dev.goraebap.refarch.module.notification.application.push.PushRequests.UnregisterPushSubscription;
+import dev.goraebap.refarch.module.notification.application.push.PushViews.PushConfigView;
+import dev.goraebap.refarch.module.notification.application.push.PushViews.PushSubscriptionStateView;
 import dev.goraebap.refarch.shared.web.CurrentUser;
 import jakarta.validation.Valid;
 import java.util.UUID;

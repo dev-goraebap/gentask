@@ -1,9 +1,9 @@
 package dev.goraebap.refarch.module.user.infrastructure.web;
 
-import dev.goraebap.refarch.module.user.application.AuthProperties;
 import dev.goraebap.refarch.module.user.application.AuthRequestAttributes;
 import dev.goraebap.refarch.module.user.application.TokenHasher;
 import dev.goraebap.refarch.module.user.application.UserErrorCode;
+import dev.goraebap.refarch.module.user.application.auth.AuthProperties;
 import dev.goraebap.refarch.module.user.domain.apitoken.ApiToken;
 import dev.goraebap.refarch.module.user.domain.apitoken.ApiTokenRepository;
 import dev.goraebap.refarch.module.user.domain.session.Session;

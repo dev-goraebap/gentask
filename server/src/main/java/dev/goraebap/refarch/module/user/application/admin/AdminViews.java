@@ -1,4 +1,4 @@
-package dev.goraebap.refarch.module.user.application;
+package dev.goraebap.refarch.module.user.application.admin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;

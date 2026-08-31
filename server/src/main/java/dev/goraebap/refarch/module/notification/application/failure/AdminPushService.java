@@ -1,7 +1,8 @@
-package dev.goraebap.refarch.module.notification.application;
+package dev.goraebap.refarch.module.notification.application.failure;
 
-import dev.goraebap.refarch.module.notification.application.AdminPushViews.PushFailurePageView;
-import dev.goraebap.refarch.module.notification.application.AdminPushViews.PushFailureView;
+import dev.goraebap.refarch.module.notification.application.NotificationErrorCode;
+import dev.goraebap.refarch.module.notification.application.failure.AdminPushViews.PushFailurePageView;
+import dev.goraebap.refarch.module.notification.application.failure.AdminPushViews.PushFailureView;
 import dev.goraebap.refarch.module.notification.domain.failure.PushDeliveryFailure;
 import dev.goraebap.refarch.module.notification.domain.failure.PushDeliveryFailureRepository;
 import dev.goraebap.refarch.module.notification.domain.failure.PushFailureQuery;

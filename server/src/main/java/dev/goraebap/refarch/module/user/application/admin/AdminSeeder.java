@@ -1,5 +1,6 @@
-package dev.goraebap.refarch.module.user.application;
+package dev.goraebap.refarch.module.user.application.admin;
 
+import dev.goraebap.refarch.module.user.application.AdminProperties;
 import dev.goraebap.refarch.module.user.domain.user.Role;
 import dev.goraebap.refarch.module.user.domain.user.User;
 import dev.goraebap.refarch.module.user.domain.user.UserRepository;

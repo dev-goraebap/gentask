@@ -1,4 +1,4 @@
-package dev.goraebap.refarch.module.user.application;
+package dev.goraebap.refarch.module.user.application.auth;
 
 import java.time.Duration;
 import java.time.Instant;

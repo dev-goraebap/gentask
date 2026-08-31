@@ -1,12 +1,13 @@
-package dev.goraebap.refarch.module.user.application;
+package dev.goraebap.refarch.module.user.application.auth;
 
-import dev.goraebap.refarch.module.user.application.AuthService.IssuedSession;
+import dev.goraebap.refarch.module.user.application.AuthRequestAttributes;
 import dev.goraebap.refarch.module.user.application.UserRequests.ConfirmPasswordReset;
 import dev.goraebap.refarch.module.user.application.UserRequests.ConfirmSignup;
 import dev.goraebap.refarch.module.user.application.UserRequests.Login;
 import dev.goraebap.refarch.module.user.application.UserRequests.RequestPasswordReset;
 import dev.goraebap.refarch.module.user.application.UserRequests.ResendCode;
 import dev.goraebap.refarch.module.user.application.UserRequests.Signup;
+import dev.goraebap.refarch.module.user.application.auth.AuthService.IssuedSession;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

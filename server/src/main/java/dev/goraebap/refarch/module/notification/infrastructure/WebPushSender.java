@@ -1,7 +1,7 @@
 package dev.goraebap.refarch.module.notification.infrastructure;
 
-import dev.goraebap.refarch.module.notification.application.PushSender;
 import dev.goraebap.refarch.module.notification.application.VapidProperties;
+import dev.goraebap.refarch.module.notification.application.reminder.PushSender;
 import dev.goraebap.refarch.module.notification.domain.subscription.PushSubscription;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;

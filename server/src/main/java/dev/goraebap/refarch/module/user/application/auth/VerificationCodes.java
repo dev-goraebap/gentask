@@ -1,5 +1,6 @@
-package dev.goraebap.refarch.module.user.application;
+package dev.goraebap.refarch.module.user.application.auth;
 
+import dev.goraebap.refarch.module.user.application.TokenHasher;
 import dev.goraebap.refarch.module.user.domain.Email;
 import dev.goraebap.refarch.module.user.domain.verification.VerificationCode;
 import dev.goraebap.refarch.module.user.domain.verification.VerificationCodeRepository;

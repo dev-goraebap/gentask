@@ -1,10 +1,11 @@
-package dev.goraebap.refarch.module.user.application;
+package dev.goraebap.refarch.module.user.application.me;
 
+import dev.goraebap.refarch.module.user.application.AuthRequestAttributes;
 import dev.goraebap.refarch.module.user.application.UserRequests.ChangeNickname;
 import dev.goraebap.refarch.module.user.application.UserRequests.ChangePassword;
 import dev.goraebap.refarch.module.user.application.UserRequests.ConfirmProfileImage;
-import dev.goraebap.refarch.module.user.application.UserViews.IssuedApiToken;
-import dev.goraebap.refarch.module.user.application.UserViews.MeView;
+import dev.goraebap.refarch.module.user.application.me.UserViews.IssuedApiToken;
+import dev.goraebap.refarch.module.user.application.me.UserViews.MeView;
 import dev.goraebap.refarch.shared.web.CurrentUser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

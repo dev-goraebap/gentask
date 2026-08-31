@@ -1,7 +1,7 @@
 package dev.goraebap.refarch.module.user.infrastructure;
 
-import dev.goraebap.refarch.module.user.application.AuthProperties;
 import dev.goraebap.refarch.module.user.application.TokenHasher;
+import dev.goraebap.refarch.module.user.application.auth.AuthProperties;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.HexFormat;

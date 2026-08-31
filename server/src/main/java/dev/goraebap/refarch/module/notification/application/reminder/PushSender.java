@@ -1,4 +1,4 @@
-package dev.goraebap.refarch.module.notification.application;
+package dev.goraebap.refarch.module.notification.application.reminder;
 
 import dev.goraebap.refarch.module.notification.domain.subscription.PushSubscription;
 

@@ -1,5 +1,6 @@
-package dev.goraebap.refarch.module.notification.application;
+package dev.goraebap.refarch.module.notification.application.reminder;
 
+import dev.goraebap.refarch.module.notification.application.VapidProperties;
 import dev.goraebap.refarch.module.notification.domain.failure.PushDeliveryFailure;
 import dev.goraebap.refarch.module.notification.domain.failure.PushDeliveryFailureRepository;
 import dev.goraebap.refarch.module.notification.domain.reminder.DueReminder;

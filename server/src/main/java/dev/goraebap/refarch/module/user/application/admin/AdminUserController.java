@@ -1,6 +1,6 @@
-package dev.goraebap.refarch.module.user.application;
+package dev.goraebap.refarch.module.user.application.admin;
 
-import dev.goraebap.refarch.module.user.application.AdminViews.AdminUserPageView;
+import dev.goraebap.refarch.module.user.application.admin.AdminViews.AdminUserPageView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
