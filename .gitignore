@@ -1,28 +1,5 @@
-# 빌드 산출물
-/clients/apps/web/dist
-/clients/apps/mcp/dist
-/clients/apps/web/out-tsc
-/clients/apps/web/.angular/cache
-
-# 의존성
-node_modules
-
-# 생성물
-/clients/apps/web/src/shared/api/generated
-/clients/apps/mcp/src/generated
-
-# 에디터와 시스템
-.idea/
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
-.history/
-.DS_Store
-Thumbs.db
-
-# 로그와 커버리지
-*.log
-/clients/apps/web/coverage
+# 축의 산출물과 자격은 그 축의 .gitignore 가 갖는다. 이 파일은 루트에 나는 것과
+# 어느 자리에서나 나는 것만 다룬다.
 
 # 작업용
 tmp
@@ -30,8 +7,17 @@ tmp
 # 배포 대상과 서버 내 자리. 값은 이 파일만 갖는다.
 .deploy.env
 
-# 환경마다 다른 값과 자격 증명. 키 목록과 로컬 값은 server/.env.example 이 갖는다.
-server/.env
+# 어느 자리에서나 난다
+node_modules
+*.log
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.history/
+.DS_Store
+Thumbs.db
+.zed
 
 ### Claude Code ###
 # .claude/ 는 설정(settings.json)과 AGENTS.md 브리지(CLAUDE.md)만 팀 공유하고 나머지는 개인 영역입니다.
@@ -47,9 +33,3 @@ server/.env
 !.agents/skills/angular-developer/
 # 설치 기록에는 개인 스킬 목록이 함께 들어가므로 공유하지 않습니다.
 skills-lock.json
-.zed
-
-# 종단 테스트
-/clients/apps/web/test-results
-/clients/apps/web/playwright-report
-/clients/apps/web/blob-report

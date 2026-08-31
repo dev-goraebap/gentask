@@ -42,3 +42,11 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# openapi.json 에서 만든다. npm run api:generate 가 채운다.
+/src/shared/api/generated
+
+# 종단 테스트
+/test-results
+/playwright-report
+/blob-report

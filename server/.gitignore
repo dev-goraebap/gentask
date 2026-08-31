@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# 환경마다 다른 값과 자격 증명. 키 목록과 로컬 값은 .env.example 이 갖는다.
+.env
