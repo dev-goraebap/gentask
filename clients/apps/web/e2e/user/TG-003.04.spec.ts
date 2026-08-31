@@ -5,9 +5,14 @@ import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 // AC2 · AC3 · AC4 는 [서버]다. 이전 토큰의 무효화와 Bearer 인증과 접근 차단은
 // 브라우저가 보내지 않는 요청이므로 백엔드 통합 테스트가 갖는다.
 
-/** 발급된 원문 토큰. 설명문의 `Authorization: Bearer` 와 구분한다. */
+/**
+ * 발급된 원문 토큰.
+ *
+ * <p>자리를 id 로 짚는다. 이 섹션에는 붙이는 절차를 알리는 `code` 가 여럿 있어 태그로 고르면
+ * 안내 문구가 바뀔 때마다 이 시험이 함께 깨진다.
+ */
 function 토큰상자(page: import('@playwright/test').Page) {
-  return page.locator('code').filter({ hasNotText: 'Authorization' });
+  return page.locator('#agent-token');
 }
 
 test.describe('TG-003.04 에이전트 토큰 발급', () => {

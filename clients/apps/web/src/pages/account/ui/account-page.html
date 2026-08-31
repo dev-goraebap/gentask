@@ -172,15 +172,15 @@
       <div>
         <h2 class="font-medium">에이전트 토큰</h2>
         <p class="text-foreground-secondary mt-1 text-sm">
-          로컬 에이전트(MCP)가 내 계정으로 작업을 다룰 때 쓰는 토큰입니다. 요청의
-          <code class="text-xs">Authorization: Bearer</code> 헤더에 넣습니다.
+          명령줄 도구가 내 계정으로 작업을 다룰 때 쓰는 토큰입니다. 사람도 쓰고 에이전트도
+          씁니다.
         </p>
       </div>
       <div class="[&>*:first-child]:mt-0">
 
       @if (issuedToken(); as token) {
         <div class="border-border bg-muted mt-3 flex items-center gap-2 border p-2">
-          <code class="min-w-0 flex-1 truncate text-xs">{{ token }}</code>
+          <code id="agent-token" class="min-w-0 flex-1 truncate text-xs">{{ token }}</code>
           <button hlmBtn type="button" variant="outline" size="sm" (click)="copyToken()">
             복사
           </button>
@@ -205,6 +205,49 @@
             지우기
           </button>
         }
+      </div>
+
+      <!--
+        발급만 시키고 어디에 넣는지 말하지 않으면 사용자가 토큰을 손에 들고 멈춘다. 붙이는
+        절차를 그 자리에 함께 둔다.
+      -->
+      <div class="border-border mt-4 border-t pt-4">
+        <h3 class="text-sm font-medium">붙이는 법</h3>
+        <ol class="text-foreground-secondary mt-2 flex list-decimal flex-col gap-2 pl-4 text-sm">
+          <li>
+            위에서 토큰을 발급하고 복사합니다.
+          </li>
+          <li>
+            터미널에서 아래를 실행하고 복사한 것을 붙여 넣습니다.
+            <div class="border-border bg-muted mt-1.5 flex items-center gap-2 border p-2">
+              <code class="min-w-0 flex-1 truncate text-xs">npx gentask auth login</code>
+              <button
+                hlmBtn
+                type="button"
+                variant="outline"
+                size="sm"
+                (click)="copyCommand('npx gentask auth login')"
+              >
+                복사
+              </button>
+            </div>
+          </li>
+          <li>
+            <code class="text-xs">npx gentask list</code> 로 내 작업이 나오면 붙은 것입니다.
+          </li>
+        </ol>
+
+        <p class="text-foreground-secondary mt-3 text-sm">
+          자주 쓴다면 <code class="text-xs">npm i -g gentask</code> 로 설치해
+          <code class="text-xs">gentask</code> 만으로 부릅니다.
+          <code class="text-xs">gentask --help</code> 가 명령을 모두 냅니다.
+        </p>
+
+        <p class="text-foreground-secondary mt-3 text-sm">
+          <strong class="text-foreground font-medium">에이전트에게 쓰게 하려면</strong> 별도
+          설정이 필요 없습니다. 터미널을 다룰 수 있는 도구라면 그대로 부릅니다 — "내 gentask
+          작업 목록 보여줘" 처럼 시키면 됩니다.
+        </p>
       </div>
       </div>
     </div>

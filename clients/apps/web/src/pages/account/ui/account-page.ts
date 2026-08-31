@@ -225,6 +225,11 @@ export class AccountPage {
     toast.success('토큰을 복사했습니다.');
   }
 
+  protected async copyCommand(command: string): Promise<void> {
+    await navigator.clipboard.writeText(command);
+    toast.success('명령을 복사했습니다.');
+  }
+
   protected async logout(): Promise<void> {
     try {
       await this.authService.logout();
