@@ -1,20 +1,20 @@
-# todogen MCP 서버
+# gentask MCP 서버
 
-에이전트가 todogen 의 작업을 다루게 하는 자리입니다. 요구사항은 [AGT-001](<../docs/spec/agent/AGT-001(에이전트로 작업 다루기).md>), 전송과 자격의 규격은 [결정-0013](../docs/architecture/decisions/0013-mcp-local-stdio-server.md)이 갖습니다.
+에이전트가 gentask 의 작업을 다루게 하는 자리입니다. 요구사항은 [AGT-001](<../docs/spec/agent/AGT-001(에이전트로 작업 다루기).md>), 전송과 자격의 규격은 [결정-0013](../docs/architecture/decisions/0013-mcp-local-stdio-server.md)이 갖습니다.
 
-이 서버는 **사용자의 기계에서 돕니다.** 클라이언트가 이 프로세스를 띄우고 표준입출력으로 말하며, 이 서버가 `api.todogen.app` 을 부릅니다. 우리 서버에 배포되는 것이 아닙니다.
+이 서버는 **사용자의 기계에서 돕니다.** 클라이언트가 이 프로세스를 띄우고 표준입출력으로 말하며, 이 서버가 `api.gentask.xyz` 을 부릅니다. 우리 서버에 배포되는 것이 아닙니다.
 
 ## 붙이기
 
-todogen 의 계정 화면에서 에이전트 토큰을 발급한 뒤, 쓰는 도구의 MCP 설정에 아래를 더합니다. 토큰은 그 자리에만 있고 이 서버는 어디에도 저장하지 않습니다.
+gentask 의 계정 화면에서 에이전트 토큰을 발급한 뒤, 쓰는 도구의 MCP 설정에 아래를 더합니다. 토큰은 그 자리에만 있고 이 서버는 어디에도 저장하지 않습니다.
 
 ```json
 {
   "mcpServers": {
-    "todogen": {
+    "gentask": {
       "command": "npx",
-      "args": ["-y", "todogen-mcp"],
-      "env": { "TODOGEN_TOKEN": "<발급한 토큰>" }
+      "args": ["-y", "gentask-mcp"],
+      "env": { "GENTASK_TOKEN": "<발급한 토큰>" }
     }
   }
 }
@@ -36,8 +36,8 @@ npm run build
 
 | 환경변수 | 무엇 |
 | :--- | :--- |
-| `TODOGEN_TOKEN` | 에이전트 토큰. 없으면 붙기 전에 멈춥니다 |
-| `TODOGEN_BASE_URL` | 부를 자리. 생략하면 `https://api.todogen.app` 이며 로컬을 볼 때 바꿉니다 |
+| `GENTASK_TOKEN` | 에이전트 토큰. 없으면 붙기 전에 멈춥니다 |
+| `GENTASK_BASE_URL` | 부를 자리. 생략하면 `https://api.gentask.xyz` 이며 로컬을 볼 때 바꿉니다 |
 
 ## 도구
 

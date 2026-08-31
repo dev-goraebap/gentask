@@ -95,10 +95,10 @@ app → pages → features → entities → shared
 
 ## 5.3 레벨 2 — server
 
-백엔드 서버 애플리케이션의 루트 패키지는 `dev.goraebap.refarch`이며, 하위 구조를 업무 모듈(`module/`)과 공용 기반(`shared/`)으로 분할합니다.
+백엔드 서버 애플리케이션의 루트 패키지는 `xyz.gentask`이며, 하위 구조를 업무 모듈(`module/`)과 공용 기반(`shared/`)으로 분할합니다.
 
 ```text
-dev.goraebap.refarch
+xyz.gentask
 ├── ServerApplication.java
 ├── module/              업무 모듈
 │   └── <모듈>/

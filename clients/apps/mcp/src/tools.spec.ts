@@ -1,7 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { describe, expect, it } from 'vitest';
 import { MISSING_TOKEN, readConfig } from './config.js';
-import { TodogenClient } from './todogen-client.js';
+import { GentaskClient } from './gentask-client.js';
 import { registerTaskTools } from './tools.js';
 
 // AGT-001 에이전트로 작업 다루기
@@ -61,7 +61,7 @@ function 도구들(fetchFn: typeof fetch) {
       return {};
     },
   };
-  const client = new TodogenClient({ baseUrl: 'https://api.example', token: 'T' }, fetchFn);
+  const client = new GentaskClient({ baseUrl: 'https://api.example', token: 'T' }, fetchFn);
   registerTaskTools(가짜서버 as unknown as McpServer, client);
   return 모음;
 }
@@ -138,8 +138,8 @@ describe('TG-010 에이전트로 작업 다루기', () => {
 
   it('TG-010 #6: 토큰이 설정에 없으면 붙지 않고 두어야 함을 알린다', () => {
     expect(() => readConfig({})).toThrow(MISSING_TOKEN);
-    expect(() => readConfig({ TODOGEN_TOKEN: '   ' })).toThrow(MISSING_TOKEN);
-    expect(readConfig({ TODOGEN_TOKEN: 'T' }).token).toBe('T');
+    expect(() => readConfig({ GENTASK_TOKEN: '   ' })).toThrow(MISSING_TOKEN);
+    expect(readConfig({ GENTASK_TOKEN: 'T' }).token).toBe('T');
   });
 
   it('TG-010 #7: 가리키는 작업이 그 주인의 것이 아니면 서버가 낸 사유를 그대로 옮긴다', async () => {
@@ -153,8 +153,8 @@ describe('TG-010 에이전트로 작업 다루기', () => {
   });
 
   it('설정한 자리로 부른다', () => {
-    expect(readConfig({ TODOGEN_TOKEN: 'T' }).baseUrl).toBe('https://api.todogen.app');
-    expect(readConfig({ TODOGEN_TOKEN: 'T', TODOGEN_BASE_URL: 'http://localhost:8080/' }).baseUrl).toBe(
+    expect(readConfig({ GENTASK_TOKEN: 'T' }).baseUrl).toBe('https://api.gentask.xyz');
+    expect(readConfig({ GENTASK_TOKEN: 'T', GENTASK_BASE_URL: 'http://localhost:8080/' }).baseUrl).toBe(
       'http://localhost:8080',
     );
   });

@@ -1,4 +1,4 @@
-project_name: "todogen"
+project_name: "gentask"
 default_status: "열림"
 statuses: ["열림", "진행 중", "닫힘"]
 labels: []

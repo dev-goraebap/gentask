@@ -2,7 +2,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { readConfig } from './config.js';
-import { TodogenClient } from './todogen-client.js';
+import { GentaskClient } from './gentask-client.js';
 import { registerTaskTools } from './tools.js';
 
 /**
@@ -14,8 +14,8 @@ import { registerTaskTools } from './tools.js';
 async function main(): Promise<void> {
   const config = readConfig();
 
-  const server = new McpServer({ name: 'todogen', version: '0.1.0' });
-  registerTaskTools(server, new TodogenClient(config));
+  const server = new McpServer({ name: 'gentask', version: '0.1.0' });
+  registerTaskTools(server, new GentaskClient(config));
 
   await server.connect(new StdioServerTransport());
 }

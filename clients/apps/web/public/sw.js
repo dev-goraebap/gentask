@@ -41,7 +41,7 @@ self.addEventListener('notificationclick', (event) => {
 
 /** 페이로드가 없거나 JSON 이 아닐 수 있다. 그때도 알림은 떠야 한다. */
 function readPayload(event) {
-  const fallback = { title: 'todogen', body: '알림이 도착했습니다.', tag: undefined, url: '/' };
+  const fallback = { title: 'gentask', body: '알림이 도착했습니다.', tag: undefined, url: '/' };
   if (!event.data) return fallback;
   try {
     return { ...fallback, ...event.data.json() };

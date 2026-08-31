@@ -1,10 +1,10 @@
 {
-  "name": "todogen-mcp",
+  "name": "gentask-mcp",
   "version": "0.1.0",
   "type": "module",
-  "description": "todogen 의 작업을 에이전트가 다루게 하는 MCP 서버 (AGT-001)",
+  "description": "gentask 의 작업을 에이전트가 다루게 하는 MCP 서버 (AGT-001)",
   "bin": {
-    "todogen-mcp": "./dist/index.js"
+    "gentask-mcp": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -27,14 +27,14 @@
     "mcp",
     "modelcontextprotocol",
     "todo",
-    "todogen"
+    "gentask"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dev-goraebap/refarch-angular-springboot.git",
+    "url": "git+https://github.com/dev-goraebap/gentask.git",
     "directory": "clients/apps/mcp"
   },
-  "homepage": "https://todogen.app",
+  "homepage": "https://gentask.xyz",
   "engines": {
     "node": ">=20"
   },

@@ -1,6 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import type { Task, TodogenClient } from './todogen-client.js';
+import type { Task, GentaskClient } from './gentask-client.js';
 
 /**
  * 작업 API 의 자리를 도구로 옮긴다.
@@ -10,7 +10,7 @@ import type { Task, TodogenClient } from './todogen-client.js';
  * 지금 값으로 채운다 — 그러지 않으면 제목만 고치려다 메모와 기한이 지워진다. 그것은 규칙을 만드는
  * 것이 아니라 두 번 부르는 것이다.
  */
-export function registerTaskTools(server: McpServer, client: TodogenClient): void {
+export function registerTaskTools(server: McpServer, client: GentaskClient): void {
   server.registerTool(
     'list_tasks',
     {

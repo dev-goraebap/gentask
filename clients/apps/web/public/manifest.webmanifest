@@ -1,6 +1,6 @@
 {
-  "name": "todogen",
-  "short_name": "todogen",
+  "name": "gentask",
+  "short_name": "gentask",
   "description": "할 일을 적고 정한 시각에 알림을 받는 목록",
   "lang": "ko",
   "start_url": "/",

@@ -6,14 +6,14 @@
 flowchart LR
     user["사용자"]
     agent["로컬 에이전트"]
-    todogen(["투두젠"])
+    gentask(["투두젠"])
     storage["오브젝트 스토리지"]
     db[("PostgreSQL")]
 
-    user -- "HTTPS · todogen.app" --> todogen
-    agent -- "HTTPS · api.todogen.app" --> todogen
-    todogen -- "JDBC" --> db
-    todogen -- "S3 API" --> storage
+    user -- "HTTPS · gentask.xyz" --> gentask
+    agent -- "HTTPS · api.gentask.xyz" --> gentask
+    gentask -- "JDBC" --> db
+    gentask -- "S3 API" --> storage
     user <-- "HTTPS · presigned URL" --> storage
 ```
 
@@ -28,12 +28,12 @@ flowchart LR
 
 ## 3.2 통신 채널 및 프로토콜
 
-- **`todogen.app`**: 서버 렌더링 HTML 및 작업·계정 JSON 데이터 전송. HttpOnly 쿠키 세션을 통해 인증합니다.
-- **`api.todogen.app`**: 작업 JSON 데이터 전송. Bearer 토큰을 통해 인증합니다.
+- **`gentask.xyz`**: 서버 렌더링 HTML 및 작업·계정 JSON 데이터 전송. HttpOnly 쿠키 세션을 통해 인증합니다.
+- **`api.gentask.xyz`**: 작업 JSON 데이터 전송. Bearer 토큰을 통해 인증합니다.
 - **`S3 API`**: 파일 크기 조회, 메타데이터 관리, 삭제 및 Presigned URL 서명 발급. 스토리지 자격 증명을 통해 인증합니다.
 - **`presigned URL`**: 첨부 파일 바이너리 스트림 전송. URL에 서명된 한시적 접근 권한을 사용합니다.
 
 ## 3.3 컨텍스트 원칙
 
 - **대용량 파일 전송 분리 (Direct-to-Storage)**: 첨부 파일 바이너리는 투두젠 애플리케이션 서버를 경유하지 않습니다. 클라이언트와 오브젝트 스토리지가 Presigned URL을 통해 직접 데이터를 송수신하며, 투두젠 서버는 저장 경로 결정 및 한시적 접근 권한 서명만을 담당합니다.
-- **출처 분리 기반 인증 구조**: 웹 화면과 REST API가 동일한 출처(`todogen.app`)를 공유함으로써 브라우저의 세션 쿠키를 활용합니다. 출처를 공유할 수 없는 외부 독립 클라이언트(로컬 에이전트 등)는 전용 엔드포인트(`api.todogen.app`)와 Bearer 토큰 인증 체계로 격리합니다.
+- **출처 분리 기반 인증 구조**: 웹 화면과 REST API가 동일한 출처(`gentask.xyz`)를 공유함으로써 브라우저의 세션 쿠키를 활용합니다. 출처를 공유할 수 없는 외부 독립 클라이언트(로컬 에이전트 등)는 전용 엔드포인트(`api.gentask.xyz`)와 Bearer 토큰 인증 체계로 격리합니다.

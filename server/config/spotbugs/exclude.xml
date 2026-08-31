@@ -4,7 +4,7 @@
 
   <!-- jOOQ 코드 생성 산출물은 우리 코딩 표준의 대상이 아니다. -->
   <Match>
-    <Package name="~dev\.goraebap\.refarch\.jooq.*"/>
+    <Package name="~xyz\.gentask\.jooq.*"/>
   </Match>
 
   <!--
