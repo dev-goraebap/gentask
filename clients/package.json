@@ -1,0 +1,8 @@
+{
+  "name": "clients",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

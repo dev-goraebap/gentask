@@ -2,7 +2,7 @@
 
 ## 1. 목적과 적용 범위
 
-`web/src` 아래의 TypeScript · HTML · CSS 에 적용합니다. 외부 UI 킷 사본과 생성된 API 타입은 대상이 아닙니다.
+`clients/apps/web/src` 아래의 TypeScript · HTML · CSS 에 적용합니다. 외부 UI 킷 사본과 생성된 API 타입은 대상이 아닙니다.
 
 규칙은 세 수준으로 나눕니다. 이 구분이 없으면 리뷰에서 취향 논쟁이 반복됩니다.
 
@@ -459,7 +459,7 @@ export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS];
 
 ## 8. 테스트 코드 스타일
 
-**FE-STY-045 (필수)** 테스트 파일은 대상 파일 옆에 둡니다. `__tests__` 디렉터리를 만들지 않으며, 종단 테스트는 `web/e2e/` 에 둡니다. Node 환경이 `web/` 에만 있으므로 의존성과 명령을 한곳에서 관리합니다.
+**FE-STY-045 (필수)** 테스트 파일은 대상 파일 옆에 둡니다. `__tests__` 디렉터리를 만들지 않으며, 종단 테스트는 `clients/apps/web/e2e/` 에 둡니다. 화면을 띄워 검증하므로 그 축의 의존성과 명령을 그대로 씁니다.
 
 **FE-STY-046 (필수)** 분기가 있는 코드는 테스트합니다. 분기 없는 위임 함수는 대상이 아닙니다.
 

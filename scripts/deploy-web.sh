@@ -21,7 +21,7 @@ fi
 SHA="$(deployed_sha)"
 REL="$(date +%Y%m%d%H%M%S)"
 TARGET="$(ssh_target)"
-DIST="$REPO_ROOT/web/dist/web/browser"
+DIST="$REPO_ROOT/clients/apps/web/dist/web/browser"
 
 [ -d "$DIST" ] || fail "$DIST 가 없습니다"
 [ -f "$DIST/index.csr.html" ] || fail "$DIST/index.csr.html 이 없습니다 (nginx 폴백 대상)"

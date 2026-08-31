@@ -4,7 +4,7 @@ import { defineConfig } from '@playwright/test';
 
 import { 관리자_이메일 } from './e2e/env';
 
-const 서버 = join(__dirname, '..', 'server');
+const 서버 = join(__dirname, '..', '..', '..', 'server');
 
 // 종단 테스트 설정. 규약은 결정-0008 이 갖는다.
 export default defineConfig({

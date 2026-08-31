@@ -12,11 +12,11 @@ const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const KEY = /(TG-\d{3}(?:\.\d{2})?)((?:\s+#\d+)(?:,\s*#\d+)*)/g;
 
 const SOURCES = [
-  ['E2E', join(ROOT, 'web', 'e2e'), (n) => n.endsWith('.spec.ts')],
+  ['E2E', join(ROOT, 'clients', 'apps', 'web', 'e2e'), (n) => n.endsWith('.spec.ts')],
   ['BE', join(ROOT, 'server', 'src', 'test'), (n) => n.endsWith('.java')],
-  ['FE', join(ROOT, 'web', 'src'), (n) => n.endsWith('.spec.ts')],
+  ['FE', join(ROOT, 'clients', 'apps', 'web', 'src'), (n) => n.endsWith('.spec.ts')],
   // MCP 축의 시험. 브라우저도 서버도 아닌 자리에서 도구가 API 를 바르게 부르는지를 본다.
-  ['MCP', join(ROOT, 'mcp', 'src'), (n) => n.endsWith('.spec.ts')],
+  ['MCP', join(ROOT, 'clients', 'apps', 'mcp', 'src'), (n) => n.endsWith('.spec.ts')],
 ];
 
 // cleanup 이 오래 닫힌 항목을 completed/ 로 옮기므로 두 자리를 함께 읽는다.

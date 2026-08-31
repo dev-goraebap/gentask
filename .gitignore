@@ -1,15 +1,15 @@
 # 빌드 산출물
-/web/dist
-/mcp/dist
-/web/out-tsc
-/web/.angular/cache
+/clients/apps/web/dist
+/clients/apps/mcp/dist
+/clients/apps/web/out-tsc
+/clients/apps/web/.angular/cache
 
 # 의존성
 node_modules
 
 # 생성물
-/web/src/shared/api/generated
-/mcp/src/generated
+/clients/apps/web/src/shared/api/generated
+/clients/apps/mcp/src/generated
 
 # 에디터와 시스템
 .idea/
@@ -22,7 +22,7 @@ Thumbs.db
 
 # 로그와 커버리지
 *.log
-/web/coverage
+/clients/apps/web/coverage
 
 # 작업용
 tmp
@@ -50,6 +50,6 @@ skills-lock.json
 .zed
 
 # 종단 테스트
-/web/test-results
-/web/playwright-report
-/web/blob-report
+/clients/apps/web/test-results
+/clients/apps/web/playwright-report
+/clients/apps/web/blob-report

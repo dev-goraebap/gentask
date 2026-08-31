@@ -24,7 +24,7 @@
 
 **자리와 언어**
 
-- `mcp/` 에 두고 TypeScript 로 씁니다. 자기 빌드와 자기 검증 명령을 갖는 세 번째 축입니다([결정-0001](./0001-shared-monorepo.md)).
+- `clients/apps/mcp/` 에 두고 TypeScript 로 씁니다. 자기 빌드와 자기 검증 명령을 갖는 세 번째 축입니다([결정-0001](./0001-shared-monorepo.md)).
 - API 의 요청과 응답 타입은 [결정-0003](./0003-shared-api-contract.md)이 만드는 생성물을 씁니다. 손으로 다시 적지 않습니다.
 
 **발행**

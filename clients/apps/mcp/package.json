@@ -10,7 +10,7 @@
     "build": "tsc",
     "test": "vitest run",
     "check": "npm test && npm run build",
-    "api:generate": "npx --yes openapi-typescript@7.13.0 ../server/openapi.json -o src/generated/schema.d.ts",
+    "api:generate": "npx --yes openapi-typescript@7.13.0 ../../../server/openapi.json -o src/generated/schema.d.ts",
     "prepublishOnly": "npm run api:generate && npm run check"
   },
   "dependencies": {
@@ -32,7 +32,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dev-goraebap/refarch-angular-springboot.git",
-    "directory": "mcp"
+    "directory": "clients/apps/mcp"
   },
   "homepage": "https://todogen.app",
   "engines": {
