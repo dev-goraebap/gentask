@@ -35,7 +35,7 @@ Angular 프론트엔드와 Spring Boot 백엔드 모노레포의 참조 아키�
 | :--- | :--- |
 | 프론트엔드 | `cd clients && npm run check -w web` |
 | 백엔드 | `cd server && ./gradlew build` |
-| 에이전트 | `cd clients && npm run check -w gentask-mcp` |
+| 에이전트 | `cd clients && npm run check -w gentask` |
 | 추적 | `node scripts/trace-check.mjs` |
 
 - 검증을 통과하지 않은 상태로 커밋하거나 병합하지 않습니다.

@@ -30,7 +30,7 @@
 | `npm run lint` | ESLint 기반 코드 규약 검사 |
 | `npm run lint:fsd` | Steiger 기반 FSD 계층 규칙 검사 |
 | `npm run check` | 린트(`lint`, `lint:fsd`), 테스트, 빌드를 순서대로 실행 |
-| `npm run api:generate -w api-types` | `server/openapi.json` 에서 계약 타입 생성. `web` 과 `mcp` 가 그 하나를 본다 |
+| `npm run api:generate -w api-types` | `server/openapi.json` 에서 계약 타입 생성. `web` 과 `cli` 가 그 하나를 본다 |
 
 `npm run check` 검증을 통과하지 않은 코드는 코드베이스에 병합할 수 없습니다. 지속적 통합(CI) 환경에서는 `npm run check` 단일 명령을 통해 프론트엔드 전체 검증을 수행합니다.
 

@@ -15,8 +15,8 @@ const SOURCES = [
   ['E2E', join(ROOT, 'clients', 'apps', 'web', 'e2e'), (n) => n.endsWith('.spec.ts')],
   ['BE', join(ROOT, 'server', 'src', 'test'), (n) => n.endsWith('.java')],
   ['FE', join(ROOT, 'clients', 'apps', 'web', 'src'), (n) => n.endsWith('.spec.ts')],
-  // MCP 축의 시험. 브라우저도 서버도 아닌 자리에서 도구가 API 를 바르게 부르는지를 본다.
-  ['MCP', join(ROOT, 'clients', 'apps', 'mcp', 'src'), (n) => n.endsWith('.spec.ts')],
+  // CLI 축의 시험. 브라우저도 서버도 아닌 자리에서 명령이 API 를 바르게 부르는지를 본다.
+  ['CLI', join(ROOT, 'clients', 'apps', 'cli', 'src'), (n) => n.endsWith('.spec.ts')],
 ];
 
 // cleanup 이 오래 닫힌 항목을 completed/ 로 옮기므로 두 자리를 함께 읽는다.
@@ -97,7 +97,7 @@ for (const c of criteria) {
   const covered = layers.size > 0;
   const state = !covered ? '미검증' : c.serverOnly ? '닫힘[서버]' : layers.has('E2E') ? '닫힘' : '열림';
   console.log(
-    `${c.key.padEnd(14)} ${c.serverOnly ? 'E2E 면제' : mark('E2E')}  ${mark('BE')}  ${mark('FE')}  ${mark('MCP')}   ${state.padEnd(10)} ${c.text.slice(0, 36)}`,
+    `${c.key.padEnd(14)} ${c.serverOnly ? 'E2E 면제' : mark('E2E')}  ${mark('BE')}  ${mark('FE')}  ${mark('CLI')}   ${state.padEnd(10)} ${c.text.slice(0, 36)}`,
   );
 }
 
