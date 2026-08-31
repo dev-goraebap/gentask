@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="Gentask">
+  <rect width="96" height="96" fill="#2563EB" />
+  <g transform="translate(48 48) scale(0.85) translate(-48 -48)">
+    <path
+      d="M32 34V62L74 20"
+      transform="translate(-3.9 0.6)"
+      fill="none"
+      stroke="#FFFFFF"
+      stroke-width="15"
+      stroke-linecap="butt"
+      stroke-linejoin="miter"
+      stroke-miterlimit="10"
+    />
+  </g>
+</svg>
