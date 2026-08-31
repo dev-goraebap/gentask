@@ -1,5 +1,5 @@
 import type { Config } from './config.js';
-import type { components } from './generated/schema.js';
+import type { components } from 'api-types';
 
 /**
  * 작업 하나.

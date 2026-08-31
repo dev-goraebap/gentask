@@ -10,8 +10,7 @@
     "build": "tsc",
     "test": "vitest run",
     "check": "npm test && npm run build",
-    "api:generate": "npx --yes openapi-typescript@7.13.0 ../../../server/openapi.json -o src/generated/schema.d.ts",
-    "prepublishOnly": "npm run api:generate && npm run check"
+    "prepublishOnly": "npm run check"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
@@ -19,6 +18,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "api-types": "*",
     "typescript": "~6.0.2",
     "vitest": "^4.0.8"
   },

@@ -1,4 +1,4 @@
-import type { components } from './generated/schema';
+import type { components } from 'api-types';
 
 export { ENDPOINTS } from './endpoints';
 export { injectAttachmentPresign, type AttachmentSlot } from './attachments';

@@ -218,7 +218,7 @@ export class TaskDetailPage {
 ## 8. OpenAPI 기반 타입 자동 생성과 계약 관리
 
 ```text
-백엔드 OpenAPI 명세 ──(openapi-typescript)──▶ shared/api/generated/ ──▶ 화면
+백엔드 OpenAPI 명세 ──(openapi-typescript)──▶ clients/packages/api-types ──▶ 화면과 에이전트 도구
 ```
 
 서버 응답과 요청의 타입은 백엔드 OpenAPI 명세로부터 자동 생성하며 수동 작성하지 않습니다. 수동으로 작성하면 서버 계약이 변경되어도 정적 컴파일을 통과하여 런타임 장애로 이어지기 때문입니다.

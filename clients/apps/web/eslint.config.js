@@ -17,7 +17,6 @@ module.exports = tseslint.config(
       '.angular/**',
       'out-tsc/**',
       // 생성물에 대한 지적은 고칠 수 없으므로 잡음이 됩니다. 14-api-contract.md 1.2절.
-      'src/shared/api/generated/**',
     ],
   },
 

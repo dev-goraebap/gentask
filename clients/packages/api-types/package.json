@@ -1,0 +1,18 @@
+{
+  "name": "api-types",
+  "version": "0.0.0",
+  "private": true,
+  "description": "server/openapi.json 에서 만드는 계약 타입. 축들이 이것 하나를 본다",
+  "types": "./src/schema.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/schema.d.ts"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "api:generate": "npx --yes openapi-typescript@7.13.0 ../../../server/openapi.json -o src/schema.d.ts"
+  }
+}

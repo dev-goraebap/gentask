@@ -2,7 +2,7 @@
 
 ## 1. 목적과 적용 범위
 
-`clients/apps/web/src` 아래의 TypeScript · HTML · CSS 에 적용합니다. 외부 UI 킷 사본과 생성된 API 타입은 대상이 아닙니다.
+`clients/apps/web/src` 아래의 TypeScript · HTML · CSS 에 적용합니다. 외부 UI 킷 사본은 대상이 아닙니다. 생성된 계약 타입은 `clients/packages/api-types` 에 있어 이 축 밖입니다.
 
 규칙은 세 수준으로 나눕니다. 이 구분이 없으면 리뷰에서 취향 논쟁이 반복됩니다.
 
