@@ -4,16 +4,6 @@
 
 이 서버는 **사용자의 기계에서 돕니다.** 클라이언트가 이 프로세스를 띄우고 표준입출력으로 말하며, 이 서버가 `api.todogen.app` 을 부릅니다. 우리 서버에 배포되는 것이 아닙니다.
 
-## 세우기
-
-```bash
-npm install
-npm run api:generate   # 서버 명세에서 타입을 만든다
-npm run build
-```
-
-`src/generated/` 는 추적되지 않으므로 처음 받았을 때 `api:generate` 를 먼저 돌립니다.
-
 ## 붙이기
 
 todogen 의 계정 화면에서 에이전트 토큰을 발급한 뒤, 쓰는 도구의 MCP 설정에 아래를 더합니다. 토큰은 그 자리에만 있고 이 서버는 어디에도 저장하지 않습니다.
@@ -22,13 +12,27 @@ todogen 의 계정 화면에서 에이전트 토큰을 발급한 뒤, 쓰는 도
 {
   "mcpServers": {
     "todogen": {
-      "command": "node",
-      "args": ["<이 저장소>/mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "todogen-mcp"],
       "env": { "TODOGEN_TOKEN": "<발급한 토큰>" }
     }
   }
 }
 ```
+
+`npx` 가 꾸러미를 받아 띄우므로 내려받거나 빌드할 것이 없습니다. Node 20 이상이 필요합니다.
+
+## 고치기
+
+이 저장소에서 손볼 때만 필요합니다.
+
+```bash
+npm install
+npm run api:generate   # 서버 명세에서 타입을 만든다
+npm run build
+```
+
+`src/generated/` 는 추적되지 않으므로 처음 받았을 때 `api:generate` 를 먼저 돌립니다. 고친 것을 붙여 보려면 설정의 `command` 와 `args` 를 `node` 와 `dist/index.js` 의 절대경로로 바꿉니다.
 
 | 환경변수 | 무엇 |
 | :--- | :--- |
