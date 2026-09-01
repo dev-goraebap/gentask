@@ -3,13 +3,15 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
+  type ElementRef,
   inject,
   input,
   signal,
   viewChild,
 } from '@angular/core';
 import { form, FormField, FormRoot } from '@angular/forms/signals';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { AsideOutlet } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
@@ -48,13 +50,15 @@ import {
   withRemindDate,
   DEFAULT_DIRECTION,
   TASK_SORTS,
+  TASK_VIEWS,
   type SortDirection,
   toTaskView,
   type Task,
   type TaskSort,
   type TaskView,
+  TaskService,
+  type TaskSeed,
 } from '@/entities/task';
-import { TaskService, type TaskSeed } from '../api/task-service';
 
 @Component({
   selector: 'app-task-list',
@@ -62,6 +66,7 @@ import { TaskService, type TaskSeed } from '../api/task-service';
     FormRoot,
     FormField,
     RouterLink,
+    RouterLinkActive,
     HlmButton,
     HlmInput,
     HlmPopoverImports,
@@ -88,6 +93,7 @@ export class TaskListPage {
   protected readonly routes = ROUTES;
   protected readonly panel = TASK_PANEL;
   protected readonly sortOptions = TASK_SORTS;
+  protected readonly views = TASK_VIEWS;
   private readonly today = toDateKey(new Date());
   private readonly now = new Date();
 
@@ -104,8 +110,18 @@ export class TaskListPage {
 
   // --- 질의 --------------------------------------------------------------------------------------
   protected readonly veil = viewChild.required(Veil);
+  private readonly addInput = viewChild<ElementRef<HTMLInputElement>>('addInput');
 
   // --- 상태 --------------------------------------------------------------------------------------
+  /**
+   * 좁은 화면에서 적는 자리가 열려 있는가.
+   *
+   * <p>늘 열어 두면 바닥의 띠와 함께 화면의 아래를 두 겹으로 먹는다. 적는 일은 잠깐이고 보는 일은
+   * 길므로, 평소에는 접어 두고 더하기를 눌렀을 때만 연다. 넓은 화면에서는 그 자리를 다투지 않으므로
+   * 늘 열려 있다.
+   */
+  protected readonly composing = signal(false);
+
   private readonly draft = signal({ title: '' });
   private readonly draftDue = signal<string | null>(null);
   private readonly draftRemind = signal<string | null>(null);
@@ -274,6 +290,31 @@ export class TaskListPage {
 
   protected isRemindPast(task: Task): boolean {
     return isRemindPast(task, toDateTimeKey(this.now));
+  }
+
+  // --- 생성 --------------------------------------------------------------------------------------
+  constructor() {
+    /*
+     * 가상 키보드는 포커스를 따라 올라온다. 여는 것과 맞추는 것을 한 번에 끝내지 않으면 사용자가
+     * 두 번 누르게 된다.
+     *
+     * <p>효과가 그 자리인 이유는 감춰진 요소에 포커스를 줄 수 없기 때문이다. 여는 순간에 바로 부르면
+     * 아직 `hidden` 이 붙어 있어 아무 일도 일어나지 않는다. 효과는 그 뷰의 변경 감지 뒤에 돈다.
+     */
+    effect(() => {
+      if (!this.composing()) return;
+      this.addInput()?.nativeElement.focus();
+    });
+  }
+
+  protected startComposing(): void {
+    this.composing.set(true);
+  }
+
+  /** 적은 것이 없으면 접는다. 비운 채로 남겨 두면 접는 단추를 따로 찾아야 한다. */
+  protected stopComposingIfEmpty(): void {
+    if (isAddableTitle(this.draft().title)) return;
+    this.composing.set(false);
   }
 
   protected addOnEnter(event: KeyboardEvent): void {

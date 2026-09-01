@@ -5,6 +5,7 @@ import {
   type NavGroup,
   type NavItem,
   ROUTES,
+  TODO_BOTTOM_NAV,
   trackerNavGroups,
 } from '@/shared/config';
 
@@ -39,12 +40,22 @@ export const NAV_GROUPS = new InjectionToken<Signal<readonly NavGroup[]>>('NAV_G
 });
 
 /**
+ * 좁은 화면 바닥의 띠에 담기는 것.
+ *
+ * <p>메뉴와 따로 두는 것은 담기는 것이 다르기 때문이다. 사이드바는 그 자리의 모든 것을 늘어놓지만
+ * 띠는 넷을 넘기지 못한다.
+ */
+export const BOTTOM_NAV = new InjectionToken<Signal<readonly NavItem[]>>('BOTTOM_NAV', {
+  factory: () => signal(TODO_BOTTOM_NAV),
+});
+
+/**
  * 껍데기가 어느 자리를 그리고 있는가.
  *
  * <p>레이아웃은 하나이고 그 안의 메뉴 구성만 다르다. 껍데기가 경로를 직접 읽지 않는 것은 라우팅의
  * 모양이 바뀔 때마다 레이아웃을 고치게 되기 때문이며, 라우트가 자기 자리를 선언해 내려 준다.
  */
-export type ShellArea = 'tasks' | 'admin' | 'tracker' | 'account';
+export type ShellArea = 'tasks' | 'admin' | 'tracker';
 
 export const SHELL_AREA = new InjectionToken<ShellArea>('SHELL_AREA', {
   factory: () => 'tasks',
@@ -71,23 +82,6 @@ const ADMIN_GROUPS: readonly NavGroup[] = [
 ];
 
 export const ADMIN_NAV_GROUPS: Signal<readonly NavGroup[]> = signal(ADMIN_GROUPS);
-
-/**
- * 계정 자리의 메뉴.
- *
- * <p>프로젝트는 모드에 매이지 않고 계정에 매인다. 어느 모드에도 속하지 않는 것들이 이 자리에 서며,
- * 앞으로 늘어날 알림 설정이나 구독 같은 것도 여기로 온다.
- */
-const ACCOUNT_GROUPS: readonly NavGroup[] = [
-  {
-    items: [
-      { label: '내 정보', icon: 'hgiUser', link: ROUTES.account() },
-      { label: '프로젝트', icon: 'hgiLayers', link: ROUTES.projects() },
-    ],
-  },
-];
-
-export const ACCOUNT_NAV_GROUPS: Signal<readonly NavGroup[]> = signal(ACCOUNT_GROUPS);
 
 /** `computed` 로 감싸므로 프로젝트를 바꾸면 메뉴의 링크가 함께 따라온다. */
 export function trackerNavGroupsSignal(projectId: Signal<string>): Signal<readonly NavGroup[]> {

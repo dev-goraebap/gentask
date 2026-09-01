@@ -1,16 +1,18 @@
-import { computed, inject } from '@angular/core';
+import { computed, inject, signal } from '@angular/core';
 import { Routes } from '@angular/router';
 import { DocService } from '@/entities/doc/providers';
 import { IssueService } from '@/entities/issue/providers';
 import { ProjectPicker, projectScopeGuard, ProjectService } from '@/entities/project/providers';
 import { adminGuard, authGuard } from '@/entities/user/guard';
 import { AuthService, UserService } from '@/entities/user/providers';
+import { ADMIN_BOTTOM_NAV, trackerBottomNav } from '@/shared/config';
 import { MemoService } from '@/pages/memo-list/providers';
-import { provideTaskListDatePicker, TaskService } from '@/pages/task-list/providers';
+import { TaskService } from '@/entities/task';
+import { provideTaskListDatePicker } from '@/pages/task-list/providers';
 import { AppShell } from './layout/app-shell';
 import {
-  ACCOUNT_NAV_GROUPS,
   ADMIN_NAV_GROUPS,
+  BOTTOM_NAV,
   NAV_GROUPS,
   SHELL_AREA,
   SIDEBAR_LEAD,
@@ -55,6 +57,7 @@ export const routes: Routes = [
       UserService,
       AuthService,
       { provide: NAV_GROUPS, useValue: ADMIN_NAV_GROUPS },
+      { provide: BOTTOM_NAV, useValue: signal(ADMIN_BOTTOM_NAV) },
       { provide: SHELL_AREA, useValue: 'admin' },
     ],
     children: [
@@ -93,15 +96,19 @@ export const routes: Routes = [
           return trackerNavGroupsSignal(computed(() => projectService.current().id));
         },
       },
+      {
+        provide: BOTTOM_NAV,
+        useFactory: () => {
+          const projectService = inject(ProjectService);
+          return computed(() => trackerBottomNav(projectService.current().id));
+        },
+      },
       { provide: SHELL_AREA, useValue: 'tracker' },
       { provide: SIDEBAR_LEAD, useValue: ProjectPicker },
     ],
     children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        loadComponent: () => import('@/pages/tracker/project-menu').then((m) => m.ProjectMenuPage),
-      },
+      // 좁은 화면의 메뉴는 아래에 깔린 띠가 갖는다. 그 자리를 화면으로 한 번 더 두지 않는다.
+      { path: '', pathMatch: 'full', redirectTo: 'issues' },
       {
         path: 'issues',
         children: [
@@ -138,49 +145,24 @@ export const routes: Routes = [
     ],
   },
   {
-    // 계정 자리. 모드에 매이지 않는 것들이 여기 선다. 프로젝트는 모드가 아니라 계정에 매인다.
-    path: 'projects',
-    component: AppShell,
-    canActivate: [authGuard],
-    providers: [
-      UserService,
-      AuthService,
-      { provide: NAV_GROUPS, useValue: ACCOUNT_NAV_GROUPS },
-      { provide: SHELL_AREA, useValue: 'account' },
-    ],
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        loadComponent: () => import('@/pages/project-list').then((m) => m.ProjectListPage),
-      },
-    ],
-  },
-  {
-    path: 'me',
-    component: AppShell,
-    canActivate: [authGuard],
-    providers: [
-      UserService,
-      AuthService,
-      { provide: NAV_GROUPS, useValue: ACCOUNT_NAV_GROUPS },
-      { provide: SHELL_AREA, useValue: 'account' },
-    ],
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        loadComponent: () => import('@/pages/account').then((m) => m.AccountPage),
-      },
-    ],
-  },
-  {
     path: '',
     component: AppShell,
     canActivate: [authGuard],
-    providers: [UserService, AuthService],
+    providers: [UserService, AuthService, TaskService],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'todo' },
+      /*
+       * 홈이 첫 자리다. 오늘 할 일과 프로젝트를 함께 보여 주므로 어느 쪽으로 갈지가 여기서 갈리고,
+       * 프로젝트 목록만 있는 화면을 따로 두지 않는다.
+       */
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('@/pages/home').then((m) => m.HomePage),
+      },
+      {
+        path: 'me',
+        loadComponent: () => import('@/pages/account').then((m) => m.AccountPage),
+      },
       {
         // 모드에 매이지 않는 자리. 어느 모드의 더보기에서도 같은 주소로 선다.
         path: 'memos',
@@ -199,16 +181,10 @@ export const routes: Routes = [
       {
         // 투두 모드. 그릇이 제 이름을 가지므로 메뉴 화면이 목록을 겸하지 않는다.
         path: 'todo',
-        providers: [TaskService, ...provideTaskListDatePicker()],
+        providers: [...provideTaskListDatePicker()],
         children: [
-          // 좁은 화면의 첫 자리는 목록들이다. 넓은 화면에서는 사이드바가 그것을 이미 보여 주므로
-          // 그 화면이 스스로 기본 목록으로 옮긴다. 옮기는 판정에 화면 폭이 필요해 리다이렉트로
-          // 두지 않는다 — 서버는 폭을 모른다.
-          {
-            path: '',
-            pathMatch: 'full',
-            loadComponent: () => import('@/pages/task-lists').then((m) => m.TaskListsPage),
-          },
+          // 관점을 고르는 자리는 좁은 화면에서 아래의 띠가, 넓은 화면에서 사이드바가 갖는다.
+          { path: '', pathMatch: 'full', redirectTo: 'my-day' },
           {
             path: ':view',
             loadComponent: () => import('@/pages/task-list').then((m) => m.TaskListPage),

@@ -2,83 +2,71 @@ import type { Route } from '@angular/router';
 import { describe, expect, it } from 'vitest';
 import { ROUTES } from '@/shared/config';
 import { routes } from './app.routes';
-import { SHELL_AREA } from './layout/nav-items';
+import { BOTTOM_NAV } from './layout/nav-items';
 
-describe('app.routes 의 투두 자리', () => {
+describe('app.routes 의 첫 자리', () => {
   /*
-   * 이 자리가 무너지는 방식은 터지는 것이 아니라 **한 주소가 두 가지 뜻을 갖는 것**이다. 그릇이
-   * 목록을 겸하면 좁은 화면의 메뉴가 설 자리가 없어지고, 그릇 이름과 그 안의 항목 이름이 같아지면
-   * `할 일` 처럼 한 말이 두 층을 가리킨다. 둘 다 빌드와 린트를 지난다.
+   * 홈은 리다이렉트가 아니라 화면이다. 오늘 할 일과 프로젝트가 함께 서는 자리이며, 리다이렉트로
+   * 되돌리면 프로젝트를 고를 자리가 다시 없어진다.
    */
-  it('그릇은 메뉴이고 목록을 겸하지 않는다', () => {
-    const paths = todoChildren().map((child) => child.path);
+  it('홈이 실제 화면이다', () => {
+    const home = shellChildren().find((child) => child.path === '');
 
-    expect(paths).toContain('');
-    expect(paths).toContain(':view');
-  });
-
-  it('그릇 이름과 그 안의 항목 이름이 다르다', () => {
-    expect(ROUTES.todo()).toBe('/todo');
-    expect(ROUTES.taskList('all')).toBe('/todo/all');
-    expect(ROUTES.taskList('my-day')).toBe('/todo/my-day');
+    expect(home?.loadComponent).toBeDefined();
+    expect(home?.redirectTo).toBeUndefined();
+    expect(ROUTES.home()).toBe('/');
   });
 
   /*
-   * 메모와 팻과 뽀모도로는 모드에 매이지 않는다. 그릇 안으로 들어가면 다른 모드의 더보기에서
-   * 가리키는 주소가 그 모드를 건너가는 주소가 된다.
+   * 모드를 고르는 자리를 화면으로 두지 않는다. 좁은 화면에서는 바닥의 띠가, 넓은 화면에서는
+   * 사이드바가 그 일을 하므로, 화면으로 한 번 더 두면 같은 것을 두 곳에서 고르게 된다.
    */
+  it('그릇에 닿으면 첫 칸으로 보낸다', () => {
+    expect(childOf(shellChildren(), 'todo', '')?.redirectTo).toBe('my-day');
+    expect(childOf(routes, 'projects/:projectId', '')?.redirectTo).toBe('issues');
+  });
+
   it('모드에 매이지 않는 자리는 그릇 밖에 선다', () => {
-    const paths = todoChildren().map((child) => child.path);
+    const paths = shellChildren().map((child) => child.path);
 
-    expect(paths).not.toContain('memos');
+    expect(paths).toContain('memos');
+    expect(paths).toContain('pets');
+    expect(paths).toContain('pomodoro');
+    expect(paths).toContain('me');
+
     expect(ROUTES.memos()).toBe('/memos');
-    expect(ROUTES.pets()).toBe('/pets');
-    expect(ROUTES.pomodoro()).toBe('/pomodoro');
     expect(ROUTES.account()).toBe('/me');
   });
-});
 
-describe('app.routes 의 프로젝트 자리', () => {
   /*
-   * `/projects` 와 `/projects/<id>` 는 서로 다른 껍데기를 쓴다 — 앞은 계정 메뉴, 뒤는 트래커
-   * 메뉴다. 세그먼트 수가 적은 쪽이 먼저 서면 `/projects/<id>` 를 그것이 먼저 잡고 자식에서
-   * 실패해 라우터의 되짚기에 기대게 된다. 되짚기가 도는 동안은 터지지 않으므로, 검사가 없으면
-   * 순서를 되돌려도 아무도 모른다.
+   * 바닥의 띠는 자리마다 담기는 것이 다르므로 라우트가 내려 준다. 내려 주지 않으면 그 자리가
+   * 투두의 것을 그대로 쓰게 되는데, 터지지 않으므로 눈으로만 드러난다.
    */
-  it('프로젝트 하나의 자리가 프로젝트들보다 먼저 선다', () => {
-    const one = routes.findIndex((route) => route.path === 'projects/:projectId');
-    const many = routes.findIndex((route) => route.path === 'projects');
-
-    expect(one).toBeGreaterThanOrEqual(0);
-    expect(many).toBeGreaterThanOrEqual(0);
-    expect(one).toBeLessThan(many);
-  });
-
-  it('프로젝트들은 계정 자리에 서고 프로젝트 하나는 트래커 자리에 선다', () => {
-    expect(areaOf('projects')).toBe('account');
-    expect(areaOf('projects/:projectId')).toBe('tracker');
-    expect(areaOf('me')).toBe('account');
+  it('자리마다 바닥의 띠를 내려 준다', () => {
+    expect(provides(routes, 'projects/:projectId', BOTTOM_NAV)).toBe(true);
+    expect(provides(routes, 'admin', BOTTOM_NAV)).toBe(true);
   });
 });
 
-function areaOf(path: string): unknown {
-  const route = routes.find((candidate) => candidate.path === path);
+function shellChildren(): readonly Route[] {
+  const shell = routes.find((route) => route.path === '' && route.children !== undefined);
+
+  expect(shell).toBeDefined();
+
+  return shell?.children ?? [];
+}
+
+function childOf(where: readonly Route[], parent: string, child: string): Route | undefined {
+  return where.find((route) => route.path === parent)?.children?.find((c) => c.path === child);
+}
+
+function provides(where: readonly Route[], path: string, token: unknown): boolean {
+  const route = where.find((candidate) => candidate.path === path);
 
   for (const provider of route?.providers ?? []) {
     if (typeof provider !== 'object' || provider === null) continue;
-    if (!('provide' in provider) || provider.provide !== SHELL_AREA) continue;
-
-    return 'useValue' in provider ? provider.useValue : undefined;
+    if ('provide' in provider && provider.provide === token) return true;
   }
 
-  return undefined;
-}
-
-function todoChildren(): readonly Route[] {
-  const shell = routes.find((route) => route.path === '');
-  const todo = shell?.children?.find((child) => child.path === 'todo');
-
-  expect(todo).toBeDefined();
-
-  return todo?.children ?? [];
+  return false;
 }

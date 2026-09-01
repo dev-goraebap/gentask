@@ -216,17 +216,51 @@
       }
     </div>
   }
+  <!--
+    좁은 화면의 관점 고르개. 바닥의 띠 바로 위에 붙고 그보다 얇다. 넓은 화면에서는 사이드바가 같은
+    것을 이미 보여 주므로 서지 않는다.
+  -->
+  @if (!composing()) {
+    <div class="bg-background sticky bottom-0 mt-auto md:hidden">
+      <button
+        hlmBtn
+        type="button"
+        size="icon"
+        class="absolute right-2 bottom-full mb-3 rounded-full shadow-lg"
+        aria-label="작업 추가"
+        (click)="startComposing()"
+      >
+        <app-icon name="hgiPlus" size="md" />
+      </button>
+
+      <nav class="border-border flex items-stretch border-t" aria-label="관점">
+        @for (option of views; track option.value) {
+          <a
+            [routerLink]="routes.taskList(option.value)"
+            routerLinkActive="text-foreground font-medium"
+            [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }"
+            class="text-foreground-secondary min-w-0 flex-1 truncate px-1 py-2 text-center text-[0.6875rem] leading-tight"
+          >
+            {{ option.label }}
+          </a>
+        }
+      </nav>
+    </div>
+  }
+
   <form
     novalidate
     [formRoot]="addForm"
     (submit)="$event.preventDefault()"
     class="bg-background sticky bottom-0 mt-auto pt-4 pb-[calc(--spacing(6)+env(safe-area-inset-bottom))]"
+    [class.max-md:hidden]="!composing()"
   >
     <!-- 적는 자리와 붙이는 자리를 좌우로 둔다. 아래에 두면 상자가 두 줄이 되어 목록을 밀어낸다. -->
     <div class="border-border bg-card flex items-center gap-1 border pr-1.5">
       <div hlmField class="min-w-0 flex-1">
         <label hlmFieldLabel for="new-task-title" class="sr-only">작업</label>
         <input
+          #addInput
           hlmInput
           id="new-task-title"
           class="h-11 border-0 bg-transparent px-3 shadow-none focus-visible:ring-0 dark:bg-transparent"
@@ -235,6 +269,7 @@
           autocomplete="off"
           enterkeyhint="done"
           (keydown)="addOnEnter($event)"
+          (blur)="stopComposingIfEmpty()"
         />
       </div>
 

@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { toDateKey, type Task } from '@/entities/task';
-import { TaskService } from '../api/task-service';
+import { TaskService } from '@/entities/task';
 import { AsideSlotService } from '@/shared/lib';
 import { provideTaskListDatePicker } from '../providers';
 import { TaskListPage } from './task-list-page';

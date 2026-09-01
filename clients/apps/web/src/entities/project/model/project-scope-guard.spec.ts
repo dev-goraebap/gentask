@@ -26,17 +26,18 @@ describe('projectScopeGuard', () => {
 
   /*
    * 기본 프로젝트로 몰래 바꾸지 않는다. 그러면 주소는 없는 것을 가리키는데 보이는 것은 다른
-   * 프로젝트가 되어, 그 주소를 건네받은 사람이 서로 다른 것을 본다.
+   * 프로젝트가 되어, 그 주소를 건네받은 사람이 서로 다른 것을 본다. 홈에 목록이 있으므로 거기서
+   * 고르게 한다.
    */
-  it('없는 프로젝트를 가리키면 프로젝트들로 보낸다', () => {
+  it('없는 프로젝트를 가리키면 홈으로 보낸다', () => {
     const projectService = TestBed.inject(ProjectService);
 
-    expect(String(run('없는것'))).toBe('/projects');
+    expect(String(run('없는것'))).toBe('/');
     expect(projectService.current().id).toBe('gentask');
   });
 
-  it('프로젝트를 가리키지 않아도 프로젝트들로 보낸다', () => {
-    expect(String(run(null))).toBe('/projects');
+  it('프로젝트를 가리키지 않아도 홈으로 보낸다', () => {
+    expect(String(run(null))).toBe('/');
   });
 });
 

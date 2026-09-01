@@ -10,12 +10,50 @@ export interface NavItem {
 /**
  * 작업 밖의 자리들.
  *
- * <p>넓은 화면의 사이드바와 좁은 화면의 목록들이 함께 쓴다. 두 곳에 각각 적으면 하나를 더할 때
+ * <p>넓은 화면의 사이드바와 좁은 화면의 더보기가 함께 쓴다. 두 곳에 각각 적으면 하나를 더할 때
  * 한쪽만 늘어난다.
  */
 export const MORE_NAV_ITEMS: readonly NavItem[] = [
   { label: '팻 관리', icon: 'hgiCat', link: ROUTES.pets() },
   { label: '뽀모도로', icon: 'hgiTimer', link: ROUTES.pomodoro() },
+];
+
+/**
+ * 좁은 화면의 더보기가 여는 것들.
+ *
+ * <p>바닥의 띠에는 자주 오가는 셋만 두고 나머지가 이 자리로 온다. 계정이 여기 있는 것은 그것이
+ * 모드에 매이지 않기 때문이며, 띠에 넣으면 모드마다 한 칸을 그것에 내주게 된다.
+ */
+export const MORE_SHEET_ITEMS: readonly NavItem[] = [
+  ...MORE_NAV_ITEMS,
+  { label: '계정', icon: 'hgiUser', link: ROUTES.account() },
+];
+
+/**
+ * 좁은 화면 바닥의 띠.
+ *
+ * <p>자리마다 담기는 것이 다르고 마지막 칸은 언제나 더보기다. 그 칸은 주소를 갖지 않으므로 여기에
+ * 담기지 않는다 — 띠를 그리는 쪽이 붙인다.
+ *
+ * <p>넷을 넘기지 않는다. 좁은 화면에서 다섯 칸이 되면 글자가 접히거나 잘린다.
+ */
+export const TODO_BOTTOM_NAV: readonly NavItem[] = [
+  { label: '홈', icon: 'hgiHome', link: ROUTES.home() },
+  { label: '할 일', icon: 'hgiTask', link: ROUTES.taskList('my-day') },
+  { label: '메모', icon: 'hgiNote', link: ROUTES.memos() },
+];
+
+export function trackerBottomNav(projectId: string): readonly NavItem[] {
+  return [
+    { label: '홈', icon: 'hgiHome', link: ROUTES.home() },
+    { label: '작업 아이템', icon: 'hgiLayers', link: ROUTES.issues(projectId) },
+    { label: '문서', icon: 'hgiBook', link: ROUTES.docs(projectId) },
+  ];
+}
+
+export const ADMIN_BOTTOM_NAV: readonly NavItem[] = [
+  { label: '사용자', icon: 'hgiUsers', link: ROUTES.adminUsers() },
+  { label: '알림 문제', icon: 'hgiNotificationOff', link: ROUTES.adminNotifications() },
 ];
 
 /**

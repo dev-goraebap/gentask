@@ -23,7 +23,6 @@ export const ROUTES = {
    * 트래커의 자리는 전부 프로젝트 아래에 있다. 프로젝트를 기본으로 하나 주므로 그 하나만 쓰는
    * 사람에게도 주소에 프로젝트가 드러나고, 둘째가 생겨도 주소의 모양이 바뀌지 않는다.
    */
-  projects: () => '/projects',
   project: (projectId: string) => `/projects/${projectId}`,
   issues: (projectId: string) => `/projects/${projectId}/issues`,
   issue: (projectId: string, id: string) => `/projects/${projectId}/issues/${id}`,

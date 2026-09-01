@@ -13,6 +13,7 @@ import { AsideSlotService } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon, type IconName } from '@/shared/ui/icon';
 import { ThemeToggle } from '@/shared/ui/theme-toggle';
+import { BottomNav } from './bottom-nav';
 import { NavigationVeil } from './navigation-veil';
 import { NAV_GROUPS, SHELL_AREA, SIDEBAR_LEAD } from './nav-items';
 import { SidebarService } from './sidebar-service';
@@ -36,6 +37,7 @@ interface Crossing {
     HlmButton,
     ThemeToggle,
     NavigationVeil,
+    BottomNav,
     UserAvatar,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,8 +80,7 @@ export class AppShell {
   /** 사이드바의 마크를 누르면 가는 자리. 그 자리의 첫 화면이다. */
   protected readonly areaHome = computed(() => {
     if (this.area === 'admin') return ROUTES.adminUsers();
-    if (this.area === 'tracker') return ROUTES.projects();
-    if (this.area === 'account') return ROUTES.projects();
+    if (this.area === 'tracker') return ROUTES.home();
     return ROUTES.home();
   });
 
@@ -94,10 +95,10 @@ export class AppShell {
       return { label: '사용자 페이지', icon: 'hgiTask', link: ROUTES.todo() };
     }
     // 계정은 건너가는 모드가 아니라 들렀다 돌아오는 자리다. 나가는 길만 둔다.
-    if (this.area === 'tracker' || this.area === 'account') {
+    if (this.area === 'tracker') {
       return { label: '할 일', icon: 'hgiTask', link: ROUTES.todo() };
     }
-    return { label: '프로젝트', icon: 'hgiLayers', link: ROUTES.projects() };
+    return { label: '프로젝트', icon: 'hgiLayers', link: ROUTES.home() };
   });
 
   /** 관리 자리로 건너가는 단추. 관리자에게만 선다. */

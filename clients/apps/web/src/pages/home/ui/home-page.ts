@@ -2,27 +2,29 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { form, FormField, FormRoot } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { ProjectService } from '@/entities/project';
+import { isCompleted, isInMyDay, TaskService, toDateKey } from '@/entities/task';
 import { ROUTES } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
-import { AppPageBack } from '@/shared/ui/page-back';
+import { Veil } from '@/shared/ui/veil';
+
+/** 홈에 늘어놓는 오늘 할 일의 수. 넘는 것은 세어서만 알린다. */
+const SHOWN = 5;
 
 /**
- * 프로젝트들.
+ * 홈.
  *
- * <p>계정 자리에 선다. 프로젝트는 모드가 아니라 계정에 매이므로 투두에도 트래커에도 속하지 않는다.
+ * <p>처음 닿는 자리다. 오늘 할 일과 프로젝트를 함께 보여 준다 — 이 제품이 다루는 둘이 그것이고,
+ * 어느 쪽으로 갈지는 여기서 갈린다.
  *
- * <p>넓은 화면에서도 이 자리에 머무른다. 사이드바의 고르개는 들어갈 프로젝트를 고르는 것이고,
- * 여기는 프로젝트 자체를 다루는 자리라 하는 일이 다르다.
- *
- * <p>좁은 화면에서는 트래커로 들어가는 첫 단계이기도 하다. 고른 프로젝트의 메뉴로 들어가고, 거기서
- * 목록을, 목록에서 상세로 들어간다.
+ * <p>프로젝트 목록을 따로 두지 않는다. 목록만 있는 화면을 하나 더 두면 홈에서 한 번 보고 그 화면에서
+ * 또 보게 되며, 프로젝트가 하나뿐인 사람은 볼 일 없는 자리를 지난다.
  */
 @Component({
-  selector: 'app-project-list',
-  imports: [AppPageBack, 
+  selector: 'app-home',
+  imports: [
     RouterLink,
     FormRoot,
     FormField,
@@ -31,15 +33,21 @@ import { AppPageBack } from '@/shared/ui/page-back';
     HlmFieldLabel,
     HlmInput,
     AppIcon,
+    Veil,
   ],
-  host: { class: 'flex min-h-0 flex-1 flex-col overflow-y-auto' },
+  host: { class: 'flex min-h-0 flex-1 flex-col' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './project-list-page.html',
+  templateUrl: './home-page.html',
 })
-export class ProjectListPage {
+export class HomePage {
+  // --- 상수 --------------------------------------------------------------------------------------
+  protected readonly routes = ROUTES;
+  private readonly today = toDateKey(new Date());
+
   // --- 의존 --------------------------------------------------------------------------------------
   private readonly router = inject(Router);
   private readonly projectService = inject(ProjectService);
+  private readonly taskService = inject(TaskService);
 
   // --- 상태 --------------------------------------------------------------------------------------
   protected readonly creating = signal(false);
@@ -48,8 +56,17 @@ export class ProjectListPage {
 
   // --- 파생 --------------------------------------------------------------------------------------
   protected readonly projects = this.projectService.list;
-  protected readonly routes = ROUTES;
   protected readonly creatable = computed(() => this.draft().name.trim().length > 0);
+
+  protected readonly tasksLoading = computed(() => this.taskService.status() === 'loading');
+  protected readonly tasksFailed = computed(() => this.taskService.status() === 'error');
+
+  private readonly openMyDay = computed(() =>
+    this.taskService.list().filter((task) => isInMyDay(task, this.today) && !isCompleted(task)),
+  );
+
+  protected readonly myDay = computed(() => this.openMyDay().slice(0, SHOWN));
+  protected readonly remaining = computed(() => Math.max(0, this.openMyDay().length - SHOWN));
 
   // --- 동작 --------------------------------------------------------------------------------------
   protected startCreating(): void {
@@ -70,7 +87,7 @@ export class ProjectListPage {
     this.cancelCreating();
 
     // 세운 것으로 곧장 들어간다. 세우고 나서 다시 고르게 하면 방금 한 일을 한 번 더 시킨다.
-    void this.router.navigateByUrl(ROUTES.project(id));
+    void this.router.navigateByUrl(ROUTES.issues(id));
   }
 
   protected createOnEnter(event: KeyboardEvent): void {
