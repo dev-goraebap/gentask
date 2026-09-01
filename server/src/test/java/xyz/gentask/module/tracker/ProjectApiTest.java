@@ -1,6 +1,7 @@
 package xyz.gentask.module.tracker;
 
 import static java.util.Objects.requireNonNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -78,6 +79,18 @@ class ProjectApiTest {
                 .andExpect(jsonPath("$.key").value("GE3"));
     }
 
+    /*
+     * 접두어가 주소에 그대로 들어가므로 영문과 숫자만 담는다. 한글로만 지은 이름은 남는 것이 없어
+     * P 를 받고, 겹치면 P2 로 이어진다. 이름과 이어지지 않는 것이 그 대가다.
+     */
+    @Test
+    @DisplayName("TG-042 #7: 이름에 영문과 숫자가 없으면 영문 접두어를 대신 붙인다")
+    void 한글_이름은_영문_접두어를_받는다() throws Exception {
+        // 가입 때 선 기본 프로젝트가 이미 P 를 갖고 있다. 그 뒤로 이어진다.
+        assertThat(프로젝트를_세운다("내 프로젝트")).isEqualTo("P2");
+        assertThat(프로젝트를_세운다("우리 프로젝트")).isEqualTo("P3");
+    }
+
     @Test
     @DisplayName("접두어는 사용자 안에서만 유일하다")
     void 접두어는_사용자_안에서만_유일하다() throws Exception {
@@ -105,7 +118,7 @@ class ProjectApiTest {
     @Test
     @DisplayName("TG-042 #5: 목록을 열면 그 사용자의 프로젝트만 온다")
     void 목록은_그_사용자의_프로젝트만_낸다() throws Exception {
-        프로젝트를_세운다("내 것");
+        프로젝트를_세운다("Mine");
 
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
@@ -117,7 +130,7 @@ class ProjectApiTest {
     @Test
     @DisplayName("TG-042 #6: 사용자의 것이 아닌 프로젝트는 없는 것으로 낸다")
     void 남의_프로젝트는_없는_것으로_낸다() throws Exception {
-        String mine = 프로젝트를_세운다("내 것");
+        String mine = 프로젝트를_세운다("Mine");
 
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
