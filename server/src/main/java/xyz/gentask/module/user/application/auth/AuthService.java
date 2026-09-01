@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import xyz.gentask.module.tracker.Projects;
 import xyz.gentask.module.user.application.AdminProperties;
 import xyz.gentask.module.user.application.PasswordHasher;
 import xyz.gentask.module.user.application.TokenGenerator;
@@ -29,6 +30,9 @@ public class AuthService {
 
     public record IssuedSession(String token, Instant expiresAt) {}
 
+    /** 계정을 만들 때 함께 세우는 프로젝트의 이름. 사용자가 뒤에 바꿀 수 있다. */
+    private static final String DEFAULT_PROJECT_NAME = "내 프로젝트";
+
     // --- 의존 --------------------------------------------------------------------------------------------------------
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
@@ -40,6 +44,7 @@ public class AuthService {
     private final TokenGenerator tokenGenerator;
     private final AuthProperties properties;
     private final AdminProperties adminProperties;
+    private final Projects projects;
     private final Clock clock;
 
     private final String timingEqualizerHash;
@@ -57,6 +62,7 @@ public class AuthService {
             TokenGenerator tokenGenerator,
             AuthProperties properties,
             AdminProperties adminProperties,
+            Projects projects,
             Clock clock) {
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
@@ -68,6 +74,7 @@ public class AuthService {
         this.tokenGenerator = tokenGenerator;
         this.properties = properties;
         this.adminProperties = adminProperties;
+        this.projects = projects;
         this.clock = clock;
         this.timingEqualizerHash = passwordHasher.hash("timing-equalizer");
     }
@@ -118,6 +125,10 @@ public class AuthService {
         accountRepository.save(
                 Account.createCredential(UUID.randomUUID(), user.id(), email, stored.signupPasswordHash(), now));
         verificationCodes.consume(stored);
+
+        // 프로젝트가 하나도 없는 계정은 트래커의 어느 자리에도 들어가지 못한다. 처음 여는 사람이 빈
+        // 화면을 먼저 지나지 않게 여기서 하나를 세운다 (PRJ-001 A3).
+        projects.create(user.id(), DEFAULT_PROJECT_NAME);
 
         return issueSession(user.id(), now);
     }
