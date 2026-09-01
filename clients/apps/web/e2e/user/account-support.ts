@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { type Page, expect } from '@playwright/test';
 import { 받은_코드 } from '../fixtures';
 
-// 로그인 이전을 지나는 Story 셋(TG-003.01 · TG-003.05 · TG-003.06)이 함께 쓴다.
+// 로그인 이전을 지나는 Story 셋(TG-026 · TG-030 · TG-031)이 함께 쓴다.
 
 /** 워커의 세션을 쓰지 않는다. 이 Story 들은 로그인 화면을 직접 지나야 한다. */
 export const 로그인_전 = { storageState: { cookies: [], origins: [] } };

@@ -78,7 +78,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("TG-007.02 #1, #2: 시각이 지나면 켜 둔 기기로 작업 제목을 담아 보낸다")
+    @DisplayName("TG-034 #1, #2: 시각이 지나면 켜 둔 기기로 작업 제목을 담아 보낸다")
     void 시각이_지나면_제목을_담아_보낸다() throws Exception {
         Cookie session = 가입한다();
         구독한다(session, "https://push.example.com/" + UUID.randomUUID());
@@ -91,7 +91,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("TG-007.02 #3: 이미 보낸 미리 알림은 다시 보내지 않는다")
+    @DisplayName("TG-034 #3: 이미 보낸 미리 알림은 다시 보내지 않는다")
     void 이미_보낸_것은_다시_보내지_않는다() throws Exception {
         Cookie session = 가입한다();
         구독한다(session, "https://push.example.com/" + UUID.randomUUID());
@@ -105,7 +105,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("TG-007.02 #4: 자리가 더 이상 유효하지 않으면 그 자리를 거둔다")
+    @DisplayName("TG-034 #4: 자리가 더 이상 유효하지 않으면 그 자리를 거둔다")
     void 죽은_자리는_거둔다() throws Exception {
         Cookie session = 가입한다();
         String endpoint = "https://push.example.com/gone-" + UUID.randomUUID();
@@ -124,7 +124,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("TG-007.02 #5: 켜 둔 기기가 없으면 보내지 않고 넘어간다")
+    @DisplayName("TG-034 #5: 켜 둔 기기가 없으면 보내지 않고 넘어간다")
     void 켜_둔_기기가_없으면_넘어간다() throws Exception {
         Cookie session = 가입한다();
         작업을_만든다(session, "받을 사람 없음", 지난_시각());
@@ -135,7 +135,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("TG-008.02 #1: 발송이 실패하면 그 자리와 사유와 시각을 남긴다")
+    @DisplayName("TG-037 #1: 발송이 실패하면 그 자리와 사유와 시각을 남긴다")
     void 발송이_실패하면_기록을_남긴다() throws Exception {
         Cookie session = 가입한다();
         String endpoint = "https://push.example.com/failed-" + UUID.randomUUID();
@@ -154,7 +154,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("TG-008.02 #5: 자리가 사라졌다고 답하면 스스로 거두고 그 사실을 남긴다")
+    @DisplayName("TG-037 #5: 자리가 사라졌다고 답하면 스스로 거두고 그 사실을 남긴다")
     void 자리가_사라지면_거두고_남긴다() throws Exception {
         Cookie session = 가입한다();
         String endpoint = "https://push.example.com/gone-record-" + UUID.randomUUID();

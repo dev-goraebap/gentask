@@ -40,7 +40,7 @@ class PushApiTest {
     private RecordingMailSender mail;
 
     @Test
-    @DisplayName("TG-007.01 #1: 구독을 보내면 이 기기가 받을 자리로 등록된다")
+    @DisplayName("TG-033 #1: 구독을 보내면 이 기기가 받을 자리로 등록된다")
     void 구독을_보내면_받을_자리로_등록된다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "push-" + UUID.randomUUID() + "@example.com");
         String endpoint = "https://push.example.com/" + UUID.randomUUID();
@@ -53,7 +53,7 @@ class PushApiTest {
     }
 
     @Test
-    @DisplayName("TG-007.01 #4: 구독을 지우면 그 자리가 사라진다")
+    @DisplayName("TG-033 #4: 구독을 지우면 그 자리가 사라진다")
     void 구독을_지우면_그_자리가_사라진다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "push-" + UUID.randomUUID() + "@example.com");
         String endpoint = "https://push.example.com/" + UUID.randomUUID();
@@ -71,7 +71,7 @@ class PushApiTest {
     }
 
     @Test
-    @DisplayName("TG-007.01 #5: 다른 기기에서 켜면 앞의 기기와 나란히 등록된다")
+    @DisplayName("TG-033 #5: 다른 기기에서 켜면 앞의 기기와 나란히 등록된다")
     void 다른_기기에서_켜면_나란히_등록된다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "push-" + UUID.randomUUID() + "@example.com");
         String first = "https://push.example.com/" + UUID.randomUUID();

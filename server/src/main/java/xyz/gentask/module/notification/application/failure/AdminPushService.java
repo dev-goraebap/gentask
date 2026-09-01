@@ -17,7 +17,7 @@ import xyz.gentask.module.notification.domain.subscription.PushSubscriptionRepos
 import xyz.gentask.module.user.UserBrief;
 import xyz.gentask.module.user.Users;
 
-/** 관리자가 알림이 닿지 않은 자리를 보고 정리한다. TG-008.02. */
+/** 관리자가 알림이 닿지 않은 자리를 보고 정리한다. TG-037. */
 @Service
 @RequiredArgsConstructor
 public class AdminPushService {

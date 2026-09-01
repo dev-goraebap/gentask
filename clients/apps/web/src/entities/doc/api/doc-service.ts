@@ -187,7 +187,7 @@ const DOCS: readonly Doc[] = [
       },
     ],
     attachments: [],
-    linkedIssues: [{ id: 'TG-007.01', title: '이 기기로 알림 받기' }],
+    linkedIssues: [{ id: 'TG-033', title: '이 기기로 알림 받기' }],
   },
 ];
 

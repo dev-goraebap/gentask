@@ -9,7 +9,8 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..');
-const KEY = /(TG-\d{3}(?:\.\d{2})?)((?:\s+#\d+)(?:,\s*#\d+)*)/g;
+// 번호는 평평하다. 계층은 프런트매터의 parent_task_id 가 갖는다 (결정-0007).
+const KEY = /(TG-\d{3})((?:\s+#\d+)(?:,\s*#\d+)*)/g;
 
 const SOURCES = [
   ['E2E', join(ROOT, 'clients', 'apps', 'web', 'e2e'), (n) => n.endsWith('.spec.ts')],

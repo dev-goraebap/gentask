@@ -16,7 +16,7 @@ type: story
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-TG-003.04 의 토큰을 로컬 에이전트의 MCP 설정에 두고 여덟 도구로 작업을 다루는 것까지다. 후보 액터였던 로컬 에이전트를 주 액터로 올리는 자리이며 서술서는 AGT-001 이다. 서버에는 더할 것이 없고 MCP 서버가 기존 작업 API 와 Bearer 인증의 소비자다.
+TG-029 의 토큰을 로컬 에이전트의 MCP 설정에 두고 여덟 도구로 작업을 다루는 것까지다. 후보 액터였던 로컬 에이전트를 주 액터로 올리는 자리이며 서술서는 AGT-001 이다. 서버에는 더할 것이 없고 MCP 서버가 기존 작업 API 와 Bearer 인증의 소비자다.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

@@ -11,5 +11,5 @@ dependencies: []
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-TSK-001 의 대체 흐름이다. 상세에서 붙이는 TG-004.01 이 먼저다.
+TSK-001 의 대체 흐름이다. 상세에서 붙이는 TG-032 이 먼저다.
 <!-- SECTION:DESCRIPTION:END -->

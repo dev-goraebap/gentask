@@ -40,7 +40,7 @@ const SEED: readonly Issue[] = [
     attachmentNames: [],
   },
   {
-    id: 'TG-007.01',
+    id: 'TG-033',
     kind: ISSUE_KINDS.story,
     title: '이 기기로 알림 받기',
     state: ISSUE_STATES.started,
@@ -81,7 +81,7 @@ const SEED: readonly Issue[] = [
     attachmentNames: ['허용-거절-화면.png'],
   },
   {
-    id: 'TG-007.03',
+    id: 'TG-035',
     kind: ISSUE_KINDS.story,
     title: '홈 화면에 설치하기',
     state: ISSUE_STATES.unstarted,
@@ -142,7 +142,7 @@ const SEED: readonly Issue[] = [
     attachmentNames: [],
   },
   {
-    id: 'TG-012.01',
+    id: 'TG-041',
     kind: ISSUE_KINDS.story,
     title: '프로젝트를 골라 그 안의 작업 아이템만 보기',
     state: ISSUE_STATES.unstarted,
@@ -163,7 +163,7 @@ const SEED: readonly Issue[] = [
     attachmentNames: [],
   },
   {
-    id: 'TG-012.02',
+    id: 'TG-042',
     kind: ISSUE_KINDS.story,
     title: '문서를 폴더로 묶어 보기',
     state: ISSUE_STATES.backlog,
@@ -218,7 +218,7 @@ const SEED: readonly Issue[] = [
     attachmentNames: [],
   },
   {
-    id: 'TG-015',
+    id: 'TG-043',
     kind: ISSUE_KINDS.bug,
     title: '가상 키보드가 올라오면 적는 자리를 덮는다',
     state: ISSUE_STATES.unstarted,

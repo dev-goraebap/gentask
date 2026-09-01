@@ -90,25 +90,25 @@ describe('toggleFilter', () => {
 
 describe('orderByHierarchy', () => {
   it('부모 아래에 자식을 붙입니다', () => {
-    const issues = [summary('TG-002.01', 'TG-002'), summary('TG-001'), summary('TG-002')];
+    const issues = [summary('TG-014', 'TG-002'), summary('TG-001'), summary('TG-002')];
 
     expect(orderByHierarchy(issues).map((issue) => issue.id)).toEqual([
       'TG-001',
       'TG-002',
-      'TG-002.01',
+      'TG-014',
     ]);
   });
 
   it('부모가 걸러져 없으면 자식이 뿌리로 올라옵니다', () => {
-    const issues = [summary('TG-002.01', 'TG-002'), summary('TG-001')];
+    const issues = [summary('TG-014', 'TG-002'), summary('TG-001')];
 
-    expect(orderByHierarchy(issues).map((issue) => issue.id)).toEqual(['TG-001', 'TG-002.01']);
+    expect(orderByHierarchy(issues).map((issue) => issue.id)).toEqual(['TG-001', 'TG-014']);
   });
 });
 
 describe('isNested', () => {
   it('부모가 같은 목록에 있을 때만 들여씁니다', () => {
-    const child = summary('TG-002.01', 'TG-002');
+    const child = summary('TG-014', 'TG-002');
     const parent = summary('TG-002');
 
     expect(isNested(child, [parent, child])).toBe(true);
