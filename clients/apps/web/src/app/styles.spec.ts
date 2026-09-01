@@ -118,7 +118,19 @@ function splitArgs(inner: string): string[] {
   return parts.map((p) => p.trim());
 }
 
+/**
+ * 바탕 가운데는 반투명이다. 그 위의 글자가 실제로 어떤 대비를 갖는지는 뒤에 깔린 것과 합쳐 봐야
+ * 알 수 있으므로, 섞은 비율을 알파로 읽어 둔다.
+ */
+const MIX = /^color-mix\(\s*in srgb\s*,\s*(.+?)\s+([\d.]+)%\s*,\s*transparent\s*\)$/s;
+
 function parseColor(value: string): Rgb {
+  const mixed = MIX.exec(value);
+  if (mixed) {
+    const base = parseColor(mixed[1].trim());
+    return { ...base, a: base.a * (Number(mixed[2]) / 100) };
+  }
+
   const oklch = /^oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+)(%?))?\s*\)$/.exec(
     value,
   );
@@ -176,6 +188,17 @@ const UI_PAIRS: Array<[front: string, back: string]> = [
   ['input', 'card'],
   ['ring', 'background'],
   ['ring', 'card'],
+];
+
+/**
+ * 반투명한 바탕 위의 글자.
+ *
+ * <p>사이드바와 바닥의 띠가 앉는 자리다. 띠의 글자는 11px 까지 작아지므로 작은 글자의 기준을 쓴다.
+ * 바탕이 비치므로 뒤에 깔린 것과 합친 뒤에 잰다.
+ */
+const TEXT_ON_TRANSLUCENT: Array<[front: string, surface: string, under: string]> = [
+  ['foreground', 'toolbar', 'background'],
+  ['foreground-secondary', 'toolbar', 'background'],
 ];
 
 const REQUIRED_PAIRS: Array<[surface: string, ink: string]> = [
@@ -240,6 +263,15 @@ describe('디자인 토큰', () => {
         const ratio = contrast(resolve(tokens, front, mode), resolve(tokens, back, mode));
         expect(ratio, `실측 ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
       });
+
+      it.each(TEXT_ON_TRANSLUCENT)(
+        '%s 는 %s 를 %s 위에 깐 자리에서 4.5:1 이상입니다',
+        (front, surface, under) => {
+          const back = composite(resolve(tokens, surface, mode), resolve(tokens, under, mode));
+          const ratio = contrast(resolve(tokens, front, mode), back);
+          expect(ratio, `실측 ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+        },
+      );
 
       it.each(UI_PAIRS)('%s 는 %s 위에서 3:1 이상입니다', (front, back) => {
         const ratio = contrast(resolve(tokens, front, mode), resolve(tokens, back, mode));

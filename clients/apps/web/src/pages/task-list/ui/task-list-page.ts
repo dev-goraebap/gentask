@@ -11,6 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { form, FormField, FormRoot } from '@angular/forms/signals';
+import { DOCUMENT } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { AsideOutlet } from '@/shared/lib';
@@ -109,10 +110,12 @@ export class TaskListPage {
   // --- 의존 --------------------------------------------------------------------------------------
   protected readonly taskService = inject(TaskService);
   private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
 
   // --- 질의 --------------------------------------------------------------------------------------
   protected readonly veil = viewChild.required(Veil);
   private readonly addInput = viewChild<ElementRef<HTMLInputElement>>('addInput');
+  private readonly addFormEl = viewChild<ElementRef<HTMLFormElement>>('addFormEl');
 
   // --- 상태 --------------------------------------------------------------------------------------
   /**
@@ -313,10 +316,26 @@ export class TaskListPage {
     this.composing.set(true);
   }
 
-  /** 적은 것이 없으면 접는다. 비운 채로 남겨 두면 접는 단추를 따로 찾아야 한다. */
+  /**
+   * 적은 것이 없이 자리를 뜨면 접는다. 비운 채로 남겨 두면 접는 단추를 따로 찾아야 한다.
+   *
+   * <p>초점을 잃는 그 순간에 접으면 <b>제 안의 단추를 삼킨다.</b> 기한과 미리 알림은 이 폼 안에
+   * 있어서, 제목을 적기 전에 그것을 누르면 초점이 옮겨 가는 사이에 폼이 사라져 누르려던 것이
+   * 없어진다. 초점이 어디에 앉았는지 본 뒤에 판단한다.
+   *
+   * <p>덮개도 함께 본다. 데이트피커는 오버레이로 뜨므로 그 안에 앉은 초점은 폼 밖에 있다.
+   */
   protected stopComposingIfEmpty(): void {
     if (isAddableTitle(this.draft().title)) return;
-    this.composing.set(false);
+
+    setTimeout(() => {
+      const active = this.document.activeElement;
+      const inForm = this.addFormEl()?.nativeElement.contains(active) ?? false;
+      const inOverlay = active?.closest('.cdk-overlay-container') !== null;
+
+      if (inForm || inOverlay) return;
+      this.composing.set(false);
+    });
   }
 
   protected addOnEnter(event: KeyboardEvent): void {

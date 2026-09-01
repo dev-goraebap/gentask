@@ -49,6 +49,22 @@ describe('app.routes 의 첫 자리', () => {
   });
 
   /*
+   * `/projects/<id>` 를 잡을 자리가 껍데기보다 먼저 서야 한다. 뒤에 서면 껍데기가 그 주소를 먼저
+   * 잡고 자식인 `projects` 에서 실패해 라우터의 되짚기에 기대게 된다. 되짚기가 도는 동안은 터지지
+   * 않으므로, 검사가 없으면 순서를 되돌려도 아무도 모른다.
+   */
+  it('프로젝트 하나의 자리가 껍데기보다 먼저 선다', () => {
+    const one = routes.findIndex((route) => route.path === 'projects/:projectId');
+    const shell = routes.findIndex(
+      (route) => route.path === '' && route.children !== undefined,
+    );
+
+    expect(one).toBeGreaterThanOrEqual(0);
+    expect(shell).toBeGreaterThanOrEqual(0);
+    expect(one).toBeLessThan(shell);
+  });
+
+  /*
    * 바닥의 띠는 자리마다 담기는 것이 다르므로 라우트가 내려 준다. 내려 주지 않으면 그 자리가
    * 투두의 것을 그대로 쓰게 되는데, 터지지 않으므로 눈으로만 드러난다.
    */

@@ -43,10 +43,9 @@ export class AppIcon {
   });
 }
 
-export type IconSize = 'sm' | 'md' | 'lg';
+export type IconSize = 'md' | 'lg';
 
 const SIZES: Record<IconSize, string> = {
-  sm: 'text-[length:--spacing(4)]',
   md: 'text-[length:--spacing(5)]',
   lg: 'text-[length:--spacing(6)]',
 };

@@ -1,6 +1,7 @@
 export { AsideOutlet } from './aside/aside-outlet';
 export { AsideSlotService } from './aside/aside-slot-service';
 export { injectViewportClass } from './adaptive/viewport-class';
+export { EXACT_LINK } from './routing/active-link';
 export {
   injectRoutedOverlay,
   type RoutedOverlay,

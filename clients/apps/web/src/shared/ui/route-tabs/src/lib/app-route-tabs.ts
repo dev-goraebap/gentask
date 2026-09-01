@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { EXACT_LINK } from '@/shared/lib';
 
 /** 탭 하나. */
 export interface RouteTab {
@@ -46,13 +47,7 @@ export class AppRouteTabs {
   readonly label = input('관점');
 
   // --- 상수 --------------------------------------------------------------------------------------
-  /** 앞자리만 맞아도 켜면 여러 탭이 함께 켜진다. */
-  protected readonly EXACT = {
-    paths: 'exact',
-    queryParams: 'ignored',
-    fragment: 'ignored',
-    matrixParams: 'ignored',
-  } as const;
+  protected readonly EXACT = EXACT_LINK;
 
   protected readonly LIST =
     'bg-muted text-muted-foreground inline-flex h-9 w-full items-center justify-center rounded-lg p-[3px]';

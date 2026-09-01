@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MORE_SHEET_ITEMS } from '@/shared/config';
+import { EXACT_LINK } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmPopoverImports } from '@/shared/ui/popover';
@@ -23,6 +24,9 @@ import { BOTTOM_NAV } from './nav-items';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'bg-toolbar border-border shrink-0 border-t pb-[env(safe-area-inset-bottom)] md:hidden',
+    // 사이드바와 같이 건너뛸 수 있는 자리여야 한다. 좁은 화면에서 이것이 유일한 메뉴다.
+    role: 'navigation',
+    'aria-label': '자리 이동',
     // 담길 것이 없으면 띠 자체가 서지 않는다. 테두리만 남으면 빈 줄 하나가 화면 아래에 붙는다.
     '[class.hidden]': 'items() === null',
   },
@@ -30,13 +34,7 @@ import { BOTTOM_NAV } from './nav-items';
 })
 export class BottomNav {
   // --- 상수 --------------------------------------------------------------------------------------
-  /** 지금 자리를 정확히 가리키는 칸만 켠다. 앞자리만 맞아도 켜면 여러 칸이 함께 켜진다. */
-  protected readonly exact = {
-    paths: 'exact',
-    queryParams: 'ignored',
-    fragment: 'ignored',
-    matrixParams: 'ignored',
-  } as const;
+  protected readonly exact = EXACT_LINK;
 
   // --- 의존 --------------------------------------------------------------------------------------
   protected readonly items = inject(BOTTOM_NAV);

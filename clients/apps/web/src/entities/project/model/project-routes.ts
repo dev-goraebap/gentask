@@ -10,7 +10,6 @@ import { ProjectService } from '../api/project-service';
  * 한 번만 읽습니다.
  */
 export interface ProjectRoutes {
-  home(): string;
   issues(): string;
   issue(id: string): string;
   docs(): string;
@@ -25,7 +24,6 @@ export function injectProjectRoutes(): Signal<ProjectRoutes> {
     const projectId = projectService.current().id;
 
     return {
-      home: () => ROUTES.project(projectId),
       issues: () => ROUTES.issues(projectId),
       issue: (id: string) => ROUTES.issue(projectId, id),
       docs: () => ROUTES.docs(projectId),

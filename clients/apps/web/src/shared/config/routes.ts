@@ -35,7 +35,6 @@ export const ROUTES = {
   signup: () => '/signup',
   passwordReset: () => '/password-reset',
 
-  admin: () => '/admin',
   adminUsers: () => '/admin/users',
   adminNotifications: () => '/admin/notifications',
 } as const;
