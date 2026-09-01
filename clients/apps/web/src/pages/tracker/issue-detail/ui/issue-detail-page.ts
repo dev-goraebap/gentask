@@ -9,7 +9,7 @@ import {
   IssueStateChip,
   type IssueState,
 } from '@/entities/issue';
-import { ROUTES } from '@/shared/config';
+import { injectProjectRoutes } from '@/entities/project';
 import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { AppIcon } from '@/shared/ui/icon';
@@ -32,7 +32,7 @@ import { HlmPopoverImports } from '@/shared/ui/popover';
 })
 export class IssueDetailPage {
   // --- 상수 --------------------------------------------------------------------------------------
-  protected readonly routes = ROUTES;
+  protected readonly routes = injectProjectRoutes();
   protected readonly stateFaces = ISSUE_STATE_FACES;
 
   // --- 계약 --------------------------------------------------------------------------------------

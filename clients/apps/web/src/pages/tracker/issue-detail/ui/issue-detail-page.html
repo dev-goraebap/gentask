@@ -2,14 +2,14 @@
   <section class="mx-auto grid w-full max-w-(--content-max) flex-1 gap-8 px-4 pt-8 md:pt-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
     <div class="min-w-0">
       <p class="text-foreground-secondary flex flex-wrap items-center gap-x-1.5 text-xs">
-        <a [routerLink]="routes.issues()" class="inline-flex items-center gap-1 underline-offset-4 hover:underline">
+        <a [routerLink]="routes().issues()" class="inline-flex items-center gap-1 underline-offset-4 hover:underline">
           <app-icon name="hgiArrowLeft" class="text-[length:--spacing(3)]" />
           백로그
         </a>
         @if (parent(); as parent) {
           <span aria-hidden="true">/</span>
           <span class="font-mono">{{ parent.id }}</span>
-          <a [routerLink]="routes.issue(parent.id)" class="underline-offset-4 hover:underline">
+          <a [routerLink]="routes().issue(parent.id)" class="underline-offset-4 hover:underline">
             {{ parent.title }}
           </a>
         }
@@ -71,7 +71,7 @@
           @for (docId of issue.linkedDocIds; track docId) {
             <div class="flex items-center gap-2">
               <app-icon name="hgiFile" class="text-foreground-secondary" />
-              <a [routerLink]="routes.doc(docId)" class="underline-offset-4 hover:underline">
+              <a [routerLink]="routes().doc(docId)" class="underline-offset-4 hover:underline">
                 {{ issue.linkedDocTitle ?? docId }}
               </a>
             </div>
@@ -136,7 +136,7 @@
         <h2 class="text-foreground-secondary mb-1.5 text-xs">부모</h2>
         @if (parent(); as parent) {
           <a
-            [routerLink]="routes.issue(parent.id)"
+            [routerLink]="routes().issue(parent.id)"
             class="flex min-w-0 items-center gap-2 text-sm underline-offset-4 hover:underline"
           >
             <app-issue-kind-badge [kind]="parent.kind" />
@@ -196,6 +196,6 @@
     title="그 작업 아이템을 찾지 못했습니다"
     description="지워졌거나 주소가 잘못되었습니다."
   >
-    <a hlmBtn variant="outline" size="sm" [routerLink]="routes.issues()">백로그로</a>
+    <a hlmBtn variant="outline" size="sm" [routerLink]="routes().issues()">백로그로</a>
   </app-empty-state>
 }

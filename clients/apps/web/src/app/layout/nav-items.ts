@@ -1,39 +1,41 @@
-import { InjectionToken, type Type } from '@angular/core';
+import { computed, InjectionToken, signal, type Signal, type Type } from '@angular/core';
 import { TASK_VIEWS } from '@/entities/task';
-import { MORE_NAV_ITEMS, type NavItem, ROUTES } from '@/shared/config';
+import {
+  MORE_NAV_ITEMS,
+  type NavGroup,
+  type NavItem,
+  ROUTES,
+  trackerNavGroups,
+} from '@/shared/config';
 
-export type { NavItem };
+export type { NavGroup, NavItem };
 
 /**
- * 메뉴의 묶음.
+ * 껍데기가 그리는 메뉴.
  *
- * <p>항목이 늘면서 무엇이 무엇과 한 갈래인지가 목록만으로는 드러나지 않는다. 라벨을 얹어 갈래를
- * 보이게 하고, 라벨이 없는 묶음은 이름 없이 항목만 그린다.
+ * <p>시그널인 이유는 트래커의 메뉴가 지금 프로젝트를 담기 때문입니다. 상수로 두면 프로젝트를 바꾼
+ * 뒤에도 메뉴가 앞 프로젝트를 가리킵니다.
  */
-export interface NavGroup {
-  readonly label?: string;
-  readonly items: readonly NavItem[];
-}
-
-export const NAV_GROUPS = new InjectionToken<readonly NavGroup[]>('NAV_GROUPS', {
-  factory: () => [
-    {
-      label: '할 일',
-      items: [
-        ...TASK_VIEWS.map((view) => ({
-          label: view.label,
-          icon: view.icon,
-          link: ROUTES.taskList(view.value),
-        })),
-        // 메모는 목록을 거른 것이 아니라 정리 전의 자리다. 같은 갈래에 두되 뒤에 붙인다.
-        { label: '메모', icon: 'hgiNote' as const, link: ROUTES.memos() },
-      ],
-    },
-    {
-      label: '더보기',
-      items: MORE_NAV_ITEMS,
-    },
-  ],
+export const NAV_GROUPS = new InjectionToken<Signal<readonly NavGroup[]>>('NAV_GROUPS', {
+  factory: () =>
+    signal<readonly NavGroup[]>([
+      {
+        label: '할 일',
+        items: [
+          ...TASK_VIEWS.map((view) => ({
+            label: view.label,
+            icon: view.icon,
+            link: ROUTES.taskList(view.value),
+          })),
+          // 메모는 목록을 거른 것이 아니라 정리 전의 자리다. 같은 갈래에 두되 뒤에 붙인다.
+          { label: '메모', icon: 'hgiNote' as const, link: ROUTES.memos() },
+        ],
+      },
+      {
+        label: '더보기',
+        items: MORE_NAV_ITEMS,
+      },
+    ]),
 });
 
 /**
@@ -59,7 +61,7 @@ export const SIDEBAR_LEAD = new InjectionToken<Type<unknown> | null>('SIDEBAR_LE
 });
 
 /** 관리 자리의 메뉴. 사용자 자리의 것과 겹치지 않아 갈래가 하나뿐이며 라벨을 두지 않는다. */
-export const ADMIN_NAV_GROUPS: readonly NavGroup[] = [
+const ADMIN_GROUPS: readonly NavGroup[] = [
   {
     items: [
       { label: '사용자 관리', icon: 'hgiUsers', link: ROUTES.adminUsers() },
@@ -68,17 +70,9 @@ export const ADMIN_NAV_GROUPS: readonly NavGroup[] = [
   },
 ];
 
-/** 트래커 자리의 메뉴. 다루는 것이 먼저 서고 다스리는 것이 라벨을 달고 뒤에 선다. */
-export const TRACKER_NAV_GROUPS: readonly NavGroup[] = [
-  {
-    // 라벨을 두지 않는다. 담긴 둘이 이 자리의 전부이므로 갈래를 이름으로 가를 것이 없다.
-    items: [
-      { label: '작업 아이템', icon: 'hgiLayers', link: ROUTES.issues() },
-      { label: '문서', icon: 'hgiBook', link: ROUTES.docs() },
-    ],
-  },
-  {
-    label: '관리',
-    items: [{ label: '프로젝트 설정', icon: 'hgiSettings', link: ROUTES.projectSettings() }],
-  },
-];
+export const ADMIN_NAV_GROUPS: Signal<readonly NavGroup[]> = signal(ADMIN_GROUPS);
+
+/** `computed` 로 감싸므로 프로젝트를 바꾸면 메뉴의 링크가 함께 따라온다. */
+export function trackerNavGroupsSignal(projectId: Signal<string>): Signal<readonly NavGroup[]> {
+  return computed(() => trackerNavGroups(projectId()));
+}

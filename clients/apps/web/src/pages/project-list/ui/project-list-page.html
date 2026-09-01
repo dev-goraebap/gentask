@@ -1,0 +1,41 @@
+<section class="flex flex-1 flex-col px-2 py-3">
+  <h1 class="px-2 py-1 text-2xl font-semibold tracking-tight">프로젝트</h1>
+
+  <ul class="mt-2 flex flex-col gap-1">
+    @for (project of projects(); track project.id) {
+      <li>
+        <a
+          [routerLink]="routes.project(project.id)"
+          class="text-foreground hover:bg-muted flex min-h-12 items-center gap-3 rounded-(--radius-nav) px-3"
+        >
+          <span class="bg-primary size-2.5 shrink-0" aria-hidden="true"></span>
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-base">{{ project.name }}</span>
+            <span class="text-foreground-secondary block text-xs">
+              작업 아이템 {{ project.issueCount }} · 문서 {{ project.docCount }}
+            </span>
+          </span>
+          <app-icon name="hgiArrowRight" class="text-foreground-secondary" />
+        </a>
+      </li>
+    }
+  </ul>
+
+  <!--
+    프로젝트를 세우는 것은 서버가 필요하다. 목으로 흉내 내면 세운 것이 사라지므로 자리만 알린다.
+  -->
+  <p class="text-foreground-secondary px-3 pt-5 text-sm">
+    프로젝트를 더 세우는 것은 아직 서버가 없어 열지 않았습니다.
+  </p>
+
+  <!-- 좁은 화면에는 사이드바가 없다. 그 아래에 있던 자리를 여기서 잇는다. -->
+  <div class="border-border mt-auto flex flex-col gap-1 border-t pt-2">
+    <a
+      [routerLink]="routes.tasks()"
+      class="text-foreground-secondary hover:bg-muted hover:text-foreground flex min-h-12 items-center gap-3 rounded-(--radius-nav) px-3"
+    >
+      <app-icon name="hgiTask" />
+      <span class="flex-1 text-sm">할 일</span>
+    </a>
+  </div>
+</section>

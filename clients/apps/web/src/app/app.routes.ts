@@ -1,7 +1,8 @@
+import { computed, inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { DocService } from '@/entities/doc/providers';
 import { IssueService } from '@/entities/issue/providers';
-import { ProjectPicker, ProjectService } from '@/entities/project/providers';
+import { ProjectPicker, projectScopeGuard, ProjectService } from '@/entities/project/providers';
 import { adminGuard, authGuard } from '@/entities/user/guard';
 import { AuthService, UserService } from '@/entities/user/providers';
 import { MemoService } from '@/pages/memo-list/providers';
@@ -12,7 +13,7 @@ import {
   NAV_GROUPS,
   SHELL_AREA,
   SIDEBAR_LEAD,
-  TRACKER_NAV_GROUPS,
+  trackerNavGroupsSignal,
 } from './layout/nav-items';
 
 export const routes: Routes = [
@@ -70,7 +71,7 @@ export const routes: Routes = [
   },
   {
     // 트래커 자리. 관리 자리와 같은 껍데기에 메뉴와 머리에 서는 것만 갈아 끼운다.
-    path: 'tracker',
+    path: 'projects',
     component: AppShell,
     canActivate: [authGuard],
     providers: [
@@ -79,45 +80,73 @@ export const routes: Routes = [
       ProjectService,
       IssueService,
       DocService,
-      { provide: NAV_GROUPS, useValue: TRACKER_NAV_GROUPS },
+      {
+        provide: NAV_GROUPS,
+        useFactory: () => {
+          const projectService = inject(ProjectService);
+          return trackerNavGroupsSignal(computed(() => projectService.current().id));
+        },
+      },
       { provide: SHELL_AREA, useValue: 'tracker' },
       { provide: SIDEBAR_LEAD, useValue: ProjectPicker },
     ],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'issues' },
+      // 좁은 화면의 첫 자리는 프로젝트들이다. 넓은 화면에서는 사이드바의 고르개가 그것을 이미
+      // 보여 주므로 그 화면이 스스로 지금 프로젝트로 옮긴다. 옮기는 판정에 화면 폭이 필요해
+      // 리다이렉트로 두지 않는다 — 서버는 폭을 모른다.
       {
-        path: 'issues',
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('@/pages/project-list').then((m) => m.ProjectListPage),
+      },
+      {
+        // 주소가 지금 프로젝트의 진실이다. 들어오는 자리에서 서비스를 맞춘다.
+        path: ':projectId',
+        canActivate: [projectScopeGuard],
         children: [
           {
             path: '',
             pathMatch: 'full',
-            loadComponent: () => import('@/pages/tracker/issue-list').then((m) => m.IssueListPage),
-          },
-          {
-            path: ':id',
             loadComponent: () =>
-              import('@/pages/tracker/issue-detail').then((m) => m.IssueDetailPage),
-          },
-        ],
-      },
-      {
-        path: 'docs',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            loadComponent: () => import('@/pages/tracker/doc-list').then((m) => m.DocListPage),
+              import('@/pages/tracker/project-menu').then((m) => m.ProjectMenuPage),
           },
           {
-            path: ':id',
-            loadComponent: () => import('@/pages/tracker/doc-detail').then((m) => m.DocDetailPage),
+            path: 'issues',
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                loadComponent: () =>
+                  import('@/pages/tracker/issue-list').then((m) => m.IssueListPage),
+              },
+              {
+                path: ':id',
+                loadComponent: () =>
+                  import('@/pages/tracker/issue-detail').then((m) => m.IssueDetailPage),
+              },
+            ],
+          },
+          {
+            path: 'docs',
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                loadComponent: () => import('@/pages/tracker/doc-list').then((m) => m.DocListPage),
+              },
+              {
+                path: ':id',
+                loadComponent: () =>
+                  import('@/pages/tracker/doc-detail').then((m) => m.DocDetailPage),
+              },
+            ],
+          },
+          {
+            path: 'settings',
+            loadComponent: () =>
+              import('@/pages/tracker/settings').then((m) => m.ProjectSettingsPage),
           },
         ],
-      },
-      {
-        path: 'settings',
-        loadComponent: () =>
-          import('@/pages/tracker/settings').then((m) => m.ProjectSettingsPage),
       },
     ],
   },

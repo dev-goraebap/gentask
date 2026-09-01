@@ -25,7 +25,8 @@ import {
   type IssueKind,
   type IssueSummary,
 } from '@/entities/issue';
-import { ISSUE_CREATE_PANEL, ROUTES } from '@/shared/config';
+import { injectProjectRoutes } from '@/entities/project';
+import { ISSUE_CREATE_PANEL } from '@/shared/config';
 import { injectRoutedOverlay, type RoutedOverlayRef } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -57,7 +58,7 @@ interface IssueRow {
 })
 export class IssueListPage {
   // --- 상수 --------------------------------------------------------------------------------------
-  protected readonly routes = ROUTES;
+  protected readonly routes = injectProjectRoutes();
   protected readonly kindFaces = ISSUE_KIND_FACES;
   protected readonly stateFaces = ISSUE_STATE_FACES;
 
@@ -139,12 +140,12 @@ export class IssueListPage {
   }
 
   private openCreate(): void {
-    const ref = this.overlay.open(IssueCreateDialog, ROUTES.issues());
+    const ref = this.overlay.open(IssueCreateDialog, this.routes().issues());
     this.creating = ref;
 
     ref.instance.created.subscribe((id) => {
       this.creating = null;
-      ref.close(ROUTES.issue(id));
+      ref.close(this.routes().issue(id));
     });
 
     ref.instance.dismissed.subscribe(() => {

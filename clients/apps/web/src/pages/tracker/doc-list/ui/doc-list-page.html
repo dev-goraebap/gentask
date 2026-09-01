@@ -6,7 +6,7 @@
         <span aria-current="page">{{ crumb.name }}</span>
       } @else {
         <a
-          [routerLink]="routes.docs()"
+          [routerLink]="routes().docs()"
           [queryParams]="{ folder: crumb.id }"
           class="underline-offset-4 hover:underline"
         >
@@ -98,7 +98,7 @@
         <app-icon name="hgiFolder" class="text-foreground-secondary" />
         <div class="min-w-0 flex-1">
           <a
-            [routerLink]="routes.docs()"
+            [routerLink]="routes().docs()"
             [queryParams]="{ folder: folder.id }"
             class="block text-sm underline-offset-4 hover:underline"
           >
@@ -117,7 +117,7 @@
         <app-icon name="hgiFile" class="text-foreground-secondary" />
         <div class="min-w-0 flex-1">
           <a
-            [routerLink]="routes.doc(doc.id)"
+            [routerLink]="routes().doc(doc.id)"
             class="block text-sm underline-offset-4 hover:underline"
           >
             {{ doc.title }}

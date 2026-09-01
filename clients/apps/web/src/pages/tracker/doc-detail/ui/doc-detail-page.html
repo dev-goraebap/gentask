@@ -4,7 +4,7 @@
       <nav aria-label="지나온 폴더" class="text-foreground-secondary flex flex-wrap items-center gap-x-1.5 text-xs">
         @for (crumb of crumbs(); track crumb.id) {
           <a
-            [routerLink]="routes.docs()"
+            [routerLink]="routes().docs()"
             [queryParams]="{ folder: crumb.id }"
             class="underline-offset-4 hover:underline"
           >
@@ -78,7 +78,7 @@
             @for (issue of doc.linkedIssues; track issue.id) {
               <li class="min-w-0 py-2">
                 <a
-                  [routerLink]="routes.issue(issue.id)"
+                  [routerLink]="routes().issue(issue.id)"
                   class="flex min-w-0 items-center gap-2 text-sm underline-offset-4 hover:underline"
                 >
                   <span class="text-foreground-secondary shrink-0 font-mono text-xs">
@@ -111,6 +111,6 @@
     title="그 문서를 찾지 못했습니다"
     description="지워졌거나 주소가 잘못되었습니다."
   >
-    <a hlmBtn variant="outline" size="sm" [routerLink]="routes.docs()">문서로</a>
+    <a hlmBtn variant="outline" size="sm" [routerLink]="routes().docs()">문서로</a>
   </app-empty-state>
 }

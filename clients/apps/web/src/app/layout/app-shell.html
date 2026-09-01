@@ -17,7 +17,7 @@
     </div>
   }
 
-  @for (group of navGroups; track $index) {
+  @for (group of navGroups(); track $index) {
     <ul class="hidden gap-1 md:flex md:flex-col">
       @if (group.label; as label) {
         <!-- 접힌 자리에서는 라벨을 감춘다. 글자가 들어갈 폭이 없다. -->

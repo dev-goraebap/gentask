@@ -100,7 +100,7 @@
 
         <div class="min-w-0 flex-1">
           <a
-            [routerLink]="routes.issue(row.issue.id)"
+            [routerLink]="routes().issue(row.issue.id)"
             class="block text-sm underline-offset-4 hover:underline"
             [class.text-muted-foreground]="row.settled"
           >

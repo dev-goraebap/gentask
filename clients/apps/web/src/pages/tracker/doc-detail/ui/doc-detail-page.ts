@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { buildCrumbs, DocService } from '@/entities/doc';
-import { ROUTES } from '@/shared/config';
+import { injectProjectRoutes } from '@/entities/project';
 import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { AppIcon } from '@/shared/ui/icon';
@@ -15,7 +15,7 @@ import { AppIcon } from '@/shared/ui/icon';
 })
 export class DocDetailPage {
   // --- 상수 --------------------------------------------------------------------------------------
-  protected readonly routes = ROUTES;
+  protected readonly routes = injectProjectRoutes();
 
   // --- 계약 --------------------------------------------------------------------------------------
   readonly id = input.required<string>();

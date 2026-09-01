@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { form, FormField, FormRoot } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { buildCrumbs, DocService, docsIn, foldersIn } from '@/entities/doc';
-import { ROUTES } from '@/shared/config';
+import { injectProjectRoutes } from '@/entities/project';
 import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
@@ -31,7 +31,7 @@ type Creating = 'doc' | 'folder';
 })
 export class DocListPage {
   // --- 상수 --------------------------------------------------------------------------------------
-  protected readonly routes = ROUTES;
+  protected readonly routes = injectProjectRoutes();
 
   // --- 계약 --------------------------------------------------------------------------------------
   readonly folder = input<string | undefined>(undefined);
@@ -92,7 +92,7 @@ export class DocListPage {
 
     const id = this.docService.addDoc(name, this.folderId());
     this.cancelCreating();
-    void this.router.navigate([this.routes.doc(id)]);
+    void this.router.navigate([this.routes().doc(id)]);
   }
 
   protected createOnEnter(event: KeyboardEvent): void {

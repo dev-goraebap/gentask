@@ -92,32 +92,30 @@ export class AppShell {
     { initialValue: this.router.url },
   );
 
+  private readonly path = computed(() => this.url().split('?')[0].replace(/\/$/, ''));
+
   protected readonly atRoot = computed(() => {
-    const path = this.url().split('?')[0].replace(/\/$/, '');
-    return (
-      path === '' ||
-      path === '/tasks' ||
-      path === '/admin' ||
-      path === ROUTES.issues() ||
-      path === ROUTES.docs() ||
-      path === ROUTES.projectSettings()
-    );
+    const path = this.path();
+    return path === '' || path === '/tasks' || path === '/admin' || path === ROUTES.projects();
   });
 
   /**
    * 좁은 화면에서 앞 단계로 가는 자리.
    *
-   * <p>트래커에는 목록들에 해당하는 자리가 없다. 상세에서 나오면 그것을 담고 있던 목록으로 간다.
+   * <p>트래커는 단계가 `프로젝트들 → 메뉴 → 목록 → 상세` 로 깊고 그 깊이가 주소에 그대로 있으므로,
+   * 자리마다 갈 곳을 세지 않고 마지막 조각을 뗀다. 세면 단계가 늘 때마다 여기를 고치게 된다.
    */
   protected readonly areaBack = computed(() => {
     if (this.area !== 'tracker') return ROUTES.tasks();
-    return this.url().startsWith(ROUTES.docs()) ? ROUTES.docs() : ROUTES.issues();
+
+    const parent = this.path().split('/').slice(0, -1).join('/');
+    return parent === '' ? ROUTES.projects() : parent;
   });
 
   /** 로고를 누르면 가는 자리. 머리에 서는 이름은 자리와 무관하게 서비스의 것이다. */
   protected readonly areaHome = computed(() => {
     if (this.area === 'admin') return ROUTES.adminUsers();
-    if (this.area === 'tracker') return ROUTES.issues();
+    if (this.area === 'tracker') return ROUTES.projects();
     return ROUTES.home();
   });
 
@@ -134,7 +132,7 @@ export class AppShell {
     if (this.area === 'tracker') {
       return { label: '할 일', icon: 'hgiTask', link: ROUTES.tasks() };
     }
-    return { label: '트래커', icon: 'hgiLayers', link: ROUTES.issues() };
+    return { label: '프로젝트', icon: 'hgiLayers', link: ROUTES.projects() };
   });
 
   /** 관리 자리로 건너가는 단추. 관리자에게만 선다. */

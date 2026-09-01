@@ -10,5 +10,8 @@ export {
   type RepositoryState,
 } from './model/project';
 
+export { injectProjectRoutes, type ProjectRoutes } from './model/project-routes';
+export { projectScopeGuard } from './model/project-scope-guard';
+
 export { ProjectService } from './api/project-service';
 export { ProjectPicker } from './ui/project-picker';
