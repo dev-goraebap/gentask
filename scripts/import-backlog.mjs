@@ -20,9 +20,13 @@ const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 
 // 오래 닫힌 것과 걷어낸 것까지 함께 옮긴다. 이력이 저장소에만 남으면 트래커가 원본이 되지 못한다.
 const SOURCES = [
-  { dir: join(ROOT, 'backlog', 'tasks'), archived: false },
-  { dir: join(ROOT, 'backlog', 'completed'), archived: false },
-  { dir: join(ROOT, 'backlog', 'archive', 'tasks'), archived: true },
+  { dir: join(ROOT, 'backlog', 'tasks'), archived: false, draft: false },
+  { dir: join(ROOT, 'backlog', 'completed'), archived: false, draft: false },
+  { dir: join(ROOT, 'backlog', 'archive', 'tasks'), archived: true, draft: false },
+  // 착수 전 후보는 상태 하나로 흡수한다. 도구가 상태 셋만 제공해 디렉터리가 그 자리를
+  // 대신하고 있었을 뿐이며, 트래커에는 BACKLOG 가 그 자리다 (결정-0007).
+  { dir: join(ROOT, 'backlog', 'drafts'), archived: false, draft: true },
+  { dir: join(ROOT, 'backlog', 'archive', 'drafts'), archived: true, draft: true },
 ];
 
 // 도구가 셋만 제공하므로 상태 다섯 가운데 셋만 원본에 있다. 나머지 둘은 옮긴 뒤에 쓰인다.
@@ -66,7 +70,8 @@ function split(text) {
 }
 
 const items = [];
-for (const { dir, archived } of SOURCES) {
+const drafts = [];
+for (const { dir, archived, draft } of SOURCES) {
   let names;
   try {
     names = readdirSync(dir);
@@ -81,16 +86,19 @@ for (const { dir, archived } of SOURCES) {
 
     const id = parsed.front.id;
     const number = /^TG-(\d+)$/.exec(id ?? '')?.[1];
-    if (!number) {
+    if (!draft && !number) {
       console.error(`# 건너뜀 — 평평한 번호가 아니다: ${name}`);
       continue;
     }
 
-    items.push({
-      number: Number(number),
+    // 후보는 TG 번호를 갖지 않는다. 옮기는 자리에서 처음 받으며, 착수 순서를 갖던 Draft 번호는
+    // 그 순서대로 매기는 데만 쓰이고 식별자로는 남지 않는다.
+    (draft ? drafts : items).push({
+      number: number ? Number(number) : null,
+      draftOrder: Number(/^draft-(\d+)$/.exec(id ?? '')?.[1] ?? 0),
       kind: KINDS[parsed.front.type] ?? 'TASK',
       // 걷어낸 것은 근거를 잃은 것이지 끝난 것이 아니다.
-      state: archived ? 'CANCELED' : (STATES[parsed.front.status] ?? 'BACKLOG'),
+      state: archived ? 'CANCELED' : draft ? 'BACKLOG' : (STATES[parsed.front.status] ?? 'BACKLOG'),
       title: parsed.front.title ?? name.replace(/\.md$/, ''),
       body: parsed.body,
       parent: parsed.front.parent_task_id || null,
@@ -102,6 +110,16 @@ for (const { dir, archived } of SOURCES) {
 }
 
 items.sort((a, b) => a.number - b.number);
+
+// 후보에게 뒤 번호를 착수 순서대로 매긴다.
+let next = items.length === 0 ? 1 : Math.max(...items.map((each) => each.number)) + 1;
+drafts.sort((a, b) => a.draftOrder - b.draftOrder);
+for (const each of drafts) {
+  each.number = next;
+  each.ordinal = next * 1000;
+  next += 1;
+  items.push(each);
+}
 
 if (items.length === 0) {
   console.error('# 옮길 항목이 없다');
@@ -116,18 +134,27 @@ const lines = [];
 lines.push(`-- backlog/ 의 ${items.length} 건을 옮긴다. scripts/import-backlog.mjs 가 냈다.`);
 lines.push('begin;');
 lines.push('');
-lines.push('-- 소유자와 프로젝트를 잡는다. 프로젝트가 없으면 세우고, 있으면 그대로 쓴다.');
-lines.push(`\\set owner_email ${quote(owner)}`);
+// 이메일을 psql 변수가 아니라 SQL 에 그대로 박는다. `:'var'` 는 dollar-quoted 블록 안에서 치환되지
+// 않아 아래의 do 블록이 서지 않고, 박아 두면 psql 이 아닌 클라이언트로도 흘릴 수 있다.
+const EMAIL = quote(owner.toLowerCase());
+const OWNER = `(select u.id from users u where u.email_normalized = ${EMAIL})`;
+
+lines.push('-- 소유자가 없으면 여기서 멈춘다. 없으면 아래가 전부 조용히 아무것도 하지 않는다.');
+lines.push(`do $$ begin
+    if not exists (select 1 from users where email_normalized = ${EMAIL}) then
+        raise exception '소유자를 찾지 못했다: %', ${EMAIL};
+    end if;
+end $$;`);
 lines.push('');
+lines.push('-- 프로젝트를 잡는다. 없으면 세우고, 있으면 그대로 쓴다.');
 lines.push(`insert into projects (id, owner_id, name, key, next_number, created_at, updated_at)
 select gen_random_uuid(), u.id, ${quote(projectName)}, ${quote(key)}, 1, now(), now()
 from users u
-where u.email_normalized = lower(:'owner_email')
+where u.email_normalized = ${EMAIL}
 on conflict (owner_id, key) do nothing;`);
 lines.push('');
 
-const anchor = `(select p.id from projects p join users u on u.id = p.owner_id
-    where u.email_normalized = lower(:'owner_email') and p.key = ${quote(key)})`;
+const anchor = `(select p.id from projects p where p.owner_id = ${OWNER} and p.key = ${quote(key)})`;
 
 lines.push('-- 항목을 먼저 넣는다. 부모는 그 뒤에 잇는다 — 자식이 부모보다 앞 번호일 수 있다.');
 for (const item of items) {
@@ -136,7 +163,7 @@ for (const item of items) {
     id, project_id, number, kind, state, title, body, parent_id, ordinal, author_id, due_date, closed_at, created_at, updated_at)
 select gen_random_uuid(), ${anchor}, ${item.number}, ${quote(item.kind)}, ${quote(item.state)},
     ${quote(item.title)}, ${quote(item.body)}, null, ${item.ordinal},
-    (select u.id from users u where u.email_normalized = lower(:'owner_email')),
+    ${OWNER},
     null, ${settled ? stamp(item.updatedAt) : 'null'}, ${stamp(item.createdAt)}, ${stamp(item.updatedAt)}
 on conflict (project_id, number) do update set
     kind = excluded.kind, state = excluded.state, title = excluded.title, body = excluded.body,
