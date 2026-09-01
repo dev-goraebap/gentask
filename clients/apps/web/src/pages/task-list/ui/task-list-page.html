@@ -11,7 +11,7 @@
         <app-icon name="hgiSort" />
         정렬
       </button>
-      <hlm-popover-content *hlmPopoverPortal="let ctx" class="w-52 p-1">
+      <hlm-popover-content *hlmPopoverPortal="let ctx" class="p-1 md:w-52">
         <div role="group" aria-label="정렬 기준" class="flex flex-col">
           @for (option of sortOptions; track option.value) {
             <button

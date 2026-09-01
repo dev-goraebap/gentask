@@ -26,7 +26,7 @@
         유형
         <span class="text-foreground-secondary">{{ kindSummary() }}</span>
       </button>
-      <hlm-popover-content *hlmPopoverPortal class="w-52 p-1">
+      <hlm-popover-content *hlmPopoverPortal class="p-1 md:w-52">
         <div role="group" aria-label="유형으로 거르기" class="flex flex-col">
           @for (face of kindFaces; track face.value) {
             <button
@@ -56,7 +56,7 @@
         <span class="text-foreground-secondary">{{ stateSummary() }}</span>
         <app-icon name="hgiArrowDown" />
       </button>
-      <hlm-popover-content *hlmPopoverPortal class="w-52 p-1">
+      <hlm-popover-content *hlmPopoverPortal class="p-1 md:w-52">
         <div role="group" aria-label="상태로 거르기" class="flex flex-col">
           @for (face of stateFaces; track face.value) {
             <button

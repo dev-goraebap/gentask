@@ -30,7 +30,7 @@ import { ProjectService } from '../api/project-service';
         <app-icon name="hgiArrowDown" />
       </button>
 
-      <hlm-popover-content *hlmPopoverPortal="let ctx" class="w-60 p-1">
+      <hlm-popover-content *hlmPopoverPortal="let ctx" class="p-1 md:w-60">
         <div role="group" aria-label="프로젝트" class="flex flex-col">
           @for (project of projectService.list(); track project.id) {
             <button

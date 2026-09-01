@@ -46,7 +46,7 @@
         <app-issue-kind-badge [kind]="kind()" />
         {{ kindLabel() }}
       </button>
-      <hlm-popover-content *hlmPopoverPortal="let ctx" class="w-44 p-1">
+      <hlm-popover-content *hlmPopoverPortal="let ctx" class="p-1 md:w-44">
         <div role="group" aria-label="세울 것의 유형" class="flex flex-col">
           @for (face of kindFaces; track face.value) {
             <button

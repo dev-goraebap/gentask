@@ -104,7 +104,7 @@
             <app-issue-state-chip [state]="issue.state" />
             <app-icon name="hgiArrowDown" />
           </button>
-          <hlm-popover-content *hlmPopoverPortal="let ctx" class="w-52 p-1">
+          <hlm-popover-content *hlmPopoverPortal="let ctx" class="p-1 md:w-52">
             <div role="group" aria-label="상태 바꾸기" class="flex flex-col">
               @for (face of stateFaces; track face.value) {
                 <button

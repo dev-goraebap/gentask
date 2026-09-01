@@ -8,6 +8,7 @@ import { HlmPopoverTrigger } from './lib/hlm-popover-trigger';
 
 export * from './lib/hlm-popover';
 export * from './lib/hlm-popover-content';
+export * from './lib/hlm-popover-presentation';
 export * from './lib/hlm-popover-description';
 export * from './lib/hlm-popover-header';
 export * from './lib/hlm-popover-portal';
