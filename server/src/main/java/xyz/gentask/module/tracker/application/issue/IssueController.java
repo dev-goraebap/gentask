@@ -29,7 +29,7 @@ import xyz.gentask.shared.web.CurrentUser;
  * 프로젝트의 것인지 주소가 말하지 않는다.
  */
 @RestController
-@RequestMapping("/api/v1/projects/{projectId}/issues")
+@RequestMapping("/api/v1/projects/{projectKey}/issues")
 @RequiredArgsConstructor
 public class IssueController {
 
@@ -38,29 +38,29 @@ public class IssueController {
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> add(
-            @CurrentUser UUID userId, @PathVariable UUID projectId, @Valid @RequestBody CreateIssue request) {
-        int number = issueService.add(userId, projectId, request.title(), request.kind(), request.body());
-        return ResponseEntity.created(URI.create("/api/v1/projects/" + projectId + "/issues/" + number))
+            @CurrentUser UUID userId, @PathVariable String projectKey, @Valid @RequestBody CreateIssue request) {
+        int number = issueService.add(userId, projectKey, request.title(), request.kind(), request.body());
+        return ResponseEntity.created(URI.create("/api/v1/projects/" + projectKey + "/issues/" + number))
                 .build();
     }
 
     @GetMapping
-    public List<IssueSummary> list(@CurrentUser UUID userId, @PathVariable UUID projectId) {
-        return issueService.list(userId, projectId);
+    public List<IssueSummary> list(@CurrentUser UUID userId, @PathVariable String projectKey) {
+        return issueService.list(userId, projectKey);
     }
 
     @GetMapping("/{number}")
-    public IssueView detail(@CurrentUser UUID userId, @PathVariable UUID projectId, @PathVariable int number) {
-        return issueService.detail(userId, projectId, number);
+    public IssueView detail(@CurrentUser UUID userId, @PathVariable String projectKey, @PathVariable int number) {
+        return issueService.detail(userId, projectKey, number);
     }
 
     @PatchMapping("/{number}/state")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void changeState(
             @CurrentUser UUID userId,
-            @PathVariable UUID projectId,
+            @PathVariable String projectKey,
             @PathVariable int number,
             @Valid @RequestBody ChangeState request) {
-        issueService.changeState(userId, projectId, number, request.state());
+        issueService.changeState(userId, projectKey, number, request.state());
     }
 }

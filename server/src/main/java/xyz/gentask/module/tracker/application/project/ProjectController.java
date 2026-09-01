@@ -31,9 +31,8 @@ public class ProjectController {
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> create(@CurrentUser UUID userId, @Valid @RequestBody CreateProject request) {
-        UUID projectId = projectService.create(userId, request.name());
-        return ResponseEntity.created(URI.create("/api/v1/projects/" + projectId))
-                .build();
+        String key = projectService.create(userId, request.name());
+        return ResponseEntity.created(URI.create("/api/v1/projects/" + key)).build();
     }
 
     @GetMapping
@@ -41,15 +40,15 @@ public class ProjectController {
         return projectService.list(userId);
     }
 
-    @GetMapping("/{projectId}")
-    public ProjectView detail(@CurrentUser UUID userId, @PathVariable UUID projectId) {
-        return projectService.detail(userId, projectId);
+    @GetMapping("/{projectKey}")
+    public ProjectView detail(@CurrentUser UUID userId, @PathVariable String projectKey) {
+        return projectService.detail(userId, projectKey);
     }
 
-    @PatchMapping("/{projectId}")
+    @PatchMapping("/{projectKey}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void rename(
-            @CurrentUser UUID userId, @PathVariable UUID projectId, @Valid @RequestBody RenameProject request) {
-        projectService.rename(userId, projectId, request.name());
+            @CurrentUser UUID userId, @PathVariable String projectKey, @Valid @RequestBody RenameProject request) {
+        projectService.rename(userId, projectKey, request.name());
     }
 }

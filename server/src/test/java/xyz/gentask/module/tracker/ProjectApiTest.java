@@ -55,9 +55,9 @@ class ProjectApiTest {
     @Test
     @DisplayName("TG-042 #1: 이름을 적어 세우면 그 이름에서 뽑은 접두어와 함께 선다")
     void 이름을_적어_세우면_접두어와_함께_선다() throws Exception {
-        String projectId = 프로젝트를_세운다("Gentask Tracker");
+        String key = 프로젝트를_세운다("Gentask Tracker");
 
-        mockMvc.perform(get("/api/v1/projects/{id}", projectId).cookie(session))
+        mockMvc.perform(get("/api/v1/projects/{key}", key).cookie(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Gentask Tracker"))
                 .andExpect(jsonPath("$.key").value("GE"));
@@ -70,11 +70,11 @@ class ProjectApiTest {
         String second = 프로젝트를_세운다("Gentask 둘");
         String third = 프로젝트를_세운다("Gentask 셋");
 
-        mockMvc.perform(get("/api/v1/projects/{id}", first).cookie(session))
+        mockMvc.perform(get("/api/v1/projects/{key}", first).cookie(session))
                 .andExpect(jsonPath("$.key").value("GE"));
-        mockMvc.perform(get("/api/v1/projects/{id}", second).cookie(session))
+        mockMvc.perform(get("/api/v1/projects/{key}", second).cookie(session))
                 .andExpect(jsonPath("$.key").value("GE2"));
-        mockMvc.perform(get("/api/v1/projects/{id}", third).cookie(session))
+        mockMvc.perform(get("/api/v1/projects/{key}", third).cookie(session))
                 .andExpect(jsonPath("$.key").value("GE3"));
     }
 
@@ -86,9 +86,9 @@ class ProjectApiTest {
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
         String theirs = 프로젝트를_세운다(other, "Gentask");
 
-        mockMvc.perform(get("/api/v1/projects/{id}", mine).cookie(session))
+        mockMvc.perform(get("/api/v1/projects/{key}", mine).cookie(session))
                 .andExpect(jsonPath("$.key").value("GE"));
-        mockMvc.perform(get("/api/v1/projects/{id}", theirs).cookie(other))
+        mockMvc.perform(get("/api/v1/projects/{key}", theirs).cookie(other))
                 .andExpect(jsonPath("$.key").value("GE"));
     }
 
@@ -121,7 +121,7 @@ class ProjectApiTest {
 
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
-        mockMvc.perform(get("/api/v1/projects/{id}", mine).cookie(other))
+        mockMvc.perform(get("/api/v1/projects/{key}", mine).cookie(other))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
     }
@@ -135,6 +135,7 @@ class ProjectApiTest {
     }
 
     // --- 준비 --------------------------------------------------------------------------------------------------------
+    /** Location 의 마지막 마디가 접두어다. 주소가 UUID 가 아니라 그것을 갖는다. */
     private String 프로젝트를_세운다(String name) throws Exception {
         return 프로젝트를_세운다(session, name);
     }

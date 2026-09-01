@@ -41,12 +41,12 @@ class IssueApiTest {
     private RecordingMailSender mail;
 
     private Cookie session;
-    private String projectId;
+    private String projectKey;
 
     @BeforeEach
     void 로그인하고_프로젝트를_고른다() throws Exception {
         session = AuthTestSupport.가입한다(mockMvc, mail, "tester-" + UUID.randomUUID() + "@example.com");
-        projectId = 프로젝트를_세운다(session, "Gentask");
+        projectKey = 프로젝트를_세운다(session, "Gentask");
     }
 
     @Test
@@ -55,7 +55,7 @@ class IssueApiTest {
         작업_아이템을_세운다("{\"title\":\"첫 것\"}");
         작업_아이템을_세운다("{\"title\":\"둘째 것\"}");
 
-        mockMvc.perform(get("/api/v1/projects/{id}/issues", projectId).cookie(session))
+        mockMvc.perform(get("/api/v1/projects/{key}/issues", projectKey).cookie(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].number").value(1))
@@ -110,7 +110,7 @@ class IssueApiTest {
     @Test
     @DisplayName("TG-043 #4: 제목이 비어 있으면 제목이 필요함을 알린다")
     void 제목이_비어_있으면_알린다() throws Exception {
-        mockMvc.perform(post("/api/v1/projects/{id}/issues", projectId)
+        mockMvc.perform(post("/api/v1/projects/{key}/issues", projectKey)
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"   \"}"))
@@ -124,9 +124,9 @@ class IssueApiTest {
 
         String other = 프로젝트를_세운다(session, "Other");
 
-        mockMvc.perform(get("/api/v1/projects/{id}/issues", projectId).cookie(session))
+        mockMvc.perform(get("/api/v1/projects/{key}/issues", projectKey).cookie(session))
                 .andExpect(jsonPath("$", hasSize(1)));
-        mockMvc.perform(get("/api/v1/projects/{id}/issues", other).cookie(session))
+        mockMvc.perform(get("/api/v1/projects/{key}/issues", other).cookie(session))
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
@@ -149,7 +149,7 @@ class IssueApiTest {
         String other = 프로젝트를_세운다(session, "Other");
 
         // 다른 프로젝트에 같은 번호가 있어도 여기에는 없다. 번호는 프로젝트 안에서만 유일하다.
-        mockMvc.perform(get("/api/v1/projects/{id}/issues/{number}", other, 1).cookie(session))
+        mockMvc.perform(get("/api/v1/projects/{key}/issues/{number}", other, 1).cookie(session))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("ISSUE_NOT_FOUND"));
     }
@@ -212,7 +212,7 @@ class IssueApiTest {
 
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
-        mockMvc.perform(patch("/api/v1/projects/{id}/issues/{number}/state", projectId, number)
+        mockMvc.perform(patch("/api/v1/projects/{key}/issues/{number}/state", projectKey, number)
                         .cookie(other)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"state\":\"STARTED\"}"))
@@ -223,20 +223,20 @@ class IssueApiTest {
     @Test
     @DisplayName("로그인 없이 작업 아이템에 닿을 수 없다")
     void 로그인_없이_작업_아이템에_닿을_수_없다() throws Exception {
-        mockMvc.perform(get("/api/v1/projects/{id}/issues", projectId))
+        mockMvc.perform(get("/api/v1/projects/{key}/issues", projectKey))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
 
     // --- 준비 --------------------------------------------------------------------------------------------------------
     private ResultActions 상세(int number) throws Exception {
-        return mockMvc.perform(get("/api/v1/projects/{id}/issues/{number}", projectId, number)
+        return mockMvc.perform(get("/api/v1/projects/{key}/issues/{number}", projectKey, number)
                         .cookie(session))
                 .andExpect(status().isOk());
     }
 
     private void 상태를_옮긴다(int number, String state) throws Exception {
-        mockMvc.perform(patch("/api/v1/projects/{id}/issues/{number}/state", projectId, number)
+        mockMvc.perform(patch("/api/v1/projects/{key}/issues/{number}/state", projectKey, number)
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"state\":\"%s\"}".formatted(state)))
@@ -244,7 +244,7 @@ class IssueApiTest {
     }
 
     private int 작업_아이템을_세운다(String body) throws Exception {
-        String location = requireNonNull(mockMvc.perform(post("/api/v1/projects/{id}/issues", projectId)
+        String location = requireNonNull(mockMvc.perform(post("/api/v1/projects/{key}/issues", projectKey)
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))

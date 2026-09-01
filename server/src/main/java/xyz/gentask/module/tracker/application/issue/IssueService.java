@@ -36,9 +36,8 @@ public class IssueService {
 
     // --- 조회 --------------------------------------------------------------------------------------------------------
     @Transactional(readOnly = true)
-    public List<IssueSummary> list(UUID userId, UUID projectId) {
-        projectService.find(projectId, userId);
-        return issueQuery.findAll(projectId);
+    public List<IssueSummary> list(UUID userId, String projectKey) {
+        return issueQuery.findAll(projectService.find(userId, projectKey).id());
     }
 
     /**
@@ -48,22 +47,22 @@ public class IssueService {
      * 없는 것이다(ITM-002 A5).
      */
     @Transactional(readOnly = true)
-    public IssueView detail(UUID userId, UUID projectId, int number) {
-        projectService.find(projectId, userId);
-        return issueQuery.findOne(projectId, number).orElseThrow(TrackerErrorCode.ISSUE_NOT_FOUND::raise);
+    public IssueView detail(UUID userId, String projectKey, int number) {
+        Project project = projectService.find(userId, projectKey);
+        return issueQuery.findOne(project.id(), number).orElseThrow(TrackerErrorCode.ISSUE_NOT_FOUND::raise);
     }
 
     // --- 명령 --------------------------------------------------------------------------------------------------------
     @Transactional
-    public int add(UUID userId, UUID projectId, String title, IssueKind kind, String body) {
-        Project project = projectService.find(projectId, userId);
+    public int add(UUID userId, String projectKey, String title, IssueKind kind, String body) {
+        Project project = projectService.find(userId, projectKey);
         Instant now = clock.instant();
         int number = project.issueNumber(now);
         projectRepository.save(project);
 
         Issue issue = Issue.create(
                 UUID.randomUUID(),
-                projectId,
+                project.id(),
                 number,
                 kind == null ? IssueKind.DEFAULT : kind,
                 IssueTitle.of(title),
@@ -76,15 +75,15 @@ public class IssueService {
     }
 
     @Transactional
-    public void changeState(UUID userId, UUID projectId, int number, IssueState state) {
-        Issue issue = find(userId, projectId, number);
+    public void changeState(UUID userId, String projectKey, int number, IssueState state) {
+        Issue issue = find(userId, projectKey, number);
         issue.changeState(state, clock.instant());
         issueRepository.save(issue);
     }
 
     // --- 내부 --------------------------------------------------------------------------------------------------------
-    private Issue find(UUID userId, UUID projectId, int number) {
-        projectService.find(projectId, userId);
-        return issueRepository.findByNumber(projectId, number).orElseThrow(TrackerErrorCode.ISSUE_NOT_FOUND::raise);
+    private Issue find(UUID userId, String projectKey, int number) {
+        Project project = projectService.find(userId, projectKey);
+        return issueRepository.findByNumber(project.id(), number).orElseThrow(TrackerErrorCode.ISSUE_NOT_FOUND::raise);
     }
 }

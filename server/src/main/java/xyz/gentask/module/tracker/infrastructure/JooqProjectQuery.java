@@ -39,8 +39,8 @@ class JooqProjectQuery implements ProjectQuery {
     }
 
     @Override
-    public Optional<ProjectView> findOne(UUID projectId, UUID ownerId) {
-        return fetch(PROJECTS.ID.eq(projectId).and(PROJECTS.OWNER_ID.eq(ownerId))).stream()
+    public Optional<ProjectView> findOne(UUID ownerId, String key) {
+        return fetch(PROJECTS.OWNER_ID.eq(ownerId).and(PROJECTS.KEY.eq(key))).stream()
                 .findFirst();
     }
 

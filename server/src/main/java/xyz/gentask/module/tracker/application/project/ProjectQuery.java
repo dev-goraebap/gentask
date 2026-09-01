@@ -9,5 +9,5 @@ public interface ProjectQuery {
 
     List<ProjectView> findAll(UUID ownerId);
 
-    Optional<ProjectView> findOne(UUID projectId, UUID ownerId);
+    Optional<ProjectView> findOne(UUID ownerId, String key);
 }

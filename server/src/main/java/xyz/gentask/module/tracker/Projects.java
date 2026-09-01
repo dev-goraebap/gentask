@@ -10,6 +10,10 @@ import java.util.UUID;
  */
 public interface Projects {
 
-    /** 그 사람의 프로젝트를 하나 세우고 식별자를 낸다. 접두어는 이름에서 뽑는다. */
-    UUID create(UUID ownerId, String name);
+    /**
+     * 그 사람의 프로젝트를 하나 세우고 접두어를 낸다. 접두어는 이름에서 뽑는다.
+     *
+     * <p>UUID 가 아니라 접두어를 내는 것은 주소가 그것을 갖기 때문이다(PRJ-002).
+     */
+    String create(UUID ownerId, String name);
 }

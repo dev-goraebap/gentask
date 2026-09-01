@@ -36,38 +36,42 @@ public class ProjectService implements Projects {
     }
 
     @Transactional(readOnly = true)
-    public ProjectView detail(UUID ownerId, UUID projectId) {
-        return projectQuery.findOne(projectId, ownerId).orElseThrow(TrackerErrorCode.PROJECT_NOT_FOUND::raise);
+    public ProjectView detail(UUID ownerId, String key) {
+        return projectQuery
+                .findOne(ownerId, ProjectKey.of(key).value())
+                .orElseThrow(TrackerErrorCode.PROJECT_NOT_FOUND::raise);
     }
 
     /**
-     * 소유를 판정하고 프로젝트를 낸다.
+     * 접두어로 프로젝트를 낸다.
      *
-     * <p>남의 것을 없는 것으로 낸다. 있으나 권한이 없다고 알리면 어떤 프로젝트가 존재하는지가 새어
-     * 나간다(PRJ-002 A2).
+     * <p>주소가 UUID 가 아니라 접두어를 갖는다. 사람이 읽고 공유할 수 있어야 하며, 접두어는 소유자
+     * 안에서만 유일하고 주소는 로그인한 사람의 것이라 그것으로 충분하다.
+     *
+     * <p>남의 것은 애초에 걸리지 않는다. 있으나 권한이 없다고 알리면 어떤 프로젝트가 존재하는지가
+     * 새어 나간다(PRJ-002 A2).
      */
     @Transactional(readOnly = true)
-    public Project find(UUID projectId, UUID ownerId) {
+    public Project find(UUID ownerId, String key) {
         return projectRepository
-                .findById(projectId)
-                .filter(project -> project.isOwnedBy(ownerId))
+                .findByKey(ownerId, ProjectKey.of(key))
                 .orElseThrow(TrackerErrorCode.PROJECT_NOT_FOUND::raise);
     }
 
     // --- 명령 --------------------------------------------------------------------------------------------------------
     @Override
     @Transactional
-    public UUID create(UUID ownerId, String name) {
+    public String create(UUID ownerId, String name) {
         Instant now = clock.instant();
         ProjectName projectName = ProjectName.of(name);
         Project project = Project.create(UUID.randomUUID(), ownerId, projectName, freeKey(ownerId, projectName), now);
         projectRepository.save(project);
-        return project.id();
+        return project.key().value();
     }
 
     @Transactional
-    public void rename(UUID ownerId, UUID projectId, String name) {
-        Project project = find(projectId, ownerId);
+    public void rename(UUID ownerId, String key, String name) {
+        Project project = find(ownerId, key);
         project.rename(ProjectName.of(name), clock.instant());
         projectRepository.save(project);
     }

@@ -40,10 +40,11 @@ class JooqProjectRepository implements ProjectRepository {
     }
 
     @Override
-    public Optional<Project> findById(UUID projectId) {
+    public Optional<Project> findByKey(UUID ownerId, ProjectKey key) {
         return dslContext
                 .selectFrom(PROJECTS)
-                .where(PROJECTS.ID.eq(projectId))
+                .where(PROJECTS.OWNER_ID.eq(ownerId))
+                .and(PROJECTS.KEY.eq(key.value()))
                 .fetchOptional()
                 .map(JooqProjectRepository::toDomain);
     }
