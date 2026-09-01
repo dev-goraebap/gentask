@@ -13,7 +13,7 @@ import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmPopoverImports } from '@/shared/ui/popover';
-import { HlmTextarea } from '@/shared/ui/textarea';
+import { MarkdownEditor } from '@/shared/ui/markdown-editor';
 
 /**
  * 작업 아이템을 세우는 자리.
@@ -31,7 +31,7 @@ import { HlmTextarea } from '@/shared/ui/textarea';
     FormField,
     HlmButton,
     HlmInput,
-    HlmTextarea,
+    MarkdownEditor,
     HlmField,
     HlmFieldLabel,
     HlmPopoverImports,
@@ -60,6 +60,13 @@ export class IssueCreateForm {
   private readonly draft = signal({ title: '', body: '' });
   protected readonly issueForm = form(this.draft);
 
+  /**
+   * 본문. 편집기가 마크다운을 되돌려 주므로 폼의 칸이 아니라 이 자리가 받는다.
+   *
+   * <p>폼의 `body` 는 적는 자리를 갖지 않게 되었고, 세울 때 이 값을 함께 보낸다.
+   */
+  protected readonly body = signal('');
+
   // --- 파생 --------------------------------------------------------------------------------------
   protected readonly kindLabel = computed(() => issueKindLabel(this.kind()));
   protected readonly creatable = computed(() => this.draft().title.trim().length > 0);
@@ -73,7 +80,7 @@ export class IssueCreateForm {
     const title = this.draft().title.trim();
     if (title === '') return;
 
-    const created = await this.issueService.add(title, this.kind(), this.draft().body.trim());
+    const created = await this.issueService.add(title, this.kind(), this.body().trim());
     if (created !== undefined) this.created.emit(created);
   }
 
