@@ -12,9 +12,13 @@ import { Router } from '@angular/router';
  *
  * <p>라우트를 고르는 판정은 이동하는 그 순간에 한 번뿐이므로 그 뒤의 크기 변화는 이 스타일이
  * 받는다. 여기서 DOM 을 갈아 끼우면 창을 줄이는 동안 적던 것이 사라진다.
+ *
+ * <p>CDK 가 판과 내용 사이에 그릇을 한 겹 더 둔다. 그것이 `block` 이라 판이 화면 높이를 채워도
+ * 안쪽은 내용 높이에 멈추고, 바닥에 붙어야 할 것이 내용 바로 뒤에 선다. 그 겹을 세로 흐름에
+ * 잇는다.
  */
 const PANEL =
-  'bg-background border-border relative flex h-dvh w-screen flex-col overflow-hidden outline-none md:h-auto md:max-h-[85dvh] md:w-[36rem] md:border md:shadow-lg';
+  'bg-background border-border relative flex h-dvh w-screen flex-col overflow-hidden outline-none [&>.cdk-dialog-container]:flex [&>.cdk-dialog-container]:min-h-0 [&>.cdk-dialog-container]:flex-1 [&>.cdk-dialog-container]:flex-col md:h-auto md:max-h-[85dvh] md:w-[36rem] md:border md:shadow-lg';
 
 const BACKDROP = 'bg-veil';
 
