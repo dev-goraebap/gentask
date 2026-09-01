@@ -11,7 +11,6 @@ import { HlmButton } from '@/shared/ui/button';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon, type IconName } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
-import { AppPageBack } from '@/shared/ui/page-back';
 import { injectProjectRoutes } from '@/entities/project';
 
 /** 이어 둔 저장소 한 줄. 아이콘과 이름표를 미리 골라 템플릿이 매번 다시 고르지 않는다. */
@@ -24,7 +23,7 @@ interface RepositoryRow {
 
 @Component({
   selector: 'app-project-settings',
-  imports: [AppPageBack, FormRoot, FormField, HlmButton, HlmInput, HlmField, HlmFieldLabel, AppIcon],
+  imports: [FormRoot, FormField, HlmButton, HlmInput, HlmField, HlmFieldLabel, AppIcon],
   host: { class: 'flex min-h-0 flex-1 flex-col' },
   templateUrl: './project-settings-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

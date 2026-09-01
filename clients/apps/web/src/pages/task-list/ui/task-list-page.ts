@@ -11,9 +11,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { form, FormField, FormRoot } from '@angular/forms/signals';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ROUTES, TASK_PANEL } from '@/shared/config';
 import { AsideOutlet } from '@/shared/lib';
+import { AppRouteTabs } from '@/shared/ui/route-tabs';
 import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { Veil } from '@/shared/ui/veil';
@@ -24,7 +25,6 @@ import { AppIcon, type IconName } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmPopoverImports } from '@/shared/ui/popover';
 import { toast } from '@/shared/ui/sonner';
-import { AppPageBack } from '@/shared/ui/page-back';
 import { TaskDetailPanel } from './task-detail-panel';
 import {
   toDateTimeKey,
@@ -62,11 +62,11 @@ import {
 
 @Component({
   selector: 'app-task-list',
-  imports: [AppPageBack, 
+  imports: [
     FormRoot,
     FormField,
     RouterLink,
-    RouterLinkActive,
+    AppRouteTabs,
     HlmButton,
     HlmInput,
     HlmPopoverImports,
@@ -93,7 +93,9 @@ export class TaskListPage {
   protected readonly routes = ROUTES;
   protected readonly panel = TASK_PANEL;
   protected readonly sortOptions = TASK_SORTS;
-  protected readonly views = TASK_VIEWS;
+  protected readonly viewTabs = computed(() =>
+    TASK_VIEWS.map((view) => ({ label: view.label, link: ROUTES.taskList(view.value) })),
+  );
   private readonly today = toDateKey(new Date());
   private readonly now = new Date();
 

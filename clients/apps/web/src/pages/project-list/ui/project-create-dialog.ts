@@ -1,0 +1,115 @@
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
+import { form, FormField, FormRoot } from '@angular/forms/signals';
+import { ProjectService } from '@/entities/project';
+import { HlmButton } from '@/shared/ui/button';
+import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
+import { AppIcon } from '@/shared/ui/icon';
+import { HlmInput } from '@/shared/ui/input';
+
+/**
+ * 프로젝트를 세우는 덮개.
+ *
+ * <p>작업 아이템을 세우는 것과 같은 골격이다. 같은 성격의 일을 자리마다 다르게 만들면 하나를 고칠 때
+ * 나머지가 남는다.
+ */
+@Component({
+  selector: 'app-project-create-dialog',
+  imports: [FormRoot, FormField, HlmButton, HlmField, HlmFieldLabel, HlmInput, AppIcon],
+  host: { class: 'flex min-h-0 flex-1 flex-col' },
+  template: `
+    <header class="border-border flex h-14 shrink-0 items-center gap-3 border-b px-4">
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        class="rounded-(--radius-nav) -ml-2 md:hidden"
+        aria-label="앞 단계로 돌아가기"
+        (click)="dismissed.emit()"
+      >
+        <app-icon name="hgiArrowLeft" size="lg" />
+      </button>
+
+      <h2 class="flex-1 text-base font-semibold tracking-tight">새 프로젝트</h2>
+
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        class="rounded-(--radius-nav) max-md:hidden"
+        aria-label="닫기"
+        (click)="dismissed.emit()"
+      >
+        <app-icon name="hgiCancel" />
+      </button>
+    </header>
+
+    <form
+      novalidate
+      [formRoot]="createForm"
+      (submit)="$event.preventDefault()"
+      class="flex min-h-0 flex-1 flex-col"
+    >
+      <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
+        <div hlmField>
+          <label hlmFieldLabel for="project-create-name" class="sr-only">이름</label>
+          <input
+            hlmInput
+            id="project-create-name"
+            class="h-11 border-0 px-0 text-base shadow-none focus-visible:ring-0 dark:bg-transparent"
+            [formField]="createForm.name"
+            placeholder="이름"
+            autocomplete="off"
+            enterkeyhint="done"
+            (keydown)="createOnEnter($event)"
+          />
+        </div>
+
+        <p class="text-foreground-secondary text-sm">
+          작업 아이템과 문서가 이 프로젝트에 담깁니다. 이름은 나중에 프로젝트 설정에서 바꿉니다.
+        </p>
+      </div>
+
+      <footer class="border-border flex shrink-0 items-center gap-2 border-t p-3">
+        <span class="flex-1"></span>
+        <button hlmBtn type="button" variant="ghost" size="sm" (click)="dismissed.emit()">
+          그만두기
+        </button>
+        <button hlmBtn type="button" size="sm" [disabled]="!creatable()" (click)="create()">
+          세우기
+        </button>
+      </footer>
+    </form>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class ProjectCreateDialog {
+  // --- 계약 --------------------------------------------------------------------------------------
+  readonly created = output<string>();
+  readonly dismissed = output<void>();
+
+  // --- 의존 --------------------------------------------------------------------------------------
+  private readonly projectService = inject(ProjectService);
+
+  // --- 상태 --------------------------------------------------------------------------------------
+  private readonly draft = signal({ name: '' });
+  protected readonly createForm = form(this.draft);
+
+  // --- 파생 --------------------------------------------------------------------------------------
+  protected readonly creatable = computed(() => this.draft().name.trim().length > 0);
+
+  // --- 동작 --------------------------------------------------------------------------------------
+  protected create(): void {
+    const name = this.draft().name.trim();
+    if (name === '') return;
+
+    this.created.emit(this.projectService.create(name));
+  }
+
+  protected createOnEnter(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' || event.isComposing) return;
+    event.preventDefault();
+    this.create();
+  }
+}

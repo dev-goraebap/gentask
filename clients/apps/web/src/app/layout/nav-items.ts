@@ -4,6 +4,7 @@ import {
   MORE_NAV_ITEMS,
   type NavGroup,
   type NavItem,
+  PROJECTS_NAV_ITEM,
   ROUTES,
   TODO_BOTTOM_NAV,
   trackerNavGroups,
@@ -32,6 +33,8 @@ export const NAV_GROUPS = new InjectionToken<Signal<readonly NavGroup[]>>('NAV_G
           { label: '메모', icon: 'hgiNote' as const, link: ROUTES.memos() },
         ],
       },
+      // 프로젝트는 할 일과 갈래가 다르므로 이름 없는 묶음으로 사이에 선다.
+      { items: [PROJECTS_NAV_ITEM] },
       {
         label: '더보기',
         items: MORE_NAV_ITEMS,
@@ -44,8 +47,10 @@ export const NAV_GROUPS = new InjectionToken<Signal<readonly NavGroup[]>>('NAV_G
  *
  * <p>메뉴와 따로 두는 것은 담기는 것이 다르기 때문이다. 사이드바는 그 자리의 모든 것을 늘어놓지만
  * 띠는 넷을 넘기지 못한다.
+ *
+ * <p>`null` 이면 띠가 서지 않는다. 좁은 화면을 아직 다루지 않는 자리가 그것을 쓴다.
  */
-export const BOTTOM_NAV = new InjectionToken<Signal<readonly NavItem[]>>('BOTTOM_NAV', {
+export const BOTTOM_NAV = new InjectionToken<Signal<readonly NavItem[] | null>>('BOTTOM_NAV', {
   factory: () => signal(TODO_BOTTOM_NAV),
 });
 

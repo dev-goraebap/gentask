@@ -6,15 +6,25 @@ import { BOTTOM_NAV } from './layout/nav-items';
 
 describe('app.routes 의 첫 자리', () => {
   /*
-   * 홈은 리다이렉트가 아니라 화면이다. 오늘 할 일과 프로젝트가 함께 서는 자리이며, 리다이렉트로
-   * 되돌리면 프로젝트를 고를 자리가 다시 없어진다.
+   * 처음 여는 사람이 오늘 할 것부터 본다. 자리를 고르는 화면을 첫머리에 두면 아무것도 하지 않은
+   * 채로 한 단계를 지나게 된다.
    */
-  it('홈이 실제 화면이다', () => {
-    const home = shellChildren().find((child) => child.path === '');
+  it('첫 자리가 나의 하루다', () => {
+    const first = shellChildren().find((child) => child.path === '');
 
-    expect(home?.loadComponent).toBeDefined();
-    expect(home?.redirectTo).toBeUndefined();
-    expect(ROUTES.home()).toBe('/');
+    expect(first?.redirectTo).toBe('todo/my-day');
+    expect(ROUTES.taskList('my-day')).toBe('/todo/my-day');
+  });
+
+  /*
+   * 프로젝트는 모드가 아니라 계정에 매인다. 어느 프로젝트에도 들어가지 않은 상태에서 닿아야 하므로
+   * 트래커 자리가 아니라 투두의 메뉴 안에 선다.
+   */
+  it('프로젝트들이 트래커 자리 밖에 선다', () => {
+    const paths = shellChildren().map((child) => child.path);
+
+    expect(paths).toContain('projects');
+    expect(ROUTES.projects()).toBe('/projects');
   });
 
   /*

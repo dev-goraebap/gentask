@@ -1,0 +1,43 @@
+<section class="mx-auto flex w-full max-w-[48rem] flex-1 flex-col px-4 pt-8 pb-8 md:pt-12">
+  <div class="flex items-center gap-4">
+    <h1 class="text-2xl font-semibold tracking-tight">프로젝트</h1>
+    <span class="flex-1"></span>
+    <!-- 단추가 아니라 링크다. 주소가 열림의 진실이어야 새로고침과 뒤로가기가 성립한다. -->
+    <a hlmBtn size="sm" class="gap-1.5" [routerLink]="[]" [queryParams]="createPanel.open()">
+      <app-icon name="hgiPlus" />
+      새 프로젝트
+    </a>
+  </div>
+
+  <p class="text-foreground-secondary mt-1 text-sm">
+    작업 아이템과 문서는 프로젝트 하나에 담깁니다. 계정을 만들 때 하나가 함께 섭니다.
+  </p>
+
+  <ul class="divide-border border-border mt-4 divide-y border-y">
+    @for (project of projects(); track project.id) {
+      <li>
+        <a
+          [routerLink]="routes.issues(project.id)"
+          class="text-foreground hover:bg-muted flex items-center gap-3 px-1 py-3"
+        >
+          <span class="bg-primary size-2.5 shrink-0" aria-hidden="true"></span>
+          <span class="min-w-0 flex-1">
+            <span class="block truncate">{{ project.name }}</span>
+            <span class="text-foreground-secondary block text-xs">
+              {{ project.key }} · 작업 아이템 {{ project.issueCount }} · 문서 {{ project.docCount }}
+            </span>
+          </span>
+          <app-icon name="hgiArrowRight" class="text-foreground-secondary shrink-0" />
+        </a>
+      </li>
+    }
+  </ul>
+
+  <!--
+    지우기와 나가기는 단추를 두지 않는다. 되묻는 절차와 담긴 것의 처리가 함께 정해져야 하고,
+    목으로 흉내 내면 지워지지 않은 것이 지워진 것처럼 보인다.
+  -->
+  <p class="text-foreground-secondary mt-3 text-sm">
+    이름을 바꾸는 것은 프로젝트 설정에 있습니다. 지우거나 나가는 것은 아직 열지 않았습니다.
+  </p>
+</section>

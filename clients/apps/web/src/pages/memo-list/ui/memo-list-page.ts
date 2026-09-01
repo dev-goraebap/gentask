@@ -15,7 +15,6 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmTextarea } from '@/shared/ui/textarea';
-import { AppPageBack } from '@/shared/ui/page-back';
 import { MemoService } from '../api/memo-service';
 import { parseMemo, summarize, type Memo } from '../model/memo';
 
@@ -28,7 +27,7 @@ interface MemoRow {
 
 @Component({
   selector: 'app-memo-list',
-  imports: [AppPageBack, 
+  imports: [
     FormRoot,
     FormField,
     RouterLink,

@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { UserService } from '@/entities/user';
-import { MORE_SHEET_ITEMS, ROUTES } from '@/shared/config';
+import { MORE_SHEET_ITEMS, PROJECTS_NAV_ITEM } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmPopoverImports } from '@/shared/ui/popover';
-import { BOTTOM_NAV } from './nav-items';
+import { BOTTOM_NAV, SHELL_AREA } from './nav-items';
 
 /**
  * 좁은 화면 바닥의 띠.
@@ -23,20 +22,34 @@ import { BOTTOM_NAV } from './nav-items';
   imports: [RouterLink, RouterLinkActive, HlmButton, HlmPopoverImports, AppIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class:
-      'bg-toolbar border-border shrink-0 border-t pb-[env(safe-area-inset-bottom)] md:hidden',
+    class: 'bg-toolbar border-border shrink-0 border-t pb-[env(safe-area-inset-bottom)] md:hidden',
+    // 담길 것이 없으면 띠 자체가 서지 않는다. 테두리만 남으면 빈 줄 하나가 화면 아래에 붙는다.
+    '[class.hidden]': 'items() === null',
   },
   templateUrl: './bottom-nav.html',
 })
 export class BottomNav {
   // --- 상수 --------------------------------------------------------------------------------------
-  protected readonly routes = ROUTES;
-  protected readonly sheetItems = computed(() => MORE_SHEET_ITEMS);
+  /** 지금 자리를 정확히 가리키는 칸만 켠다. 앞자리만 맞아도 켜면 여러 칸이 함께 켜진다. */
+  protected readonly exact = {
+    paths: 'exact',
+    queryParams: 'ignored',
+    fragment: 'ignored',
+    matrixParams: 'ignored',
+  } as const;
 
   // --- 의존 --------------------------------------------------------------------------------------
   protected readonly items = inject(BOTTOM_NAV);
-  private readonly userService = inject(UserService);
+  private readonly area = inject(SHELL_AREA);
 
   // --- 파생 --------------------------------------------------------------------------------------
-  protected readonly admin = computed(() => this.userService.me()?.role === 'ADMIN');
+  /**
+   * 더보기에 담기는 것.
+   *
+   * <p>프로젝트 안에서는 띠가 그 프로젝트의 것으로 갈리므로 다른 프로젝트로 옮겨 갈 길이 사라진다.
+   * 그 길을 여기서 되돌려 준다.
+   */
+  protected readonly sheetItems = computed(() =>
+    this.area === 'tracker' ? [PROJECTS_NAV_ITEM, ...MORE_SHEET_ITEMS] : MORE_SHEET_ITEMS,
+  );
 }

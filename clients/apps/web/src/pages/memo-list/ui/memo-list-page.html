@@ -1,10 +1,7 @@
 <section class="mx-auto grid w-full max-w-(--content-max) flex-1 gap-8 px-4 pt-8 md:pt-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
   @if (selected(); as memo) {
     <div class="flex min-w-0 flex-col">
-      <div class="flex min-w-0 items-center">
-        <app-page-back [to]="routes.todo()" />
-        <h1 class="text-2xl font-semibold tracking-tight">{{ memo.title }}</h1>
-      </div>
+      <h1 class="text-2xl font-semibold tracking-tight">{{ memo.title }}</h1>
       <p class="text-foreground-secondary mt-1.5 text-xs">{{ memo.updatedAt }} 고침</p>
 
       <div class="mt-4 flex flex-wrap items-center gap-2">
@@ -104,7 +101,6 @@
     </div>
   } @else {
     <div class="min-w-0">
-      <app-page-back [to]="routes.todo()" />
 
       <app-empty-state
         title="아직 적어 둔 것이 없습니다"

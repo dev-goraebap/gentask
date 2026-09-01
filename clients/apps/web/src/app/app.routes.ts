@@ -5,7 +5,7 @@ import { IssueService } from '@/entities/issue/providers';
 import { ProjectPicker, projectScopeGuard, ProjectService } from '@/entities/project/providers';
 import { adminGuard, authGuard } from '@/entities/user/guard';
 import { AuthService, UserService } from '@/entities/user/providers';
-import { ADMIN_BOTTOM_NAV, trackerBottomNav } from '@/shared/config';
+import { trackerBottomNav } from '@/shared/config';
 import { MemoService } from '@/pages/memo-list/providers';
 import { TaskService } from '@/entities/task';
 import { provideTaskListDatePicker } from '@/pages/task-list/providers';
@@ -57,7 +57,8 @@ export const routes: Routes = [
       UserService,
       AuthService,
       { provide: NAV_GROUPS, useValue: ADMIN_NAV_GROUPS },
-      { provide: BOTTOM_NAV, useValue: signal(ADMIN_BOTTOM_NAV) },
+      // 좁은 화면을 아직 다루지 않는다. 띠를 세우지 않으면 그 자리는 넓은 화면 전용이 된다.
+      { provide: BOTTOM_NAV, useValue: signal(null) },
       { provide: SHELL_AREA, useValue: 'admin' },
     ],
     children: [
@@ -150,14 +151,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
     providers: [UserService, AuthService, TaskService],
     children: [
-      /*
-       * 홈이 첫 자리다. 오늘 할 일과 프로젝트를 함께 보여 주므로 어느 쪽으로 갈지가 여기서 갈리고,
-       * 프로젝트 목록만 있는 화면을 따로 두지 않는다.
-       */
+      // 첫 자리는 나의 하루다. 처음 여는 사람이 오늘 할 것부터 보는 것이 이 제품의 시작이다.
+      { path: '', pathMatch: 'full', redirectTo: 'todo/my-day' },
       {
-        path: '',
-        pathMatch: 'full',
-        loadComponent: () => import('@/pages/home').then((m) => m.HomePage),
+        // 프로젝트는 모드가 아니라 계정에 매인다. 어느 프로젝트에도 들어가지 않고 닿을 수 있어야 한다.
+        path: 'projects',
+        loadComponent: () => import('@/pages/project-list').then((m) => m.ProjectListPage),
       },
       {
         path: 'me',

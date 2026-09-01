@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { AppPageBack } from '@/shared/ui/page-back';
 import { ROUTES } from '@/shared/config';
 
 /**
@@ -11,15 +10,12 @@ import { ROUTES } from '@/shared/config';
  */
 @Component({
   selector: 'app-pet',
-  imports: [AppPageBack, EmptyState],
+  imports: [EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-h-0 flex-1 flex-col' },
   template: `
     <section class="mx-auto flex w-full max-w-[40rem] flex-1 flex-col px-4 pt-8 pb-8 md:pt-12">
-      <div class="flex min-w-0 items-center">
-        <app-page-back [to]="routes.todo()" />
-        <h1 class="text-xl font-semibold tracking-tight">팻 관리</h1>
-      </div>
+      <h1 class="text-xl font-semibold tracking-tight">팻 관리</h1>
       <p class="text-foreground-secondary mt-1 text-sm">기르는 것을 이 자리에 둡니다.</p>
 
       <app-empty-state

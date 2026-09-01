@@ -23,6 +23,7 @@ export const ROUTES = {
    * 트래커의 자리는 전부 프로젝트 아래에 있다. 프로젝트를 기본으로 하나 주므로 그 하나만 쓰는
    * 사람에게도 주소에 프로젝트가 드러나고, 둘째가 생겨도 주소의 모양이 바뀌지 않는다.
    */
+  projects: () => '/projects',
   project: (projectId: string) => `/projects/${projectId}`,
   issues: (projectId: string) => `/projects/${projectId}/issues`,
   issue: (projectId: string, id: string) => `/projects/${projectId}/issues/${id}`,
@@ -56,4 +57,11 @@ export const ISSUE_CREATE_PANEL = {
 export const MEMO_PANEL = {
   param: 'memo',
   open: (id: string) => ({ memo: id }),
+} as const;
+
+/** 세우는 중인 프로젝트. 덮개가 열려 있는가를 주소가 갖는다. */
+export const PROJECT_CREATE_PANEL = {
+  param: 'new',
+  open: () => ({ new: 1 }),
+  close: () => ({ new: null }),
 } as const;

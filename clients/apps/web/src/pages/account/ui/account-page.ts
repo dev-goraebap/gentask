@@ -25,14 +25,12 @@ import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { HlmInput } from '@/shared/ui/input';
 import { toast } from '@/shared/ui/sonner';
 import { Veil } from '@/shared/ui/veil';
-import { AppPageBack } from '@/shared/ui/page-back';
-import { ThemeToggle } from '@/shared/ui/theme-toggle';
 
 const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
 
 @Component({
   selector: 'app-account',
-  imports: [AppPageBack, ThemeToggle, 
+  imports: [
     FormRoot,
     FormField,
     HlmButton,

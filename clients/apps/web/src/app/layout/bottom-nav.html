@@ -1,62 +1,51 @@
-<ul class="flex items-stretch">
-  @for (item of items(); track item.link) {
+@if (items(); as tabs) {
+  <ul class="flex items-stretch">
+    @for (tab of tabs; track tab.link) {
+      <li class="flex-1">
+        <a
+          [routerLink]="tab.link"
+          routerLinkActive="text-foreground"
+          [routerLinkActiveOptions]="exact"
+          class="text-foreground-secondary flex h-full min-h-14 flex-col items-center justify-center gap-0.5 px-1"
+        >
+          <app-icon [name]="tab.icon" size="md" />
+          <span class="max-w-full truncate text-[0.6875rem] leading-none">{{ tab.label }}</span>
+        </a>
+      </li>
+    }
+
     <li class="flex-1">
-      <a
-        [routerLink]="item.link"
-        routerLinkActive="text-foreground"
-        [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }"
-        class="text-foreground-secondary flex h-full min-h-14 flex-col items-center justify-center gap-0.5 px-1"
-      >
-        <app-icon [name]="item.icon" size="md" />
-        <span class="max-w-full truncate text-[0.6875rem] leading-none">{{ item.label }}</span>
-      </a>
+      <!--
+        더보기는 주소를 갖지 않는다. 자리가 아니라 자리를 고르는 자리이며, 주소를 주면 뒤로가기가
+        연 횟수만큼 멈춘다 (프론트엔드 05 8절).
+      -->
+      <hlm-popover align="end" sideOffset="8">
+        <button
+          hlmPopoverTrigger
+          type="button"
+          class="text-foreground-secondary flex h-full min-h-14 w-full flex-col items-center justify-center gap-0.5 px-1"
+        >
+          <app-icon name="hgiMore" size="md" />
+          <span class="text-[0.6875rem] leading-none">더보기</span>
+        </button>
+
+        <hlm-popover-content *hlmPopoverPortal="let ctx" class="p-1 md:w-56">
+          <div role="group" aria-label="그 밖의 자리" class="flex flex-col">
+            @for (item of sheetItems(); track item.link) {
+              <a
+                hlmBtn
+                variant="ghost"
+                class="justify-start gap-3"
+                [routerLink]="item.link"
+                (click)="ctx.close()"
+              >
+                <app-icon [name]="item.icon" />
+                {{ item.label }}
+              </a>
+            }
+          </div>
+        </hlm-popover-content>
+      </hlm-popover>
     </li>
-  }
-
-  <li class="flex-1">
-    <!--
-      더보기는 주소를 갖지 않는다. 자리가 아니라 자리를 고르는 자리이며, 주소를 주면 뒤로가기가
-      연 횟수만큼 멈춘다 (프론트엔드 05 8절).
-    -->
-    <hlm-popover align="end" sideOffset="8">
-      <button
-        hlmPopoverTrigger
-        type="button"
-        class="text-foreground-secondary flex h-full min-h-14 w-full flex-col items-center justify-center gap-0.5 px-1"
-      >
-        <app-icon name="hgiMore" size="md" />
-        <span class="text-[0.6875rem] leading-none">더보기</span>
-      </button>
-
-      <hlm-popover-content *hlmPopoverPortal="let ctx" class="p-1 md:w-56">
-        <div role="group" aria-label="그 밖의 자리" class="flex flex-col">
-          @for (item of sheetItems(); track item.link) {
-            <a
-              hlmBtn
-              variant="ghost"
-              class="justify-start gap-3"
-              [routerLink]="item.link"
-              (click)="ctx.close()"
-            >
-              <app-icon [name]="item.icon" />
-              {{ item.label }}
-            </a>
-          }
-
-          @if (admin()) {
-            <a
-              hlmBtn
-              variant="ghost"
-              class="justify-start gap-3"
-              [routerLink]="routes.adminUsers()"
-              (click)="ctx.close()"
-            >
-              <app-icon name="hgiShield" />
-              관리자 페이지
-            </a>
-          }
-        </div>
-      </hlm-popover-content>
-    </hlm-popover>
-  </li>
-</ul>
+  </ul>
+}

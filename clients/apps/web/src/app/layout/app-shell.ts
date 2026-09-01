@@ -80,8 +80,8 @@ export class AppShell {
   /** 사이드바의 마크를 누르면 가는 자리. 그 자리의 첫 화면이다. */
   protected readonly areaHome = computed(() => {
     if (this.area === 'admin') return ROUTES.adminUsers();
-    if (this.area === 'tracker') return ROUTES.home();
-    return ROUTES.home();
+    if (this.area === 'tracker') return ROUTES.projects();
+    return ROUTES.todo();
   });
 
   /**
@@ -100,13 +100,6 @@ export class AppShell {
     }
     return { label: '프로젝트', icon: 'hgiLayers', link: ROUTES.home() };
   });
-
-  /** 관리 자리로 건너가는 단추. 관리자에게만 선다. */
-  protected readonly adminCrossing = computed<Crossing | null>(() =>
-    this.area !== 'admin' && this.userService.me()?.role === 'ADMIN'
-      ? { label: '관리자 페이지', icon: 'hgiShield', link: ROUTES.adminUsers() }
-      : null,
-  );
 
   protected readonly columnClass = computed(() =>
     this.asideSlotService.content()

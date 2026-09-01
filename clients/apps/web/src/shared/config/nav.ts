@@ -30,6 +30,18 @@ export const MORE_SHEET_ITEMS: readonly NavItem[] = [
 ];
 
 /**
+ * 프로젝트에 매이지 않는 자리.
+ *
+ * <p>프로젝트 안에서도 다른 프로젝트로 옮겨 갈 수 있어야 한다. 좁은 화면에는 고르개가 서지 않으므로
+ * 그 길을 더보기가 갖는다.
+ */
+export const PROJECTS_NAV_ITEM: NavItem = {
+  label: '프로젝트',
+  icon: 'hgiLayers',
+  link: ROUTES.projects(),
+};
+
+/**
  * 좁은 화면 바닥의 띠.
  *
  * <p>자리마다 담기는 것이 다르고 마지막 칸은 언제나 더보기다. 그 칸은 주소를 갖지 않으므로 여기에
@@ -38,23 +50,18 @@ export const MORE_SHEET_ITEMS: readonly NavItem[] = [
  * <p>넷을 넘기지 않는다. 좁은 화면에서 다섯 칸이 되면 글자가 접히거나 잘린다.
  */
 export const TODO_BOTTOM_NAV: readonly NavItem[] = [
-  { label: '홈', icon: 'hgiHome', link: ROUTES.home() },
   { label: '할 일', icon: 'hgiTask', link: ROUTES.taskList('my-day') },
   { label: '메모', icon: 'hgiNote', link: ROUTES.memos() },
+  { label: '프로젝트', icon: 'hgiLayers', link: ROUTES.projects() },
 ];
 
 export function trackerBottomNav(projectId: string): readonly NavItem[] {
   return [
-    { label: '홈', icon: 'hgiHome', link: ROUTES.home() },
     { label: '작업 아이템', icon: 'hgiLayers', link: ROUTES.issues(projectId) },
     { label: '문서', icon: 'hgiBook', link: ROUTES.docs(projectId) },
+    { label: '설정', icon: 'hgiSettings', link: ROUTES.projectSettings(projectId) },
   ];
 }
-
-export const ADMIN_BOTTOM_NAV: readonly NavItem[] = [
-  { label: '사용자', icon: 'hgiUsers', link: ROUTES.adminUsers() },
-  { label: '알림 문제', icon: 'hgiNotificationOff', link: ROUTES.adminNotifications() },
-];
 
 /**
  * 메뉴의 묶음.
