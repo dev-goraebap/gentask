@@ -62,7 +62,8 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 ## 백로그
 
 - 항목은 [Backlog.md](https://github.com/MrLesk/Backlog.md) 가 다룹니다. 구조와 채번의 규약은 [결정-0007](docs/architecture/decisions/0007-shared-software-process.md)이 갖습니다.
-- 상태, 소속, 인수 조건을 바꿀 때는 `backlog` CLI 를 씁니다. 프런트매터를 직접 고치면 항목 사이의 관계가 어긋납니다.
+- 상태와 인수 조건을 바꿀 때는 `backlog` CLI 를 씁니다. 프런트매터를 직접 고치면 항목 사이의 관계가 어긋납니다.
+- **소속만 예외입니다.** 세울 때 `-p` 를 주면 도구가 자식에게 계층 ID 를 매기고 뒤에 부모를 바꾸는 수단이 없으므로, `-p` 없이 세운 뒤 `parent_task_id` 를 직접 적습니다. 근거는 [결정-0007](docs/architecture/decisions/0007-shared-software-process.md)이 갖습니다.
 - 인수 조건은 `<!-- AC:BEGIN -->` 마커 안에만 둡니다. 추적 검사기가 그 자리만 읽습니다.
 - 결번은 `backlog task edit <ID> --remove-ac` 로 만들지 않습니다. 그 명령이 뒤 번호를 당깁니다. 문장을 `(결번)` 으로 바꿉니다.
 - 서술서가 아직 없는 후보는 Draft 로 둡니다. 착수 순서는 Draft 번호가 갖습니다 — `ordinal` 은 Draft 목록의 정렬에 쓰이지 않습니다.
