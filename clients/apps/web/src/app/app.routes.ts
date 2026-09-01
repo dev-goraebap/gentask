@@ -9,6 +9,7 @@ import { MemoService } from '@/pages/memo-list/providers';
 import { provideTaskListDatePicker, TaskService } from '@/pages/task-list/providers';
 import { AppShell } from './layout/app-shell';
 import {
+  ACCOUNT_NAV_GROUPS,
   ADMIN_NAV_GROUPS,
   NAV_GROUPS,
   SHELL_AREA,
@@ -70,14 +71,19 @@ export const routes: Routes = [
     ],
   },
   {
-    // 트래커 자리. 관리 자리와 같은 껍데기에 메뉴와 머리에 서는 것만 갈아 끼운다.
-    path: 'projects',
+    /*
+     * 트래커 자리. 관리 자리와 같은 껍데기에 메뉴와 머리에 서는 것만 갈아 끼운다.
+     *
+     * <p>`projects` 보다 **먼저** 서야 한다. 둘은 서로 다른 껍데기를 쓰는데(앞은 트래커 메뉴, 뒤는
+     * 계정 메뉴), `projects` 가 먼저 서면 `/projects/<id>` 를 그것이 먼저 잡고 자식에서 실패해
+     * 라우터의 되짚기에 기대게 된다. 세그먼트 수가 많은 쪽을 먼저 두면 그런 의존이 없다.
+     */
+    path: 'projects/:projectId',
     component: AppShell,
-    canActivate: [authGuard],
+    canActivate: [authGuard, projectScopeGuard],
     providers: [
       UserService,
       AuthService,
-      ProjectService,
       IssueService,
       DocService,
       {
@@ -91,62 +97,80 @@ export const routes: Routes = [
       { provide: SIDEBAR_LEAD, useValue: ProjectPicker },
     ],
     children: [
-      // 좁은 화면의 첫 자리는 프로젝트들이다. 넓은 화면에서는 사이드바의 고르개가 그것을 이미
-      // 보여 주므로 그 화면이 스스로 지금 프로젝트로 옮긴다. 옮기는 판정에 화면 폭이 필요해
-      // 리다이렉트로 두지 않는다 — 서버는 폭을 모른다.
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('@/pages/tracker/project-menu').then((m) => m.ProjectMenuPage),
+      },
+      {
+        path: 'issues',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () => import('@/pages/tracker/issue-list').then((m) => m.IssueListPage),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import('@/pages/tracker/issue-detail').then((m) => m.IssueDetailPage),
+          },
+        ],
+      },
+      {
+        path: 'docs',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () => import('@/pages/tracker/doc-list').then((m) => m.DocListPage),
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('@/pages/tracker/doc-detail').then((m) => m.DocDetailPage),
+          },
+        ],
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('@/pages/tracker/settings').then((m) => m.ProjectSettingsPage),
+      },
+    ],
+  },
+  {
+    // 계정 자리. 모드에 매이지 않는 것들이 여기 선다. 프로젝트는 모드가 아니라 계정에 매인다.
+    path: 'projects',
+    component: AppShell,
+    canActivate: [authGuard],
+    providers: [
+      UserService,
+      AuthService,
+      { provide: NAV_GROUPS, useValue: ACCOUNT_NAV_GROUPS },
+      { provide: SHELL_AREA, useValue: 'account' },
+    ],
+    children: [
       {
         path: '',
         pathMatch: 'full',
         loadComponent: () => import('@/pages/project-list').then((m) => m.ProjectListPage),
       },
+    ],
+  },
+  {
+    path: 'me',
+    component: AppShell,
+    canActivate: [authGuard],
+    providers: [
+      UserService,
+      AuthService,
+      { provide: NAV_GROUPS, useValue: ACCOUNT_NAV_GROUPS },
+      { provide: SHELL_AREA, useValue: 'account' },
+    ],
+    children: [
       {
-        // 주소가 지금 프로젝트의 진실이다. 들어오는 자리에서 서비스를 맞춘다.
-        path: ':projectId',
-        canActivate: [projectScopeGuard],
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            loadComponent: () =>
-              import('@/pages/tracker/project-menu').then((m) => m.ProjectMenuPage),
-          },
-          {
-            path: 'issues',
-            children: [
-              {
-                path: '',
-                pathMatch: 'full',
-                loadComponent: () =>
-                  import('@/pages/tracker/issue-list').then((m) => m.IssueListPage),
-              },
-              {
-                path: ':id',
-                loadComponent: () =>
-                  import('@/pages/tracker/issue-detail').then((m) => m.IssueDetailPage),
-              },
-            ],
-          },
-          {
-            path: 'docs',
-            children: [
-              {
-                path: '',
-                pathMatch: 'full',
-                loadComponent: () => import('@/pages/tracker/doc-list').then((m) => m.DocListPage),
-              },
-              {
-                path: ':id',
-                loadComponent: () =>
-                  import('@/pages/tracker/doc-detail').then((m) => m.DocDetailPage),
-              },
-            ],
-          },
-          {
-            path: 'settings',
-            loadComponent: () =>
-              import('@/pages/tracker/settings').then((m) => m.ProjectSettingsPage),
-          },
-        ],
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('@/pages/account').then((m) => m.AccountPage),
       },
     ],
   },
@@ -157,10 +181,6 @@ export const routes: Routes = [
     providers: [UserService, AuthService],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'todo' },
-      {
-        path: 'me',
-        loadComponent: () => import('@/pages/account').then((m) => m.AccountPage),
-      },
       {
         // 모드에 매이지 않는 자리. 어느 모드의 더보기에서도 같은 주소로 선다.
         path: 'memos',

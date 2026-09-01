@@ -96,7 +96,7 @@ export class AppShell {
 
   protected readonly atRoot = computed(() => {
     const path = this.path();
-    return path === '' || path === ROUTES.todo() || path === '/admin' || path === ROUTES.projects();
+    return path === '' || path === ROUTES.todo() || path === '/admin';
   });
 
   /**
@@ -129,7 +129,8 @@ export class AppShell {
     if (this.area === 'admin') {
       return { label: '사용자 페이지', icon: 'hgiTask', link: ROUTES.todo() };
     }
-    if (this.area === 'tracker') {
+    // 계정은 건너가는 모드가 아니라 들렀다 돌아오는 자리다. 나가는 길만 둔다.
+    if (this.area === 'tracker' || this.area === 'account') {
       return { label: '할 일', icon: 'hgiTask', link: ROUTES.todo() };
     }
     return { label: '프로젝트', icon: 'hgiLayers', link: ROUTES.projects() };

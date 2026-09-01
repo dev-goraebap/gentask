@@ -37,6 +37,7 @@ export class ProjectService {
   private readonly projects = signal<readonly Project[]>(PROJECTS);
   private readonly currentId = signal('gentask');
   private readonly links = signal<readonly RepositoryLink[]>(LINKS);
+  private sequence = 0;
 
   // --- 파생 --------------------------------------------------------------------------------------
   readonly list = this.projects.asReadonly();
@@ -48,6 +49,23 @@ export class ProjectService {
   });
 
   // --- 동작 --------------------------------------------------------------------------------------
+  /**
+   * 프로젝트를 세운다.
+   *
+   * <p>목이므로 채번을 여기서 한다. 서버가 서면 그 자리가 넘어간다.
+   */
+  create(name: string): string {
+    const id = `p-${++this.sequence}`;
+    const key = keyOf(name);
+
+    this.projects.update((projects) => [
+      ...projects,
+      { id, name, key, issueCount: 0, docCount: 0 },
+    ]);
+
+    return id;
+  }
+
   choose(id: string): void {
     this.currentId.set(id);
   }
@@ -62,4 +80,17 @@ export class ProjectService {
   unlink(linkId: string): void {
     this.links.update((links) => links.filter((link) => link.id !== linkId));
   }
+}
+
+/**
+ * 이름에서 접두어를 뽑는다.
+ *
+ * <p>영문이면 앞 두 글자를, 그렇지 않으면 첫 글자를 쓴다. 번호가 매겨진 뒤에는 바꾸지 않으므로
+ * 세울 때 한 번만 정한다.
+ */
+function keyOf(name: string): string {
+  const trimmed = name.trim();
+  const ascii = trimmed.replace(/[^A-Za-z]/g, '');
+
+  return (ascii.length >= 2 ? ascii.slice(0, 2) : trimmed.slice(0, 2)).toUpperCase();
 }
