@@ -328,7 +328,7 @@ describe('TaskListPage', () => {
     const host = fixture.nativeElement as HTMLElement;
     const link = host.querySelector<HTMLAnchorElement>('#task-seed-1');
 
-    expect(link?.getAttribute('href')).toBe('/tasks/all?task=seed-1');
+    expect(link?.getAttribute('href')).toBe('/todo/all?task=seed-1');
   });
 
   it('열린 항목이 없으면 aside 슬롯을 채우지 않는다', () => {

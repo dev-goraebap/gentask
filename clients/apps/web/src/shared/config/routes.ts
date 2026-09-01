@@ -1,11 +1,14 @@
 export const ROUTES = {
   home: () => '/',
 
-  taskList: (view = 'all') => `/tasks/${view}`,
+  /*
+   * 투두 모드의 자리는 전부 `/todo` 아래에 있다. 그릇에 제 이름이 있어야 그 아래 목록들과 층이
+   * 갈린다 — 그릇 이름과 그 안의 항목 이름이 같으면 `할 일` 처럼 한 말이 두 층을 가리킨다.
+   */
+  todo: () => '/todo',
+  taskList: (view = 'all') => `/todo/${view}`,
 
-  tasks: () => '/tasks',
-
-  memos: () => '/memos',
+  memos: () => '/todo/memos',
 
   account: () => '/account',
 

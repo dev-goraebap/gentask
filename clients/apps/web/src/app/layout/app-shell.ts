@@ -96,7 +96,7 @@ export class AppShell {
 
   protected readonly atRoot = computed(() => {
     const path = this.path();
-    return path === '' || path === '/tasks' || path === '/admin' || path === ROUTES.projects();
+    return path === '' || path === ROUTES.todo() || path === '/admin' || path === ROUTES.projects();
   });
 
   /**
@@ -106,7 +106,7 @@ export class AppShell {
    * 자리마다 갈 곳을 세지 않고 마지막 조각을 뗀다. 세면 단계가 늘 때마다 여기를 고치게 된다.
    */
   protected readonly areaBack = computed(() => {
-    if (this.area !== 'tracker') return ROUTES.tasks();
+    if (this.area !== 'tracker') return ROUTES.todo();
 
     const parent = this.path().split('/').slice(0, -1).join('/');
     return parent === '' ? ROUTES.projects() : parent;
@@ -127,10 +127,10 @@ export class AppShell {
    */
   protected readonly crossing = computed<Crossing | null>(() => {
     if (this.area === 'admin') {
-      return { label: '사용자 페이지', icon: 'hgiTask', link: ROUTES.tasks() };
+      return { label: '사용자 페이지', icon: 'hgiTask', link: ROUTES.todo() };
     }
     if (this.area === 'tracker') {
-      return { label: '할 일', icon: 'hgiTask', link: ROUTES.tasks() };
+      return { label: '할 일', icon: 'hgiTask', link: ROUTES.todo() };
     }
     return { label: '프로젝트', icon: 'hgiLayers', link: ROUTES.projects() };
   });
