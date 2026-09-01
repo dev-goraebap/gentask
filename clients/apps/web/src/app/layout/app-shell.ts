@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,7 +15,7 @@ import { AsideSlotService } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon, type IconName } from '@/shared/ui/icon';
 import { NavigationVeil } from './navigation-veil';
-import { NAV_GROUPS, SHELL_AREA } from './nav-items';
+import { NAV_GROUPS, SHELL_AREA, SIDEBAR_LEAD } from './nav-items';
 import { SidebarService } from './sidebar-service';
 import { ThemeToggle } from './theme-toggle';
 
@@ -33,6 +33,7 @@ interface Crossing {
     RouterLink,
     RouterLinkActive,
     NgTemplateOutlet,
+    NgComponentOutlet,
     AppIcon,
     HlmButton,
     ThemeToggle,
@@ -50,6 +51,7 @@ export class AppShell {
   // --- 의존 --------------------------------------------------------------------------------------
   protected readonly navGroups = inject(NAV_GROUPS);
   protected readonly area = inject(SHELL_AREA);
+  protected readonly sidebarLead = inject(SIDEBAR_LEAD);
   protected readonly asideSlotService = inject(AsideSlotService);
   protected readonly sidebarService = inject(SidebarService);
   protected readonly userService = inject(UserService);
@@ -92,27 +94,55 @@ export class AppShell {
 
   protected readonly atRoot = computed(() => {
     const path = this.url().split('?')[0].replace(/\/$/, '');
-    return path === '' || path === '/tasks' || path === '/admin';
+    return (
+      path === '' ||
+      path === '/tasks' ||
+      path === '/admin' ||
+      path === ROUTES.issues() ||
+      path === ROUTES.docs() ||
+      path === ROUTES.projectSettings()
+    );
+  });
+
+  /**
+   * 좁은 화면에서 앞 단계로 가는 자리.
+   *
+   * <p>트래커에는 목록들에 해당하는 자리가 없다. 상세에서 나오면 그것을 담고 있던 목록으로 간다.
+   */
+  protected readonly areaBack = computed(() => {
+    if (this.area !== 'tracker') return ROUTES.tasks();
+    return this.url().startsWith(ROUTES.docs()) ? ROUTES.docs() : ROUTES.issues();
   });
 
   /** 로고를 누르면 가는 자리. 머리에 서는 이름은 자리와 무관하게 서비스의 것이다. */
-  protected readonly areaHome = computed(() =>
-    this.area === 'admin' ? ROUTES.adminUsers() : ROUTES.home(),
-  );
+  protected readonly areaHome = computed(() => {
+    if (this.area === 'admin') return ROUTES.adminUsers();
+    if (this.area === 'tracker') return ROUTES.issues();
+    return ROUTES.home();
+  });
 
   /**
    * 다른 자리로 건너가는 단추.
    *
-   * <p>관리자가 아니면 없다. 관리 자리에 있는 사람은 이미 관리자이므로 그 판정을 다시 하지 않는다.
+   * <p>이름은 동작이 아니라 건너갈 자리로 적는다. 관리 자리에 있는 사람은 이미 관리자이므로 그
+   * 판정을 다시 하지 않는다.
    */
   protected readonly crossing = computed<Crossing | null>(() => {
     if (this.area === 'admin') {
       return { label: '사용자 페이지', icon: 'hgiTask', link: ROUTES.tasks() };
     }
-    return this.userService.me()?.role === 'ADMIN'
-      ? { label: '관리자 페이지', icon: 'hgiShield', link: ROUTES.adminUsers() }
-      : null;
+    if (this.area === 'tracker') {
+      return { label: '할 일', icon: 'hgiTask', link: ROUTES.tasks() };
+    }
+    return { label: '트래커', icon: 'hgiLayers', link: ROUTES.issues() };
   });
+
+  /** 관리 자리로 건너가는 단추. 관리자에게만 선다. */
+  protected readonly adminCrossing = computed<Crossing | null>(() =>
+    this.area !== 'admin' && this.userService.me()?.role === 'ADMIN'
+      ? { label: '관리자 페이지', icon: 'hgiShield', link: ROUTES.adminUsers() }
+      : null,
+  );
 
   protected readonly columnClass = computed(() =>
     this.asideSlotService.content()

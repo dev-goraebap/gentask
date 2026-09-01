@@ -1,0 +1,116 @@
+@if (doc(); as doc) {
+  <section class="mx-auto grid w-full max-w-(--content-max) flex-1 gap-8 px-4 pt-8 md:pt-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div class="min-w-0">
+      <nav aria-label="지나온 폴더" class="text-foreground-secondary flex flex-wrap items-center gap-x-1.5 text-xs">
+        @for (crumb of crumbs(); track crumb.id) {
+          <a
+            [routerLink]="routes.docs()"
+            [queryParams]="{ folder: crumb.id }"
+            class="underline-offset-4 hover:underline"
+          >
+            {{ crumb.name }}
+          </a>
+          <span aria-hidden="true">/</span>
+        }
+      </nav>
+
+      <h1 class="mt-3 text-2xl font-semibold tracking-tight">{{ doc.title }}</h1>
+      <p class="text-foreground-secondary mt-1.5 flex flex-wrap items-center gap-x-1.5 text-xs">
+        <span>{{ doc.authorName }}이 {{ doc.updatedOn }}에 고침</span>
+        <span aria-hidden="true">·</span>
+        <span>판 {{ doc.version }}</span>
+      </p>
+
+      <div class="mt-7 flex max-w-(--reading-measure) flex-col gap-4 text-sm/7">
+        @for (block of doc.blocks; track $index) {
+          @switch (block.kind) {
+            @case ('heading') {
+              <h2 class="mt-2 text-base font-semibold">{{ block.text }}</h2>
+            }
+            @case ('paragraph') {
+              <p>{{ block.text }}</p>
+            }
+            @case ('bullets') {
+              <ul class="flex flex-col gap-1.5">
+                @for (item of block.items; track $index) {
+                  <li class="flex gap-2">
+                    <span class="text-foreground-secondary shrink-0" aria-hidden="true">—</span>
+                    <span>{{ item }}</span>
+                  </li>
+                }
+              </ul>
+            }
+            @case ('code') {
+              <pre class="bg-muted text-foreground-secondary overflow-x-auto p-3 text-xs/6">{{ block.text }}</pre>
+            }
+          }
+        } @empty {
+          <p class="text-muted-foreground">아직 본문이 비어 있습니다.</p>
+        }
+      </div>
+
+      <div class="h-8"></div>
+    </div>
+
+    <aside class="border-border flex min-w-0 flex-col gap-5 lg:border-l lg:pl-6">
+      @if (doc.attachments.length > 0) {
+        <div>
+          <h2 class="text-foreground-secondary mb-2 text-xs">첨부</h2>
+          <ul class="divide-border border-border divide-y border-y">
+            @for (attachment of doc.attachments; track attachment.name) {
+              <li class="flex min-w-0 items-center gap-2 py-2 text-sm">
+                <app-icon name="hgiAttachment" class="text-foreground-secondary" />
+                <span class="min-w-0 flex-1 truncate">{{ attachment.name }}</span>
+                <span class="text-foreground-secondary shrink-0 text-xs">{{ attachment.size }}</span>
+              </li>
+            }
+          </ul>
+          <p class="text-foreground-secondary mt-2 text-xs">
+            본문에 넣는 그림과 달리 첨부는 문서에 붙습니다.
+          </p>
+        </div>
+      }
+
+      @if (doc.linkedIssues.length > 0) {
+        <div>
+          <h2 class="text-foreground-secondary mb-2 text-xs">이 문서를 거는 작업 아이템</h2>
+          <ul class="divide-border border-border divide-y border-y">
+            @for (issue of doc.linkedIssues; track issue.id) {
+              <li class="min-w-0 py-2">
+                <a
+                  [routerLink]="routes.issue(issue.id)"
+                  class="flex min-w-0 items-center gap-2 text-sm underline-offset-4 hover:underline"
+                >
+                  <span class="text-foreground-secondary shrink-0 font-mono text-xs">
+                    {{ issue.id }}
+                  </span>
+                  <span class="min-w-0 truncate">{{ issue.title }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      <div class="border-border border-t pt-3">
+        <h2 class="text-foreground-secondary mb-1.5 flex items-center gap-1.5 text-xs">
+          <app-icon name="hgiTerminal" class="text-[length:--spacing(3)]" />
+          명령줄에서
+        </h2>
+        <p class="bg-muted text-foreground-secondary truncate px-2.5 py-2 font-mono text-xs">
+          {{ command() }}
+        </p>
+      </div>
+
+      <div class="h-4"></div>
+    </aside>
+  </section>
+} @else {
+  <app-empty-state
+    illustration="error-404"
+    title="그 문서를 찾지 못했습니다"
+    description="지워졌거나 주소가 잘못되었습니다."
+  >
+    <a hlmBtn variant="outline" size="sm" [routerLink]="routes.docs()">문서로</a>
+  </app-empty-state>
+}

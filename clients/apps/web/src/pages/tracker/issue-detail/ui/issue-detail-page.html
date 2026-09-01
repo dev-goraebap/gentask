@@ -1,0 +1,201 @@
+@if (issue(); as issue) {
+  <section class="mx-auto grid w-full max-w-(--content-max) flex-1 gap-8 px-4 pt-8 md:pt-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div class="min-w-0">
+      <p class="text-foreground-secondary flex flex-wrap items-center gap-x-1.5 text-xs">
+        <a [routerLink]="routes.issues()" class="inline-flex items-center gap-1 underline-offset-4 hover:underline">
+          <app-icon name="hgiArrowLeft" class="text-[length:--spacing(3)]" />
+          백로그
+        </a>
+        @if (parent(); as parent) {
+          <span aria-hidden="true">/</span>
+          <span class="font-mono">{{ parent.id }}</span>
+          <a [routerLink]="routes.issue(parent.id)" class="underline-offset-4 hover:underline">
+            {{ parent.title }}
+          </a>
+        }
+      </p>
+
+      <div class="mt-2.5 flex items-start gap-2.5">
+        <span class="mt-1.5">
+          <app-issue-kind-badge [kind]="issue.kind" />
+        </span>
+        <h1 class="flex-1 text-2xl font-semibold tracking-tight">{{ issue.title }}</h1>
+      </div>
+
+      <p class="text-foreground-secondary mt-1.5 flex flex-wrap items-center gap-x-1.5 text-xs">
+        <span class="font-mono">{{ issue.id }}</span>
+        <span aria-hidden="true">·</span>
+        <span>{{ issue.authorName }}이 {{ issue.createdOn }}에 세움</span>
+      </p>
+
+      @if (paragraphs().length > 0) {
+        <div class="mt-6 flex flex-col gap-3 text-sm/7">
+          @for (paragraph of paragraphs(); track $index) {
+            <p>{{ paragraph }}</p>
+          }
+        </div>
+      }
+
+      @if (issue.criteria.length > 0) {
+        <h2 class="mt-8 text-sm font-semibold">인수 조건</h2>
+        <ul class="divide-border border-border mt-2 divide-y border-y">
+          @for (criterion of issue.criteria; track criterion.number) {
+            <li class="flex items-start gap-3 py-2.5">
+              <span class="text-foreground-secondary w-7 shrink-0 pt-0.5 font-mono text-xs">
+                #{{ criterion.number }}
+              </span>
+              @if (criterion.retired) {
+                <span class="text-muted-foreground min-w-0 flex-1 text-sm/6">(결번)</span>
+              } @else {
+                <span class="min-w-0 flex-1 text-sm/6">{{ criterion.sentence }}</span>
+                @if (criterion.verified) {
+                  <span class="text-success inline-flex shrink-0 items-center gap-1 pt-0.5 text-xs">
+                    <app-icon name="hgiCheck" class="text-[length:--spacing(3)]" />
+                    덮임
+                  </span>
+                } @else {
+                  <span class="text-warning inline-flex shrink-0 items-center gap-1 pt-0.5 text-xs">
+                    <app-icon name="hgiAlert" class="text-[length:--spacing(3)]" />
+                    미검증
+                  </span>
+                }
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (issue.linkedDocIds.length > 0 || issue.commits.length > 0) {
+        <h2 class="mt-8 text-sm font-semibold">이어진 것</h2>
+        <div class="mt-2 flex flex-col gap-2 text-sm">
+          @for (docId of issue.linkedDocIds; track docId) {
+            <div class="flex items-center gap-2">
+              <app-icon name="hgiFile" class="text-foreground-secondary" />
+              <a [routerLink]="routes.doc(docId)" class="underline-offset-4 hover:underline">
+                {{ issue.linkedDocTitle ?? docId }}
+              </a>
+            </div>
+          }
+          @for (commit of issue.commits; track commit.sha) {
+            <div class="flex min-w-0 items-center gap-2">
+              <app-icon name="hgiGitBranch" class="text-foreground-secondary" />
+              <span class="text-foreground-secondary shrink-0 font-mono text-xs">{{ commit.sha }}</span>
+              <span class="min-w-0 truncate">{{ commit.subject }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="h-8"></div>
+    </div>
+
+    <!-- 곁의 열. 좁은 화면에서는 본문 아래로 내려간다. -->
+    <aside class="border-border flex min-w-0 flex-col gap-5 lg:border-l lg:pl-6">
+      <div>
+        <h2 class="text-foreground-secondary mb-1.5 text-xs">상태</h2>
+        <hlm-popover align="start" sideOffset="4">
+          <button
+            hlmPopoverTrigger
+            hlmBtn
+            type="button"
+            variant="outline"
+            class="w-full justify-between gap-2"
+          >
+            <app-issue-state-chip [state]="issue.state" />
+            <app-icon name="hgiArrowDown" />
+          </button>
+          <hlm-popover-content *hlmPopoverPortal="let ctx" class="w-52 p-1">
+            <div role="group" aria-label="상태 바꾸기" class="flex flex-col">
+              @for (face of stateFaces; track face.value) {
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  class="justify-start gap-2"
+                  [attr.aria-pressed]="issue.state === face.value"
+                  (click)="setState(face.value); ctx.close()"
+                >
+                  {{ face.label }}
+                </button>
+              }
+            </div>
+          </hlm-popover-content>
+        </hlm-popover>
+      </div>
+
+      <div>
+        <h2 class="text-foreground-secondary mb-1.5 text-xs">유형</h2>
+        <p class="flex items-center gap-2 text-sm">
+          <app-issue-kind-badge [kind]="issue.kind" />
+          {{ kindLabel() }}
+        </p>
+      </div>
+
+      <div>
+        <h2 class="text-foreground-secondary mb-1.5 text-xs">부모</h2>
+        @if (parent(); as parent) {
+          <a
+            [routerLink]="routes.issue(parent.id)"
+            class="flex min-w-0 items-center gap-2 text-sm underline-offset-4 hover:underline"
+          >
+            <app-issue-kind-badge [kind]="parent.kind" />
+            <span class="text-foreground-secondary shrink-0 font-mono text-xs">{{ parent.id }}</span>
+            <span class="min-w-0 truncate">{{ parent.title }}</span>
+          </a>
+        } @else {
+          <p class="text-muted-foreground text-sm">최상위 항목입니다</p>
+        }
+      </div>
+
+      <div>
+        <h2 class="text-foreground-secondary mb-1.5 text-xs">기한</h2>
+        @if (issue.dueDate; as due) {
+          <p class="text-warning flex items-center gap-2 text-sm">
+            <app-icon name="hgiCalendar" />
+            {{ due }}
+          </p>
+        } @else {
+          <p class="text-muted-foreground flex items-center gap-2 text-sm">
+            <app-icon name="hgiCalendar" />
+            정하지 않음
+          </p>
+        }
+      </div>
+
+      @if (issue.attachmentNames.length > 0) {
+        <div>
+          <h2 class="text-foreground-secondary mb-1.5 text-xs">첨부</h2>
+          <ul class="divide-border border-border divide-y border-y">
+            @for (name of issue.attachmentNames; track name) {
+              <li class="flex min-w-0 items-center gap-2 py-2 text-sm">
+                <app-icon name="hgiAttachment" class="text-foreground-secondary" />
+                <span class="min-w-0 truncate">{{ name }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      <div class="border-border border-t pt-3">
+        <h2 class="text-foreground-secondary mb-1.5 flex items-center gap-1.5 text-xs">
+          <app-icon name="hgiTerminal" class="text-[length:--spacing(3)]" />
+          명령줄에서
+        </h2>
+        <p class="bg-muted text-foreground-secondary truncate px-2.5 py-2 font-mono text-xs">
+          {{ command() }}
+        </p>
+      </div>
+
+      <div class="h-4"></div>
+    </aside>
+  </section>
+} @else {
+  <app-empty-state
+    illustration="error-404"
+    title="그 작업 아이템을 찾지 못했습니다"
+    description="지워졌거나 주소가 잘못되었습니다."
+  >
+    <a hlmBtn variant="outline" size="sm" [routerLink]="routes.issues()">백로그로</a>
+  </app-empty-state>
+}

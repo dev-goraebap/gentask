@@ -2,6 +2,11 @@ export { AsideOutlet } from './aside/aside-outlet';
 export { AsideSlotService } from './aside/aside-slot-service';
 export { injectViewportClass } from './adaptive/viewport-class';
 export {
+  injectRoutedOverlay,
+  type RoutedOverlay,
+  type RoutedOverlayRef,
+} from './routing/routed-overlay';
+export {
   openUppyDialog,
   type PickedFile,
   type PresignedTarget,

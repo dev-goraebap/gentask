@@ -106,11 +106,11 @@ export const TASK_VIEWS: readonly TaskViewItem[] = [
   { value: 'my-day', label: '나의 하루', icon: 'hgiSun' },
   { value: 'important', label: '중요', icon: 'hgiStar' },
   { value: 'planned', label: '계획된 일정', icon: 'hgiCalendarRange' },
-  { value: 'all', label: '작업', icon: 'hgiHome' },
+  { value: 'all', label: '할 일', icon: 'hgiHome' },
 ];
 
 export function taskViewLabel(view: TaskView): string {
-  return TASK_VIEWS.find((candidate) => candidate.value === view)?.label ?? '작업';
+  return TASK_VIEWS.find((candidate) => candidate.value === view)?.label ?? '할 일';
 }
 
 export function toTaskView(raw: string | undefined | null): TaskView {

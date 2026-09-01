@@ -60,7 +60,7 @@ export default defineConfig([
      * 슬라이스 뿌리의 파일을 세그먼트로 보고 이름을 지적하는데, 이름이 가리키는 것은
      * 내용의 종류가 아니라 임포트 방식입니다.
      */
-    files: ['./src/pages/task-list/providers.ts'],
+    files: ['./src/pages/task-list/providers.ts', './src/pages/memo-list/providers.ts'],
     rules: {
       'fsd/segments-by-purpose': 'off',
     },

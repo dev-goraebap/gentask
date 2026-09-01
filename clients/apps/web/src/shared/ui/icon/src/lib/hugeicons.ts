@@ -6,6 +6,9 @@ import ArrowRight01Icon from '@hugeicons/core-free-icons/ArrowRight01Icon';
 import ArrowRightDoubleIcon from '@hugeicons/core-free-icons/ArrowRightDoubleIcon';
 import ArrowUp01Icon from '@hugeicons/core-free-icons/ArrowUp01Icon';
 import Attachment01Icon from '@hugeicons/core-free-icons/Attachment01Icon';
+import Bookmark01Icon from '@hugeicons/core-free-icons/Bookmark01Icon';
+import BookOpen01Icon from '@hugeicons/core-free-icons/BookOpen01Icon';
+import Bug01Icon from '@hugeicons/core-free-icons/Bug01Icon';
 import Calendar01Icon from '@hugeicons/core-free-icons/Calendar01Icon';
 import Calendar02Icon from '@hugeicons/core-free-icons/Calendar02Icon';
 import Calendar03Icon from '@hugeicons/core-free-icons/Calendar03Icon';
@@ -18,19 +21,32 @@ import Clock01Icon from '@hugeicons/core-free-icons/Clock01Icon';
 import ComputerIcon from '@hugeicons/core-free-icons/ComputerIcon';
 import Delete02Icon from '@hugeicons/core-free-icons/Delete02Icon';
 import File01Icon from '@hugeicons/core-free-icons/File01Icon';
+import FilterIcon from '@hugeicons/core-free-icons/FilterIcon';
+import FlashIcon from '@hugeicons/core-free-icons/FlashIcon';
+import Folder01Icon from '@hugeicons/core-free-icons/Folder01Icon';
+import GitBranchIcon from '@hugeicons/core-free-icons/GitBranchIcon';
+import GithubIcon from '@hugeicons/core-free-icons/GithubIcon';
 import Home01Icon from '@hugeicons/core-free-icons/Home01Icon';
 import InformationCircleIcon from '@hugeicons/core-free-icons/InformationCircleIcon';
+import Layers01Icon from '@hugeicons/core-free-icons/Layers01Icon';
+import Link01Icon from '@hugeicons/core-free-icons/Link01Icon';
 import Loading03Icon from '@hugeicons/core-free-icons/Loading03Icon';
 import Menu01Icon from '@hugeicons/core-free-icons/Menu01Icon';
 import Moon02Icon from '@hugeicons/core-free-icons/Moon02Icon';
+import MoreHorizontalIcon from '@hugeicons/core-free-icons/MoreHorizontalIcon';
+import Note01Icon from '@hugeicons/core-free-icons/Note01Icon';
 import NotificationOff01Icon from '@hugeicons/core-free-icons/NotificationOff01Icon';
 import OctagonXIcon from '@hugeicons/core-free-icons/OctagonXIcon';
+import PlusSignIcon from '@hugeicons/core-free-icons/PlusSignIcon';
+import Search01Icon from '@hugeicons/core-free-icons/Search01Icon';
+import Settings01Icon from '@hugeicons/core-free-icons/Settings01Icon';
 import Shield01Icon from '@hugeicons/core-free-icons/Shield01Icon';
 import SidebarLeft01Icon from '@hugeicons/core-free-icons/SidebarLeft01Icon';
 import SidebarLeftIcon from '@hugeicons/core-free-icons/SidebarLeftIcon';
 import StarIcon from '@hugeicons/core-free-icons/StarIcon';
 import Sun03Icon from '@hugeicons/core-free-icons/Sun03Icon';
 import Task01Icon from '@hugeicons/core-free-icons/Task01Icon';
+import TerminalIcon from '@hugeicons/core-free-icons/TerminalIcon';
 import Timer01Icon from '@hugeicons/core-free-icons/Timer01Icon';
 import Tick02Icon from '@hugeicons/core-free-icons/Tick02Icon';
 import TriangleAlertIcon from '@hugeicons/core-free-icons/TriangleAlertIcon';
@@ -91,6 +107,9 @@ export const HGI_ICONS = {
   hgiArrowRightDouble: toSvg(ArrowRightDoubleIcon),
   hgiArrowUp: toSvg(ArrowUp01Icon),
   hgiAttachment: toSvg(Attachment01Icon),
+  hgiBook: toSvg(BookOpen01Icon),
+  hgiBookmark: toSvg(Bookmark01Icon),
+  hgiBug: toSvg(Bug01Icon),
   hgiCalendar: toSvg(Calendar01Icon),
   hgiCalendarDue: toSvg(Calendar02Icon),
   hgiCalendarCheck: toSvg(CalendarCheckIn01Icon),
@@ -102,14 +121,26 @@ export const HGI_ICONS = {
   hgiCircleArrowRight: toSvg(CircleArrowRight01Icon),
   hgiClock: toSvg(Clock01Icon),
   hgiFile: toSvg(File01Icon),
+  hgiFilter: toSvg(FilterIcon),
+  hgiFlash: toSvg(FlashIcon),
+  hgiFolder: toSvg(Folder01Icon),
+  hgiGitBranch: toSvg(GitBranchIcon),
+  hgiGithub: toSvg(GithubIcon),
   hgiHome: toSvg(Home01Icon),
   hgiInfo: toSvg(InformationCircleIcon),
+  hgiLayers: toSvg(Layers01Icon),
+  hgiLink: toSvg(Link01Icon),
   hgiLoading: toSvg(Loading03Icon),
   hgiMenu: toSvg(Menu01Icon),
   hgiMonitor: toSvg(ComputerIcon),
   hgiMoon: toSvg(Moon02Icon),
+  hgiMore: toSvg(MoreHorizontalIcon),
+  hgiNote: toSvg(Note01Icon),
   hgiNotificationOff: toSvg(NotificationOff01Icon),
   hgiOctagonX: toSvg(OctagonXIcon),
+  hgiPlus: toSvg(PlusSignIcon),
+  hgiSearch: toSvg(Search01Icon),
+  hgiSettings: toSvg(Settings01Icon),
   hgiShield: toSvg(Shield01Icon),
   hgiSidebarClose: toSvg(SidebarLeftIcon),
   hgiSidebarOpen: toSvg(SidebarLeft01Icon),
@@ -117,6 +148,7 @@ export const HGI_ICONS = {
   hgiStar: toSvg(StarIcon),
   hgiSun: toSvg(Sun03Icon),
   hgiTask: toSvg(Task01Icon),
+  hgiTerminal: toSvg(TerminalIcon),
   hgiTimer: toSvg(Timer01Icon),
   hgiTrash: toSvg(Delete02Icon),
   hgiUser: toSvg(UserCircleIcon),

@@ -159,6 +159,10 @@ const TEXT_PAIRS: Array<[front: string, back: string]> = [
   ['secondary-foreground', 'secondary'],
   ['accent-foreground', 'accent'],
   ['mark-foreground', 'mark'],
+  ['kind-epic-foreground', 'kind-epic'],
+  ['kind-story-foreground', 'kind-story'],
+  ['kind-task-foreground', 'kind-task'],
+  ['kind-bug-foreground', 'kind-bug'],
   ['destructive', 'background'],
   ['destructive', 'card'],
   ['warning', 'background'],
@@ -183,6 +187,10 @@ const REQUIRED_PAIRS: Array<[surface: string, ink: string]> = [
   ['muted', 'muted-foreground'],
   ['accent', 'accent-foreground'],
   ['sidebar', 'sidebar-foreground'],
+  ['kind-epic', 'kind-epic-foreground'],
+  ['kind-story', 'kind-story-foreground'],
+  ['kind-task', 'kind-task-foreground'],
+  ['kind-bug', 'kind-bug-foreground'],
 ];
 
 const MODES: Mode[] = ['light', 'dark'];
@@ -201,7 +209,22 @@ describe('디자인 토큰', () => {
   });
 
   it('Spartan 프리셋이 노출하지 않는 토큰은 @theme inline 에 등록되어 있습니다', () => {
-    const extra = ['foreground-secondary', 'warning', 'info', 'success', 'toolbar', 'mark'];
+    const extra = [
+      'foreground-secondary',
+      'warning',
+      'info',
+      'success',
+      'toolbar',
+      'mark',
+      'kind-epic',
+      'kind-epic-foreground',
+      'kind-story',
+      'kind-story-foreground',
+      'kind-task',
+      'kind-task-foreground',
+      'kind-bug',
+      'kind-bug-foreground',
+    ];
     for (const name of extra) {
       expect(
         css.includes(`--color-${name}: var(--${name})`),

@@ -1,9 +1,19 @@
 import { Routes } from '@angular/router';
+import { DocService } from '@/entities/doc/providers';
+import { IssueService } from '@/entities/issue/providers';
+import { ProjectPicker, ProjectService } from '@/entities/project/providers';
 import { adminGuard, authGuard } from '@/entities/user/guard';
 import { AuthService, UserService } from '@/entities/user/providers';
+import { MemoService } from '@/pages/memo-list/providers';
 import { provideTaskListDatePicker, TaskService } from '@/pages/task-list/providers';
 import { AppShell } from './layout/app-shell';
-import { ADMIN_NAV_GROUPS, NAV_GROUPS, SHELL_AREA } from './layout/nav-items';
+import {
+  ADMIN_NAV_GROUPS,
+  NAV_GROUPS,
+  SHELL_AREA,
+  SIDEBAR_LEAD,
+  TRACKER_NAV_GROUPS,
+} from './layout/nav-items';
 
 export const routes: Routes = [
   {
@@ -59,6 +69,59 @@ export const routes: Routes = [
     ],
   },
   {
+    // 트래커 자리. 관리 자리와 같은 껍데기에 메뉴와 머리에 서는 것만 갈아 끼운다.
+    path: 'tracker',
+    component: AppShell,
+    canActivate: [authGuard],
+    providers: [
+      UserService,
+      AuthService,
+      ProjectService,
+      IssueService,
+      DocService,
+      { provide: NAV_GROUPS, useValue: TRACKER_NAV_GROUPS },
+      { provide: SHELL_AREA, useValue: 'tracker' },
+      { provide: SIDEBAR_LEAD, useValue: ProjectPicker },
+    ],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'issues' },
+      {
+        path: 'issues',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () => import('@/pages/tracker/issue-list').then((m) => m.IssueListPage),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import('@/pages/tracker/issue-detail').then((m) => m.IssueDetailPage),
+          },
+        ],
+      },
+      {
+        path: 'docs',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () => import('@/pages/tracker/doc-list').then((m) => m.DocListPage),
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('@/pages/tracker/doc-detail').then((m) => m.DocDetailPage),
+          },
+        ],
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('@/pages/tracker/settings').then((m) => m.ProjectSettingsPage),
+      },
+    ],
+  },
+  {
     path: '',
     component: AppShell,
     canActivate: [authGuard],
@@ -77,6 +140,12 @@ export const routes: Routes = [
       {
         path: 'pomodoro',
         loadComponent: () => import('@/pages/pomodoro').then((m) => m.PomodoroPage),
+      },
+      {
+        // 정리되기 전의 자리. 작업과 같은 갈래에 두되 프로젝트에 속하지 않는다.
+        path: 'memos',
+        providers: [MemoService],
+        loadComponent: () => import('@/pages/memo-list').then((m) => m.MemoListPage),
       },
       {
         path: 'tasks',

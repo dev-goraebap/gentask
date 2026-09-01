@@ -1,0 +1,162 @@
+<section class="mx-auto flex w-full max-w-(--content-max) flex-1 flex-col px-4 pt-8 md:pt-12">
+  <!-- 한 단계씩 오간다. 껍데기가 이미 쓰는 방식이다. -->
+  <nav aria-label="지나온 폴더" class="text-foreground-secondary flex flex-wrap items-center gap-x-1.5 text-xs">
+    @for (crumb of crumbs(); track crumb.id; let last = $last) {
+      @if (last) {
+        <span aria-current="page">{{ crumb.name }}</span>
+      } @else {
+        <a
+          [routerLink]="routes.docs()"
+          [queryParams]="{ folder: crumb.id }"
+          class="underline-offset-4 hover:underline"
+        >
+          {{ crumb.name }}
+        </a>
+        <span aria-hidden="true">/</span>
+      }
+    }
+  </nav>
+
+  <div class="mt-2.5 flex flex-wrap items-center gap-2">
+    <h1 class="text-2xl font-semibold tracking-tight">{{ title() }}</h1>
+    <span class="flex-1"></span>
+    @if (creating() === null) {
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="sm"
+        class="gap-1.5"
+        (click)="startCreating('folder')"
+      >
+        <app-icon name="hgiFolder" />
+        새 폴더
+      </button>
+      <button hlmBtn type="button" size="sm" class="gap-1.5" (click)="startCreating('doc')">
+        <app-icon name="hgiPlus" />
+        새 문서
+      </button>
+    }
+  </div>
+
+  @if (creating(); as what) {
+    <form
+      novalidate
+      [formRoot]="createForm"
+      (submit)="$event.preventDefault()"
+      class="border-border bg-card mt-4 flex items-center gap-1 border pr-1.5"
+    >
+      <span class="text-foreground-secondary pl-3">
+        @if (what === 'folder') {
+          <app-icon name="hgiFolder" />
+        } @else {
+          <app-icon name="hgiFile" />
+        }
+      </span>
+
+      <div hlmField class="min-w-0 flex-1">
+        <label hlmFieldLabel for="new-doc-name" class="sr-only">{{ creatingLabel() }}</label>
+        <input
+          hlmInput
+          id="new-doc-name"
+          class="h-11 border-0 bg-transparent px-3 shadow-none focus-visible:ring-0 dark:bg-transparent"
+          [formField]="createForm.name"
+          [placeholder]="creatingLabel()"
+          autocomplete="off"
+          enterkeyhint="done"
+          (keydown)="createOnEnter($event)"
+        />
+      </div>
+
+      <div class="flex shrink-0 items-center gap-1">
+        <button hlmBtn type="button" size="sm" [disabled]="!creatable()" (click)="create()">
+          세우기
+        </button>
+        <button
+          hlmBtn
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="세우기 그만두기"
+          (click)="cancelCreating()"
+        >
+          <app-icon name="hgiCancel" />
+        </button>
+      </div>
+    </form>
+  }
+
+  <div class="mt-4 flex flex-wrap items-center gap-2">
+    <span class="text-foreground-secondary text-xs">
+      폴더 {{ childFolders().length }}개 · 문서 {{ childDocs().length }}개
+    </span>
+  </div>
+
+  <ul class="divide-border border-border mt-3 divide-y border-y">
+    @for (folder of childFolders(); track folder.id) {
+      <li class="flex items-center gap-3 py-3">
+        <app-icon name="hgiFolder" class="text-foreground-secondary" />
+        <div class="min-w-0 flex-1">
+          <a
+            [routerLink]="routes.docs()"
+            [queryParams]="{ folder: folder.id }"
+            class="block text-sm underline-offset-4 hover:underline"
+          >
+            {{ folder.name }}
+          </a>
+          <p class="text-foreground-secondary mt-0.5 text-xs">
+            문서 {{ folder.docCount }}개 · {{ folder.updatedOn }} 고침
+          </p>
+        </div>
+        <app-icon name="hgiArrowRight" class="text-foreground-secondary" />
+      </li>
+    }
+
+    @for (doc of childDocs(); track doc.id) {
+      <li class="flex items-center gap-3 py-3">
+        <app-icon name="hgiFile" class="text-foreground-secondary" />
+        <div class="min-w-0 flex-1">
+          <a
+            [routerLink]="routes.doc(doc.id)"
+            class="block text-sm underline-offset-4 hover:underline"
+          >
+            {{ doc.title }}
+          </a>
+          <p class="text-foreground-secondary mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs">
+            <span>{{ doc.updatedOn }} 고침</span>
+            @if (doc.linkedIssueCount > 0) {
+              <span aria-hidden="true">·</span>
+              <span class="inline-flex items-center gap-1">
+                <app-icon name="hgiLink" class="text-[length:--spacing(3)]" />
+                작업 아이템 {{ doc.linkedIssueCount }}개가 이 문서를 건다
+              </span>
+            }
+            @if (doc.attachmentCount > 0) {
+              <span aria-hidden="true">·</span>
+              <span class="inline-flex items-center gap-1">
+                <app-icon name="hgiAttachment" class="text-[length:--spacing(3)]" />
+                첨부 {{ doc.attachmentCount }}개
+              </span>
+            }
+          </p>
+        </div>
+      </li>
+    }
+
+    @if (childFolders().length === 0 && childDocs().length === 0) {
+      <li>
+        <app-empty-state
+          title="이 자리에 아직 아무것도 없습니다"
+          description="폴더로 묶거나 문서를 바로 세울 수 있습니다."
+        />
+      </li>
+    }
+  </ul>
+
+  <p class="text-foreground-secondary mt-5 flex items-center gap-2 text-xs">
+    <app-icon name="hgiTerminal" class="text-[length:--spacing(3)]" />
+    <span class="bg-muted px-2 py-1 font-mono">gentask doc ls {{ title() }}</span>
+  </p>
+
+  <div class="h-8 shrink-0"></div>
+</section>

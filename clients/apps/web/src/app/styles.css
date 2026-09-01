@@ -48,6 +48,14 @@
   --color-mark: var(--mark);
   --color-mark-foreground: var(--mark-foreground);
   --color-nav-active: var(--nav-active);
+  --color-kind-epic: var(--kind-epic);
+  --color-kind-epic-foreground: var(--kind-epic-foreground);
+  --color-kind-story: var(--kind-story);
+  --color-kind-story-foreground: var(--kind-story-foreground);
+  --color-kind-task: var(--kind-task);
+  --color-kind-task-foreground: var(--kind-task-foreground);
+  --color-kind-bug: var(--kind-bug);
+  --color-kind-bug-foreground: var(--kind-bug-foreground);
   --font-logo: var(--logo-font);
 }
 
@@ -118,6 +126,20 @@ html {
 
   --mark: light-dark(oklch(0.87 0.075 262.9), oklch(0.42 0.1 254.6));
   --mark-foreground: light-dark(oklch(0.32 0.16 262.9), oklch(0.94 0.045 254.6));
+
+  /*
+   * 이슈 유형 넷의 표식. 네 색이 밝기와 채도를 공유하고 색상만 달라야 한 벌로 읽힌다. 한쪽이
+   * 튀면 그 유형이 더 급한 것으로 오인된다. 색만으로 유형을 전하지 않으며 표식 안의 그림과
+   * 곁의 문구가 함께 간다.
+   */
+  --kind-epic: light-dark(oklch(0.47 0.16 300), oklch(0.76 0.13 300));
+  --kind-epic-foreground: light-dark(oklch(1 0 0), oklch(0.21 0.006 285.9));
+  --kind-story: light-dark(oklch(0.47 0.16 150), oklch(0.76 0.13 150));
+  --kind-story-foreground: light-dark(oklch(1 0 0), oklch(0.21 0.006 285.9));
+  --kind-task: light-dark(oklch(0.47 0.16 255), oklch(0.76 0.13 255));
+  --kind-task-foreground: light-dark(oklch(1 0 0), oklch(0.21 0.006 285.9));
+  --kind-bug: light-dark(oklch(0.47 0.16 27), oklch(0.76 0.13 27));
+  --kind-bug-foreground: light-dark(oklch(1 0 0), oklch(0.21 0.006 285.9));
 
   --toolbar: light-dark(
     color-mix(in srgb, oklch(0.997 0 89.9) 65%, transparent),

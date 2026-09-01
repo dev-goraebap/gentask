@@ -1,0 +1,74 @@
+<form
+  novalidate
+  [formRoot]="issueForm"
+  (submit)="$event.preventDefault()"
+  class="flex min-h-0 flex-1 flex-col"
+>
+  <!-- 머리는 이 자리가 갖지 않는다. 덮개는 닫기를, 화면은 돌아가기를 두므로 감싸는 쪽이 그린다. -->
+  <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4 [scrollbar-gutter:stable]">
+    <div hlmField>
+      <label hlmFieldLabel for="issue-title" class="sr-only">제목</label>
+      <input
+        hlmInput
+        id="issue-title"
+        class="h-11 border-0 px-0 text-base shadow-none focus-visible:ring-0 dark:bg-transparent"
+        [formField]="issueForm.title"
+        placeholder="제목"
+        autocomplete="off"
+        enterkeyhint="done"
+        (keydown)="createOnEnter($event)"
+      />
+    </div>
+
+    <div hlmField class="flex min-h-0 flex-1 flex-col">
+      <label hlmFieldLabel for="issue-body" class="sr-only">본문</label>
+      <textarea
+        hlmTextarea
+        id="issue-body"
+        class="min-h-40 flex-1 resize-none border-0 px-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
+        [formField]="issueForm.body"
+        placeholder="적어 두기. 마크다운으로 적습니다"
+      ></textarea>
+    </div>
+  </div>
+
+  <footer class="border-border flex shrink-0 flex-wrap items-center gap-2 border-t p-3">
+    <hlm-popover align="start" sideOffset="4">
+      <button
+        hlmPopoverTrigger
+        hlmBtn
+        type="button"
+        variant="outline"
+        size="sm"
+        class="gap-1.5"
+        [attr.aria-label]="'유형 ' + kindLabel() + ', 누르면 바꾸기'"
+      >
+        <app-issue-kind-badge [kind]="kind()" />
+        {{ kindLabel() }}
+      </button>
+      <hlm-popover-content *hlmPopoverPortal="let ctx" class="w-44 p-1">
+        <div role="group" aria-label="세울 것의 유형" class="flex flex-col">
+          @for (face of kindFaces; track face.value) {
+            <button
+              hlmBtn
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="justify-start gap-2"
+              [attr.aria-pressed]="kind() === face.value"
+              (click)="pickKind(face.value); ctx.close()"
+            >
+              <app-issue-kind-badge [kind]="face.value" />
+              {{ face.label }}
+            </button>
+          }
+        </div>
+      </hlm-popover-content>
+    </hlm-popover>
+
+    <span class="flex-1"></span>
+
+    <button hlmBtn type="button" variant="ghost" size="sm" (click)="dismiss()">그만두기</button>
+    <button hlmBtn type="button" size="sm" [disabled]="!creatable()" (click)="create()">세우기</button>
+  </footer>
+</form>

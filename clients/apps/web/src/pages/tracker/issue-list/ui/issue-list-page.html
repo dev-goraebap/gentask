@@ -1,0 +1,158 @@
+<section class="mx-auto flex w-full max-w-(--content-max) flex-1 flex-col px-4 pt-8 md:pt-12">
+  <div class="flex items-center gap-4">
+    <h1 class="text-2xl font-semibold tracking-tight">작업 아이템</h1>
+    <span class="flex-1"></span>
+    <!-- 단추가 아니라 링크다. 주소가 열림의 진실이어야 새로고침과 뒤로가기가 성립한다. -->
+    <a
+      hlmBtn
+      size="sm"
+      class="gap-1.5"
+      [routerLink]="[]"
+      [queryParams]="createPanel.open()"
+      queryParamsHandling="merge"
+    >
+      <app-icon name="hgiPlus" />
+      새 작업 아이템
+    </a>
+  </div>
+
+  <p class="sr-only" aria-live="polite">작업 아이템 {{ rows().length }}개</p>
+
+
+  <div class="mt-4 flex flex-wrap items-center gap-2">
+    <hlm-popover align="start" sideOffset="4">
+      <button hlmPopoverTrigger hlmBtn type="button" variant="outline" size="sm" class="gap-1.5">
+        <app-icon name="hgiFilter" />
+        유형
+        <span class="text-foreground-secondary">{{ kindSummary() }}</span>
+      </button>
+      <hlm-popover-content *hlmPopoverPortal class="w-52 p-1">
+        <div role="group" aria-label="유형으로 거르기" class="flex flex-col">
+          @for (face of kindFaces; track face.value) {
+            <button
+              hlmBtn
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="justify-start gap-2"
+              [attr.aria-pressed]="kinds().includes(face.value)"
+              (click)="toggleKind(face.value)"
+            >
+              <app-issue-kind-badge [kind]="face.value" />
+              {{ face.label }}
+              <span class="flex-1"></span>
+              @if (kinds().includes(face.value)) {
+                <app-icon name="hgiCheck" />
+              }
+            </button>
+          }
+        </div>
+      </hlm-popover-content>
+    </hlm-popover>
+
+    <hlm-popover align="start" sideOffset="4">
+      <button hlmPopoverTrigger hlmBtn type="button" variant="outline" size="sm" class="gap-1.5">
+        상태
+        <span class="text-foreground-secondary">{{ stateSummary() }}</span>
+        <app-icon name="hgiArrowDown" />
+      </button>
+      <hlm-popover-content *hlmPopoverPortal class="w-52 p-1">
+        <div role="group" aria-label="상태로 거르기" class="flex flex-col">
+          @for (face of stateFaces; track face.value) {
+            <button
+              hlmBtn
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="justify-start gap-2"
+              [attr.aria-pressed]="states().includes(face.value)"
+              (click)="toggleState(face.value)"
+            >
+              {{ face.label }}
+              <span class="flex-1"></span>
+              @if (states().includes(face.value)) {
+                <app-icon name="hgiCheck" />
+              }
+            </button>
+          }
+        </div>
+      </hlm-popover-content>
+    </hlm-popover>
+
+    <span class="flex-1"></span>
+
+    <span class="text-foreground-secondary text-xs">
+      작업 아이템 {{ rows().length }}개
+      @if (hiddenCount() > 0) {
+        · 거른 {{ hiddenCount() }}개 감춤
+      }
+    </span>
+  </div>
+
+  <ul class="divide-border border-border mt-3 divide-y border-y">
+    @for (row of rows(); track row.issue.id) {
+      <li class="flex items-center gap-3 py-3">
+        @if (row.nested) {
+          <span class="w-5 shrink-0" aria-hidden="true"></span>
+        }
+
+        <app-issue-kind-badge [kind]="row.issue.kind" />
+
+        <div class="min-w-0 flex-1">
+          <a
+            [routerLink]="routes.issue(row.issue.id)"
+            class="block text-sm underline-offset-4 hover:underline"
+            [class.text-muted-foreground]="row.settled"
+          >
+            {{ row.issue.title }}
+          </a>
+          <p class="text-foreground-secondary mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs">
+            <span class="font-mono">{{ row.issue.id }}</span>
+            @if (row.issue.childCount > 0) {
+              <span aria-hidden="true">·</span>
+              <span>자식 {{ row.issue.childCount }}개 중 {{ row.issue.closedChildCount }}개 닫힘</span>
+            }
+            @if (row.issue.criteriaCount > 0) {
+              <span aria-hidden="true">·</span>
+              <span>
+                인수 조건 {{ row.issue.criteriaCount }}개
+                @if (row.issue.unverifiedCount > 0) {
+                  중 {{ row.issue.unverifiedCount }}개 미검증
+                }
+              </span>
+            }
+            @if (row.issue.linkedDocTitle; as docTitle) {
+              <span aria-hidden="true">·</span>
+              <span class="inline-flex items-center gap-1">
+                <app-icon name="hgiLink" class="text-[length:--spacing(3)]" />
+                {{ docTitle }}
+              </span>
+            }
+            @if (row.issue.dueDate; as due) {
+              <span aria-hidden="true">·</span>
+              <span class="text-warning inline-flex items-center gap-1">
+                <app-icon name="hgiCalendar" class="text-[length:--spacing(3)]" />
+                {{ due }}
+              </span>
+            }
+            @if (row.issue.closedOn; as closedOn) {
+              <span aria-hidden="true">·</span>
+              <span>{{ closedOn }} 닫힘</span>
+            }
+          </p>
+        </div>
+
+        <app-issue-state-chip [state]="row.issue.state" />
+      </li>
+    } @empty {
+      <li>
+        <app-empty-state
+          title="이 거르개에 걸리는 작업 아이템이 없습니다"
+          description="유형이나 상태를 넓혀 보세요."
+        />
+      </li>
+    }
+  </ul>
+
+  <div class="h-8 shrink-0"></div>
+</section>

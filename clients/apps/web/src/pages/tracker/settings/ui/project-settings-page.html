@@ -1,0 +1,99 @@
+<section class="mx-auto flex w-full max-w-(--reading-measure) flex-1 flex-col px-4 pt-8 md:pt-12">
+  <h1 class="text-2xl font-semibold tracking-tight">프로젝트 설정</h1>
+
+  <form novalidate [formRoot]="nameForm" (submit)="$event.preventDefault()" class="mt-7">
+    <div hlmField>
+      <label hlmFieldLabel for="project-name">이름</label>
+      <input hlmInput id="project-name" [formField]="nameForm.name" autocomplete="off" />
+    </div>
+    @if (renamed()) {
+      <button hlmBtn type="button" size="sm" class="mt-2" (click)="rename()">이름 바꾸기</button>
+    }
+  </form>
+
+  <div class="mt-6">
+    <h2 class="text-sm font-medium">작업 아이템 접두어</h2>
+    <p class="border-input mt-1.5 flex h-9 w-40 items-center border px-2.5 font-mono text-sm">
+      {{ projectService.current().key }}
+    </p>
+    <p class="text-foreground-secondary mt-1.5 text-xs">
+      작업 아이템 번호 앞에 붙습니다. 번호가 매겨진 뒤에는 바꿀 수 없습니다.
+    </p>
+  </div>
+
+  <h2 class="mt-10 text-base font-semibold">이어 둔 저장소</h2>
+  <p class="text-foreground-secondary mt-1.5 text-sm/7">
+    커밋 메시지에 작업 아이템 번호를 적으면 그것에 붙습니다. 잇지 않아도 작업 아이템은 그대로 씁니다.
+  </p>
+
+  <pre class="bg-muted text-foreground-secondary mt-2.5 overflow-x-auto px-3 py-2.5 font-mono text-xs/6">feat(cli): 작업 아이템을 명령줄로 세운다
+
+Refs: <span class="text-primary">TG-012.01</span></pre>
+
+  <ul class="divide-border border-border mt-4 divide-y border-y">
+    @for (row of rows(); track row.link.id) {
+      <li class="flex items-center gap-3 py-3">
+        <app-icon [name]="row.icon" class="text-foreground-secondary" />
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-mono text-sm">{{ row.link.fullName }}</p>
+          <p class="text-foreground-secondary mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs">
+            @if (row.pending) {
+              <span class="text-warning inline-flex items-center gap-1">
+                <app-icon name="hgiClock" class="text-[length:--spacing(3)]" />
+                승인을 기다리는 중
+              </span>
+            } @else {
+              <span class="text-success inline-flex items-center gap-1">
+                <app-icon name="hgiCheck" class="text-[length:--spacing(3)]" />
+                이어짐
+              </span>
+              <span aria-hidden="true">·</span>
+              <span>커밋 {{ row.link.linkedCommitCount }}개가 작업 아이템에 붙음</span>
+              @if (row.link.lastLinkedOn; as on) {
+                <span aria-hidden="true">·</span>
+                <span>마지막 {{ on }}</span>
+              }
+            }
+            <span aria-hidden="true">·</span>
+            <span>{{ row.hostLabel }}</span>
+          </p>
+        </div>
+        <button
+          hlmBtn
+          type="button"
+          variant="ghost"
+          size="xs"
+          [attr.aria-label]="row.link.fullName + ' 잇기 끊기'"
+          (click)="unlink(row.link.id)"
+        >
+          끊기
+        </button>
+      </li>
+    } @empty {
+      <li class="text-muted-foreground py-3 text-sm">이어 둔 저장소가 없습니다.</li>
+    }
+  </ul>
+
+  <!--
+    잇는 절차는 저장소 제공자의 승인을 지나야 하며 서버가 그 왕복을 갖는다. 목 위에서 흉내 내면
+    승인 없이 이어진 것처럼 보이므로 그 단추를 두지 않는다.
+  -->
+  <p class="text-foreground-secondary mt-4 flex items-start gap-2 text-xs/6">
+    <app-icon name="hgiInfo" class="mt-0.5" />
+    <span>새로 잇는 절차는 저장소 제공자의 승인을 지나므로 서버가 선 뒤에 열립니다.</span>
+  </p>
+
+  <!--
+    지우는 자리는 되묻는 절차와 함께 서야 한다. 목 위에서 지우면 되돌릴 데가 없어 화면이 갈 곳을
+    잃으므로, 무엇이 함께 사라지는지만 미리 세어 둔다.
+  -->
+  <h2 class="mt-10 text-base font-semibold">프로젝트 지우기</h2>
+  <p class="text-foreground-secondary mt-1.5 text-sm/7">
+    지우면 이 프로젝트의 작업 아이템
+    <span class="text-foreground">{{ projectService.current().issueCount }}개</span>와 문서
+    <span class="text-foreground">{{ projectService.current().docCount }}개</span>가 함께 사라집니다.
+    되돌릴 수 없으므로 서버가 선 뒤에 되묻는 절차와 함께 엽니다.
+  </p>
+
+  <div class="h-10 shrink-0"></div>
+</section>

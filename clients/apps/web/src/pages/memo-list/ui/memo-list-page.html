@@ -1,0 +1,158 @@
+<section class="mx-auto grid w-full max-w-(--content-max) flex-1 gap-8 px-4 pt-8 md:pt-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
+  @if (selected(); as memo) {
+    <div class="flex min-w-0 flex-col">
+      <h1 class="text-2xl font-semibold tracking-tight">{{ memo.title }}</h1>
+      <p class="text-foreground-secondary mt-1.5 text-xs">{{ memo.updatedAt }} 고침</p>
+
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <div class="border-border flex border" role="group" aria-label="적기와 보기">
+          <button
+            hlmBtn
+            type="button"
+            size="sm"
+            [variant]="previewing() ? 'ghost' : 'secondary'"
+            [attr.aria-pressed]="!previewing()"
+            (click)="showWriting()"
+          >
+            쓰기
+          </button>
+          <button
+            hlmBtn
+            type="button"
+            size="sm"
+            [variant]="previewing() ? 'secondary' : 'ghost'"
+            [attr.aria-pressed]="previewing()"
+            (click)="showPreview()"
+          >
+            보기
+          </button>
+        </div>
+        <span class="flex-1"></span>
+        <span class="text-foreground-secondary text-xs">마크다운으로 적습니다</span>
+      </div>
+
+      @if (previewing()) {
+        <div class="border-input mt-3 flex-1 overflow-y-auto border p-4 text-sm/7">
+          @for (line of lines(); track $index) {
+            @switch (line.kind) {
+              @case ('heading') {
+                @if (line.level === 1) {
+                  <h2 class="mt-3 text-base font-semibold first:mt-0">{{ line.text }}</h2>
+                } @else {
+                  <h3 class="mt-3 text-sm font-semibold first:mt-0">{{ line.text }}</h3>
+                }
+              }
+              @case ('todo') {
+                <p
+                  class="flex items-start gap-2"
+                  [style.padding-inline-start.rem]="line.depth * 1.25"
+                >
+                  @if (line.done) {
+                    <app-icon name="hgiCheckCircle" class="text-success mt-1.5 shrink-0" />
+                    <span class="text-muted-foreground line-through">{{ line.text }}</span>
+                  } @else {
+                    <app-icon name="hgiCircleArrowRight" class="text-foreground-secondary mt-1.5 shrink-0" />
+                    <span>{{ line.text }}</span>
+                  }
+                </p>
+              }
+              @case ('bullet') {
+                <p class="flex items-start gap-2" [style.padding-inline-start.rem]="line.depth * 1.25">
+                  <span class="text-foreground-secondary shrink-0" aria-hidden="true">—</span>
+                  <span>{{ line.text }}</span>
+                </p>
+              }
+              @case ('quote') {
+                <p class="border-border text-foreground-secondary my-2 border-l-2 pl-3">
+                  {{ line.text }}
+                </p>
+              }
+              @case ('blank') {
+                <p class="h-3" aria-hidden="true"></p>
+              }
+              @case ('text') {
+                <p>{{ line.text }}</p>
+              }
+            }
+          }
+        </div>
+      } @else {
+        <form
+          novalidate
+          [formRoot]="bodyForm"
+          (submit)="$event.preventDefault()"
+          class="mt-3 flex min-h-0 flex-1 flex-col"
+        >
+          <div hlmField class="flex min-h-0 flex-1 flex-col">
+            <label hlmFieldLabel for="memo-body" class="sr-only">메모 본문</label>
+            <textarea
+              hlmTextarea
+              id="memo-body"
+              class="min-h-80 flex-1 resize-none font-mono text-sm/7"
+              [formField]="bodyForm.body"
+              placeholder="적어 두기"
+              (blur)="save()"
+            ></textarea>
+          </div>
+        </form>
+      }
+
+      <div class="h-8 shrink-0"></div>
+    </div>
+  } @else {
+    <div class="min-w-0">
+      <app-empty-state
+        title="아직 적어 둔 것이 없습니다"
+        description="정리되기 전의 것을 여기에 둡니다."
+      >
+        <button hlmBtn type="button" variant="outline" size="sm" (click)="addMemo()">
+          새 메모
+        </button>
+      </app-empty-state>
+    </div>
+  }
+
+  <!--
+    목록을 곁에 두고 본문을 넓게 쓴다. 마크다운을 적는 자리가 좁으면 줄이 접혀 무엇을 적었는지
+    한눈에 들어오지 않는다.
+  -->
+  <aside class="border-border flex min-w-0 flex-col lg:border-l lg:pl-6">
+    <div class="flex items-center gap-2">
+      <h2 class="text-sm font-semibold">메모</h2>
+      <span class="flex-1"></span>
+      <button hlmBtn type="button" variant="ghost" size="sm" class="gap-1.5" (click)="addMemo()">
+        <app-icon name="hgiPlus" />
+        새 메모
+      </button>
+    </div>
+
+    <ul class="divide-border border-border mt-3 divide-y border-y">
+      @for (row of rows(); track row.memo.id) {
+        <li [class.bg-nav-active]="row.current">
+          <a
+            [routerLink]="routes.memos()"
+            [queryParams]="panel.open(row.memo.id)"
+            class="flex items-start gap-3 px-2 py-2.5"
+            [attr.aria-current]="row.current ? 'page' : null"
+          >
+            <app-icon name="hgiNote" class="text-foreground-secondary mt-0.5" />
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-sm" [class.font-medium]="row.current">
+                {{ row.memo.title }}
+              </span>
+              <span class="text-foreground-secondary mt-0.5 block truncate text-xs">
+                {{ row.summary }}
+              </span>
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+
+    <p class="text-foreground-secondary border-border mt-auto border-t pt-3 text-xs/6">
+      메모는 프로젝트에 속하지 않습니다. 정리되면 트래커의 작업 아이템으로 올립니다.
+    </p>
+
+    <div class="h-4 shrink-0"></div>
+  </aside>
+</section>
