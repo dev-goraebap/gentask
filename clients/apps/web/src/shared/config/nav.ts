@@ -29,12 +29,7 @@ export const MORE_SHEET_ITEMS: readonly NavItem[] = [
   { label: '계정', icon: 'hgiUser', link: ROUTES.account() },
 ];
 
-/**
- * 프로젝트에 매이지 않는 자리.
- *
- * <p>프로젝트 안에서도 다른 프로젝트로 옮겨 갈 수 있어야 한다. 좁은 화면에는 고르개가 서지 않으므로
- * 그 길을 더보기가 갖는다.
- */
+/** 프로젝트들로 가는 자리. 사이드바와 바닥의 띠가 같은 것을 가리켜야 하므로 한 곳에서 만든다. */
 export const PROJECTS_NAV_ITEM: NavItem = {
   label: '프로젝트',
   icon: 'hgiLayers',
@@ -50,9 +45,9 @@ export const PROJECTS_NAV_ITEM: NavItem = {
  * <p>넷을 넘기지 않는다. 좁은 화면에서 다섯 칸이 되면 글자가 접히거나 잘린다.
  */
 export const TODO_BOTTOM_NAV: readonly NavItem[] = [
-  { label: '할 일', icon: 'hgiTask', link: ROUTES.taskList('my-day') },
+  { label: '작업', icon: 'hgiTask', link: ROUTES.taskList('my-day') },
   { label: '메모', icon: 'hgiNote', link: ROUTES.memos() },
-  { label: '프로젝트', icon: 'hgiLayers', link: ROUTES.projects() },
+  PROJECTS_NAV_ITEM,
 ];
 
 export function trackerBottomNav(projectId: string): readonly NavItem[] {
@@ -83,7 +78,8 @@ export interface NavGroup {
 export function trackerNavGroups(projectId: string): readonly NavGroup[] {
   return [
     {
-      // 라벨을 두지 않는다. 담긴 둘이 이 자리의 전부이므로 갈래를 이름으로 가를 것이 없다.
+      // 투두 자리와 같은 이름을 첫머리에 둔다. 자리가 갈려도 메뉴의 골격은 하나여야 한다.
+      label: '작업',
       items: [
         { label: '작업 아이템', icon: 'hgiLayers', link: ROUTES.issues(projectId) },
         { label: '문서', icon: 'hgiBook', link: ROUTES.docs(projectId) },

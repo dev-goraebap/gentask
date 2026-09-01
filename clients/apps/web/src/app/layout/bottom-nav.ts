@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { MORE_SHEET_ITEMS, PROJECTS_NAV_ITEM } from '@/shared/config';
+import { MORE_SHEET_ITEMS } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmPopoverImports } from '@/shared/ui/popover';
-import { BOTTOM_NAV, SHELL_AREA } from './nav-items';
+import { BOTTOM_NAV } from './nav-items';
 
 /**
  * 좁은 화면 바닥의 띠.
@@ -40,16 +40,7 @@ export class BottomNav {
 
   // --- 의존 --------------------------------------------------------------------------------------
   protected readonly items = inject(BOTTOM_NAV);
-  private readonly area = inject(SHELL_AREA);
 
   // --- 파생 --------------------------------------------------------------------------------------
-  /**
-   * 더보기에 담기는 것.
-   *
-   * <p>프로젝트 안에서는 띠가 그 프로젝트의 것으로 갈리므로 다른 프로젝트로 옮겨 갈 길이 사라진다.
-   * 그 길을 여기서 되돌려 준다.
-   */
-  protected readonly sheetItems = computed(() =>
-    this.area === 'tracker' ? [PROJECTS_NAV_ITEM, ...MORE_SHEET_ITEMS] : MORE_SHEET_ITEMS,
-  );
+  protected readonly sheetItems = MORE_SHEET_ITEMS;
 }

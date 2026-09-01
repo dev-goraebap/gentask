@@ -11,19 +11,12 @@ import { UserAvatar, UserService } from '@/entities/user';
 import { ROUTES } from '@/shared/config';
 import { AsideSlotService } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
-import { AppIcon, type IconName } from '@/shared/ui/icon';
+import { AppIcon } from '@/shared/ui/icon';
 import { ThemeToggle } from '@/shared/ui/theme-toggle';
 import { BottomNav } from './bottom-nav';
 import { NavigationVeil } from './navigation-veil';
 import { NAV_GROUPS, SHELL_AREA, SIDEBAR_LEAD } from './nav-items';
 import { SidebarService } from './sidebar-service';
-
-/** 다른 자리로 건너가는 단추 하나. */
-interface Crossing {
-  readonly label: string;
-  readonly icon: IconName;
-  readonly link: string;
-}
 
 @Component({
   selector: 'app-shell',
@@ -82,23 +75,6 @@ export class AppShell {
     if (this.area === 'admin') return ROUTES.adminUsers();
     if (this.area === 'tracker') return ROUTES.projects();
     return ROUTES.todo();
-  });
-
-  /**
-   * 다른 자리로 건너가는 단추.
-   *
-   * <p>이름은 동작이 아니라 건너갈 자리로 적는다. 관리 자리에 있는 사람은 이미 관리자이므로 그
-   * 판정을 다시 하지 않는다.
-   */
-  protected readonly crossing = computed<Crossing | null>(() => {
-    if (this.area === 'admin') {
-      return { label: '사용자 페이지', icon: 'hgiTask', link: ROUTES.todo() };
-    }
-    // 계정은 건너가는 모드가 아니라 들렀다 돌아오는 자리다. 나가는 길만 둔다.
-    if (this.area === 'tracker') {
-      return { label: '할 일', icon: 'hgiTask', link: ROUTES.todo() };
-    }
-    return { label: '프로젝트', icon: 'hgiLayers', link: ROUTES.home() };
   });
 
   protected readonly columnClass = computed(() =>

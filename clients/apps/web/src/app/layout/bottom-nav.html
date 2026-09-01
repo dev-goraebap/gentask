@@ -4,8 +4,10 @@
       <li class="flex-1">
         <a
           [routerLink]="tab.link"
-          routerLinkActive="text-foreground"
+          #active="routerLinkActive"
+          routerLinkActive="text-foreground! font-medium"
           [routerLinkActiveOptions]="exact"
+          [attr.aria-current]="active.isActive ? 'page' : null"
           class="text-foreground-secondary flex h-full min-h-14 flex-col items-center justify-center gap-0.5 px-1"
         >
           <app-icon [name]="tab.icon" size="md" />
@@ -31,11 +33,14 @@
 
         <hlm-popover-content *hlmPopoverPortal="let ctx" class="p-1 md:w-56">
           <div role="group" aria-label="그 밖의 자리" class="flex flex-col">
-            @for (item of sheetItems(); track item.link) {
+            @for (item of sheetItems; track item.link) {
               <a
                 hlmBtn
                 variant="ghost"
                 class="justify-start gap-3"
+                routerLinkActive="bg-nav-active text-foreground"
+                #sheetActive="routerLinkActive"
+                [attr.aria-current]="sheetActive.isActive ? 'page' : null"
                 [routerLink]="item.link"
                 (click)="ctx.close()"
               >

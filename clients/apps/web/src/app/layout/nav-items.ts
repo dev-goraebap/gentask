@@ -22,7 +22,7 @@ export const NAV_GROUPS = new InjectionToken<Signal<readonly NavGroup[]>>('NAV_G
   factory: () =>
     signal<readonly NavGroup[]>([
       {
-        label: '할 일',
+        label: '작업',
         items: [
           ...TASK_VIEWS.map((view) => ({
             label: view.label,
