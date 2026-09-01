@@ -14,10 +14,11 @@ import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmPopoverImports } from '@/shared/ui/popover';
+import { AppPageBack } from '@/shared/ui/page-back';
 
 @Component({
   selector: 'app-issue-detail',
-  imports: [
+  imports: [AppPageBack, 
     RouterLink,
     HlmButton,
     HlmPopoverImports,

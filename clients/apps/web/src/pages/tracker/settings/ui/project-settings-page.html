@@ -1,5 +1,8 @@
 <section class="mx-auto flex w-full max-w-(--reading-measure) flex-1 flex-col px-4 pt-8 md:pt-12">
-  <h1 class="text-2xl font-semibold tracking-tight">프로젝트 설정</h1>
+  <div class="flex min-w-0 items-center">
+    <app-page-back [to]="routes().home()" />
+    <h1 class="text-2xl font-semibold tracking-tight">프로젝트 설정</h1>
+  </div>
 
   <form novalidate [formRoot]="nameForm" (submit)="$event.preventDefault()" class="mt-7">
     <div hlmField>

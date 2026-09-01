@@ -1,7 +1,10 @@
 <app-veil [loading]="veilLoading()" [failed]="veilFailed()" />
 
 <section class="mx-auto flex w-full max-w-[60rem] flex-1 flex-col gap-4 px-4 pt-8 pb-8 md:pt-12">
-  <h1 class="text-2xl font-semibold tracking-tight">사용자 관리</h1>
+  <div class="flex min-w-0 items-center">
+    <app-page-back [to]="routes.todo()" />
+    <h1 class="text-2xl font-semibold tracking-tight">사용자 관리</h1>
+  </div>
   <p class="text-foreground-secondary text-sm">
     가입한 사용자를 최근 가입 순으로 보여 줍니다. 권한은 서버 설정이 정하므로 이 자리에서 바꾸지
     않습니다.

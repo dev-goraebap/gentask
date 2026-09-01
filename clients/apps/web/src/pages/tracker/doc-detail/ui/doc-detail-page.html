@@ -14,7 +14,10 @@
         }
       </nav>
 
-      <h1 class="mt-3 text-2xl font-semibold tracking-tight">{{ doc.title }}</h1>
+      <div class="flex min-w-0 items-center">
+        <app-page-back [to]="routes().docs()" />
+        <h1 class="mt-3 text-2xl font-semibold tracking-tight">{{ doc.title }}</h1>
+      </div>
       <p class="text-foreground-secondary mt-1.5 flex flex-wrap items-center gap-x-1.5 text-xs">
         <span>{{ doc.authorName }}이 {{ doc.updatedOn }}에 고침</span>
         <span aria-hidden="true">·</span>

@@ -25,7 +25,7 @@ const NEXT: Record<ThemePreference, ThemePreference> = {
   selector: 'app-theme-toggle',
   imports: [HlmButton, AppIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './theme-toggle.html',
+  templateUrl: './app-theme-toggle.html',
 })
 export class ThemeToggle {
   // --- 의존 --------------------------------------------------------------------------------------

@@ -1,2 +1,2 @@
-export { AppIcon } from './lib/app-icon';
+export { AppIcon, type IconSize } from './lib/app-icon';
 export type { IconName } from './lib/hugeicons';

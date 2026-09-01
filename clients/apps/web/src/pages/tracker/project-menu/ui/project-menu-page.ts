@@ -11,6 +11,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ProjectService } from '@/entities/project';
 import { ROUTES, trackerNavGroups } from '@/shared/config';
 import { AppIcon } from '@/shared/ui/icon';
+import { AppPageBack } from '@/shared/ui/page-back';
 
 /** 이 폭부터는 사이드바가 같은 메뉴를 이미 보여 준다. 껍데기의 md 와 같은 값이어야 한다. */
 const SIDEBAR_WIDTH = 768;
@@ -26,7 +27,7 @@ const SIDEBAR_WIDTH = 768;
  */
 @Component({
   selector: 'app-project-menu',
-  imports: [RouterLink, AppIcon],
+  imports: [AppPageBack, RouterLink, AppIcon],
   host: { class: 'flex min-h-0 flex-1 flex-col md:hidden' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './project-menu-page.html',
@@ -37,6 +38,7 @@ export class ProjectMenuPage {
   private readonly projectService = inject(ProjectService);
 
   // --- 파생 --------------------------------------------------------------------------------------
+  protected readonly routes = ROUTES;
   protected readonly project = this.projectService.current;
   protected readonly groups = computed(() => trackerNavGroups(this.project().id));
 

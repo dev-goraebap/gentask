@@ -16,6 +16,7 @@
       </p>
 
       <div class="mt-2.5 flex items-start gap-2.5">
+        <app-page-back class="mt-0.5" [to]="routes().issues()" />
         <span class="mt-1.5">
           <app-issue-kind-badge [kind]="issue.kind" />
         </span>

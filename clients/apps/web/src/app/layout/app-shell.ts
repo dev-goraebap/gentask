@@ -6,18 +6,16 @@ import {
   inject,
   viewChild,
 } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { filter, map } from 'rxjs';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { UserAvatar, UserService } from '@/entities/user';
 import { ROUTES } from '@/shared/config';
 import { AsideSlotService } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon, type IconName } from '@/shared/ui/icon';
+import { ThemeToggle } from '@/shared/ui/theme-toggle';
 import { NavigationVeil } from './navigation-veil';
 import { NAV_GROUPS, SHELL_AREA, SIDEBAR_LEAD } from './nav-items';
 import { SidebarService } from './sidebar-service';
-import { ThemeToggle } from './theme-toggle';
 
 /** 다른 자리로 건너가는 단추 하나. */
 interface Crossing {
@@ -55,7 +53,6 @@ export class AppShell {
   protected readonly asideSlotService = inject(AsideSlotService);
   protected readonly sidebarService = inject(SidebarService);
   protected readonly userService = inject(UserService);
-  private readonly router = inject(Router);
 
   // --- 질의 --------------------------------------------------------------------------------------
   protected readonly veil = viewChild.required(NavigationVeil);
@@ -78,44 +75,11 @@ export class AppShell {
     return this.sidebarService.collapsed() ? `${base} md:justify-center` : base;
   });
 
-  /**
-   * 지금 자리가 그 축의 첫 단계인가.
-   *
-   * <p>좁은 화면에서 앞 단계로 돌아가는 길을 보일지 가른다. 첫 단계에는 돌아갈 앞이 없으므로 그
-   * 자리에 서비스의 이름을 둔다.
-   */
-  private readonly url = toSignal(
-    this.router.events.pipe(
-      filter((event) => event instanceof NavigationEnd),
-      map(() => this.router.url),
-    ),
-    { initialValue: this.router.url },
-  );
-
-  private readonly path = computed(() => this.url().split('?')[0].replace(/\/$/, ''));
-
-  protected readonly atRoot = computed(() => {
-    const path = this.path();
-    return path === '' || path === ROUTES.todo() || path === '/admin';
-  });
-
-  /**
-   * 좁은 화면에서 앞 단계로 가는 자리.
-   *
-   * <p>트래커는 단계가 `프로젝트들 → 메뉴 → 목록 → 상세` 로 깊고 그 깊이가 주소에 그대로 있으므로,
-   * 자리마다 갈 곳을 세지 않고 마지막 조각을 뗀다. 세면 단계가 늘 때마다 여기를 고치게 된다.
-   */
-  protected readonly areaBack = computed(() => {
-    if (this.area !== 'tracker') return ROUTES.todo();
-
-    const parent = this.path().split('/').slice(0, -1).join('/');
-    return parent === '' ? ROUTES.projects() : parent;
-  });
-
-  /** 로고를 누르면 가는 자리. 머리에 서는 이름은 자리와 무관하게 서비스의 것이다. */
+  /** 사이드바의 마크를 누르면 가는 자리. 그 자리의 첫 화면이다. */
   protected readonly areaHome = computed(() => {
     if (this.area === 'admin') return ROUTES.adminUsers();
     if (this.area === 'tracker') return ROUTES.projects();
+    if (this.area === 'account') return ROUTES.projects();
     return ROUTES.home();
   });
 

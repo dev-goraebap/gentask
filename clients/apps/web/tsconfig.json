@@ -12,6 +12,8 @@
       "@/pages/task-list/providers": ["./src/pages/task-list/providers.ts"],
       "@/shared/ui/veil": ["./src/shared/ui/veil/src/index.ts"],
       "@/shared/ui/empty-state": ["./src/shared/ui/empty-state/src/index.ts"],
+      "@/shared/ui/page-back": ["./src/shared/ui/page-back/src/index.ts"],
+      "@/shared/ui/theme-toggle": ["./src/shared/ui/theme-toggle/src/index.ts"],
       "@/shared/ui/icon": ["./src/shared/ui/icon/src/index.ts"],
       "@/shared/ui/utils": ["./src/shared/ui/utils/src/index.ts"],
       "@/shared/ui/utils/providers": ["./src/shared/ui/utils/src/lib/provide-spartan-hlm.ts"],

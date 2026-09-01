@@ -7,6 +7,7 @@ import { HlmButton } from '@/shared/ui/button';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
+import { AppPageBack } from '@/shared/ui/page-back';
 
 /**
  * 프로젝트들.
@@ -21,7 +22,7 @@ import { HlmInput } from '@/shared/ui/input';
  */
 @Component({
   selector: 'app-project-list',
-  imports: [
+  imports: [AppPageBack, 
     RouterLink,
     FormRoot,
     FormField,

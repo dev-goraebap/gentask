@@ -1,7 +1,10 @@
 <app-veil [loading]="veilLoading()" [failed]="veilFailed()" />
 
 <section class="mx-auto flex w-full max-w-[40rem] flex-1 flex-col gap-6 px-4 pt-8 pb-8 md:pt-12">
-  <h1 class="text-2xl font-semibold tracking-tight">계정</h1>
+  <div class="flex min-w-0 items-center">
+    <app-page-back [to]="routes.todo()" />
+    <h1 class="text-2xl font-semibold tracking-tight">계정</h1>
+  </div>
 
   @if (me(); as user) {
     <div class="border-border grid gap-4 border-b pb-8 md:grid-cols-[12rem_1fr]">
@@ -52,6 +55,22 @@
           }
         </div>
       </form>
+      </div>
+    </div>
+
+    <!--
+      색상 모드는 이 자리가 갖는다. 좁은 화면에는 머리가 없어 그 자리에 두면 닿을 길이 없고, 어차피
+      한 번 정하고 두는 것이라 설정과 함께 있는 편이 찾기 쉽다.
+    -->
+    <div class="border-border grid gap-4 border-b pb-8 md:grid-cols-[12rem_1fr]">
+      <div>
+        <h2 class="font-medium">색상 모드</h2>
+        <p class="text-foreground-secondary mt-1 text-sm">
+          시스템 설정을 따르거나 밝게 또는 어둡게 고정합니다.
+        </p>
+      </div>
+      <div>
+        <app-theme-toggle />
       </div>
     </div>
 

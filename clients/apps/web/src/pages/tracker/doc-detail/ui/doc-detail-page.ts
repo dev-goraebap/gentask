@@ -5,10 +5,11 @@ import { injectProjectRoutes } from '@/entities/project';
 import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { AppIcon } from '@/shared/ui/icon';
+import { AppPageBack } from '@/shared/ui/page-back';
 
 @Component({
   selector: 'app-doc-detail',
-  imports: [RouterLink, HlmButton, AppIcon, EmptyState],
+  imports: [AppPageBack, RouterLink, HlmButton, AppIcon, EmptyState],
   host: { class: 'flex min-h-0 flex-1 flex-col' },
   templateUrl: './doc-detail-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

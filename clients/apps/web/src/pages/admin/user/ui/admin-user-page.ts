@@ -5,13 +5,15 @@ import { HlmButton } from '@/shared/ui/button';
 import { HlmInput } from '@/shared/ui/input';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { Veil } from '@/shared/ui/veil';
+import { AppPageBack } from '@/shared/ui/page-back';
+import { ROUTES } from '@/shared/config';
 
 /** 한 쪽에 보여 줄 수. 서비스가 요청에 싣는 값과 같아야 쪽 수가 맞는다. */
 const PAGE_SIZE = 20;
 
 @Component({
   selector: 'app-admin-user',
-  imports: [EmptyState, HlmButton, HlmInput, UserAvatar, Veil],
+  imports: [AppPageBack, EmptyState, HlmButton, HlmInput, UserAvatar, Veil],
   host: {
     class: 'flex min-h-0 flex-1 flex-col',
     '[attr.aria-busy]': 'veilLoading() || null',
@@ -21,6 +23,9 @@ const PAGE_SIZE = 20;
   templateUrl: './admin-user-page.html',
 })
 export class AdminUserPage {
+  // --- 상수 --------------------------------------------------------------------------------------
+  protected readonly routes = ROUTES;
+
   // --- 의존 --------------------------------------------------------------------------------------
   private readonly adminUserService = inject(AdminUserService);
 

@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { AppPageBack } from '@/shared/ui/page-back';
+import { ROUTES } from '@/shared/config';
 
 /**
  * 팻을 기르는 자리.
@@ -9,12 +11,15 @@ import { EmptyState } from '@/shared/ui/empty-state';
  */
 @Component({
   selector: 'app-pet',
-  imports: [EmptyState],
+  imports: [AppPageBack, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-h-0 flex-1 flex-col' },
   template: `
     <section class="mx-auto flex w-full max-w-[40rem] flex-1 flex-col px-4 pt-8 pb-8 md:pt-12">
-      <h1 class="text-xl font-semibold tracking-tight">팻 관리</h1>
+      <div class="flex min-w-0 items-center">
+        <app-page-back [to]="routes.todo()" />
+        <h1 class="text-xl font-semibold tracking-tight">팻 관리</h1>
+      </div>
       <p class="text-foreground-secondary mt-1 text-sm">기르는 것을 이 자리에 둡니다.</p>
 
       <app-empty-state
@@ -25,4 +30,7 @@ import { EmptyState } from '@/shared/ui/empty-state';
     </section>
   `,
 })
-export class PetPage {}
+export class PetPage {
+  // --- 상수 --------------------------------------------------------------------------------------
+  protected readonly routes = ROUTES;
+}

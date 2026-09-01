@@ -22,6 +22,7 @@ import { AppIcon, type IconName } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmPopoverImports } from '@/shared/ui/popover';
 import { toast } from '@/shared/ui/sonner';
+import { AppPageBack } from '@/shared/ui/page-back';
 import { TaskDetailPanel } from './task-detail-panel';
 import {
   toDateTimeKey,
@@ -57,7 +58,7 @@ import { TaskService, type TaskSeed } from '../api/task-service';
 
 @Component({
   selector: 'app-task-list',
-  imports: [
+  imports: [AppPageBack, 
     FormRoot,
     FormField,
     RouterLink,

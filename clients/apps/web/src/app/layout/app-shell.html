@@ -103,13 +103,19 @@
     본문으로 건너뛰기
   </a>
 
-  <header class="bg-toolbar border-border flex h-14 shrink-0 items-center gap-4 border-b px-4">
+  <!--
+    좁은 화면에는 머리를 두지 않는다. 자리의 이름은 본문의 제목이 이미 갖고 있어서, 머리를 두면 같은
+    성격의 띠가 둘이 되고 좁은 세로를 두 번 쓴다. 앞 단계로 가는 길은 그 제목 왼쪽이 갖는다.
+  -->
+  <header
+    class="bg-toolbar border-border max-md:hidden flex h-14 shrink-0 items-center gap-4 border-b px-4"
+  >
     <button
       hlmBtn
       variant="ghost"
       size="icon-sm"
       type="button"
-      class="max-md:hidden rounded-(--radius-nav)"
+      class="rounded-(--radius-nav)"
       aria-controls="sidebar"
       [attr.aria-expanded]="!sidebarService.collapsed()"
       [attr.aria-label]="sidebarService.collapsed() ? '사이드바 펼치기' : '사이드바 접기'"
@@ -117,27 +123,6 @@
     >
       <app-icon [name]="sidebarService.collapsed() ? 'hgiSidebarOpen' : 'hgiSidebarClose'" />
     </button>
-    <!--
-      좁은 화면의 이 자리는 앞 단계로 가는 길이다. 첫 단계에는 돌아갈 앞이 없으므로 그때는 서비스의
-      이름을 둔다. 덮는 패널이 아니라 한 단계씩 오간다.
-    -->
-    @if (atRoot()) {
-      <span class="flex items-center gap-2 md:hidden">
-        <img src="icon-192.png" alt="" class="size-6" width="24" height="24" />
-        <span class="font-logo text-base font-extrabold tracking-tight">Gentask</span>
-      </span>
-    } @else {
-      <a
-        hlmBtn
-        variant="ghost"
-        size="icon-sm"
-        class="rounded-(--radius-nav) md:hidden"
-        [routerLink]="areaBack()"
-        aria-label="앞 단계로 돌아가기"
-      >
-        <app-icon name="hgiArrowLeft" />
-      </a>
-    }
     <span class="flex-1"></span>
     <app-theme-toggle />
   </header>

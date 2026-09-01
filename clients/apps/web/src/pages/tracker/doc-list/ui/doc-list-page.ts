@@ -8,13 +8,14 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
+import { AppPageBack } from '@/shared/ui/page-back';
 
 /** 무엇을 세우는 중인가. 둘이 같은 적는 자리를 쓰고 이름표만 갈린다. */
 type Creating = 'doc' | 'folder';
 
 @Component({
   selector: 'app-doc-list',
-  imports: [
+  imports: [AppPageBack, 
     FormRoot,
     FormField,
     RouterLink,

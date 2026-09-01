@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { HGI_ICONS, type IconName } from './hugeicons';
 
@@ -17,6 +17,7 @@ import { HGI_ICONS, type IconName } from './hugeicons';
   host: { class: 'inline-flex shrink-0 align-middle' },
   template: `<ng-icon
     [name]="name()"
+    [class]="sizeClass()"
     [attr.aria-hidden]="label() ? null : 'true'"
     [attr.aria-label]="label()"
     [attr.role]="label() ? 'img' : null"
@@ -27,4 +28,25 @@ export class AppIcon {
   readonly name = input.required<IconName>();
 
   readonly label = input<string | null>(null);
+
+  /**
+   * 그림의 크기. 상자는 그대로 두고 그림만 키운다.
+   *
+   * <p>주지 않으면 감싼 쪽이 정한다 — 단추는 제 크기에 맞춰 안의 그림을 줄이는 규칙을 이미 갖고
+   * 있고, 그 규칙은 `text-` 를 가진 그림을 건드리지 않는다. 그래서 여기서 준 것이 이긴다.
+   */
+  readonly size = input<IconSize | null>(null);
+
+  protected readonly sizeClass = computed(() => {
+    const size = this.size();
+    return size === null ? null : SIZES[size];
+  });
 }
+
+export type IconSize = 'sm' | 'md' | 'lg';
+
+const SIZES: Record<IconSize, string> = {
+  sm: 'text-[length:--spacing(4)]',
+  md: 'text-[length:--spacing(5)]',
+  lg: 'text-[length:--spacing(6)]',
+};

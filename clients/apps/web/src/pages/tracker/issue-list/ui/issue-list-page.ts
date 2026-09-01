@@ -32,6 +32,7 @@ import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmPopoverImports } from '@/shared/ui/popover';
+import { AppPageBack } from '@/shared/ui/page-back';
 import { IssueCreateDialog } from './issue-create-dialog';
 
 /** 목록의 한 줄. 판정을 미리 해 두어 템플릿이 매 그리기마다 다시 세지 않는다. */
@@ -43,7 +44,7 @@ interface IssueRow {
 
 @Component({
   selector: 'app-issue-list',
-  imports: [
+  imports: [AppPageBack, 
     RouterLink,
     HlmButton,
     HlmPopoverImports,
