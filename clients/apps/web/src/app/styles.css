@@ -5,6 +5,14 @@
 
 @import '@spartan-ng/brain/hlm-tailwind-preset.css';
 
+/*
+ * 문서 본문의 타이포그래피. `prose` 유틸리티가 여기서 온다.
+ *
+ * 화면 컴포넌트에는 영향이 없다 — 프리셋은 `prose` 를 단 자리에만 닿는다. 색은 그 자리가
+ * `--color-fd-*` 를 우리 토큰에 이어 준다(shared/ui/markdown-view).
+ */
+@plugin '@fumadocs/tailwind/typography';
+
 @import '@uppy/core/css/style.min.css';
 @import '@uppy/dashboard/css/style.min.css';
 

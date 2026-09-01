@@ -12,13 +12,17 @@ import {
 import { injectProjectRoutes } from '@/entities/project';
 import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { MarkdownView } from '@/shared/ui/markdown-view';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmPopoverImports } from '@/shared/ui/popover';
 import { AppPageBack } from '@/shared/ui/page-back';
 
 @Component({
   selector: 'app-issue-detail',
-  imports: [AppPageBack, 
+  imports: [
+    AppPageBack,
+    MarkdownView,
+    
     RouterLink,
     HlmButton,
     HlmPopoverImports,
@@ -49,12 +53,6 @@ export class IssueDetailPage {
   protected readonly kindLabel = computed(() => {
     const issue = this.issue();
     return issue === undefined ? '' : issueKindLabel(issue.kind);
-  });
-
-  /** 본문은 빈 줄로 문단을 가른다. 원본이 마크다운이므로 그 규약을 그대로 읽는다. */
-  protected readonly paragraphs = computed<readonly string[]>(() => {
-    const body = this.issue()?.body ?? '';
-    return body === '' ? [] : body.split('\n\n');
   });
 
   protected readonly parent = computed(() => {

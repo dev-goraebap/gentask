@@ -29,12 +29,8 @@
         <span>{{ issue.authorName }}이 {{ issue.createdOn }}에 세움</span>
       </p>
 
-      @if (paragraphs().length > 0) {
-        <div class="mt-6 flex flex-col gap-3 text-sm/7">
-          @for (paragraph of paragraphs(); track $index) {
-            <p>{{ paragraph }}</p>
-          }
-        </div>
+      @if (issue.body !== '') {
+        <app-markdown-view class="mt-6 block" [value]="issue.body" />
       }
 
       @if (issue.criteria.length > 0) {
