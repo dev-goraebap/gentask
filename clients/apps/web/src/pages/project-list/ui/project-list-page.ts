@@ -66,10 +66,10 @@ export class ProjectListPage {
     const ref = this.overlay.open(ProjectCreateDialog, ROUTES.projects());
     this.creating = ref;
 
-    ref.instance.created.subscribe((id) => {
+    ref.instance.created.subscribe((key) => {
       this.creating = null;
       // 세운 것으로 곧장 들어간다. 세우고 나서 다시 고르게 하면 방금 한 일을 한 번 더 시킨다.
-      ref.close(ROUTES.issues(id));
+      ref.close(ROUTES.issues(key));
     });
 
     ref.instance.dismissed.subscribe(() => {
