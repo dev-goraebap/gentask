@@ -88,6 +88,23 @@ class IssueApiTest {
         상세(number).andExpect(jsonPath("$.body").value("첫 줄\n\n둘째 줄"));
     }
 
+    /*
+     * 화면의 편집기(ProseMirror 계열)는 마크다운을 문서 모델로 바꿨다가 되돌리며 HTML 주석을 담을
+     * 자리를 갖지 않아 통째로 버린다. 예전 마커에 기대면 저장하는 순간 인수 조건이 사라진다.
+     * 실제로 tiptap-markdown 으로 왕복시켜 확인한 것이며, 체크 항목 자체는 온전히 살아남는다.
+     */
+    @Test
+    @DisplayName("마커가 없어도 번호가 붙은 체크 항목을 인수 조건으로 읽는다")
+    void 마커가_없어도_인수_조건을_읽는다() throws Exception {
+        String body = "설명\\n\\n## 인수 조건\\n\\n" + "- [x] #1 첫 조건\\n" + "- [ ] #2 둘째 조건\\n" + "- [ ] #3 (결번)";
+        int number = 작업_아이템을_세운다("{\"title\":\"마커 없음\",\"body\":\"%s\"}".formatted(body));
+
+        상세(number)
+                .andExpect(jsonPath("$.summary.criteriaCount").value(2))
+                .andExpect(jsonPath("$.summary.unverifiedCount").value(1))
+                .andExpect(jsonPath("$.criteria", hasSize(3)));
+    }
+
     @Test
     @DisplayName("인수 조건은 표가 아니라 본문에서 읽는다")
     void 인수_조건을_본문에서_읽는다() throws Exception {

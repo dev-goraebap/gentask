@@ -49,10 +49,9 @@ for (const dir of ITEMS) {
     const body = read(file);
     const id = /^id:\s*(TG-[\d.]+)\s*$/m.exec(body)?.[1];
     if (!id) continue;
-    // 인수 조건은 도구가 심는 마커 안에만 있다. 절 제목에 기대지 않는다.
-    const block = /<!-- AC:BEGIN -->\n([\s\S]*?)<!-- AC:END -->/.exec(body)?.[1];
-    if (!block) continue;
-    for (const line of block.split('\n')) {
+    // 경계를 표시하지 않는다. `#n` 이 붙은 체크 항목 자체가 인수 조건이다. 화면의 편집기가 HTML
+    // 주석을 담을 자리를 갖지 않아, 마커로 가르면 저장하는 순간 인수 조건이 사라진다.
+    for (const line of body.split('\n')) {
       const m = /^- \[[ x]\] #(\d+) (.+)$/.exec(line);
       if (!m) continue;
       const text = m[2].trim();
