@@ -138,7 +138,9 @@ class IssueApiTest {
         상세(number)
                 .andExpect(jsonPath("$.body").value("본문"))
                 .andExpect(jsonPath("$.summary.parentKey", nullValue()))
-                .andExpect(jsonPath("$.summary.childCount").value(0));
+                .andExpect(jsonPath("$.summary.childCount").value(0))
+                // 세운 사람은 별명으로 낸다. 상세 한 줄이 그것을 쓴다.
+                .andExpect(jsonPath("$.authorName").isNotEmpty());
     }
 
     @Test

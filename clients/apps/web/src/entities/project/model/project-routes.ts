@@ -21,7 +21,9 @@ export function injectProjectRoutes(): Signal<ProjectRoutes> {
   const projectService = inject(ProjectService);
 
   return computed<ProjectRoutes>(() => {
-    const projectId = projectService.current().id;
+    // 주소가 UUID 가 아니라 접두어를 갖는다. 아직 하나도 실리지 않았으면 빈 자리를 낸다 — 그 순간에
+    // 링크를 그리는 화면은 목록의 상태로 이미 가려져 있다.
+    const projectId = projectService.current()?.key ?? '';
 
     return {
       issues: () => ROUTES.issues(projectId),

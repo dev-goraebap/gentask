@@ -2,6 +2,7 @@ package xyz.gentask.module.tracker.infrastructure;
 
 import static xyz.gentask.jooq.Tables.ISSUES;
 import static xyz.gentask.jooq.Tables.PROJECTS;
+import static xyz.gentask.jooq.Tables.USERS;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,7 +105,18 @@ class JooqIssueQuery implements IssueQuery {
                 toSummary(issuesRecord, keyOf(projectId), numbers, childCounts, closedChildCounts),
                 issuesRecord.getBody(),
                 criteria.stream().map(JooqIssueQuery::toCriterionView).toList(),
+                nicknameOf(issuesRecord.getAuthorId()),
                 issuesRecord.getCreatedAt());
+    }
+
+    /** 세운 사람의 별명. 상세 한 줄이 쓰므로 목록에서는 싣지 않는다. */
+    private String nicknameOf(UUID authorId) {
+        return dslContext
+                .select(USERS.NICKNAME)
+                .from(USERS)
+                .where(USERS.ID.eq(authorId))
+                .fetchOptional(USERS.NICKNAME)
+                .orElse("");
     }
 
     private int countChildren(UUID parentId, boolean settledOnly) {

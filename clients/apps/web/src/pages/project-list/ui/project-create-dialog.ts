@@ -100,11 +100,11 @@ export class ProjectCreateDialog {
   protected readonly creatable = computed(() => this.draft().name.trim().length > 0);
 
   // --- 동작 --------------------------------------------------------------------------------------
-  protected create(): void {
+  protected async create(): Promise<void> {
     const name = this.draft().name.trim();
     if (name === '') return;
 
-    this.created.emit(this.projectService.create(name));
+    this.created.emit(await this.projectService.create(name));
   }
 
   protected createOnEnter(event: KeyboardEvent): void {

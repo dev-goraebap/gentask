@@ -14,7 +14,7 @@
   <div class="mt-6">
     <h2 class="text-sm font-medium">작업 아이템 접두어</h2>
     <p class="border-input mt-1.5 flex h-9 w-40 items-center border px-2.5 font-mono text-sm">
-      {{ projectService.current().key }}
+      {{ projectService.current()?.key }}
     </p>
     <p class="text-foreground-secondary mt-1.5 text-xs">
       작업 아이템 번호 앞에 붙습니다. 번호가 매겨진 뒤에는 바꿀 수 없습니다.
@@ -90,8 +90,8 @@ Refs: <span class="text-primary">TG-041</span></pre>
   <h2 class="mt-10 text-base font-semibold">프로젝트 지우기</h2>
   <p class="text-foreground-secondary mt-1.5 text-sm/7">
     지우면 이 프로젝트의 작업 아이템
-    <span class="text-foreground">{{ projectService.current().issueCount }}개</span>와 문서
-    <span class="text-foreground">{{ projectService.current().docCount }}개</span>가 함께 사라집니다.
+    <span class="text-foreground">{{ projectService.current()?.issueCount }}개</span>와 문서
+    <span class="text-foreground">{{ projectService.current()?.docCount }}개</span>가 함께 사라집니다.
     되돌릴 수 없으므로 서버가 선 뒤에 되묻는 절차와 함께 엽니다.
   </p>
 

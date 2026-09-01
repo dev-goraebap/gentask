@@ -16,6 +16,7 @@ import xyz.gentask.module.tracker.domain.project.Project;
 import xyz.gentask.module.tracker.domain.project.ProjectKey;
 import xyz.gentask.module.tracker.domain.project.ProjectName;
 import xyz.gentask.module.tracker.domain.project.ProjectRepository;
+import xyz.gentask.shared.error.DomainRuleViolation;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +39,7 @@ public class ProjectService implements Projects {
     @Transactional(readOnly = true)
     public ProjectView detail(UUID ownerId, String key) {
         return projectQuery
-                .findOne(ownerId, ProjectKey.of(key).value())
+                .findOne(ownerId, readKey(key).value())
                 .orElseThrow(TrackerErrorCode.PROJECT_NOT_FOUND::raise);
     }
 
@@ -54,7 +55,7 @@ public class ProjectService implements Projects {
     @Transactional(readOnly = true)
     public Project find(UUID ownerId, String key) {
         return projectRepository
-                .findByKey(ownerId, ProjectKey.of(key))
+                .findByKey(ownerId, readKey(key))
                 .orElseThrow(TrackerErrorCode.PROJECT_NOT_FOUND::raise);
     }
 
@@ -67,6 +68,20 @@ public class ProjectService implements Projects {
         Project project = Project.create(UUID.randomUUID(), ownerId, projectName, freeKey(ownerId, projectName), now);
         projectRepository.save(project);
         return project.key().value();
+    }
+
+    /**
+     * 주소에서 받은 접두어를 읽는다.
+     *
+     * <p>모양이 맞지 않는 것을 잘못된 요청이 아니라 없는 자리로 낸다. 주소에 담긴 값이라 사람이 손으로
+     * 고치거나 옛 링크를 따라온 것이며, 그때 보아야 하는 것은 400 이 아니라 없다는 말이다.
+     */
+    private static ProjectKey readKey(String rawKey) {
+        try {
+            return ProjectKey.of(rawKey);
+        } catch (DomainRuleViolation ignored) {
+            throw TrackerErrorCode.PROJECT_NOT_FOUND.raise();
+        }
     }
 
     @Transactional

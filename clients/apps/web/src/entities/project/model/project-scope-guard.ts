@@ -12,16 +12,19 @@ import { ProjectService } from '../api/project-service';
  * <p>없는 프로젝트를 가리키면 홈으로 보냅니다. 프로젝트 목록이 거기 있으므로 고를 수 있고, 기본
  * 프로젝트로 몰래 바꾸면 주소와 보이는 것이 어긋납니다.
  */
-export const projectScopeGuard: CanActivateFn = (route) => {
+export const projectScopeGuard: CanActivateFn = async (route) => {
   const projectService = inject(ProjectService);
   const router = inject(Router);
 
-  const projectId = route.paramMap.get('projectId');
-  const known = projectService.list().some((project) => project.id === projectId);
+  const projectKey = route.paramMap.get('projectId');
+  if (projectKey === null) return router.parseUrl(ROUTES.home());
 
-  if (projectId === null || !known) return router.parseUrl(ROUTES.home());
+  // 목록이 실릴 때까지 기다린다. 처음 여는 순간에는 아직 비어 있어, 기다리지 않으면 제 프로젝트를
+  // 없는 것으로 보고 첫 자리로 되돌린다.
+  const projects = await projectService.ready();
+  if (!projects.some((project) => project.key === projectKey)) return router.parseUrl(ROUTES.home());
 
-  projectService.choose(projectId);
+  projectService.choose(projectKey);
 
   return true;
 };

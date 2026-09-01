@@ -36,7 +36,7 @@ export class ProjectSettingsPage {
   protected readonly projectService = inject(ProjectService);
 
   // --- 상태 --------------------------------------------------------------------------------------
-  private readonly draft = signal({ name: this.projectService.current().name });
+  private readonly draft = signal({ name: this.projectService.current()?.name ?? '' });
   protected readonly nameForm = form(this.draft);
 
   // --- 파생 --------------------------------------------------------------------------------------
@@ -52,14 +52,14 @@ export class ProjectSettingsPage {
   protected readonly renamed = computed(
     () =>
       this.draft().name.trim() !== '' &&
-      this.draft().name.trim() !== this.projectService.current().name,
+      this.draft().name.trim() !== this.projectService.current()?.name,
   );
 
   // --- 동작 --------------------------------------------------------------------------------------
-  protected rename(): void {
+  protected async rename(): Promise<void> {
     const name = this.draft().name.trim();
     if (name === '') return;
-    this.projectService.rename(name);
+    await this.projectService.rename(name);
   }
 
   protected unlink(id: string): void {

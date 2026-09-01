@@ -5,7 +5,7 @@ import { IssueService } from '@/entities/issue/providers';
 import { ProjectPicker, projectScopeGuard, ProjectService } from '@/entities/project/providers';
 import { adminGuard, authGuard } from '@/entities/user/guard';
 import { AuthService, UserService } from '@/entities/user/providers';
-import { trackerBottomNav } from '@/shared/config';
+import { CURRENT_PROJECT_KEY, trackerBottomNav } from '@/shared/config';
 import { MemoService } from '@/pages/memo-list/providers';
 import { TaskService } from '@/entities/task';
 import { provideTaskListDatePicker } from '@/pages/task-list/providers';
@@ -88,20 +88,27 @@ export const routes: Routes = [
     providers: [
       UserService,
       AuthService,
+      {
+        provide: CURRENT_PROJECT_KEY,
+        useFactory: () => {
+          const projectService = inject(ProjectService);
+          return computed(() => projectService.current()?.key);
+        },
+      },
       IssueService,
       DocService,
       {
         provide: NAV_GROUPS,
         useFactory: () => {
           const projectService = inject(ProjectService);
-          return trackerNavGroupsSignal(computed(() => projectService.current().id));
+          return trackerNavGroupsSignal(computed(() => projectService.current()?.key ?? ''));
         },
       },
       {
         provide: BOTTOM_NAV,
         useFactory: () => {
           const projectService = inject(ProjectService);
-          return computed(() => trackerBottomNav(projectService.current().id));
+          return computed(() => trackerBottomNav(projectService.current()?.key ?? ''));
         },
       },
       { provide: SHELL_AREA, useValue: 'tracker' },

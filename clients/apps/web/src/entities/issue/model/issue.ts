@@ -52,7 +52,10 @@ export interface IssueCommit {
 
 /** 목록이 받는 작업 아이템. 본문과 인수 조건은 상세에서만 온다. */
 export interface IssueSummary {
+  /** 사람이 부르는 이름(`TG-030`). 주소가 이것을 담으므로 화면은 이것으로 다닌다. */
   readonly id: string;
+  /** 프로젝트 안의 번호. API 가 받는 것은 이쪽이다. */
+  readonly number: number;
   readonly kind: IssueKind;
   readonly title: string;
   readonly state: IssueState;
@@ -110,6 +113,15 @@ const LIVE_STATES: readonly IssueState[] = [
   ISSUE_STATES.unstarted,
   ISSUE_STATES.started,
 ];
+
+/**
+ * 이름에서 번호를 읽는다.
+ *
+ * <p>붙이는 규칙은 서버가 갖는다. 여기는 읽기만 하므로 접두어의 모양이 바뀌어도 따라 고칠 것이 없다.
+ */
+export function issueNumberOf(id: string): number {
+  return Number(id.slice(id.lastIndexOf('-') + 1));
+}
 
 export function issueKindLabel(kind: IssueKind): string {
   return ISSUE_KIND_FACES.find((face) => face.value === kind)?.label ?? '태스크';

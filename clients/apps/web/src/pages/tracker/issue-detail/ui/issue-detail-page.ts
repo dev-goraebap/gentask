@@ -43,7 +43,8 @@ export class IssueDetailPage {
   private readonly issueService = inject(IssueService);
 
   // --- 파생 --------------------------------------------------------------------------------------
-  protected readonly issue = computed(() => this.issueService.find(this.id()));
+  /** 목록의 줄은 본문과 인수 조건을 갖지 않으므로 상세는 따로 싣는다. */
+  protected readonly issue = this.issueService.detailOf(computed(() => this.id()));
 
   protected readonly kindLabel = computed(() => {
     const issue = this.issue();
@@ -67,7 +68,7 @@ export class IssueDetailPage {
   protected readonly command = computed(() => `gentask issue show ${this.id()}`);
 
   // --- 동작 --------------------------------------------------------------------------------------
-  protected setState(state: IssueState): void {
-    this.issueService.setState(this.id(), state);
+  protected async setState(state: IssueState): Promise<void> {
+    await this.issueService.setState(this.id(), state);
   }
 }

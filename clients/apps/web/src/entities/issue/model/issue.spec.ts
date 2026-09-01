@@ -14,6 +14,7 @@ import {
 function summary(id: string, parentId: string | null = null): IssueSummary {
   return {
     id,
+    number: Number(id.slice(id.lastIndexOf('-') + 1)),
     kind: ISSUE_KINDS.task,
     title: id,
     state: ISSUE_STATES.unstarted,

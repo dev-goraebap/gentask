@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { ROUTES } from '@/shared/config';
 import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmPopoverImports } from '@/shared/ui/popover';
@@ -25,7 +27,7 @@ import { ProjectService } from '../api/project-service';
       >
         <span class="flex min-w-0 items-center gap-2">
           <span class="bg-primary size-2.5 shrink-0" aria-hidden="true"></span>
-          <span class="truncate">{{ projectService.current().name }}</span>
+          <span class="truncate">{{ projectService.current()?.name }}</span>
         </span>
         <app-icon name="hgiArrowDown" />
       </button>
@@ -39,11 +41,11 @@ import { ProjectService } from '../api/project-service';
               variant="ghost"
               size="sm"
               class="justify-between gap-2"
-              [attr.aria-pressed]="project.id === projectService.current().id"
-              (click)="choose(project.id); ctx.close()"
+              [attr.aria-pressed]="project.key === projectService.current()?.key"
+              (click)="choose(project.key); ctx.close()"
             >
               <span class="truncate">{{ project.name }}</span>
-              @if (project.id === projectService.current().id) {
+              @if (project.key === projectService.current()?.key) {
                 <app-icon name="hgiCheck" />
               }
             </button>
@@ -57,9 +59,16 @@ import { ProjectService } from '../api/project-service';
 export class ProjectPicker {
   // --- 의존 --------------------------------------------------------------------------------------
   protected readonly projectService = inject(ProjectService);
+  private readonly router = inject(Router);
 
   // --- 동작 --------------------------------------------------------------------------------------
-  protected choose(id: string): void {
-    this.projectService.choose(id);
+  /**
+   * 고른 것으로 옮긴다.
+   *
+   * <p>서비스의 상태만 바꾸면 주소는 앞의 프로젝트를 가리킨 채로 남아 둘이 어긋난다. 주소가 지금
+   * 프로젝트의 진실이므로 그것을 바꾸고 길잡이가 서비스를 맞추게 한다.
+   */
+  protected choose(key: string): void {
+    void this.router.navigateByUrl(ROUTES.issues(key));
   }
 }

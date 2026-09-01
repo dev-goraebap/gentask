@@ -95,6 +95,9 @@ public final class IssueViews {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             List<AcceptanceCriterionView> criteria,
 
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "세운 사람의 별명")
+            String authorName,
+
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             Instant createdAt) {
 

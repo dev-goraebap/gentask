@@ -25,7 +25,7 @@ import {
   type IssueKind,
   type IssueSummary,
 } from '@/entities/issue';
-import { injectProjectRoutes } from '@/entities/project';
+import { injectProjectRoutes, ProjectService } from '@/entities/project';
 import { ISSUE_CREATE_PANEL } from '@/shared/config';
 import { injectRoutedOverlay, type RoutedOverlayRef } from '@/shared/lib';
 import { HlmButton } from '@/shared/ui/button';
@@ -73,6 +73,7 @@ export class IssueListPage {
 
   // --- 의존 --------------------------------------------------------------------------------------
   protected readonly issueService = inject(IssueService);
+  private readonly projectService = inject(ProjectService);
   private readonly router = inject(Router);
   private readonly overlay = injectRoutedOverlay();
 
@@ -121,6 +122,10 @@ export class IssueListPage {
    */
   constructor() {
     effect(() => {
+      // 프로젝트가 실린 뒤에 연다. 덮개는 열 때 되돌아갈 주소를 잡는데, 그 전에는 프로젝트가 비어
+      // 있어 어느 프로젝트도 가리키지 않는 주소가 잡힌다.
+      if (this.projectService.current() === undefined) return;
+
       if (this.new() && this.creating === null) this.openCreate();
       if (!this.new() && this.creating !== null) this.closeCreate();
     });

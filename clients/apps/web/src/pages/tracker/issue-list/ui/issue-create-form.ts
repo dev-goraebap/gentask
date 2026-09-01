@@ -69,11 +69,12 @@ export class IssueCreateForm {
     this.kind.set(value);
   }
 
-  protected create(): void {
+  protected async create(): Promise<void> {
     const title = this.draft().title.trim();
     if (title === '') return;
 
-    this.created.emit(this.issueService.add(title, this.kind(), this.draft().body.trim()));
+    const created = await this.issueService.add(title, this.kind(), this.draft().body.trim());
+    if (created !== undefined) this.created.emit(created);
   }
 
   protected dismiss(): void {
