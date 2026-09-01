@@ -158,8 +158,14 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'todo' },
       {
-        path: 'account',
+        path: 'me',
         loadComponent: () => import('@/pages/account').then((m) => m.AccountPage),
+      },
+      {
+        // 모드에 매이지 않는 자리. 어느 모드의 더보기에서도 같은 주소로 선다.
+        path: 'memos',
+        providers: [MemoService],
+        loadComponent: () => import('@/pages/memo-list').then((m) => m.MemoListPage),
       },
       // 아직 자리만 잡아 둔 시안이다. 규격이 서면 서술서와 인수 조건이 먼저 생긴다.
       {
@@ -171,7 +177,7 @@ export const routes: Routes = [
         loadComponent: () => import('@/pages/pomodoro').then((m) => m.PomodoroPage),
       },
       {
-        // 투두 모드. 그릇이 제 이름을 가지므로 그 아래에 목록들과 메모가 같은 층으로 선다.
+        // 투두 모드. 그릇이 제 이름을 가지므로 메뉴 화면이 목록을 겸하지 않는다.
         path: 'todo',
         providers: [TaskService, ...provideTaskListDatePicker()],
         children: [
@@ -182,17 +188,6 @@ export const routes: Routes = [
             path: '',
             pathMatch: 'full',
             loadComponent: () => import('@/pages/task-lists').then((m) => m.TaskListsPage),
-          },
-          /*
-           * `:view` 보다 먼저 서야 한다. 뒤에 두면 `/todo/memos` 를 `:view` 가 먼저 잡고,
-           * `toTaskView` 가 모르는 값을 `all` 로 떨어뜨리므로 메모 대신 전체 할 일 목록이 조용히
-           * 그려진다. 빌드도 린트도 이것을 잡지 못하므로 `app.routes.spec.ts` 가 순서를 지킨다.
-           */
-          {
-            // 정리되기 전의 자리. 할 일과 같은 갈래에 두되 프로젝트에 속하지 않는다.
-            path: 'memos',
-            providers: [MemoService],
-            loadComponent: () => import('@/pages/memo-list').then((m) => m.MemoListPage),
           },
           {
             path: ':view',

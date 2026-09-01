@@ -8,9 +8,13 @@ export const ROUTES = {
   todo: () => '/todo',
   taskList: (view = 'all') => `/todo/${view}`,
 
-  memos: () => '/todo/memos',
+  /*
+   * 메모와 팻과 뽀모도로는 모드에 매이지 않는다. 다른 모드의 메뉴에서도 더보기로 서야 하므로
+   * 어느 그릇 안에도 넣지 않는다.
+   */
+  memos: () => '/memos',
 
-  account: () => '/account',
+  account: () => '/me',
 
   pets: () => '/pets',
   pomodoro: () => '/pomodoro',
