@@ -24,7 +24,7 @@ import xyz.gentask.module.notification.domain.subscription.PushSubscriptionRepos
  * 정한 시각이 지난 미리 알림을 켜 둔 기기로 보낸다.
  *
  * <p>사용자가 시작하는 흐름이 아니라 시각이 트리거다. 주 액터가 없으므로 서술서를 갖지 않고 Story
- * TG-034 가 인수 조건을 갖는다.
+ * GT-34 가 인수 조건을 갖는다.
  */
 @Service
 @RequiredArgsConstructor
@@ -92,7 +92,7 @@ public class ReminderDispatchService {
                 continue;
             }
             // 닿지 않은 회차를 남긴다. 로그로만 두면 관리자가 서버에 들어가야 보고, 어느 사용자가
-            // 몇 번 놓쳤는지 세지 못한다. TG-037 다
+            // 몇 번 놓쳤는지 세지 못한다. GT-37 다
             record(subscription, reminder, outcome, now);
             if (outcome.result() == PushSender.Result.GONE) {
                 // 브라우저 데이터를 지우거나 오래 쓰지 않으면 자리가 만료된다. NTF-001 의 A4 다

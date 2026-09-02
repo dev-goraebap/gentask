@@ -2,7 +2,7 @@ import { type Page } from '@playwright/test';
 import { expect, test } from '../fixtures';
 import { 등록한다, 로그인_전, 로그인한다, 새_이메일, 비밀번호 } from './account-support';
 
-// TG-040 비밀번호 바꾸기
+// GT-40 비밀번호 바꾸기
 
 // 워커의 세션을 쓰지 않는다. 비밀번호를 갈면 그 워커의 다른 시험이 함께 흔들린다.
 test.use(로그인_전);
@@ -20,8 +20,8 @@ async function 계정_자리로_간다(page: Page): Promise<string> {
   return email;
 }
 
-test.describe('TG-040 비밀번호 바꾸기', () => {
-  test('TG-040 #1: 현재 비밀번호와 새 비밀번호를 제출하면 비밀번호를 바꾼다', async ({
+test.describe('GT-40 비밀번호 바꾸기', () => {
+  test('GT-40 #1: 현재 비밀번호와 새 비밀번호를 제출하면 비밀번호를 바꾼다', async ({
     page,
   }) => {
     const email = await 계정_자리로_간다(page);
@@ -43,7 +43,7 @@ test.describe('TG-040 비밀번호 바꾸기', () => {
     await expect(page).toHaveURL(/\/todo\//);
   });
 
-  test('TG-040 #2: 바꾸어도 지금 쓰는 자리의 로그인은 유지된다', async ({ page }) => {
+  test('GT-40 #2: 바꾸어도 지금 쓰는 자리의 로그인은 유지된다', async ({ page }) => {
     await 계정_자리로_간다(page);
 
     await page.locator('#account-current-password').fill(비밀번호);
@@ -56,7 +56,7 @@ test.describe('TG-040 비밀번호 바꾸기', () => {
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
 
-  test('TG-040 #4: 현재 비밀번호가 맞지 않으면 아무것도 바꾸지 않는다', async ({ page }) => {
+  test('GT-40 #4: 현재 비밀번호가 맞지 않으면 아무것도 바꾸지 않는다', async ({ page }) => {
     const email = await 계정_자리로_간다(page);
 
     await page.locator('#account-current-password').fill('totally-wrong-1!');
@@ -72,7 +72,7 @@ test.describe('TG-040 비밀번호 바꾸기', () => {
     await expect(page).toHaveURL(/\/todo\//);
   });
 
-  test('TG-040 #5: 새 비밀번호가 규칙에 맞지 않으면 충족하지 못한 조건을 알린다', async ({
+  test('GT-40 #5: 새 비밀번호가 규칙에 맞지 않으면 충족하지 못한 조건을 알린다', async ({
     page,
   }) => {
     await 계정_자리로_간다(page);
@@ -87,7 +87,7 @@ test.describe('TG-040 비밀번호 바꾸기', () => {
     ).toBeVisible();
   });
 
-  test('TG-040 #6: 새 비밀번호가 지금 것과 같으면 달라야 함을 알린다', async ({ page }) => {
+  test('GT-40 #6: 새 비밀번호가 지금 것과 같으면 달라야 함을 알린다', async ({ page }) => {
     await 계정_자리로_간다(page);
 
     await page.locator('#account-current-password').fill(비밀번호);

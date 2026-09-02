@@ -36,8 +36,8 @@ public class IssueService {
 
     // --- 조회 --------------------------------------------------------------------------------------------------------
     @Transactional(readOnly = true)
-    public List<IssueSummary> list(UUID userId, String projectKey) {
-        return issueQuery.findAll(projectService.find(userId, projectKey).id());
+    public List<IssueSummary> list(UUID userId, String projectId) {
+        return issueQuery.findAll(projectService.find(userId, projectId).id());
     }
 
     /**
@@ -47,15 +47,15 @@ public class IssueService {
      * 없는 것이다(ITM-002 A5).
      */
     @Transactional(readOnly = true)
-    public IssueView detail(UUID userId, String projectKey, int number) {
-        Project project = projectService.find(userId, projectKey);
+    public IssueView detail(UUID userId, String projectId, int number) {
+        Project project = projectService.find(userId, projectId);
         return issueQuery.findOne(project.id(), number).orElseThrow(TrackerErrorCode.ISSUE_NOT_FOUND::raise);
     }
 
     // --- 명령 --------------------------------------------------------------------------------------------------------
     @Transactional
-    public int add(UUID userId, String projectKey, String title, IssueKind kind, String body, String parentKey) {
-        Project project = projectService.find(userId, projectKey);
+    public int add(UUID userId, String projectId, String title, IssueKind kind, String body, String parentKey) {
+        Project project = projectService.find(userId, projectId);
         Instant now = clock.instant();
         int number = project.issueNumber(now);
         projectRepository.save(project);
@@ -83,8 +83,8 @@ public class IssueService {
      */
     @Transactional
     public void edit(
-            UUID userId, String projectKey, int number, String title, IssueKind kind, String body, String parentKey) {
-        Project project = projectService.find(userId, projectKey);
+            UUID userId, String projectId, int number, String title, IssueKind kind, String body, String parentKey) {
+        Project project = projectService.find(userId, projectId);
         Issue issue =
                 issueRepository.findByNumber(project.id(), number).orElseThrow(TrackerErrorCode.ISSUE_NOT_FOUND::raise);
 
@@ -129,23 +129,23 @@ public class IssueService {
      * (V9 의 {@code on delete set null}). 계층이 끊길 뿐 항목이 사라질 이유가 없다(ITM-005 A2).
      *
      * <p>번호는 프로젝트에 되돌려주지 않는다. 다음에 내줄 번호를 프로젝트가 따로 들고 있어, 지운
-     * 자리의 번호가 다음 항목에 다시 나가지 않는다(TG-043 #5).
+     * 자리의 번호가 다음 항목에 다시 나가지 않는다(GT-43 #5).
      */
     @Transactional
-    public void remove(UUID userId, String projectKey, int number) {
-        issueRepository.deleteById(find(userId, projectKey, number).id());
+    public void remove(UUID userId, String projectId, int number) {
+        issueRepository.deleteById(find(userId, projectId, number).id());
     }
 
     @Transactional
-    public void changeState(UUID userId, String projectKey, int number, IssueState state) {
-        Issue issue = find(userId, projectKey, number);
+    public void changeState(UUID userId, String projectId, int number, IssueState state) {
+        Issue issue = find(userId, projectId, number);
         issue.changeState(state, clock.instant());
         issueRepository.save(issue);
     }
 
     // --- 내부 --------------------------------------------------------------------------------------------------------
-    private Issue find(UUID userId, String projectKey, int number) {
-        Project project = projectService.find(userId, projectKey);
+    private Issue find(UUID userId, String projectId, int number) {
+        Project project = projectService.find(userId, projectId);
         return issueRepository.findByNumber(project.id(), number).orElseThrow(TrackerErrorCode.ISSUE_NOT_FOUND::raise);
     }
 }

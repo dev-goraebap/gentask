@@ -6,7 +6,7 @@ import {
   프로젝트를_만든다,
 } from './tracker-support';
 
-// TG-055 작업 아이템을 고친다
+// GT-55 작업 아이템을 고친다
 //
 // 고치는 것은 제목 · 유형 · 본문 셋이다. 번호는 불변이고 상태는 ITM-003 이 갖는다(ITM-004).
 // 인수 조건을 따로 고치지 않는 것은 그것이 본문 안의 체크 항목이기 때문이다.
@@ -14,16 +14,16 @@ import {
 /** 상세를 열고 고치기로 들어간다. */
 async function 고치기를_연다(
   page: import('@playwright/test').Page,
-  projectKey: string,
+  projectId: string,
   key: string,
 ): Promise<void> {
-  await page.goto(`/projects/${projectKey}/issues/${key}`);
+  await page.goto(`/projects/${projectId}/issues/${key}`);
   await page.getByRole('button', { name: '고치기' }).click();
   await expect(page.locator('#issue-edit-title')).toBeVisible();
 }
 
-test.describe('TG-055 작업 아이템을 고친다', () => {
-  test('TG-055 #1: 제목과 본문을 고쳐 담으면 고친 것을 남긴다', async ({ page, request }) => {
+test.describe('GT-55 작업 아이템을 고친다', () => {
+  test('GT-55 #1: 제목과 본문을 고쳐 담으면 고친 것을 남긴다', async ({ page, request }) => {
     const 프로젝트 = await 프로젝트를_만든다(request, 'Edit Kept');
     const 항목 = await 작업_아이템을_만든다(request, 프로젝트, '고치기 전 제목', {
       body: '고치기 전 본문',
@@ -43,7 +43,7 @@ test.describe('TG-055 작업 아이템을 고친다', () => {
     await expect(page.getByText('고친 본문')).toBeVisible();
   });
 
-  test('TG-055 #2: 본문의 체크 항목을 고치면 바뀐 인수 조건을 그대로 읽는다', async ({
+  test('GT-55 #2: 본문의 체크 항목을 고치면 바뀐 인수 조건을 그대로 읽는다', async ({
     page,
     request,
   }) => {
@@ -66,7 +66,7 @@ test.describe('TG-055 작업 아이템을 고친다', () => {
     await expect(인수조건.getByText('고치기 전 조건')).toHaveCount(0);
   });
 
-  test('TG-055 #3: 제목이 비어 있으면 알리고 고치기 전의 것을 그대로 둔다', async ({
+  test('GT-55 #3: 제목이 비어 있으면 알리고 고치기 전의 것을 그대로 둔다', async ({
     page,
     request,
   }) => {
@@ -83,7 +83,7 @@ test.describe('TG-055 작업 아이템을 고친다', () => {
     await expect(page.getByRole('heading', { name: '비우지 못할 제목' })).toBeVisible();
   });
 
-  test('TG-055 #4: 고치기를 그만두면 고치기 전의 것을 그대로 둔다', async ({ page, request }) => {
+  test('GT-55 #4: 고치기를 그만두면 고치기 전의 것을 그대로 둔다', async ({ page, request }) => {
     const 프로젝트 = await 프로젝트를_만든다(request, 'Edit Dismissed');
     const 항목 = await 작업_아이템을_만든다(request, 프로젝트, '그대로 둘 제목', {
       body: '그대로 둘 본문',
@@ -99,7 +99,7 @@ test.describe('TG-055 작업 아이템을 고친다', () => {
     await expect(page.getByText('버려질 제목')).toHaveCount(0);
   });
 
-  test('TG-055 #5: 유형을 바꾸면 번호를 그대로 두고 유형만 바꾼다', async ({ page, request }) => {
+  test('GT-55 #5: 유형을 바꾸면 번호를 그대로 두고 유형만 바꾼다', async ({ page, request }) => {
     const 프로젝트 = await 프로젝트를_만든다(request, 'Kind Changed');
     const 항목 = await 작업_아이템을_만든다(request, 프로젝트, '유형을 바꿀 것');
 

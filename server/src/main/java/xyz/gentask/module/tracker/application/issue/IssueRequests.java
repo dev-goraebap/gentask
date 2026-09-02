@@ -22,7 +22,7 @@ public final class IssueRequests {
             @Size(max = IssueBody.MAX) String body,
 
             @Schema(
-                    description = "부모의 이름(TG-041). 없으면 최상위다",
+                    description = "부모의 이름(GT-41). 없으면 최상위다",
                     types = {"string", "null"})
             String parentKey) {}
 
@@ -44,7 +44,7 @@ public final class IssueRequests {
 
             @Schema(
                     requiredMode = Schema.RequiredMode.REQUIRED,
-                    description = "부모의 이름(TG-041). 비우면 최상위가 된다",
+                    description = "부모의 이름(GT-41). 비우면 최상위가 된다",
                     types = {"string", "null"})
             String parentKey) {}
 

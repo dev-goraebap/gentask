@@ -58,7 +58,9 @@ describe('ProjectListPage 의 세우는 덮개', () => {
       TestBed.tick();
       httpTesting
         .match({ url: ENDPOINTS.projects, method: 'GET' })
-        .forEach((each) => each.flush([{ id: 'p-1', name: 'gentask', key: 'TG', issueCount: 0 }]));
+        .forEach((each) =>
+          each.flush([{ id: 'V1StGXR8_Z5j', name: 'gentask', key: 'GT', issueCount: 0 }]),
+        );
     }
   }
 
@@ -98,18 +100,20 @@ describe('ProjectListPage 의 세우는 덮개', () => {
     await harness.navigateByUrl('/projects?new=1');
     await drain();
 
-    await type('연습장 둘', harness);
+    await type('연습장 둘', 'SB', harness);
     press('세우기');
 
-    // 접두어는 서버가 이름에서 뽑아 Location 으로 낸다. 화면은 그 값으로 옮긴다.
-    httpTesting
-      .expectOne({ url: ENDPOINTS.projects, method: 'POST' })
-      .flush(null, { status: 201, statusText: 'Created', headers: { Location: '/api/v1/projects/SB' } });
+    // 주소가 담는 식별자는 서버가 만들어 Location 으로 낸다. 화면은 그 값으로 옮긴다.
+    httpTesting.expectOne({ url: ENDPOINTS.projects, method: 'POST' }).flush(null, {
+      status: 201,
+      statusText: 'Created',
+      headers: { Location: '/api/v1/projects/dHi6B-myT7pQ' },
+    });
     await settle(harness);
     await drain();
     await settle(harness);
 
-    expect(TestBed.inject(Router).url).toBe('/projects/SB/issues');
+    expect(TestBed.inject(Router).url).toBe('/projects/dHi6B-myT7pQ/issues');
     expect(pane()).toBeNull();
   });
 });
@@ -142,12 +146,18 @@ async function settle(harness: RouterTestingHarness): Promise<void> {
   harness.detectChanges();
 }
 
-async function type(value: string, harness: RouterTestingHarness): Promise<void> {
-  const input = pane()?.querySelector<HTMLInputElement>('input');
-  expect(input, '덮개 안에서 적는 자리를 찾지 못했습니다').not.toBeNull();
+/** 이름과 접두어를 적는다. 접두어도 필수라 하나만 적으면 세우기가 잠긴 채로 남는다. */
+async function type(name: string, key: string, harness: RouterTestingHarness): Promise<void> {
+  const inputs = pane()?.querySelectorAll<HTMLInputElement>('input');
+  expect(inputs?.length, '덮개 안에서 적는 자리 둘을 찾지 못했습니다').toBe(2);
 
-  input!.value = value;
-  input!.dispatchEvent(new Event('input'));
+  for (const [input, value] of [
+    [inputs![0], name],
+    [inputs![1], key],
+  ] as const) {
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+  }
 
   // 세우기는 적은 것이 있을 때만 눌린다. 변경 감지를 돌려야 그 판정이 갱신된다.
   harness.detectChanges();

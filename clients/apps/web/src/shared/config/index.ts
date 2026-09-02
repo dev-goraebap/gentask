@@ -1,4 +1,4 @@
-export { CURRENT_PROJECT_KEY } from './project-scope';
+export { CURRENT_PROJECT_ID } from './project-scope';
 export {
   ISSUE_CREATE_PANEL,
   MEMO_PANEL,

@@ -31,7 +31,7 @@ import xyz.gentask.shared.web.CurrentUser;
  * 프로젝트의 것인지 주소가 말하지 않는다.
  */
 @RestController
-@RequestMapping("/api/v1/projects/{projectKey}/issues")
+@RequestMapping("/api/v1/projects/{projectId}/issues")
 @RequiredArgsConstructor
 public class IssueController {
 
@@ -40,32 +40,32 @@ public class IssueController {
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> add(
-            @CurrentUser UUID userId, @PathVariable String projectKey, @Valid @RequestBody CreateIssue request) {
+            @CurrentUser UUID userId, @PathVariable String projectId, @Valid @RequestBody CreateIssue request) {
         int number = issueService.add(
-                userId, projectKey, request.title(), request.kind(), request.body(), request.parentKey());
-        return ResponseEntity.created(URI.create("/api/v1/projects/" + projectKey + "/issues/" + number))
+                userId, projectId, request.title(), request.kind(), request.body(), request.parentKey());
+        return ResponseEntity.created(URI.create("/api/v1/projects/" + projectId + "/issues/" + number))
                 .build();
     }
 
     @GetMapping
-    public List<IssueSummary> list(@CurrentUser UUID userId, @PathVariable String projectKey) {
-        return issueService.list(userId, projectKey);
+    public List<IssueSummary> list(@CurrentUser UUID userId, @PathVariable String projectId) {
+        return issueService.list(userId, projectId);
     }
 
     @GetMapping("/{number}")
-    public IssueView detail(@CurrentUser UUID userId, @PathVariable String projectKey, @PathVariable int number) {
-        return issueService.detail(userId, projectKey, number);
+    public IssueView detail(@CurrentUser UUID userId, @PathVariable String projectId, @PathVariable int number) {
+        return issueService.detail(userId, projectId, number);
     }
 
     @PatchMapping("/{number}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void edit(
             @CurrentUser UUID userId,
-            @PathVariable String projectKey,
+            @PathVariable String projectId,
             @PathVariable int number,
             @Valid @RequestBody EditIssue request) {
         issueService.edit(
-                userId, projectKey, number, request.title(), request.kind(), request.body(), request.parentKey());
+                userId, projectId, number, request.title(), request.kind(), request.body(), request.parentKey());
     }
 
     /**
@@ -76,17 +76,17 @@ public class IssueController {
      */
     @DeleteMapping("/{number}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void remove(@CurrentUser UUID userId, @PathVariable String projectKey, @PathVariable int number) {
-        issueService.remove(userId, projectKey, number);
+    public void remove(@CurrentUser UUID userId, @PathVariable String projectId, @PathVariable int number) {
+        issueService.remove(userId, projectId, number);
     }
 
     @PatchMapping("/{number}/state")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void changeState(
             @CurrentUser UUID userId,
-            @PathVariable String projectKey,
+            @PathVariable String projectId,
             @PathVariable int number,
             @Valid @RequestBody ChangeState request) {
-        issueService.changeState(userId, projectKey, number, request.state());
+        issueService.changeState(userId, projectId, number, request.state());
     }
 }

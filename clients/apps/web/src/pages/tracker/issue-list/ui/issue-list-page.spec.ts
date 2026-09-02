@@ -8,14 +8,14 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { IssueService } from '@/entities/issue';
 import { ProjectService } from '@/entities/project';
 import { ENDPOINTS } from '@/shared/api';
-import { CURRENT_PROJECT_KEY } from '@/shared/config';
+import { CURRENT_PROJECT_ID } from '@/shared/config';
 import { IssueListPage } from './issue-list-page';
 
 @Component({ selector: 'app-landed-stub', template: `들어왔다` })
 class LandedStub {}
 
-/** 주소가 담는 것은 접두어다. 그것을 가리켜야 프로젝트에 매인 주소가 만들어진다. */
-const PROJECT = 'TG';
+/** 주소가 담는 것은 접두어가 아니라 프로젝트의 식별자다(GT-60). */
+const PROJECT = 'V1StGXR8_Z5j';
 
 const routes: Routes = [
   { path: `projects/${PROJECT}/issues`, component: IssueListPage },
@@ -38,10 +38,10 @@ describe('IssueListPage 의 세우는 덮개', () => {
         provideRouter(routes, withComponentInputBinding()),
         ProjectService,
         {
-          provide: CURRENT_PROJECT_KEY,
+          provide: CURRENT_PROJECT_ID,
           useFactory: () => {
             const projectService = inject(ProjectService);
-            return computed(() => projectService.current()?.key);
+            return computed(() => projectService.current()?.id);
           },
         },
         IssueService,
@@ -71,7 +71,9 @@ describe('IssueListPage 의 세우는 덮개', () => {
       TestBed.tick();
       httpTesting
         .match({ url: ENDPOINTS.projects, method: 'GET' })
-        .forEach((each) => each.flush([{ id: 'p-1', name: 'gentask', key: PROJECT, issueCount: 0 }]));
+        .forEach((each) =>
+          each.flush([{ id: PROJECT, name: 'gentask', key: 'GT', issueCount: 0 }]),
+        );
       httpTesting
         .match({ url: ENDPOINTS.issues(PROJECT), method: 'GET' })
         .forEach((each) => each.flush([]));
@@ -136,7 +138,7 @@ describe('IssueListPage 의 세우는 덮개', () => {
     await drain();
     await settle(harness);
 
-    expect(TestBed.inject(Router).url).toBe(`/projects/${PROJECT}/issues/TG-046`);
+    expect(TestBed.inject(Router).url).toBe(`/projects/${PROJECT}/issues/GT-46`);
     expect(pane()).toBeNull();
   });
 });
@@ -149,7 +151,7 @@ function detail(): object {
   return {
     summary: {
       id: 'i-1',
-      key: 'TG-046',
+      key: 'GT-46',
       number: 46,
       kind: 'TASK',
       state: 'BACKLOG',

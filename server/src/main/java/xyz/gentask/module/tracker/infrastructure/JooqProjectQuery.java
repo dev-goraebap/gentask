@@ -39,21 +39,22 @@ class JooqProjectQuery implements ProjectQuery {
     }
 
     @Override
-    public Optional<ProjectView> findOne(UUID ownerId, String key) {
-        return fetch(PROJECTS.OWNER_ID.eq(ownerId).and(PROJECTS.KEY.eq(key))).stream()
+    public Optional<ProjectView> findOne(UUID ownerId, String publicId) {
+        return fetch(PROJECTS.OWNER_ID.eq(ownerId).and(PROJECTS.PUBLIC_ID.eq(publicId))).stream()
                 .findFirst();
     }
 
     private List<ProjectView> fetch(Condition condition) {
         return dslContext
-                .select(PROJECTS.ID, PROJECTS.NAME, PROJECTS.KEY, ISSUE_COUNT)
+                // 내는 식별자는 내부의 UUID 가 아니라 주소가 담는 값이다.
+                .select(PROJECTS.PUBLIC_ID, PROJECTS.NAME, PROJECTS.KEY, ISSUE_COUNT)
                 .from(PROJECTS)
                 .where(condition)
                 .orderBy(PROJECTS.CREATED_AT.asc())
                 .fetch(JooqProjectQuery::toView);
     }
 
-    private static ProjectView toView(Record4<UUID, String, String, Integer> projectRecord) {
+    private static ProjectView toView(Record4<String, String, String, Integer> projectRecord) {
         return new ProjectView(
                 projectRecord.value1(), projectRecord.value2(), projectRecord.value3(), projectRecord.value4());
     }

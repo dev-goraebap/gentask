@@ -40,7 +40,7 @@ const DOCS: readonly Doc[] = [
       },
     ],
     attachments: [],
-    linkedIssues: [{ id: 'TG-012', title: '작업 아이템과 문서를 트래커로 옮긴다' }],
+    linkedIssues: [{ id: 'GT-12', title: '작업 아이템과 문서를 트래커로 옮긴다' }],
   },
   {
     id: 'arch-01',
@@ -161,8 +161,8 @@ const DOCS: readonly Doc[] = [
       { name: 'mcp-대화-시작-덤프.txt', size: '41 KB' },
     ],
     linkedIssues: [
-      { id: 'TG-011', title: '에이전트가 명령줄로 작업 다루기' },
-      { id: 'TG-012', title: '작업 아이템과 문서를 트래커로 옮긴다' },
+      { id: 'GT-11', title: '에이전트가 명령줄로 작업 다루기' },
+      { id: 'GT-12', title: '작업 아이템과 문서를 트래커로 옮긴다' },
     ],
   },
   {
@@ -187,7 +187,7 @@ const DOCS: readonly Doc[] = [
       },
     ],
     attachments: [],
-    linkedIssues: [{ id: 'TG-033', title: '이 기기로 알림 받기' }],
+    linkedIssues: [{ id: 'GT-33', title: '이 기기로 알림 받기' }],
   },
 ];
 

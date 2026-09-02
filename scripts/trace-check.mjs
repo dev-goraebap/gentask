@@ -10,8 +10,21 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..');
-// 번호는 평평하다. 계층은 프런트매터의 parent_task_id 가 갖는다 (결정-0007).
-const KEY = /(TG-\d{3})((?:\s+#\d+)(?:,\s*#\d+)*)/g;
+/*
+ * 테스트 이름에 박힌 접두어를 읽는다.
+ *
+ * <p>접두어를 문자로 박지 않는다. 박아 두면 그 프로젝트 하나만 대조되고 다른 프로젝트의 접두어를
+ * 단 테스트는 조용히 세지 않는다. 자릿수도 고정하지 않는다 — 이름은 `GT-43` 이고 `GT-043` 이
+ * 아니며, 옛 표기로 적힌 것도 같은 것으로 읽어야 한 번에 갈아엎지 않는다.
+ *
+ * <p>번호는 평평하다. 계층은 항목의 부모가 갖는다(결정-0007).
+ */
+const KEY = /\b([A-Z][A-Z0-9]{0,9}-\d+)((?:\s+#\d+)(?:,\s*#\d+)*)/g;
+
+/** 자릿수를 채운 옛 표기와 지금 표기를 같은 것으로 본다. */
+function canonical(key) {
+  return key.replace(/-0*(\d+)$/, '-$1');
+}
 
 const SOURCES = [
   ['E2E', join(ROOT, 'clients', 'apps', 'web', 'e2e'), (n) => n.endsWith('.spec.ts')],
@@ -85,7 +98,7 @@ for (const issue of exported.issues) {
     // ISO/IEC/IEEE 29148 의 검증 방법 속성과는 축이 다르다. 규약은 결정-0008 이 갖는다.
     const serverOnly = criterion.sentence.startsWith('[서버]');
     criteria.push({
-      key: `${issue.key} #${criterion.number}`,
+      key: `${canonical(issue.key)} #${criterion.number}`,
       text: criterion.sentence.replace(/^\[서버\]\s*/, ''),
       serverOnly,
       canceled,
@@ -103,7 +116,7 @@ for (const [layer, dir, matches] of SOURCES) {
     const body = read(file);
     for (const m of body.matchAll(KEY)) {
       for (const ac of m[2].matchAll(/#(\d+)/g)) {
-        const key = `${m[1]} #${ac[1]}`;
+        const key = `${canonical(m[1])} #${ac[1]}`;
         if (!referenced.has(key)) referenced.set(key, { layers: new Set(), file: relative(ROOT, file) });
         referenced.get(key).layers.add(layer);
       }

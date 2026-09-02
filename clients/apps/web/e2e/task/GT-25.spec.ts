@@ -1,8 +1,8 @@
 import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 
-// TG-025 미리 알림 있는 작업 추가
+// GT-25 미리 알림 있는 작업 추가
 
-test.describe('TG-025 미리 알림 있는 작업 추가', () => {
+test.describe('GT-25 미리 알림 있는 작업 추가', () => {
   test.beforeEach(async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await page.goto('/todo/all');
@@ -13,7 +13,7 @@ test.describe('TG-025 미리 알림 있는 작업 추가', () => {
     await page.getByRole('button', { name: '내일', exact: false }).first().click();
   }
 
-  test('TG-025 #1: 알릴 시각을 고르고 확정하면 미리 알림이 붙은 작업을 목록에 넣는다', async ({
+  test('GT-25 #1: 알릴 시각을 고르고 확정하면 미리 알림이 붙은 작업을 목록에 넣는다', async ({
     page,
   }) => {
     await 미리_알림을_고른다(page);
@@ -27,7 +27,7 @@ test.describe('TG-025 미리 알림 있는 작업 추가', () => {
     await expect(page.getByRole('link', { name: '알림이 붙은 작업' })).toBeVisible();
   });
 
-  test('TG-025 #2: 목록에서 그 작업의 미리 알림을 보여 준다', async ({ page }) => {
+  test('GT-25 #2: 목록에서 그 작업의 미리 알림을 보여 준다', async ({ page }) => {
     await 미리_알림을_고른다(page);
 
     const 입력 = page.getByPlaceholder('작업 추가');
@@ -38,7 +38,7 @@ test.describe('TG-025 미리 알림 있는 작업 추가', () => {
     await expect(행).toContainText('내일');
   });
 
-  test('TG-025 #3: 기한을 정하지 않았어도 미리 알림만 붙인 작업을 받는다', async ({ page }) => {
+  test('GT-25 #3: 기한을 정하지 않았어도 미리 알림만 붙인 작업을 받는다', async ({ page }) => {
     await 미리_알림을_고른다(page);
 
     const 입력 = page.getByPlaceholder('작업 추가');

@@ -52,7 +52,7 @@ export interface IssueCommit {
 
 /** 목록이 받는 작업 아이템. 본문과 인수 조건은 상세에서만 온다. */
 export interface IssueSummary {
-  /** 사람이 부르는 이름(`TG-030`). 주소가 이것을 담으므로 화면은 이것으로 다닌다. */
+  /** 사람이 부르는 이름(`GT-30`). 주소가 이것을 담으므로 화면은 이것으로 다닌다. */
   readonly id: string;
   /** 프로젝트 안의 번호. API 가 받는 것은 이쪽이다. */
   readonly number: number;

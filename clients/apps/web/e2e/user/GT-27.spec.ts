@@ -1,6 +1,6 @@
 import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 
-// TG-027 프로필 보기와 계정 자리
+// GT-27 프로필 보기와 계정 자리
 //
 // AC4 · AC5 · AC9 는 결번이다. 화면 폭에 따른 배치 분기였고 결정-0008 이 그것을
 // 인수 조건에서 뺐다. 좁은 화면의 하단 탭과 드로어는 작업자가 화면 조작으로 확인한다.
@@ -12,14 +12,14 @@ async function 별명을_고친다(page: import('@playwright/test').Page, 별명
   await 입력.press('Enter');
 }
 
-test.describe('TG-027 프로필 보기와 계정 자리', () => {
-  test('TG-027 #1: 계정 화면은 프로필 자리에 아바타를 둔다', async ({ page }) => {
+test.describe('GT-27 프로필 보기와 계정 자리', () => {
+  test('GT-27 #1: 계정 화면은 프로필 자리에 아바타를 둔다', async ({ page }) => {
     await page.goto('/me');
 
     await expect(page.getByRole('main').locator('app-user-avatar')).toBeVisible();
   });
 
-  test('TG-027 #2: 올린 이미지가 없으면 아바타 자리에 별명의 첫 글자가 온다', async ({ page }) => {
+  test('GT-27 #2: 올린 이미지가 없으면 아바타 자리에 별명의 첫 글자가 온다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
 
     await page.goto('/me');
@@ -29,7 +29,7 @@ test.describe('TG-027 프로필 보기와 계정 자리', () => {
     await expect(아바타.locator('img')).toHaveCount(0);
   });
 
-  test('TG-027 #6: 계정 화면은 이메일과 별명과 가입일을 함께 보여 준다', async ({ page, 계정 }) => {
+  test('GT-27 #6: 계정 화면은 이메일과 별명과 가입일을 함께 보여 준다', async ({ page, 계정 }) => {
     const 응답 = await page.request.get('/api/v1/me');
     const { createdAt } = (await 응답.json()) as { createdAt: string };
     const 가입일 = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul' }).format(
@@ -44,7 +44,7 @@ test.describe('TG-027 프로필 보기와 계정 자리', () => {
     await expect(프로필.getByText(`${가입일} 가입`)).toBeVisible();
   });
 
-  test('TG-027 #3: 별명을 고치면 프로필의 이름 표시가 바뀐다', async ({ page }) => {
+  test('GT-27 #3: 별명을 고치면 프로필의 이름 표시가 바뀐다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await page.goto('/me');
 
@@ -53,7 +53,7 @@ test.describe('TG-027 프로필 보기와 계정 자리', () => {
     await expect(page.getByRole('main').getByText('고친별명', { exact: true })).toBeVisible();
   });
 
-  test('TG-027 #7: 별명을 고치면 사이드바의 이름 표시도 바뀐다', async ({ page }) => {
+  test('GT-27 #7: 별명을 고치면 사이드바의 이름 표시도 바뀐다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await page.goto('/me');
     await expect(page.locator('#sidebar').getByText('빈계정')).toBeVisible();
@@ -63,7 +63,7 @@ test.describe('TG-027 프로필 보기와 계정 자리', () => {
     await expect(page.locator('#sidebar').getByText('사이드바별명')).toBeVisible();
   });
 
-  test('TG-027 #8: 사이드바의 내 프로필을 고르면 계정 화면으로 간다', async ({ page, 계정 }) => {
+  test('GT-27 #8: 사이드바의 내 프로필을 고르면 계정 화면으로 간다', async ({ page, 계정 }) => {
     await page.goto('/todo/all');
 
     await page.locator('#sidebar').getByRole('link', { name: 계정.nickname }).click();

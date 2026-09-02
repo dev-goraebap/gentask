@@ -16,15 +16,15 @@ export const projectScopeGuard: CanActivateFn = async (route) => {
   const projectService = inject(ProjectService);
   const router = inject(Router);
 
-  const projectKey = route.paramMap.get('projectId');
-  if (projectKey === null) return router.parseUrl(ROUTES.home());
+  const projectId = route.paramMap.get('projectId');
+  if (projectId === null) return router.parseUrl(ROUTES.home());
 
   // 목록이 실릴 때까지 기다린다. 처음 여는 순간에는 아직 비어 있어, 기다리지 않으면 제 프로젝트를
   // 없는 것으로 보고 첫 자리로 되돌린다.
   const projects = await projectService.ready();
-  if (!projects.some((project) => project.key === projectKey)) return router.parseUrl(ROUTES.home());
+  if (!projects.some((project) => project.id === projectId)) return router.parseUrl(ROUTES.home());
 
-  projectService.choose(projectKey);
+  projectService.choose(projectId);
 
   return true;
 };

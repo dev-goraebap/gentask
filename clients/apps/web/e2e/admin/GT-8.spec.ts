@@ -2,19 +2,19 @@ import { randomUUID } from 'node:crypto';
 import { expect, test } from '../fixtures';
 import { 관리자로_들어간다, 일반_사용자를_만든다 } from './admin-support';
 
-// TG-008 플랫폼 운영
+// GT-8 플랫폼 운영
 //
 // 관리자 계정이 서버 설정으로 정해진 하나뿐이라 이 파일의 시험이 그것을 나눠 쓴다. 같은 계정의 권한을
 // 동시에 건드리면 서로의 결과를 덮으므로 차례로 돈다.
 //
-// TG-037 의 다섯은 [서버]다. 실패한 발송이 있어야 목록이 서는데 그것을 브라우저로 만들 수 없다 —
+// GT-37 의 다섯은 [서버]다. 실패한 발송이 있어야 목록이 서는데 그것을 브라우저로 만들 수 없다 —
 // 스케줄러가 1분 주기라 기다릴 수 없다. 아래 마지막 시험은 그 자리가 화면에 서는 것만 지키며 인수
 // 조건을 갖지 않는다.
 
 test.describe.configure({ mode: 'serial' });
 
-test.describe('TG-008 플랫폼 운영', () => {
-  test('TG-036 #5: 관리자가 아니면 관리 화면에 들어가지 못한다', async ({ page }) => {
+test.describe('GT-8 플랫폼 운영', () => {
+  test('GT-36 #5: 관리자가 아니면 관리 화면에 들어가지 못한다', async ({ page }) => {
     // 워커의 계정은 일반 사용자다. 관리자로 바꾸지 않은 채 곧바로 연다
     await page.goto('/admin/users');
 
@@ -22,7 +22,7 @@ test.describe('TG-008 플랫폼 운영', () => {
     await expect(page.getByRole('heading', { name: '사용자 관리' })).toHaveCount(0);
   });
 
-  test('TG-036 #1: 관리 화면은 가입한 사용자를 최근 가입 순으로 보여 준다', async ({ page }) => {
+  test('GT-36 #1: 관리 화면은 가입한 사용자를 최근 가입 순으로 보여 준다', async ({ page }) => {
     // 두 사람을 차례로 만들고 그 둘만 남겨 순서를 본다. 목록 전체에서 자리를 세면 다른 시험이 만든
     // 계정에 밀려 간헐적으로 어긋난다.
     const 무리 = randomUUID().slice(0, 8);
@@ -43,7 +43,7 @@ test.describe('TG-008 플랫폼 운영', () => {
     await expect(행들.last()).toContainText(먼저);
   });
 
-  test('TG-036 #2: 검색어를 넣으면 그 사용자만 남는다', async ({ page }) => {
+  test('GT-36 #2: 검색어를 넣으면 그 사용자만 남는다', async ({ page }) => {
     const 표식 = randomUUID().slice(0, 8);
     const email = await 일반_사용자를_만든다(page, 표식);
     await 관리자로_들어간다(page);
@@ -58,7 +58,7 @@ test.describe('TG-008 플랫폼 운영', () => {
 
   /*
    * 관리 자리는 주소로만 연다. 메뉴에 입구를 두지 않기로 정한 것이며(`2d3c110` 이 그 링크를 걷었다),
-   * 들어갈 수 있는지는 위의 `TG-036 #5` 가 권한으로 지킨다. 메뉴 하단의 전환 단추를 누르던 시험이
+   * 들어갈 수 있는지는 위의 `GT-36 #5` 가 권한으로 지킨다. 메뉴 하단의 전환 단추를 누르던 시험이
    * 여기 있었으나 그 단추가 제품에 없으므로 걷었다.
    */
   test('관리 자리는 제 메뉴를 갖고 사용자 자리의 메뉴를 섞지 않는다', async ({ page }) => {

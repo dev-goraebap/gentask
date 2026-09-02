@@ -72,8 +72,29 @@ import { HlmInput } from '@/shared/ui/input';
           }
         </div>
 
+        <div hlmField>
+          <label hlmFieldLabel for="project-create-key">작업 아이템 접두어</label>
+          <input
+            hlmInput
+            id="project-create-key"
+            class="w-40 font-mono uppercase"
+            [formField]="createForm.key"
+            placeholder="GT"
+            autocomplete="off"
+            enterkeyhint="done"
+            (keydown)="createOnEnter($event)"
+          />
+          @if (createForm.key().touched()) {
+            @for (error of createForm.key().errors(); track error.kind) {
+              <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
+            }
+          }
+        </div>
+
         <p class="text-foreground-secondary text-sm">
-          작업 아이템과 문서가 이 프로젝트에 담깁니다. 이름은 나중에 프로젝트 설정에서 바꿉니다.
+          접두어는 작업 아이템의 이름 앞에 붙습니다 — <span class="font-mono">GT-43</span>. 주소에는
+          쓰이지 않으므로 다른 프로젝트와 겹쳐도 됩니다. 이름과 접두어 둘 다 나중에 프로젝트 설정에서
+          바꿉니다.
         </p>
       </div>
 
@@ -99,22 +120,36 @@ export class ProjectCreateDialog {
   private readonly projectService = inject(ProjectService);
 
   // --- 상태 --------------------------------------------------------------------------------------
-  private readonly draft = signal({ name: '' });
+  private readonly draft = signal({ name: '', key: '' });
   protected readonly createForm = form(this.draft, (path) => {
     validate(path.name, ({ value }) =>
       value().trim() === '' ? requiredError({ message: '이름을 입력해 주세요.' }) : undefined,
     );
+    /*
+     * 접두어는 사람이 정한다. 이름에서 뽑던 규칙을 걷은 것은, 한글로만 지은 이름에서 남는 것이 없어
+     * 뜻 없는 값이 커밋의 `Refs:` 에 박히기 때문이다(GT-60).
+     */
+    validate(path.key, ({ value }) => {
+      const key = value().trim();
+      if (key === '') return requiredError({ message: '접두어를 입력해 주세요.' });
+      return /^[A-Za-z0-9]+$/.test(key)
+        ? undefined
+        : requiredError({ message: '접두어는 영문과 숫자만 쓸 수 있습니다.' });
+    });
   });
 
   // --- 파생 --------------------------------------------------------------------------------------
-  protected readonly creatable = computed(() => this.draft().name.trim().length > 0);
+  protected readonly creatable = computed(() => {
+    const { name, key } = this.draft();
+    return name.trim() !== '' && /^[A-Za-z0-9]+$/.test(key.trim());
+  });
 
   // --- 동작 --------------------------------------------------------------------------------------
   protected async create(): Promise<void> {
-    const name = this.draft().name.trim();
-    if (name === '') return;
+    if (!this.creatable()) return;
 
-    this.created.emit(await this.projectService.create(name));
+    const { name, key } = this.draft();
+    this.created.emit(await this.projectService.create(name.trim(), key.trim()));
   }
 
   protected createOnEnter(event: KeyboardEvent): void {

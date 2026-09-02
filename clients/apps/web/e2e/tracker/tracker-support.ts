@@ -1,55 +1,73 @@
 import { type APIRequestContext, type Page, expect } from '@playwright/test';
 
-// 트래커의 Story 넷(TG-042 · TG-043 · TG-044 · TG-055)이 함께 쓴다.
+// 트래커의 Story 넷(GT-42 · GT-43 · GT-44 · GT-55)이 함께 쓴다.
 //
 // 준비 데이터는 화면 조작이 아니라 API 로 만든다(결정-0008). 세울 수 있음을 확인하는 것은 그
 // Story 의 시나리오 하나가 하고, 나머지 시나리오는 이미 서 있는 것을 놓고 시작한다.
 
 /**
- * 프로젝트를 세우고 그 접두어를 낸다.
+ * 프로젝트를 세우고 주소가 담는 식별자를 낸다.
  *
- * <p>접두어는 이름에서 뽑히므로 부르는 쪽이 정하지 못한다. 겹치면 뒤에 숫자가 붙는데(PRJ-001 A2)
- * 그 규칙을 시험이 다시 흉내 내면 규칙이 두 곳에 생긴다. 세운 뒤 돌려받은 것을 쓴다.
+ * <p>식별자는 시스템이 만들므로 부르는 쪽이 정하지 못한다. 만드는 규칙을 시험이 흉내 내면 규칙이 두
+ * 곳에 생기므로, 세운 뒤 돌려받은 것을 쓴다. 접두어는 이슈 이름에만 쓰이며 겹쳐도 된다.
  */
 export async function 프로젝트를_만든다(
   request: APIRequestContext,
   name: string,
+  key = 'TS',
 ): Promise<string> {
-  const response = await request.post('/api/v1/projects', { data: { name } });
+  const response = await request.post('/api/v1/projects', { data: { name, key } });
   expect(response.status(), `프로젝트를 만들지 못했습니다: ${name}`).toBe(201);
   return 꼬리(response.headers()['location'] ?? '');
+}
+
+/** 계정을 만들 때 함께 선 프로젝트(PRJ-001 A3). 그 식별자는 계정마다 다르므로 물어서 쓴다. */
+export async function 기본_프로젝트(request: APIRequestContext): Promise<string> {
+  const response = await request.get('/api/v1/projects');
+  expect(response.status(), '프로젝트 목록을 읽지 못했습니다').toBe(200);
+  const [first] = (await response.json()) as { id: string }[];
+  expect(first, '기본 프로젝트가 없습니다').toBeDefined();
+  return first.id;
 }
 
 /** 작업 아이템을 세우고 사람이 부르는 이름(`AB-001`)을 낸다. */
 export async function 작업_아이템을_만든다(
   request: APIRequestContext,
-  projectKey: string,
+  projectId: string,
   title: string,
   extra: Record<string, unknown> = {},
 ): Promise<string> {
-  const response = await request.post(`/api/v1/projects/${projectKey}/issues`, {
+  const response = await request.post(`/api/v1/projects/${projectId}/issues`, {
     data: { title, ...extra },
   });
   expect(response.status(), `작업 아이템을 만들지 못했습니다: ${title}`).toBe(201);
-  return 이름(projectKey, Number(꼬리(response.headers()['location'] ?? '')));
+
+  // 이름의 접두어는 프로젝트가 갖는다. 세운 것을 다시 물어 그 이름을 그대로 쓴다.
+  const number = Number(꼬리(response.headers()['location'] ?? ''));
+  const detail = await request.get(`/api/v1/projects/${projectId}/issues/${number}`);
+  expect(detail.status(), `세운 것을 읽지 못했습니다: ${title}`).toBe(200);
+  return ((await detail.json()) as { summary: { key: string } }).summary.key;
 }
 
-/** 서버가 내는 상세. 화면이 날짜까지만 그리는 값을 견줄 때 이쪽을 읽는다. */
+/**
+ * 서버가 내는 상세. 화면이 날짜까지만 그리는 값을 견줄 때 이쪽을 읽는다.
+ *
+ * <p>이름의 접두어로는 주소를 만들 수 없다. 접두어는 이슈 이름에만 쓰이고 주소가 담는 것은 프로젝트의
+ * 식별자이므로, 부르는 쪽이 둘을 함께 넘긴다.
+ */
 export async function 작업_아이템을_읽는다(
   request: APIRequestContext,
+  projectId: string,
   key: string,
 ): Promise<{ summary: { state: string; closedAt: string | null }; body: string }> {
-  const projectKey = key.slice(0, key.lastIndexOf('-'));
-  const response = await request.get(
-    `/api/v1/projects/${projectKey}/issues/${번호(key)}`,
-  );
+  const response = await request.get(`/api/v1/projects/${projectId}/issues/${번호(key)}`);
   expect(response.status(), `작업 아이템을 읽지 못했습니다: ${key}`).toBe(200);
   return response.json();
 }
 
-/** 접두어와 번호를 사람이 부르는 이름으로 잇는다. 붙이는 규칙은 서버가 갖는다. */
+/** 접두어와 번호를 사람이 부르는 이름으로 잇는다. 자릿수를 채우지 않는다(GT-60 #6). */
 export function 이름(projectKey: string, number: number): string {
-  return `${projectKey}-${String(number).padStart(3, '0')}`;
+  return `${projectKey}-${number}`;
 }
 
 export function 번호(key: string): number {

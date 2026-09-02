@@ -63,21 +63,25 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 ## 백로그
 
 - **원본은 트래커입니다.** 저장소에 `backlog/` 파일을 두지 않으며, 읽고 쓰는 것은 `gentask` CLI 와 웹 화면입니다. 옮긴 근거는 [결정-0007](docs/architecture/decisions/0007-shared-software-process.md)이 갖습니다.
-- 항목 ID 는 `TG-NNN` 이며 **평평하게** 매깁니다. 계층은 번호가 아니라 부모가 갖고 `--parent` 로 잇습니다.
+- 항목 ID 는 `GT-43` 처럼 접두어와 번호이며 **평평하게** 매깁니다. 계층은 번호가 아니라 부모가 갖고 `--parent` 로 잇습니다.
 - 인수 조건은 본문 안의 `- [ ] #<n> <문장>` 체크 항목입니다. **경계를 표시하지 않으며** 본문 어디에 있든 번호가 붙은 체크 항목을 모두 읽습니다.
 - 결번은 번호를 지우지 않고 문장을 `(결번)` 으로 바꿔 표시합니다. 번호는 부여 뒤 불변입니다.
 - 서술서가 아직 없는 착수 후보는 `BACKLOG` 상태로 둡니다. 별도 목록이 아니라 상태 하나입니다.
 - Epic 소속은 선택입니다. 사용자 가치를 직접 내지 않는 기술 작업은 최상위 Task 로 두고, 자식 하나뿐인 Epic 을 만들지 않습니다.
 
+- **프로젝트를 가리키는 것과 이슈의 접두어는 다릅니다.** 주소와 명령줄 인자가 담는 것은 프로젝트의 식별자(nanoid)이고, 접두어(`GT`)는 작업 아이템의 이름에만 쓰입니다. 근거는 `GT-60` 이 갖습니다.
+- **`project use` 는 지금 디렉터리에 매여 저장됩니다.** 저장소마다 다른 프로젝트를 가리킬 수 있으며, 하위 디렉터리에서 불러도 가장 가까운 자리의 것을 씁니다.
+
 ```bash
-gentask project use TG                       # 지금 프로젝트를 정한다
+gentask project list                         # 내 프로젝트와 그 식별자
+gentask project use 0a6259b9cd01             # 이 자리의 프로젝트를 정한다
 gentask issue list                           # 닫히지 않은 것
 gentask issue list --all --json              # 전부를 JSON 으로
-gentask issue show TG-030                    # 본문과 인수 조건까지
-gentask issue add "제목" --kind STORY --parent TG-041
-gentask issue edit TG-030 --body "..."       # 넘긴 것만 바꾼다
-gentask issue state TG-030 STARTED
-gentask issue rm TG-030 --yes                # --yes 없이는 지울 것만 보인다
+gentask issue show GT-30                     # 본문과 인수 조건까지
+gentask issue add "제목" --kind STORY --parent GT-41
+gentask issue edit GT-30 --body "..."        # 넘긴 것만 바꾼다
+gentask issue state GT-30 STARTED
+gentask issue rm GT-30 --yes                 # --yes 없이는 지울 것만 보인다
 ```
 
 - **추적 검사는 내린 사본을 읽습니다.** `.backlog.json` 이 그것이며 추적되지 않습니다. 검사가 API 를 직접 부르면 서버와 토큰 없이는 돌지 않게 되므로 내리는 한 단계를 둡니다.

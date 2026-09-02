@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 
 import { 빈_계정으로_바꾼다, 작업을_만든다, 하위_자원을_바꾼다, expect, test } from '../fixtures';
 
-// TG-018 순서를 골라 작업 보기
+// GT-18 순서를 골라 작업 보기
 
 function 날짜(더할일수: number): string {
   const date = new Date();
@@ -21,7 +21,7 @@ async function 기준을_고른다(page: Page, 기준: string): Promise<void> {
   await page.getByRole('button', { name: 기준, exact: true }).click();
 }
 
-test.describe('TG-018 순서를 골라 작업 보기', () => {
+test.describe('GT-18 순서를 골라 작업 보기', () => {
   // AC1 — 기준이 다섯이므로 파라미터화한다. 인수 조건은 하나다.
   const 기준별_준비 = [
     {
@@ -70,7 +70,7 @@ test.describe('TG-018 순서를 골라 작업 보기', () => {
   ];
 
   for (const { 기준, 준비, 기대 } of 기준별_준비) {
-    test(`TG-018 #1: ${기준}을 고르면 그 기준으로 늘어놓는다`, async ({ page }) => {
+    test(`GT-18 #1: ${기준}을 고르면 그 기준으로 늘어놓는다`, async ({ page }) => {
       await 빈_계정으로_바꾼다(page);
       await 준비(page);
       await page.goto('/todo/all');
@@ -81,7 +81,7 @@ test.describe('TG-018 순서를 골라 작업 보기', () => {
     });
   }
 
-  test('TG-018 #2: 같은 기준을 다시 고르면 방향을 뒤집는다', async ({ page }) => {
+  test('GT-18 #2: 같은 기준을 다시 고르면 방향을 뒤집는다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await 작업을_만든다(page.request, '나중에 오는 제목');
     await 작업을_만든다(page.request, '가장 먼저 오는 제목');
@@ -94,7 +94,7 @@ test.describe('TG-018 순서를 골라 작업 보기', () => {
     await expect.poll(() => 제목들(page)).toEqual(['나중에 오는 제목', '가장 먼저 오는 제목']);
   });
 
-  test('TG-018 #3: 기준 값이 없는 작업을 뒤에 둔다', async ({ page }) => {
+  test('GT-18 #3: 기준 값이 없는 작업을 뒤에 둔다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await 작업을_만든다(page.request, '기한 없는 것');
     await 작업을_만든다(page.request, '기한 있는 것', { dueDate: 날짜(3) });
@@ -105,7 +105,7 @@ test.describe('TG-018 순서를 골라 작업 보기', () => {
     await expect.poll(() => 제목들(page)).toEqual(['기한 있는 것', '기한 없는 것']);
   });
 
-  test('TG-018 #4: 기준을 고르지 않았으면 만든 날짜 최근 것부터 보여 준다', async ({ page }) => {
+  test('GT-18 #4: 기준을 고르지 않았으면 만든 날짜 최근 것부터 보여 준다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await 작업을_만든다(page.request, '먼저 만든 것');
     await 작업을_만든다(page.request, '나중에 만든 것');

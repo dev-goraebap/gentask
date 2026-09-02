@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import xyz.gentask.AuthTestSupport;
 import xyz.gentask.FakeMailConfiguration;
 import xyz.gentask.TestcontainersConfiguration;
+import xyz.gentask.module.tracker.domain.project.ProjectPublicId;
 import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 
 @SpringBootTest
@@ -45,7 +47,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("TG-042 #3: 계정을 만들면 기본 프로젝트가 함께 선다")
+    @DisplayName("GT-42 #3: 계정을 만들면 기본 프로젝트가 함께 선다")
     void 계정을_만들면_기본_프로젝트가_함께_선다() throws Exception {
         mockMvc.perform(get("/api/v1/projects").cookie(session))
                 .andExpect(status().isOk())
@@ -54,71 +56,81 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("TG-042 #1: 이름을 적어 세우면 그 이름에서 뽑은 접두어와 함께 선다")
-    void 이름을_적어_세우면_접두어와_함께_선다() throws Exception {
-        String key = 프로젝트를_세운다("Gentask Tracker");
+    @DisplayName("GT-60 #1: 이름과 접두어를 적어 세우면 사람이 정하지 않은 식별자로 닿게 한다")
+    void 세우면_식별자로_닿는다() throws Exception {
+        String projectId = 프로젝트를_세운다("Gentask Tracker", "GT");
 
-        mockMvc.perform(get("/api/v1/projects/{key}", key).cookie(session))
+        // 사람이 고른 것이 아니다. 이름과도 접두어와도 이어지지 않는다.
+        assertThat(projectId).hasSize(ProjectPublicId.LENGTH).isNotEqualToIgnoringCase("GT");
+
+        mockMvc.perform(get("/api/v1/projects/{projectId}", projectId).cookie(session))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(projectId))
                 .andExpect(jsonPath("$.name").value("Gentask Tracker"))
-                .andExpect(jsonPath("$.key").value("GE"));
+                .andExpect(jsonPath("$.key").value("GT"));
     }
 
     @Test
-    @DisplayName("TG-042 #2: 접두어가 이미 쓰이고 있으면 겹치지 않는 것을 붙인다")
-    void 접두어가_겹치면_겹치지_않는_것을_붙인다() throws Exception {
-        String first = 프로젝트를_세운다("Gentask");
-        String second = 프로젝트를_세운다("Gentask 둘");
-        String third = 프로젝트를_세운다("Gentask 셋");
-
-        mockMvc.perform(get("/api/v1/projects/{key}", first).cookie(session))
-                .andExpect(jsonPath("$.key").value("GE"));
-        mockMvc.perform(get("/api/v1/projects/{key}", second).cookie(session))
-                .andExpect(jsonPath("$.key").value("GE2"));
-        mockMvc.perform(get("/api/v1/projects/{key}", third).cookie(session))
-                .andExpect(jsonPath("$.key").value("GE3"));
+    @DisplayName("GT-60 #2: 접두어가 비어 있거나 모양에 맞지 않으면 알린다")
+    void 접두어가_모양에_맞지_않으면_알린다() throws Exception {
+        세우기를_거절한다("{\"name\":\"빈 접두어\",\"key\":\"   \"}");
+        세우기를_거절한다("{\"name\":\"한글 접두어\",\"key\":\"프로젝트\"}");
+        세우기를_거절한다("{\"name\":\"너무 긴 접두어\",\"key\":\"ABCDEFGHIJK\"}");
     }
 
     /*
-     * 접두어가 주소에 그대로 들어가므로 영문과 숫자만 담는다. 한글로만 지은 이름은 남는 것이 없어
-     * P 를 받고, 겹치면 P2 로 이어진다. 이름과 이어지지 않는 것이 그 대가다.
+     * 접두어는 이슈 이름에만 쓰이고 해석은 주소의 식별자가 한다. 겹쳐도 서버가 헷갈릴 자리가 없으므로
+     * 겹치지 않는 것을 뽑아 주던 자리(`GE2` · `GE3`)를 걷었다.
      */
     @Test
-    @DisplayName("TG-042 #7: 이름에 영문과 숫자가 없으면 영문 접두어를 대신 붙인다")
-    void 한글_이름은_영문_접두어를_받는다() throws Exception {
-        // 가입 때 선 기본 프로젝트가 이미 P 를 갖고 있다. 그 뒤로 이어진다.
-        assertThat(프로젝트를_세운다("내 프로젝트")).isEqualTo("P2");
-        assertThat(프로젝트를_세운다("우리 프로젝트")).isEqualTo("P3");
+    @DisplayName("GT-60 #3: 접두어가 겹쳐도 그대로 세운다")
+    void 접두어가_겹쳐도_그대로_세운다() throws Exception {
+        String first = 프로젝트를_세운다("첫째", "GT");
+        String second = 프로젝트를_세운다("둘째", "GT");
+
+        assertThat(first).isNotEqualTo(second);
+        mockMvc.perform(get("/api/v1/projects/{projectId}", first).cookie(session))
+                .andExpect(jsonPath("$.key").value("GT"));
+        mockMvc.perform(get("/api/v1/projects/{projectId}", second).cookie(session))
+                .andExpect(jsonPath("$.key").value("GT"));
     }
 
     @Test
-    @DisplayName("접두어는 사용자 안에서만 유일하다")
-    void 접두어는_사용자_안에서만_유일하다() throws Exception {
-        String mine = 프로젝트를_세운다("Gentask");
+    @DisplayName("GT-60 #4: 접두어를 바꾸면 이미 매겨진 번호는 그대로 둔다")
+    void 접두어를_바꿔도_번호는_그대로다() throws Exception {
+        String projectId = 프로젝트를_세운다("옛 접두어", "TG");
+        작업_아이템을_세운다(projectId);
 
-        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
-        String theirs = 프로젝트를_세운다(other, "Gentask");
-
-        mockMvc.perform(get("/api/v1/projects/{key}", mine).cookie(session))
-                .andExpect(jsonPath("$.key").value("GE"));
-        mockMvc.perform(get("/api/v1/projects/{key}", theirs).cookie(other))
-                .andExpect(jsonPath("$.key").value("GE"));
-    }
-
-    @Test
-    @DisplayName("TG-042 #4: 이름이 비어 있으면 이름이 필요함을 알린다")
-    void 이름이_비어_있으면_알린다() throws Exception {
-        mockMvc.perform(post("/api/v1/projects")
+        mockMvc.perform(patch("/api/v1/projects/{projectId}", projectId)
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"   \"}"))
-                .andExpect(status().isBadRequest());
+                        .content("{\"key\":\"GT\"}"))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/projects/{projectId}/issues/{number}", projectId, 1)
+                        .cookie(session))
+                .andExpect(jsonPath("$.summary.number").value(1))
+                .andExpect(jsonPath("$.summary.key").value("GT-1"));
     }
 
     @Test
-    @DisplayName("TG-042 #5: 목록을 열면 그 사용자의 프로젝트만 온다")
+    @DisplayName("GT-60 #5: 주소의 식별자가 모양에 맞지 않으면 없는 것으로 낸다")
+    void 모양이_아닌_식별자는_없는_것으로_낸다() throws Exception {
+        mockMvc.perform(get("/api/v1/projects/{projectId}", "쓸 수 없는 글자").cookie(session))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("GT-42 #4: 이름이 비어 있으면 이름이 필요함을 알린다")
+    void 이름이_비어_있으면_알린다() throws Exception {
+        세우기를_거절한다("{\"name\":\"   \",\"key\":\"GT\"}");
+    }
+
+    @Test
+    @DisplayName("GT-42 #5: 목록을 열면 그 사용자의 프로젝트만 온다")
     void 목록은_그_사용자의_프로젝트만_낸다() throws Exception {
-        프로젝트를_세운다("Mine");
+        프로젝트를_세운다("Mine", "MN");
 
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
@@ -128,13 +140,14 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("TG-042 #6: 사용자의 것이 아닌 프로젝트는 없는 것으로 낸다")
+    @DisplayName("GT-42 #6: 사용자의 것이 아닌 프로젝트는 없는 것으로 낸다")
     void 남의_프로젝트는_없는_것으로_낸다() throws Exception {
-        String mine = 프로젝트를_세운다("Mine");
+        String mine = 프로젝트를_세운다("Mine", "MN");
 
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
-        mockMvc.perform(get("/api/v1/projects/{key}", mine).cookie(other))
+        // 식별자가 전역으로 유일하므로 그것만으로 하나가 가려지나, 남의 것은 없는 것으로 낸다.
+        mockMvc.perform(get("/api/v1/projects/{projectId}", mine).cookie(other))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
     }
@@ -148,20 +161,32 @@ class ProjectApiTest {
     }
 
     // --- 준비 --------------------------------------------------------------------------------------------------------
-    /** Location 의 마지막 마디가 접두어다. 주소가 UUID 가 아니라 그것을 갖는다. */
-    private String 프로젝트를_세운다(String name) throws Exception {
-        return 프로젝트를_세운다(session, name);
-    }
-
-    private String 프로젝트를_세운다(Cookie cookie, String name) throws Exception {
+    /** Location 의 마지막 마디가 주소의 식별자다. */
+    private String 프로젝트를_세운다(String name, String key) throws Exception {
         String location = requireNonNull(mockMvc.perform(post("/api/v1/projects")
-                        .cookie(cookie)
+                        .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"%s\"}".formatted(name)))
+                        .content("{\"name\":\"%s\",\"key\":\"%s\"}".formatted(name, key)))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getHeader("Location"));
         return location.substring(location.lastIndexOf('/') + 1);
+    }
+
+    private void 세우기를_거절한다(String body) throws Exception {
+        mockMvc.perform(post("/api/v1/projects")
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    private void 작업_아이템을_세운다(String projectId) throws Exception {
+        mockMvc.perform(post("/api/v1/projects/{projectId}/issues", projectId)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"번호가 매겨질 것\"}"))
+                .andExpect(status().isCreated());
     }
 }

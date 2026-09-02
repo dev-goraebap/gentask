@@ -3,7 +3,7 @@ import { HttpClient, httpResource } from '@angular/common/http';
 import { computed, inject, Injectable, PLATFORM_ID, type Signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ENDPOINTS } from '@/shared/api';
-import { CURRENT_PROJECT_KEY } from '@/shared/config';
+import { CURRENT_PROJECT_ID } from '@/shared/config';
 import { issueNumberOf, type Issue, type IssueKind, type IssueState, type IssueSummary } from '../model/issue';
 
 /** 서버가 내는 목록의 한 줄. 화면의 어휘와 이름이 갈리는 자리는 여기서 맞춘다. */
@@ -39,7 +39,7 @@ interface IssueResponse {
 /**
  * 작업 아이템.
  *
- * <p>화면이 다니는 식별자는 사람이 부르는 이름(`TG-030`)이고 API 가 받는 것은 프로젝트 안의 번호다.
+ * <p>화면이 다니는 식별자는 사람이 부르는 이름(`GT-30`)이고 API 가 받는 것은 프로젝트 안의 번호다.
  * 주소가 앞의 것을 담으므로 이 자리가 둘을 잇는다.
  */
 @Injectable()
@@ -49,11 +49,11 @@ export class IssueService {
   private readonly isServer = isPlatformServer(inject(PLATFORM_ID));
 
   /** 지금 프로젝트는 라우트가 내려 준다. 슬라이스끼리 직접 참조하지 않기 위해서다. */
-  private readonly projectKey = inject(CURRENT_PROJECT_KEY);
+  private readonly projectId = inject(CURRENT_PROJECT_ID);
 
   private readonly resource = httpResource<readonly IssueSummaryResponse[]>(() => {
-    const key = this.projectKey();
-    return this.isServer || key === undefined ? undefined : ENDPOINTS.issues(key);
+    const id = this.projectId();
+    return this.isServer || id === undefined ? undefined : ENDPOINTS.issues(id);
   });
 
   readonly list = computed<readonly IssueSummary[]>(() =>
@@ -75,17 +75,17 @@ export class IssueService {
    * 화면 두 곳에 생기면 한쪽만 바뀌었을 때 링크가 조용히 어긋난다.
    */
   async add(title: string, kind: IssueKind, body = ''): Promise<string | undefined> {
-    const projectKey = this.projectKey();
-    if (projectKey === undefined) return undefined;
+    const projectId = this.projectId();
+    if (projectId === undefined) return undefined;
 
     const created = await firstValueFrom(
-      this.httpClient.post(ENDPOINTS.issues(projectKey), { title, kind, body }, { observe: 'response' }),
+      this.httpClient.post(ENDPOINTS.issues(projectId), { title, kind, body }, { observe: 'response' }),
     );
     const location = created.headers.get('Location') ?? '';
     const number = Number(location.slice(location.lastIndexOf('/') + 1));
 
     const detail = await firstValueFrom(
-      this.httpClient.get<IssueResponse>(ENDPOINTS.issue(projectKey, number)),
+      this.httpClient.get<IssueResponse>(ENDPOINTS.issue(projectId, number)),
     );
     this.resource.reload();
 
@@ -94,15 +94,15 @@ export class IssueService {
 
   /** 제목 · 유형 · 본문을 고친다. 번호와 상태는 이 자리가 다루지 않는다(ITM-004). */
   async edit(id: string, title: string, kind: IssueKind, body: string): Promise<void> {
-    const projectKey = this.projectKey();
-    if (projectKey === undefined) return;
+    const projectId = this.projectId();
+    if (projectId === undefined) return;
 
     // 부모는 화면이 바꾸지 않으나 서버의 편집은 넷을 그대로 받는다. 지금 것을 되돌려 주지 않으면
     // 고칠 때마다 계층이 끊긴다.
     const parentKey = this.find(id)?.parentId ?? null;
 
     await firstValueFrom(
-      this.httpClient.patch(ENDPOINTS.issue(projectKey, issueNumberOf(id)), {
+      this.httpClient.patch(ENDPOINTS.issue(projectId, issueNumberOf(id)), {
         title,
         kind,
         body,
@@ -119,21 +119,21 @@ export class IssueService {
    * 다시 실어야 그 줄들이 제 자리에 선다.
    */
   async remove(id: string): Promise<void> {
-    const projectKey = this.projectKey();
-    if (projectKey === undefined) return;
+    const projectId = this.projectId();
+    if (projectId === undefined) return;
 
     await firstValueFrom(
-      this.httpClient.delete(ENDPOINTS.issue(projectKey, issueNumberOf(id))),
+      this.httpClient.delete(ENDPOINTS.issue(projectId, issueNumberOf(id))),
     );
     this.resource.reload();
   }
 
   async setState(id: string, state: IssueState): Promise<void> {
-    const projectKey = this.projectKey();
-    if (projectKey === undefined) return;
+    const projectId = this.projectId();
+    if (projectId === undefined) return;
 
     await firstValueFrom(
-      this.httpClient.patch(ENDPOINTS.issueState(projectKey, issueNumberOf(id)), { state }),
+      this.httpClient.patch(ENDPOINTS.issueState(projectId, issueNumberOf(id)), { state }),
     );
     this.resource.reload();
   }
@@ -147,14 +147,14 @@ export class IssueService {
   detailOf(id: Signal<string | undefined>): IssueDetail {
     const resource = httpResource<Issue>(
       () => {
-        const projectKey = this.projectKey();
+        const projectId = this.projectId();
         const raw = id();
-        if (this.isServer || projectKey === undefined || raw === undefined) return undefined;
+        if (this.isServer || projectId === undefined || raw === undefined) return undefined;
 
         // 주소에 이름이 아닌 것이 들어올 수 있다. 그때는 묻지 않고 없는 것으로 둔다 — 물으면 서버가
         // 잘못된 요청으로 답하는데, 주소를 손으로 고친 사람이 보아야 하는 것은 없다는 말이다.
         const number = issueNumberOf(raw);
-        return Number.isInteger(number) ? ENDPOINTS.issue(projectKey, number) : undefined;
+        return Number.isInteger(number) ? ENDPOINTS.issue(projectId, number) : undefined;
       },
       { parse: (raw) => toIssue(raw as IssueResponse) },
     );

@@ -53,8 +53,8 @@ function client(fetchFn: typeof fetch): GentaskClient {
   return new GentaskClient({ baseUrl: 'https://api.example', token: 'T' }, fetchFn);
 }
 
-describe('TG-011 에이전트가 명령줄로 작업 다루기', () => {
-  it('TG-011 #1: 저장된 토큰으로 작업을 남기면 그 주인 계정에 만든다', async () => {
+describe('GT-11 에이전트가 명령줄로 작업 다루기', () => {
+  it('GT-11 #1: 저장된 토큰으로 작업을 남기면 그 주인 계정에 만든다', async () => {
     const { calls, fetchFn } = spy([{ status: 201, location: '/api/v1/tasks/new-id' }]);
 
     const outcome = await run(['add', '장', '보기', '--due', '2026-09-01'], () => client(fetchFn));
@@ -66,7 +66,7 @@ describe('TG-011 에이전트가 명령줄로 작업 다루기', () => {
     expect(calls[0]?.body).toEqual({ title: '장 보기', dueDate: '2026-09-01' });
   });
 
-  it('TG-011 #2: 목록을 요청하면 그 주인의 작업만 낸다', async () => {
+  it('GT-11 #2: 목록을 요청하면 그 주인의 작업만 낸다', async () => {
     const { calls, fetchFn } = spy([{ body: [task(), task({ id: 'x', completedAt: '2026-08-30T00:00:00Z' })] }]);
 
     const outcome = await run(['list', '--json'], () => client(fetchFn));
@@ -77,7 +77,7 @@ describe('TG-011 에이전트가 명령줄로 작업 다루기', () => {
     expect(JSON.parse(outcome.out)).toHaveLength(1);
   });
 
-  it('TG-011 #3: 작업의 속성을 고치면 그 변경을 반영한다', async () => {
+  it('GT-11 #3: 작업의 속성을 고치면 그 변경을 반영한다', async () => {
     const { calls, fetchFn } = spy([{ body: task({ note: '남긴 메모' }) }, {}]);
 
     await run(['edit', '11111111-2222-3333-4444-555555555555', '--title', '새 제목'], () =>
@@ -94,7 +94,7 @@ describe('TG-011 에이전트가 명령줄로 작업 다루기', () => {
     });
   });
 
-  it('TG-011 #4: 작업을 거두면 그것을 지운다', async () => {
+  it('GT-11 #4: 작업을 거두면 그것을 지운다', async () => {
     const { calls, fetchFn } = spy([{ body: [task()] }, {}]);
 
     await run(['rm', '11111111'], () => client(fetchFn));
@@ -103,13 +103,13 @@ describe('TG-011 에이전트가 명령줄로 작업 다루기', () => {
     expect(calls[1]?.url).toContain('/api/v1/tasks/11111111-2222-3333-4444-555555555555');
   });
 
-  it('TG-011 #5: 토큰이 유효하지 않으면 다시 발급해야 함을 알린다', async () => {
+  it('GT-11 #5: 토큰이 유효하지 않으면 다시 발급해야 함을 알린다', async () => {
     const { fetchFn } = spy([{ status: 401 }]);
 
     await expect(run(['list'], () => client(fetchFn))).rejects.toThrow(/다시 발급/);
   });
 
-  it('TG-011 #7: 가리키는 작업이 그 주인의 것이 아니면 없는 것과 같이 답한다', async () => {
+  it('GT-11 #7: 가리키는 작업이 그 주인의 것이 아니면 없는 것과 같이 답한다', async () => {
     const { fetchFn } = spy([{ status: 404, body: { code: 'NOT_FOUND', detail: '작업을 찾을 수 없습니다' } }]);
 
     await expect(
@@ -143,7 +143,7 @@ describe('TG-011 에이전트가 명령줄로 작업 다루기', () => {
   });
 });
 
-describe('TG-011 자격을 두는 자리', () => {
+describe('GT-11 자격을 두는 자리', () => {
   let home: string;
   let env: NodeJS.ProcessEnv;
 
@@ -156,13 +156,13 @@ describe('TG-011 자격을 두는 자리', () => {
     rmSync(home, { recursive: true, force: true });
   });
 
-  it('TG-011 #6: 토큰이 저장되어 있지 않으면 토큰을 두어야 함을 알린다', () => {
+  it('GT-11 #6: 토큰이 저장되어 있지 않으면 토큰을 두어야 함을 알린다', () => {
     expect(() => readConfig(env)).toThrow(MISSING_TOKEN);
     // 무엇을 어디서 해야 하는지까지 담는다. 거절만 돌아오면 사용자는 이유를 알 자리가 없다.
     expect(MISSING_TOKEN).toContain('gentask auth login');
   });
 
-  it('TG-011 #8: 토큰을 저장하면 소유자만 읽을 수 있는 파일에 둔다', async () => {
+  it('GT-11 #8: 토큰을 저장하면 소유자만 읽을 수 있는 파일에 둔다', async () => {
     const outcome = await run(['auth', 'login'], undefined, env, async () => '  T-1  \n');
 
     expect(outcome.code).toBe(0);
@@ -178,7 +178,7 @@ describe('TG-011 자격을 두는 자리', () => {
     }
   });
 
-  it('TG-011 #9: 환경변수와 파일에 토큰이 모두 있으면 환경변수의 것을 쓴다', () => {
+  it('GT-11 #9: 환경변수와 파일에 토큰이 모두 있으면 환경변수의 것을 쓴다', () => {
     storeToken('저장된것', 'https://api.example', env);
 
     expect(readConfig({ ...env, GENTASK_TOKEN: '환경의것' }).token).toBe('환경의것');

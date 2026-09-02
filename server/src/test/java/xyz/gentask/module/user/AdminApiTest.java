@@ -40,7 +40,7 @@ class AdminApiTest {
     private RecordingMailSender mail;
 
     @Test
-    @DisplayName("TG-036 #1: 관리자가 목록을 열면 가입한 사용자가 최근 가입 순으로 온다")
+    @DisplayName("GT-36 #1: 관리자가 목록을 열면 가입한 사용자가 최근 가입 순으로 온다")
     void 관리자가_목록을_열면_최근_가입_순으로_온다() throws Exception {
         Cookie admin = 관리자로_가입한다();
         가입한다("older");
@@ -55,7 +55,7 @@ class AdminApiTest {
     }
 
     @Test
-    @DisplayName("TG-036 #2: 검색어를 넣으면 이메일과 별명에서 찾아 추린다")
+    @DisplayName("GT-36 #2: 검색어를 넣으면 이메일과 별명에서 찾아 추린다")
     void 검색어를_넣으면_추린다() throws Exception {
         Cookie admin = 관리자로_가입한다();
         String unique = "needle" + UUID.randomUUID().toString().substring(0, 8);
@@ -69,7 +69,7 @@ class AdminApiTest {
     }
 
     @Test
-    @DisplayName("TG-036 #5: 관리자가 아니면 관리 경로를 거절한다")
+    @DisplayName("GT-36 #5: 관리자가 아니면 관리 경로를 거절한다")
     void 관리자가_아니면_거절한다() throws Exception {
         Cookie member = 가입한다("outsider");
 

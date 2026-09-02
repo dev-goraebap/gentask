@@ -5,7 +5,7 @@ import { IssueService } from '@/entities/issue/providers';
 import { ProjectPicker, projectScopeGuard, ProjectService } from '@/entities/project/providers';
 import { adminGuard, authGuard } from '@/entities/user/guard';
 import { AuthService, UserService } from '@/entities/user/providers';
-import { CURRENT_PROJECT_KEY, trackerBottomNav } from '@/shared/config';
+import { CURRENT_PROJECT_ID, trackerBottomNav } from '@/shared/config';
 import { MemoService } from '@/pages/memo-list/providers';
 import { TaskService } from '@/entities/task';
 import { AppShell } from './layout/app-shell';
@@ -88,10 +88,10 @@ export const routes: Routes = [
       UserService,
       AuthService,
       {
-        provide: CURRENT_PROJECT_KEY,
+        provide: CURRENT_PROJECT_ID,
         useFactory: () => {
           const projectService = inject(ProjectService);
-          return computed(() => projectService.current()?.key);
+          return computed(() => projectService.current()?.id);
         },
       },
       IssueService,
@@ -100,14 +100,14 @@ export const routes: Routes = [
         provide: NAV_GROUPS,
         useFactory: () => {
           const projectService = inject(ProjectService);
-          return trackerNavGroupsSignal(computed(() => projectService.current()?.key ?? ''));
+          return trackerNavGroupsSignal(computed(() => projectService.current()?.id ?? ''));
         },
       },
       {
         provide: BOTTOM_NAV,
         useFactory: () => {
           const projectService = inject(ProjectService);
-          return computed(() => trackerBottomNav(projectService.current()?.key ?? ''));
+          return computed(() => trackerBottomNav(projectService.current()?.id ?? ''));
         },
       },
       { provide: SHELL_AREA, useValue: 'tracker' },

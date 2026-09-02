@@ -37,6 +37,7 @@ const LINKS: readonly RepositoryLink[] = [
 
 /** 서버가 내는 모양. 문서 수는 아직 서버에 자리가 없다. */
 interface ProjectResponse {
+  /** 주소가 담는 값. 내부의 UUID 가 아니다. */
   readonly id: string;
   readonly name: string;
   readonly key: string;
@@ -60,8 +61,8 @@ export class ProjectService {
   private readonly projects = signal<readonly Project[]>([]);
   private readonly links = signal<readonly RepositoryLink[]>(LINKS);
 
-  /** 지금 프로젝트의 접두어. 주소가 이것의 진실이며 길잡이가 맞춰 준다. */
-  private readonly currentKey = signal<string | null>(null);
+  /** 지금 프로젝트의 식별자. 주소가 이것의 진실이며 길잡이가 맞춰 준다. */
+  private readonly currentId = signal<string | null>(null);
 
   /** 실어 오는 중인 약속. 여럿이 기다려도 요청은 하나다. */
   private loading: Promise<readonly Project[]> | null = null;
@@ -78,8 +79,8 @@ export class ProjectService {
    */
   readonly current = computed<Project | undefined>(() => {
     const projects = this.projects();
-    const key = this.currentKey();
-    return projects.find((project) => project.key === key) ?? projects[0];
+    const id = this.currentId();
+    return projects.find((project) => project.id === id) ?? projects[0];
   });
 
   // --- 생성 --------------------------------------------------------------------------------------
@@ -95,10 +96,14 @@ export class ProjectService {
     return this.loading;
   }
 
-  /** 프로젝트를 세우고 그 접두어를 낸다. 접두어는 서버가 이름에서 뽑는다. */
-  async create(name: string): Promise<string> {
+  /**
+   * 프로젝트를 세우고 주소가 담을 식별자를 낸다.
+   *
+   * <p>접두어는 사람이 정한다. 이름에서 뽑던 규칙을 걷었으므로 세울 때 함께 보낸다.
+   */
+  async create(name: string, key: string): Promise<string> {
     const created = await firstValueFrom(
-      this.httpClient.post(ENDPOINTS.projects, { name }, { observe: 'response' }),
+      this.httpClient.post(ENDPOINTS.projects, { name, key }, { observe: 'response' }),
     );
     await this.reload();
 
@@ -106,15 +111,16 @@ export class ProjectService {
     return location.slice(location.lastIndexOf('/') + 1);
   }
 
-  choose(key: string): void {
-    this.currentKey.set(key);
+  choose(id: string): void {
+    this.currentId.set(id);
   }
 
-  async rename(name: string): Promise<void> {
-    const key = this.current()?.key;
-    if (key === undefined) return;
+  /** 넘긴 것만 바꾼다. 접두어를 바꿔도 이미 매겨진 번호는 그대로다. */
+  async edit(fields: { name?: string; key?: string }): Promise<void> {
+    const id = this.current()?.id;
+    if (id === undefined) return;
 
-    await firstValueFrom(this.httpClient.patch(ENDPOINTS.project(key), { name }));
+    await firstValueFrom(this.httpClient.patch(ENDPOINTS.project(id), fields));
     await this.reload();
   }
 

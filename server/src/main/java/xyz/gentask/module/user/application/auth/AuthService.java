@@ -33,6 +33,14 @@ public class AuthService {
     /** 계정을 만들 때 함께 세우는 프로젝트의 이름. 사용자가 뒤에 바꿀 수 있다. */
     private static final String DEFAULT_PROJECT_NAME = "내 프로젝트";
 
+    /**
+     * 그 프로젝트의 작업 아이템 접두어.
+     *
+     * <p>접두어는 사람이 정하는 것이나 이 경로에는 고를 자리가 없다. 이름에서 뽑지 않는 것은 한글로
+     * 지은 이름에서 남는 것이 없어 뜻 없는 값이 커밋에 박히기 때문이다.
+     */
+    private static final String DEFAULT_PROJECT_KEY = "MY";
+
     // --- 의존 --------------------------------------------------------------------------------------------------------
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
@@ -128,7 +136,7 @@ public class AuthService {
 
         // 프로젝트가 하나도 없는 계정은 트래커의 어느 자리에도 들어가지 못한다. 처음 여는 사람이 빈
         // 화면을 먼저 지나지 않게 여기서 하나를 세운다 (PRJ-001 A3).
-        projects.create(user.id(), DEFAULT_PROJECT_NAME);
+        projects.create(user.id(), DEFAULT_PROJECT_NAME, DEFAULT_PROJECT_KEY);
 
         return issueSession(user.id(), now);
     }

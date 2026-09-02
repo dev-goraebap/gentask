@@ -9,7 +9,7 @@ import xyz.gentask.module.user.application.admin.AdminViews.AdminUserView;
 import xyz.gentask.module.user.domain.user.UserSummary;
 import xyz.gentask.module.user.domain.user.UserSummaryQuery;
 
-/** 관리자가 플랫폼의 사용자를 본다. TG-036. */
+/** 관리자가 플랫폼의 사용자를 본다. GT-36. */
 @Service
 @RequiredArgsConstructor
 public class AdminUserService {

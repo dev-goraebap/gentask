@@ -1,14 +1,14 @@
 import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 
-// TG-015 기한 있는 작업 추가
+// GT-15 기한 있는 작업 추가
 
-test.describe('TG-015 기한 있는 작업 추가', () => {
+test.describe('GT-15 기한 있는 작업 추가', () => {
   test.beforeEach(async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await page.goto('/todo/all');
   });
 
-  test('TG-015 #1: 기한을 고르고 확정하면 기한이 붙은 작업을 목록에 넣는다', async ({ page }) => {
+  test('GT-15 #1: 기한을 고르고 확정하면 기한이 붙은 작업을 목록에 넣는다', async ({ page }) => {
     await page.getByRole('button', { name: '기한 설정' }).click();
     await page.getByRole('button', { name: '오늘', exact: false }).first().click();
 
@@ -22,7 +22,7 @@ test.describe('TG-015 기한 있는 작업 추가', () => {
     await expect(page.getByRole('link', { name: '기한이 붙은 작업' })).toBeVisible();
   });
 
-  test('TG-015 #2: 목록에서 그 작업의 기한을 보여 준다', async ({ page }) => {
+  test('GT-15 #2: 목록에서 그 작업의 기한을 보여 준다', async ({ page }) => {
     await page.getByRole('button', { name: '기한 설정' }).click();
     await page.getByRole('button', { name: '오늘', exact: false }).first().click();
 

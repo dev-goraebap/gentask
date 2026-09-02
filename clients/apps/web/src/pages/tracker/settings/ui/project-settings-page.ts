@@ -36,8 +36,11 @@ export class ProjectSettingsPage {
   protected readonly projectService = inject(ProjectService);
 
   // --- 상태 --------------------------------------------------------------------------------------
-  private readonly draft = signal({ name: this.projectService.current()?.name ?? '' });
-  protected readonly nameForm = form(this.draft);
+  private readonly draft = signal({
+    name: this.projectService.current()?.name ?? '',
+    key: this.projectService.current()?.key ?? '',
+  });
+  protected readonly settingsForm = form(this.draft);
 
   // --- 파생 --------------------------------------------------------------------------------------
   protected readonly rows = computed<readonly RepositoryRow[]>(() =>
@@ -49,17 +52,26 @@ export class ProjectSettingsPage {
     })),
   );
 
-  protected readonly renamed = computed(
-    () =>
-      this.draft().name.trim() !== '' &&
-      this.draft().name.trim() !== this.projectService.current()?.name,
-  );
+  /** 담을 것이 있는가. 비어 있거나 모양이 맞지 않으면 담지 않는다. */
+  protected readonly savable = computed(() => {
+    const { name, key } = this.draft();
+    const current = this.projectService.current();
+    if (name.trim() === '' || !/^[A-Za-z0-9]+$/.test(key.trim())) return false;
+    return name.trim() !== current?.name || key.trim().toUpperCase() !== current?.key;
+  });
 
   // --- 동작 --------------------------------------------------------------------------------------
-  protected async rename(): Promise<void> {
-    const name = this.draft().name.trim();
-    if (name === '') return;
-    await this.projectService.rename(name);
+  /**
+   * 이름과 접두어를 담는다.
+   *
+   * <p>접두어를 바꿔도 이미 매겨진 번호는 그대로다. 접두어는 이름을 그리는 데만 쓰이고 번호는 표가
+   * 갖기 때문이며, 옛 접두어로 적힌 커밋과 테스트는 그 시점의 이름으로 남는다(GT-60 #4).
+   */
+  protected async save(): Promise<void> {
+    if (!this.savable()) return;
+
+    const { name, key } = this.draft();
+    await this.projectService.edit({ name: name.trim(), key: key.trim() });
   }
 
   protected unlink(id: string): void {

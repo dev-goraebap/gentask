@@ -1,15 +1,15 @@
 import { expect, test } from '../fixtures';
 
-// TG-014 제목만으로 작업 추가
+// GT-14 제목만으로 작업 추가
 // 인수 조건 하나에 테스트 하나. 접두어의 규약은 결정-0007 이, 계층의 규약은 결정-0008 이 갖는다.
 
-test.describe('TG-014 제목만으로 작업 추가', () => {
+test.describe('GT-14 제목만으로 작업 추가', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/todo/all');
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
 
-  test('TG-014 #1: 제목을 적고 확정하면 목록에 그 작업이 있다', async ({ page }) => {
+  test('GT-14 #1: 제목을 적고 확정하면 목록에 그 작업이 있다', async ({ page }) => {
     const 입력 = page.getByPlaceholder('작업 추가');
 
     await 입력.fill('우산 챙기기');
@@ -20,7 +20,7 @@ test.describe('TG-014 제목만으로 작업 추가', () => {
     await expect(page.getByRole('link', { name: '우산 챙기기' })).toBeVisible();
   });
 
-  test('TG-014 #2: 제목이 공백뿐이면 작업을 넣지 않는다', async ({ page }) => {
+  test('GT-14 #2: 제목이 공백뿐이면 작업을 넣지 않는다', async ({ page }) => {
     const 입력 = page.getByPlaceholder('작업 추가');
     // 목록이 서기 전에 세면 사이드바만 세고, 뒤늦게 선 빈 목록 안내가 개수를 바꾼다.
     await expect(page.getByRole('main').getByRole('listitem')).not.toHaveCount(0);
@@ -32,7 +32,7 @@ test.describe('TG-014 제목만으로 작업 추가', () => {
     await expect(page.getByRole('listitem')).toHaveCount(이전);
   });
 
-  test('TG-014 #3: 추가를 그만두면 목록을 그대로 둔다', async ({ page }) => {
+  test('GT-14 #3: 추가를 그만두면 목록을 그대로 둔다', async ({ page }) => {
     const 입력 = page.getByPlaceholder('작업 추가');
     // 목록이 서기 전에 세면 사이드바만 세고, 뒤늦게 선 빈 목록 안내가 개수를 바꾼다.
     await expect(page.getByRole('main').getByRole('listitem')).not.toHaveCount(0);
@@ -52,7 +52,7 @@ test.describe('TG-014 제목만으로 작업 추가', () => {
     ['중요', '/todo/important'],
     ['기한', '/todo/planned'],
   ] as const) {
-    test(`TG-014 #4: ${스마트목록} 목록을 보는 중에 적으면 그 성질이 붙는다`, async ({ page }) => {
+    test(`GT-14 #4: ${스마트목록} 목록을 보는 중에 적으면 그 성질이 붙는다`, async ({ page }) => {
       await page.goto(경로);
       const 제목 = `${스마트목록} 목록에서 적은 작업`;
       const 입력 = page.getByPlaceholder('작업 추가');
@@ -67,7 +67,7 @@ test.describe('TG-014 제목만으로 작업 추가', () => {
     });
   }
 
-  test('TG-014 #5: 제목이 공백뿐이면 오류를 알리지 않는다', async ({ page }) => {
+  test('GT-14 #5: 제목이 공백뿐이면 오류를 알리지 않는다', async ({ page }) => {
     const 입력 = page.getByPlaceholder('작업 추가');
 
     await 입력.fill('   ');

@@ -9,7 +9,7 @@ import type { components } from 'api-types';
  */
 export type Task = components['schemas']['TaskView'];
 
-/** 프로젝트 하나. 접두어가 주소와 번호 앞에 붙는 이름이다. */
+/** 프로젝트 하나. `id` 가 주소에 담기고 `key` 는 작업 아이템 이름의 접두어다. */
 export type Project = components['schemas']['ProjectView'];
 
 /** 목록의 작업 아이템 한 줄. */
@@ -106,40 +106,40 @@ export class GentaskClient {
   }
 
   // --- 작업 아이템 --------------------------------------------------------------------------------
-  issues(projectKey: string): Promise<readonly IssueSummary[]> {
-    return this.send<readonly IssueSummary[]>('GET', `${issuesPath(projectKey)}`);
+  issues(projectId: string): Promise<readonly IssueSummary[]> {
+    return this.send<readonly IssueSummary[]>('GET', `${issuesPath(projectId)}`);
   }
 
-  issue(projectKey: string, number: number): Promise<Issue> {
-    return this.send<Issue>('GET', `${issuesPath(projectKey)}/${number}`);
+  issue(projectId: string, number: number): Promise<Issue> {
+    return this.send<Issue>('GET', `${issuesPath(projectId)}/${number}`);
   }
 
   /** 세운 것의 번호는 Location 헤더가 낸다. 번호는 서버가 매긴다. */
   async addIssue(
-    projectKey: string,
+    projectId: string,
     fields: { title: string; kind?: IssueKind; body?: string; parentKey?: string | null },
   ): Promise<number> {
-    const response = await this.raw('POST', issuesPath(projectKey), fields);
+    const response = await this.raw('POST', issuesPath(projectId), fields);
     const location = response.headers.get('location') ?? '';
     return Number(location.split('/').pop());
   }
 
   /** 셋을 함께 보낸다. 서버의 편집은 부분 갱신이 아니라 그 셋을 그대로 받는다. */
   async editIssue(
-    projectKey: string,
+    projectId: string,
     number: number,
     fields: { title: string; kind: IssueKind; body: string; parentKey: string | null },
   ): Promise<void> {
-    await this.raw('PATCH', `${issuesPath(projectKey)}/${number}`, fields);
+    await this.raw('PATCH', `${issuesPath(projectId)}/${number}`, fields);
   }
 
-  async setIssueState(projectKey: string, number: number, state: IssueState): Promise<void> {
-    await this.raw('PATCH', `${issuesPath(projectKey)}/${number}/state`, { state });
+  async setIssueState(projectId: string, number: number, state: IssueState): Promise<void> {
+    await this.raw('PATCH', `${issuesPath(projectId)}/${number}/state`, { state });
   }
 
   /** 되살릴 자리가 없다. 되묻는 것은 이 자리가 아니라 부르는 쪽이 한다(ITM-005). */
-  async removeIssue(projectKey: string, number: number): Promise<void> {
-    await this.raw('DELETE', `${issuesPath(projectKey)}/${number}`);
+  async removeIssue(projectId: string, number: number): Promise<void> {
+    await this.raw('DELETE', `${issuesPath(projectId)}/${number}`);
   }
 
   // --- 보조 ---------------------------------------------------------------------------------------
@@ -166,8 +166,8 @@ export class GentaskClient {
   }
 }
 
-function issuesPath(projectKey: string): string {
-  return `/api/v1/projects/${encodeURIComponent(projectKey)}/issues`;
+function issuesPath(projectId: string): string {
+  return `/api/v1/projects/${encodeURIComponent(projectId)}/issues`;
 }
 
 /**

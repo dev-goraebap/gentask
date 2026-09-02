@@ -7,66 +7,35 @@ import xyz.gentask.shared.error.DomainRuleViolation;
 /**
  * 작업 아이템의 번호 앞에 붙는 접두어.
  *
- * <p>사용자가 고르는 것이 아니라 프로젝트 이름에서 뽑는다(PRJ-001). 번호가 매겨진 뒤에는 바꾸지
- * 않으므로 세울 때 한 번만 정한다.
+ * <p><b>사람이 정한다.</b> 이름에서 뽑지 않는다 — 뽑는 규칙을 두면 한글로만 지은 이름에서 남는 것이
+ * 없어 `P` 같은 뜻 없는 값이 나오고, 그 값이 커밋의 `Refs: P-43` 으로 박힌다. 이 값은 주소에
+ * 쓰이지 않으므로(주소는 {@link ProjectPublicId} 가 갖는다) 사람이 고를 자유가 있다.
  *
- * <p><b>영문 대문자와 숫자만 담는다.</b> 이 값이 주소에 그대로 들어가는데(`/projects/TG/issues`),
- * 그 밖의 글자는 퍼센트로 인코딩되어 링크를 복사해 붙이는 순간 읽을 수 없게 된다. 주소에 UUID 가
- * 아니라 접두어를 담기로 한 근거가 사람이 읽고 건넬 수 있다는 것이므로, 그 근거를 지키려면 담는
- * 글자를 여기서 좁혀야 한다. Jira · Linear · Plane 도 같은 자리를 같은 글자로 좁힌다.
+ * <p><b>겹쳐도 막지 않는다.</b> 해석은 주소의 식별자가 하므로 접두어가 같아도 서버가 헷갈릴 자리가
+ * 없다. 겹치지 않는 것을 뽑아 주던 자리도 함께 걷었다.
+ *
+ * <p>영문 대문자와 숫자만 담는 것은 남았다. 이 값이 이슈 이름으로 커밋 메시지와 테스트 이름에
+ * 박히는데, 거기서 낱말과 섞이지 않으려면 모양이 좁아야 한다.
  */
 public record ProjectKey(String value) implements ValueObject {
 
     public static final int MAX = 10;
-
-    /** 이름에서 뽑을 것이 하나도 없을 때 쓴다. 비어 있는 접두어를 두느니 이것이 낫다. */
-    private static final String FALLBACK = "P";
+    public static final String REQUIRED = "작업 아이템 접두어를 입력해 주세요";
 
     public static ProjectKey of(String rawKey) {
         if (rawKey == null || rawKey.isBlank()) {
-            throw new DomainRuleViolation("프로젝트 접두어가 비어 있습니다");
+            throw new DomainRuleViolation(REQUIRED);
         }
         String strippedKey = rawKey.strip().toUpperCase(Locale.ROOT);
         if (strippedKey.length() > MAX) {
-            throw new DomainRuleViolation("프로젝트 접두어는 " + MAX + "자를 넘을 수 없습니다");
+            throw new DomainRuleViolation("작업 아이템 접두어는 " + MAX + "자를 넘을 수 없습니다");
         }
         for (char each : strippedKey.toCharArray()) {
             if (!isAllowed(each)) {
-                throw new DomainRuleViolation("프로젝트 접두어는 영문과 숫자만 쓸 수 있습니다");
+                throw new DomainRuleViolation("작업 아이템 접두어는 영문과 숫자만 쓸 수 있습니다");
             }
         }
         return new ProjectKey(strippedKey);
-    }
-
-    /**
-     * 이름에서 접두어를 뽑는다.
-     *
-     * <p>영문과 숫자만 남긴 뒤 앞의 두 글자를 쓴다. 한글로만 지은 이름은 남는 것이 없으므로
-     * {@code P} 를 받고, 겹치면 {@code P2} · {@code P3} 으로 이어진다. 이름과 이어지지 않는 것이
-     * 이 선택이 치르는 대가이며, 주소가 읽히는 것을 그보다 앞에 두었다.
-     */
-    public static ProjectKey from(ProjectName name) {
-        StringBuilder letters = new StringBuilder();
-        for (char each : name.value().toUpperCase(Locale.ROOT).toCharArray()) {
-            if (isAllowed(each)) {
-                letters.append(each);
-            }
-            if (letters.length() == 2) {
-                break;
-            }
-        }
-        return of(letters.isEmpty() ? FALLBACK : letters.toString());
-    }
-
-    /**
-     * 겹치지 않을 때까지 뒤에 숫자를 붙인 것을 낸다.
-     *
-     * <p>되묻지 않는 것은 접두어가 사용자가 고른 것이 아니기 때문이다(PRJ-001 A2).
-     */
-    public ProjectKey withSuffix(int suffix) {
-        String tail = String.valueOf(suffix);
-        String head = value.length() + tail.length() > MAX ? value.substring(0, MAX - tail.length()) : value;
-        return of(head + tail);
     }
 
     private static boolean isAllowed(char candidate) {

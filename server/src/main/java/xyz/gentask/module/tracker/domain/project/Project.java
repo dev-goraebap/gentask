@@ -19,14 +19,17 @@ public final class Project {
     // 식별자
     @NonNull private final UUID id;
 
+    // 주소가 담는 값. 사람이 정하지 않고 시스템이 만들며 전역으로 유일하다
+    @NonNull private final ProjectPublicId publicId;
+
     // 소유자. 프로젝트는 계정 단위로 격리된다 (PRJ-002 A2)
     @NonNull private final UUID ownerId;
 
     // 이름
     @NonNull private ProjectName name;
 
-    // 작업 아이템 번호의 접두어. 번호가 매겨진 뒤에는 바꾸지 않는다
-    @NonNull private final ProjectKey key;
+    // 작업 아이템 번호의 접두어. 사람이 정하며 이슈 이름에만 쓰인다
+    @NonNull private ProjectKey key;
 
     // 다음에 내줄 번호
     private int nextNumber;
@@ -37,19 +40,21 @@ public final class Project {
     // 고친 시각
     @NonNull private Instant updatedAt;
 
-    public static Project create(UUID id, UUID ownerId, ProjectName name, ProjectKey key, Instant now) {
-        return new Project(id, ownerId, name, key, 1, now, now);
+    public static Project create(
+            UUID id, ProjectPublicId publicId, UUID ownerId, ProjectName name, ProjectKey key, Instant now) {
+        return new Project(id, publicId, ownerId, name, key, 1, now, now);
     }
 
     public static Project restore(
             UUID id,
+            ProjectPublicId publicId,
             UUID ownerId,
             ProjectName name,
             ProjectKey key,
             int nextNumber,
             Instant createdAt,
             Instant updatedAt) {
-        return new Project(id, ownerId, name, key, nextNumber, createdAt, updatedAt);
+        return new Project(id, publicId, ownerId, name, key, nextNumber, createdAt, updatedAt);
     }
 
     public boolean isOwnedBy(@NonNull UUID candidateOwnerId) {
@@ -71,6 +76,17 @@ public final class Project {
 
     public void rename(@NonNull ProjectName name, Instant now) {
         this.name = name;
+        this.updatedAt = now;
+    }
+
+    /**
+     * 접두어를 바꾼다.
+     *
+     * <p>이미 매겨진 번호는 따라 바뀌지 않는다. 접두어는 이름을 그리는 데만 쓰이고 번호는 표가 갖기
+     * 때문이며, 옛 접두어로 적힌 커밋과 테스트는 그 시점의 이름으로 남는다.
+     */
+    public void changeKey(@NonNull ProjectKey key, Instant now) {
+        this.key = key;
         this.updatedAt = now;
     }
 }

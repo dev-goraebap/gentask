@@ -17,7 +17,7 @@
     @for (project of projects(); track project.id) {
       <li>
         <a
-          [routerLink]="routes.issues(project.key)"
+          [routerLink]="routes.issues(project.id)"
           class="text-foreground hover:bg-muted flex items-center gap-3 px-1 py-3"
         >
           <span class="bg-primary size-2.5 shrink-0" aria-hidden="true"></span>

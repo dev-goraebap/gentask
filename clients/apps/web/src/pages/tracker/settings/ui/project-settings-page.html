@@ -1,25 +1,31 @@
 <section class="mx-auto flex w-full max-w-(--reading-measure) flex-1 flex-col px-4 pt-8 md:pt-12">
   <h1 class="text-2xl font-semibold tracking-tight">프로젝트 설정</h1>
 
-  <form novalidate [formRoot]="nameForm" (submit)="$event.preventDefault()" class="mt-7">
+  <form novalidate [formRoot]="settingsForm" (submit)="$event.preventDefault()" class="mt-7">
     <div hlmField>
       <label hlmFieldLabel for="project-name">이름</label>
-      <input hlmInput id="project-name" [formField]="nameForm.name" autocomplete="off" />
+      <input hlmInput id="project-name" [formField]="settingsForm.name" autocomplete="off" />
     </div>
-    @if (renamed()) {
-      <button hlmBtn type="button" size="sm" class="mt-2" (click)="rename()">이름 바꾸기</button>
+
+    <div hlmField class="mt-6">
+      <label hlmFieldLabel for="project-key">작업 아이템 접두어</label>
+      <input
+        hlmInput
+        id="project-key"
+        class="w-40 font-mono uppercase"
+        [formField]="settingsForm.key"
+        autocomplete="off"
+      />
+      <p class="text-foreground-secondary mt-1.5 text-xs">
+        작업 아이템의 이름 앞에 붙습니다 — <span class="font-mono">GT-43</span>. 바꿔도 이미 매겨진
+        번호는 그대로이며, 옛 접두어로 적힌 커밋과 테스트는 그 시점의 이름으로 남습니다.
+      </p>
+    </div>
+
+    @if (savable()) {
+      <button hlmBtn type="button" size="sm" class="mt-3" (click)="save()">담기</button>
     }
   </form>
-
-  <div class="mt-6">
-    <h2 class="text-sm font-medium">작업 아이템 접두어</h2>
-    <p class="border-input mt-1.5 flex h-9 w-40 items-center border px-2.5 font-mono text-sm">
-      {{ projectService.current()?.key }}
-    </p>
-    <p class="text-foreground-secondary mt-1.5 text-xs">
-      작업 아이템 번호 앞에 붙습니다. 번호가 매겨진 뒤에는 바꿀 수 없습니다.
-    </p>
-  </div>
 
   <h2 class="mt-10 text-base font-semibold">이어 둔 저장소</h2>
   <p class="text-foreground-secondary mt-1.5 text-sm/7">
@@ -28,7 +34,7 @@
 
   <pre class="bg-muted text-foreground-secondary mt-2.5 overflow-x-auto px-3 py-2.5 font-mono text-xs/6">feat(cli): 작업 아이템을 명령줄로 세운다
 
-Refs: <span class="text-primary">TG-041</span></pre>
+Refs: <span class="text-primary">GT-41</span></pre>
 
   <ul class="divide-border border-border mt-4 divide-y border-y">
     @for (row of rows(); track row.link.id) {

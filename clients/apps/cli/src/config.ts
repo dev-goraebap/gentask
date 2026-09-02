@@ -10,8 +10,8 @@ import { dirname, join } from 'node:path';
 export interface Config {
   readonly baseUrl: string;
   readonly token: string;
-  /** 지금 프로젝트의 접두어. 작업 아이템 명령이 이것 아래에서 돈다. 없으면 명령이 그때 알린다. */
-  readonly projectKey: string | null;
+  /** 지금 프로젝트의 식별자. 작업 아이템 명령이 이것 아래에서 돈다. 없으면 명령이 그때 알린다. */
+  readonly projectId: string | null;
 }
 
 export const DEFAULT_BASE_URL = 'https://api.gentask.xyz';
@@ -38,7 +38,13 @@ export function configPath(env: NodeJS.ProcessEnv = process.env): string {
 
 interface StoredConfig {
   token?: string;
-  projectKey?: string;
+  /**
+   * 일하는 자리마다 고른 프로젝트. 열쇠는 그 자리의 경로다.
+   *
+   * <p>하나만 두면 저장소를 옮겨도 앞의 값을 그대로 본다. 조용히 남의 프로젝트를 읽는 쪽이라 눈치채기
+   * 어렵고, 그 사이의 명령이 모두 엉뚱한 자리에 쓰인다.
+   */
+  projects?: Record<string, string>;
   /** 그 토큰이 통하는 서버. 토큰은 서버마다 다르므로 둘을 함께 저장한다. */
   baseUrl?: string;
 }
@@ -61,21 +67,52 @@ export function readStoredBaseUrl(env: NodeJS.ProcessEnv = process.env): string 
   return readStored(env).baseUrl?.trim() || null;
 }
 
-/** 저장된 프로젝트 접두어. */
-export function readStoredProject(env: NodeJS.ProcessEnv = process.env): string | null {
-  return readStored(env).projectKey?.trim() || null;
+/** 경로를 열쇠로 쓸 모양으로 고른다. 윈도우의 역슬래시와 대소문자가 같은 자리를 둘로 만든다. */
+function normalize(where: string): string {
+  return where.replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase();
 }
 
 /**
- * 지금 프로젝트를 저장한다. 토큰은 그대로 둔다.
+ * 지금 자리의 프로젝트.
+ *
+ * <p>정확히 일치하는 것이 없으면 상위로 올라가며 찾는다 — 저장소의 하위 디렉터리에서 불러도 같은
+ * 프로젝트를 보아야 하기 때문이다. 어디서 멈출지 정할 필요는 없다. 담긴 열쇠 가운데 지금 자리를
+ * 앞에서 덮는 것 중 가장 긴 것이 가장 가까운 자리다.
+ */
+export function readStoredProject(
+  env: NodeJS.ProcessEnv = process.env,
+  cwd: string = process.cwd(),
+): string | null {
+  const projects = readStored(env).projects ?? {};
+  const here = normalize(cwd);
+
+  let longest = '';
+  let found: string | null = null;
+  for (const [where, projectId] of Object.entries(projects)) {
+    const candidate = normalize(where);
+    if (here !== candidate && !here.startsWith(`${candidate}/`)) continue;
+    if (candidate.length <= longest.length) continue;
+    longest = candidate;
+    found = projectId.trim() || null;
+  }
+  return found;
+}
+
+/**
+ * 지금 자리의 프로젝트를 저장한다. 토큰은 그대로 둔다.
  *
  * <p>프로젝트를 고르는 일이 자격을 다시 받는 일이 되어서는 안 되므로 두 값을 따로 쓴다.
  */
-export function storeProject(projectKey: string, env: NodeJS.ProcessEnv = process.env): string {
+export function storeProject(
+  projectId: string,
+  env: NodeJS.ProcessEnv = process.env,
+  cwd: string = process.cwd(),
+): string {
   const path = configPath(env);
   const stored = readStored(env);
+  const projects = { ...(stored.projects ?? {}), [normalize(cwd)]: projectId };
   mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
-  writeFileSync(path, `${JSON.stringify({ ...stored, projectKey }, null, 2)}\n`, { mode: 0o600 });
+  writeFileSync(path, `${JSON.stringify({ ...stored, projects }, null, 2)}\n`, { mode: 0o600 });
   chmodSync(path, 0o600);
   return path;
 }
@@ -84,7 +121,7 @@ export function storeProject(projectKey: string, env: NodeJS.ProcessEnv = proces
  * 토큰을 저장한다.
  *
  * <p>소유자만 읽을 수 있게 둔다. 같은 기계의 다른 사용자가 읽을 수 있으면 그 계정의 전권이 함께
- * 넘어간다. TG-011 의 #8 이 이것이다.
+ * 넘어간다. GT-11 의 #8 이 이것이다.
  */
 export function storeToken(
   token: string,
@@ -115,7 +152,7 @@ export function clearToken(env: NodeJS.ProcessEnv = process.env): boolean {
  * 자격을 찾는다. 환경이 파일을 이긴다.
  *
  * <p>환경변수는 그 프로세스 하나에만 걸리므로, 저장해 둔 것을 건드리지 않고 다른 계정이나 다른
- * 서버를 한 번 볼 수 있다. TG-011 의 #9 가 이것이다.
+ * 서버를 한 번 볼 수 있다. GT-11 의 #9 가 이것이다.
  */
 export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const token = env['GENTASK_TOKEN']?.trim() || readStoredToken(env);
@@ -133,6 +170,6 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
       DEFAULT_BASE_URL
     ).replace(/\/+$/, ''),
     token,
-    projectKey: env['GENTASK_PROJECT']?.trim() || readStoredProject(env),
+    projectId: env['GENTASK_PROJECT']?.trim() || readStoredProject(env),
   };
 }

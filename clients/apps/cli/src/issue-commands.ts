@@ -37,25 +37,32 @@ export const ISSUE_HELP = `작업 아이템
   issue export [--out 파일]      전부를 JSON 으로 내립니다. 추적 검사가 이것을 읽습니다
 
 프로젝트
-  project list                   내 프로젝트를 봅니다
-  project use <접두어>           지금 프로젝트를 정합니다. 설정에 남습니다`;
+  project list                   내 프로젝트와 그 식별자를 봅니다
+  project use <식별자>           이 자리의 프로젝트를 정합니다. 지금 디렉터리에 매여 남습니다`;
 
-/** 지금 프로젝트. 정해지지 않았으면 무엇을 해야 하는지까지 알린다. */
+/**
+ * 지금 자리의 프로젝트.
+ *
+ * <p>정해지지 않았으면 무엇을 하면 되는지까지 알린다. 부르는 것이 사람일 수도 에이전트일 수도
+ * 있으므로 <b>부르는 쪽이 스스로 실행할 수 있는 명령</b>으로 적는다 — 사람에게 부탁하라는 말로
+ * 읽히면 에이전트가 거기서 멈춘다.
+ */
 function currentProject(env: NodeJS.ProcessEnv): string {
-  const key = readConfig(env).projectKey;
-  if (key === null) {
+  const projectId = readConfig(env).projectId;
+  if (projectId === null) {
     throw new Error(
       [
-        '지금 프로젝트가 정해지지 않았습니다.',
+        '이 자리의 프로젝트가 정해지지 않았습니다. 아래를 차례로 실행하면 정해집니다.',
         '',
-        '  gentask project list',
-        '  gentask project use <접두어>',
+        '  gentask project list           내 프로젝트와 그 식별자를 봅니다',
+        '  gentask project use <식별자>   이 자리의 프로젝트로 둡니다',
         '',
-        '을 실행하세요. GENTASK_PROJECT 로 넘겨도 됩니다.',
+        '고른 것은 지금 디렉터리에 매여 저장되므로 다른 저장소의 것을 건드리지 않습니다.',
+        '한 번만 다른 것을 보려면 GENTASK_PROJECT 로 넘깁니다.',
       ].join('\n'),
     );
   }
-  return key;
+  return projectId;
 }
 
 /** 사람이 부르는 이름에서 번호를 읽는다. 붙이는 규칙은 서버가 갖는다. */
@@ -97,26 +104,30 @@ export async function runProject(
 
   if (sub === 'list') {
     const projects = await client.projects();
-    const current = readConfig(env).projectKey;
+    const current = readConfig(env).projectId;
+    // 식별자를 앞에 둔다. `use` 에 넘길 것이 그것이고 접두어는 이슈 이름에만 쓰인다.
     const out = projects
-      .map((p) => `${p.key === current ? '*' : ' '} ${p.key}  ${p.name}  작업 아이템 ${p.issueCount}`)
+      .map(
+        (p) =>
+          `${p.id === current ? '*' : ' '} ${p.id}  ${p.name}  ${p.key}-  작업 아이템 ${p.issueCount}`,
+      )
       .join('\n');
     return { out: out === '' ? '프로젝트가 없습니다.' : out, code: 0 };
   }
 
   if (sub === 'use') {
-    const key = rest[0];
-    if (key === undefined) {
-      throw new Error('접두어가 필요합니다: gentask project use <접두어>');
+    const projectId = rest[0];
+    if (projectId === undefined) {
+      throw new Error('식별자가 필요합니다: gentask project use <식별자>');
     }
     // 있는 것인지 먼저 본다. 없는 것을 저장해 두면 그 뒤의 모든 명령이 같은 자리에서 실패한다.
     await client.projects().then((projects) => {
-      if (!projects.some((p) => p.key === key)) {
-        throw new Error(`그 프로젝트가 없습니다: ${key}`);
+      if (!projects.some((p) => p.id === projectId)) {
+        throw new Error(`그 프로젝트가 없습니다: ${projectId}`);
       }
     });
-    const path = storeProject(key, env);
-    return { out: `지금 프로젝트를 ${key} 로 두었습니다. (${path})`, code: 0 };
+    const path = storeProject(projectId, env);
+    return { out: `이 자리의 프로젝트를 ${projectId} 로 두었습니다. (${path})`, code: 0 };
   }
 
   throw new Error(`project 의 하위 명령이 아닙니다: ${sub ?? '(없음)'}`);

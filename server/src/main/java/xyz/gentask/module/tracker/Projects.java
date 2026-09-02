@@ -11,9 +11,10 @@ import java.util.UUID;
 public interface Projects {
 
     /**
-     * 그 사람의 프로젝트를 하나 세우고 접두어를 낸다. 접두어는 이름에서 뽑는다.
+     * 그 사람의 프로젝트를 하나 세우고 주소가 담을 식별자를 낸다.
      *
-     * <p>UUID 가 아니라 접두어를 내는 것은 주소가 그것을 갖기 때문이다(PRJ-002).
+     * <p>접두어는 이름에서 뽑지 않으므로 부르는 쪽이 함께 넘긴다. 이 경로에는 사람이 고를 자리가
+     * 없으므로 부르는 쪽이 기본값을 정한다.
      */
-    String create(UUID ownerId, String name);
+    String create(UUID ownerId, String name, String key);
 }

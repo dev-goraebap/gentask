@@ -8,15 +8,15 @@ import {
   새_이메일,
 } from './account-support';
 
-// TG-030 로그인하기
+// GT-30 로그인하기
 //
 // AC3 은 [서버]다. 로그인하지 않은 채로 작업 API 를 부르는 것은 화면이 만들지 않는
 // 요청이므로 백엔드 통합 테스트가 갖는다.
 
 test.use(로그인_전);
 
-test.describe('TG-030 로그인하기', () => {
-  test('TG-030 #1: 맞는 자격으로 로그인하면 그 계정의 작업 목록을 보여 준다', async ({ page }) => {
+test.describe('GT-30 로그인하기', () => {
+  test('GT-30 #1: 맞는 자격으로 로그인하면 그 계정의 작업 목록을 보여 준다', async ({ page }) => {
     const email = 새_이메일();
     await 등록하고_들어간다(page, email);
     await 로그아웃한다(page);
@@ -27,7 +27,7 @@ test.describe('TG-030 로그인하기', () => {
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
 
-  test('TG-030 #2: 자격이 맞지 않으면 어느 쪽이 틀렸는지 구분하지 않고 알린다', async ({
+  test('GT-30 #2: 자격이 맞지 않으면 어느 쪽이 틀렸는지 구분하지 않고 알린다', async ({
     page,
   }) => {
     const email = 새_이메일();

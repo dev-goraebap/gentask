@@ -1,7 +1,7 @@
 import { expect, test } from '../fixtures';
 import { IOS_USER_AGENT, 권한을_정한다, 홈_화면에서_열린_것으로_한다 } from './push-support';
 
-// TG-035 홈 화면에 설치하기
+// GT-35 홈 화면에 설치하기
 //
 // AC2 의 iOS 브라우저 탭 안내는 실기기에서 확인한다. 설치 자체는 브라우저가 주도하며 자동화가
 // 대신 누를 수 없으므로, 홈 화면에서 열린 자리는 그 신호를 흉내 내어 확인한다.
@@ -13,8 +13,8 @@ interface 매니페스트 {
   readonly icons: readonly { readonly src: string; readonly sizes: string }[];
 }
 
-test.describe('TG-035 홈 화면에 설치하기', () => {
-  test('TG-035 #1: 홈 화면에 추가할 자리를 주소창 없이 열도록 정하고 그 아이콘을 낸다', async ({
+test.describe('GT-35 홈 화면에 설치하기', () => {
+  test('GT-35 #1: 홈 화면에 추가할 자리를 주소창 없이 열도록 정하고 그 아이콘을 낸다', async ({
     page,
   }) => {
     await page.goto('/me');
@@ -47,7 +47,7 @@ test.describe('TG-035 홈 화면에 설치하기', () => {
   test.describe('iOS 에서 열었을 때', () => {
     test.use({ userAgent: IOS_USER_AGENT });
 
-    test('TG-035 #3: 이미 홈 화면에서 열린 상태이면 그 안내를 보여 주지 않는다', async ({
+    test('GT-35 #3: 이미 홈 화면에서 열린 상태이면 그 안내를 보여 주지 않는다', async ({
       page,
     }) => {
       // 권한을 물음 전으로 두는 것은 안내가 사라진 뒤 무엇이 서는지 보기 위해서다. 거절 상태로

@@ -13,9 +13,10 @@ import { ENDPOINTS } from '@/shared/api';
 import { ProjectService } from '../api/project-service';
 import { projectScopeGuard } from './project-scope-guard';
 
+/** 주소가 담는 것은 접두어가 아니라 식별자다. 접두어는 겹칠 수 있으므로 가려내지 못한다. */
 const PROJECTS = [
-  { id: '0d0f1f1e-0000-4000-8000-000000000001', name: 'gentask', key: 'TG', issueCount: 37 },
-  { id: '0d0f1f1e-0000-4000-8000-000000000002', name: '연습장', key: 'SB', issueCount: 4 },
+  { id: 'V1StGXR8_Z5j', name: 'gentask', key: 'GT', issueCount: 37 },
+  { id: 'dHi6B-myT7pQ', name: '연습장', key: 'GT', issueCount: 4 },
 ];
 
 describe('projectScopeGuard', () => {
@@ -39,11 +40,11 @@ describe('projectScopeGuard', () => {
   }
 
   it('주소가 가리키는 프로젝트를 지금 프로젝트로 삼는다', async () => {
-    const done = run('SB');
+    const done = run('dHi6B-myT7pQ');
     flushList();
 
     expect(await done).toBe(true);
-    expect(projectService.current()?.key).toBe('SB');
+    expect(projectService.current()?.name).toBe('연습장');
   });
 
   /*
@@ -52,18 +53,18 @@ describe('projectScopeGuard', () => {
    * 고르게 한다.
    */
   it('없는 프로젝트를 가리키면 홈으로 보낸다', async () => {
-    const done = run('없는것');
+    const done = run('AAAAAAAAAAAA');
     flushList();
 
     expect(String(await done)).toBe('/');
-    expect(projectService.current()?.key).toBe('TG');
+    expect(projectService.current()?.name).toBe('gentask');
   });
 
   /*
    * 목록이 아직 실리지 않은 순간에 판정하면 제 프로젝트를 없는 것으로 본다. 기다린 뒤에 본다.
    */
   it('목록이 실리기 전에 들어도 되돌리지 않는다', async () => {
-    const done = run('SB');
+    const done = run('dHi6B-myT7pQ');
     flushList();
 
     expect(await done).toBe(true);

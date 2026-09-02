@@ -1,12 +1,12 @@
 import { expect, test } from '../fixtures';
 import { 등록한다, 로그인_전, 새_이메일, 코드를_받는다, 비밀번호 } from './account-support';
 
-// TG-038 이메일을 확인하고 가입하기
+// GT-38 이메일을 확인하고 가입하기
 
 test.use(로그인_전);
 
-test.describe('TG-038 이메일을 확인하고 가입하기', () => {
-  test('TG-038 #2: 받은 코드를 제출하면 계정을 만들고 작업 목록을 보여 준다', async ({
+test.describe('GT-38 이메일을 확인하고 가입하기', () => {
+  test('GT-38 #2: 받은 코드를 제출하면 계정을 만들고 작업 목록을 보여 준다', async ({
     page,
   }) => {
     await 등록한다(page, 새_이메일());
@@ -15,7 +15,7 @@ test.describe('TG-038 이메일을 확인하고 가입하기', () => {
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
 
-  test('TG-038 #4: 비밀번호가 규칙에 맞지 않으면 충족하지 못한 조건을 알린다', async ({
+  test('GT-38 #4: 비밀번호가 규칙에 맞지 않으면 충족하지 못한 조건을 알린다', async ({
     page,
   }) => {
     await page.goto('/signup');
@@ -32,7 +32,7 @@ test.describe('TG-038 이메일을 확인하고 가입하기', () => {
     await expect(page.locator('#signup-code')).toBeHidden();
   });
 
-  test('TG-038 #5: 제출한 코드가 맞지 않으면 코드가 맞지 않음을 알린다', async ({ page }) => {
+  test('GT-38 #5: 제출한 코드가 맞지 않으면 코드가 맞지 않음을 알린다', async ({ page }) => {
     await 코드를_받는다(page, 새_이메일());
     await expect(page.locator('#signup-code')).toBeVisible();
 

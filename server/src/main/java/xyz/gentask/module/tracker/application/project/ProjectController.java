@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.gentask.module.tracker.application.project.ProjectRequests.CreateProject;
-import xyz.gentask.module.tracker.application.project.ProjectRequests.RenameProject;
+import xyz.gentask.module.tracker.application.project.ProjectRequests.EditProject;
 import xyz.gentask.module.tracker.application.project.ProjectViews.ProjectView;
 import xyz.gentask.shared.web.CurrentUser;
 
@@ -31,8 +31,9 @@ public class ProjectController {
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> create(@CurrentUser UUID userId, @Valid @RequestBody CreateProject request) {
-        String key = projectService.create(userId, request.name());
-        return ResponseEntity.created(URI.create("/api/v1/projects/" + key)).build();
+        String projectId = projectService.create(userId, request.name(), request.key());
+        return ResponseEntity.created(URI.create("/api/v1/projects/" + projectId))
+                .build();
     }
 
     @GetMapping
@@ -40,15 +41,15 @@ public class ProjectController {
         return projectService.list(userId);
     }
 
-    @GetMapping("/{projectKey}")
-    public ProjectView detail(@CurrentUser UUID userId, @PathVariable String projectKey) {
-        return projectService.detail(userId, projectKey);
+    @GetMapping("/{projectId}")
+    public ProjectView detail(@CurrentUser UUID userId, @PathVariable String projectId) {
+        return projectService.detail(userId, projectId);
     }
 
-    @PatchMapping("/{projectKey}")
+    @PatchMapping("/{projectId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void rename(
-            @CurrentUser UUID userId, @PathVariable String projectKey, @Valid @RequestBody RenameProject request) {
-        projectService.rename(userId, projectKey, request.name());
+    public void edit(
+            @CurrentUser UUID userId, @PathVariable String projectId, @Valid @RequestBody EditProject request) {
+        projectService.edit(userId, projectId, request.name(), request.key());
     }
 }

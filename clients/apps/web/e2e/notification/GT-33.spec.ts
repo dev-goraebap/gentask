@@ -7,13 +7,13 @@ import {
   푸시를_지원하지_않게_한다,
 } from './push-support';
 
-// TG-033 이 기기로 알림 받기
+// GT-33 이 기기로 알림 받기
 //
 // 여기는 화면이 이 기기의 상태를 어떻게 보여 주는가를 다룬다. AC1 과 AC4 와 AC5 의 등록과 해제와
 // 여러 기기의 나란한 보관은 서버가 갖는 것이므로 백엔드 통합 테스트에 있다.
 
-test.describe('TG-033 이 기기로 알림 받기', () => {
-  test('TG-033 #2: 등록이 끝나면 이 기기가 알림을 받는 상태임을 보여 준다', async ({ page }) => {
+test.describe('GT-33 이 기기로 알림 받기', () => {
+  test('GT-33 #2: 등록이 끝나면 이 기기가 알림을 받는 상태임을 보여 준다', async ({ page }) => {
     await 권한을_정한다(page, 'default', 'granted');
     await 가짜_구독을_만들게_한다(page, `https://e2e.example/push/${randomUUID()}`);
 
@@ -27,7 +27,7 @@ test.describe('TG-033 이 기기로 알림 받기', () => {
     await expect(page.getByRole('button', { name: '끄기' })).toBeVisible();
   });
 
-  test('TG-033 #3: 권한을 거절하면 브라우저 설정에서 다시 허용할 수 있음을 알린다', async ({
+  test('GT-33 #3: 권한을 거절하면 브라우저 설정에서 다시 허용할 수 있음을 알린다', async ({
     page,
   }) => {
     await 권한을_정한다(page, 'default', 'denied');
@@ -38,7 +38,7 @@ test.describe('TG-033 이 기기로 알림 받기', () => {
     await expect(page.getByText('브라우저 설정에서 이 사이트의 알림을 허용')).toBeVisible();
   });
 
-  test('TG-033 #7: 서버가 이 자리를 모르면 브라우저에 구독이 남아 있어도 받지 않는 상태로 보여 준다', async ({
+  test('GT-33 #7: 서버가 이 자리를 모르면 브라우저에 구독이 남아 있어도 받지 않는 상태로 보여 준다', async ({
     page,
   }) => {
     await 권한을_정한다(page, 'granted');
@@ -51,7 +51,7 @@ test.describe('TG-033 이 기기로 알림 받기', () => {
     await expect(page.getByRole('button', { name: '켜기' })).toBeVisible();
   });
 
-  test('TG-033 #6: 웹 푸시를 지원하지 않으면 이 기기에서 받을 수 없음을 알린다', async ({
+  test('GT-33 #6: 웹 푸시를 지원하지 않으면 이 기기에서 받을 수 없음을 알린다', async ({
     page,
   }) => {
     // 권한을 허용으로 두는 것은 그것이 이유가 아님을 못박기 위해서다. 지원 여부가 먼저 갈린다.

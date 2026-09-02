@@ -152,9 +152,14 @@ class JooqIssueQuery implements IssueQuery {
                 AcceptanceCriterion.unverifiedCount(criteria));
     }
 
-    /** 사람이 부르는 이름. 자릿수는 백로그 도구가 쓰던 것과 같다. */
+    /**
+     * 사람이 부르는 이름.
+     *
+     * <p>자릿수를 채우지 않는다. `GT-043` 은 999 에서 천장이 있는 것처럼 보이는데 그런 한계가 없고,
+     * 채워서 얻는 것도 없다.
+     */
     private static String keyOf(String projectKey, int number) {
-        return "%s-%03d".formatted(projectKey, number);
+        return "%s-%d".formatted(projectKey, number);
     }
 
     private static AcceptanceCriterionView toCriterionView(AcceptanceCriterion criterion) {

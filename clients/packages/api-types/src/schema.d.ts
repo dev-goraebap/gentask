@@ -100,7 +100,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectKey}/issues": {
+    "/api/v1/projects/{projectId}/issues": {
         parameters: {
             query?: never;
             header?: never;
@@ -372,7 +372,7 @@ export interface paths {
         patch: operations["changeCompletion"];
         trace?: never;
     };
-    "/api/v1/projects/{projectKey}": {
+    "/api/v1/projects/{projectId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -385,10 +385,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["rename"];
+        patch: operations["edit_1"];
         trace?: never;
     };
-    "/api/v1/projects/{projectKey}/issues/{number}": {
+    "/api/v1/projects/{projectId}/issues/{number}": {
         parameters: {
             query?: never;
             header?: never;
@@ -401,10 +401,10 @@ export interface paths {
         delete: operations["remove_1"];
         options?: never;
         head?: never;
-        patch: operations["edit_1"];
+        patch: operations["edit_2"];
         trace?: never;
     };
-    "/api/v1/projects/{projectKey}/issues/{number}/state": {
+    "/api/v1/projects/{projectId}/issues/{number}/state": {
         parameters: {
             query?: never;
             header?: never;
@@ -539,6 +539,7 @@ export interface components {
         };
         CreateProject: {
             name: string;
+            key: string;
         };
         CreateIssue: {
             title: string;
@@ -612,8 +613,9 @@ export interface components {
         ChangeCompletion: {
             completed: boolean;
         };
-        RenameProject: {
-            name: string;
+        EditProject: {
+            name?: string;
+            key?: string;
         };
         EditIssue: {
             title: string;
@@ -657,10 +659,10 @@ export interface components {
             publicKey: string;
         };
         ProjectView: {
-            /** Format: uuid */
+            /** @description 주소가 담는 식별자 */
             id: string;
             name: string;
-            /** @description 작업 아이템 번호의 접두어 */
+            /** @description 작업 아이템 이름의 접두어 */
             key: string;
             /** Format: int32 */
             issueCount: number;
@@ -1049,7 +1051,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                projectKey: string;
+                projectId: string;
             };
             cookie?: never;
         };
@@ -1071,7 +1073,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                projectKey: string;
+                projectId: string;
             };
             cookie?: never;
         };
@@ -1507,7 +1509,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                projectKey: string;
+                projectId: string;
             };
             cookie?: never;
         };
@@ -1524,18 +1526,18 @@ export interface operations {
             };
         };
     };
-    rename: {
+    edit_1: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                projectKey: string;
+                projectId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RenameProject"];
+                "application/json": components["schemas"]["EditProject"];
             };
         };
         responses: {
@@ -1553,7 +1555,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                projectKey: string;
+                projectId: string;
                 number: number;
             };
             cookie?: never;
@@ -1576,7 +1578,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                projectKey: string;
+                projectId: string;
                 number: number;
             };
             cookie?: never;
@@ -1592,12 +1594,12 @@ export interface operations {
             };
         };
     };
-    edit_1: {
+    edit_2: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                projectKey: string;
+                projectId: string;
                 number: number;
             };
             cookie?: never;
@@ -1622,7 +1624,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                projectKey: string;
+                projectId: string;
                 number: number;
             };
             cookie?: never;

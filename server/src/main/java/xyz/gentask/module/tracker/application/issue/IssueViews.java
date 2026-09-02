@@ -26,7 +26,7 @@ public final class IssueViews {
             @Schema(
                     requiredMode = Schema.RequiredMode.REQUIRED,
                     description = "사람이 부르는 이름. 접두어와 번호다",
-                    example = "TG-030")
+                    example = "GT-30")
             String key,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
