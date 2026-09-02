@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
-import { form, FormField, FormRoot } from '@angular/forms/signals';
+import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import {
   ISSUE_KIND_FACES,
   ISSUE_KINDS,
@@ -9,7 +9,7 @@ import {
   type IssueKind,
 } from '@/entities/issue';
 import { HlmButton } from '@/shared/ui/button';
-import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
+import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 import { HlmPopoverImports } from '@/shared/ui/popover';
@@ -33,6 +33,7 @@ import { MarkdownEditor } from '@/shared/ui/markdown-editor';
     HlmInput,
     MarkdownEditor,
     HlmField,
+    HlmFieldError,
     HlmFieldLabel,
     HlmPopoverImports,
     AppIcon,
@@ -58,7 +59,11 @@ export class IssueCreateForm {
   // --- 상태 --------------------------------------------------------------------------------------
   protected readonly kind = signal<IssueKind>(ISSUE_KINDS.task);
   private readonly draft = signal({ title: '', body: '' });
-  protected readonly issueForm = form(this.draft);
+  protected readonly issueForm = form(this.draft, (path) => {
+    validate(path.title, ({ value }) =>
+      value().trim() === '' ? requiredError({ message: '제목을 입력해 주세요.' }) : undefined,
+    );
+  });
 
   /**
    * 본문. 편집기가 마크다운을 되돌려 주므로 폼의 칸이 아니라 이 자리가 받는다.

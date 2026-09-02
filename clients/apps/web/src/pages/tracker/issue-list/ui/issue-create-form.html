@@ -18,6 +18,12 @@
         enterkeyhint="done"
         (keydown)="createOnEnter($event)"
       />
+      <!-- 단추를 잠그는 것만으로는 왜 세워지지 않는지 말하지 않는다(ITM-001 A1). -->
+      @if (issueForm.title().touched()) {
+        @for (error of issueForm.title().errors(); track error.kind) {
+          <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
+        }
+      }
     </div>
 
     <div hlmField class="flex min-h-0 flex-1 flex-col">

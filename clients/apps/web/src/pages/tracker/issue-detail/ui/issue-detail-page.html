@@ -83,6 +83,11 @@
           <app-markdown-editor placeholder="적어 두기. 마크다운으로 적습니다" [(value)]="draftBody" />
         </div>
 
+        <!-- 단추를 잠그는 것만으로는 왜 담기지 않는지 말하지 않는다(ITM-004 A1). -->
+        @if (!savable()) {
+          <hlm-field-error class="mt-2 block" forceShow>제목을 입력해 주세요.</hlm-field-error>
+        }
+
         <div class="mt-4 flex items-center gap-2">
           <button hlmBtn type="button" size="sm" [disabled]="!savable()" (click)="save()">담기</button>
           <button hlmBtn type="button" variant="ghost" size="sm" (click)="cancelEdit()">그만두기</button>
@@ -93,7 +98,8 @@
 
       @if (issue.criteria.length > 0) {
         <h2 class="mt-8 text-sm font-semibold">인수 조건</h2>
-        <ul class="divide-border border-border mt-2 divide-y border-y">
+        <!-- 본문의 체크 항목이 그대로 위에도 그려진다. 이름을 달아 두 목록이 구분되게 한다. -->
+        <ul aria-label="인수 조건" class="divide-border border-border mt-2 divide-y border-y">
           @for (criterion of issue.criteria; track criterion.number) {
             <li class="flex items-start gap-3 py-2.5">
               <span class="text-foreground-secondary w-7 shrink-0 pt-0.5 font-mono text-xs">
@@ -155,6 +161,7 @@
             type="button"
             variant="outline"
             class="w-full justify-between gap-2"
+            [attr.aria-label]="'상태 ' + stateLabel() + ', 누르면 바꾸기'"
           >
             <app-issue-state-chip [state]="issue.state" />
             <app-icon name="hgiArrowDown" />

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   ISSUE_KIND_FACES,
@@ -6,6 +13,7 @@ import {
   IssueKindBadge,
   issueKindLabel,
   IssueService,
+  issueStateLabel,
   IssueStateChip,
   type IssueKind,
   type IssueState,
@@ -13,6 +21,7 @@ import {
 import { injectProjectRoutes } from '@/entities/project';
 import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { HlmFieldError } from '@/shared/ui/field';
 import { HlmInput } from '@/shared/ui/input';
 import { MarkdownEditor } from '@/shared/ui/markdown-editor';
 import { MarkdownView } from '@/shared/ui/markdown-view';
@@ -32,6 +41,7 @@ import { AppPageBack } from '@/shared/ui/page-back';
     HlmPopoverImports,
     AppIcon,
     EmptyState,
+    HlmFieldError,
     IssueKindBadge,
     IssueStateChip,
   ],
@@ -59,6 +69,12 @@ export class IssueDetailPage {
   protected readonly kindLabel = computed(() => {
     const issue = this.issue();
     return issue === undefined ? '' : issueKindLabel(issue.kind);
+  });
+
+  /** 상태는 칩이 글자로 그리지만, 그것을 여는 단추에는 스크린리더가 읽을 이름이 따로 있어야 한다. */
+  protected readonly stateLabel = computed(() => {
+    const issue = this.issue();
+    return issue === undefined ? '' : issueStateLabel(issue.state);
   });
 
   protected readonly parent = computed(() => {

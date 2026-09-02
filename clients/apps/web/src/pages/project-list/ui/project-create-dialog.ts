@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
-import { form, FormField, FormRoot } from '@angular/forms/signals';
+import { form, FormField, FormRoot, requiredError, validate } from '@angular/forms/signals';
 import { ProjectService } from '@/entities/project';
 import { HlmButton } from '@/shared/ui/button';
-import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
+import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { AppIcon } from '@/shared/ui/icon';
 import { HlmInput } from '@/shared/ui/input';
 
@@ -14,7 +14,7 @@ import { HlmInput } from '@/shared/ui/input';
  */
 @Component({
   selector: 'app-project-create-dialog',
-  imports: [FormRoot, FormField, HlmButton, HlmField, HlmFieldLabel, HlmInput, AppIcon],
+  imports: [FormRoot, FormField, HlmButton, HlmField, HlmFieldError, HlmFieldLabel, HlmInput, AppIcon],
   host: { class: 'flex min-h-0 flex-1 flex-col' },
   template: `
     <header class="border-border flex h-14 shrink-0 items-center gap-3 border-b px-4">
@@ -64,6 +64,12 @@ import { HlmInput } from '@/shared/ui/input';
             enterkeyhint="done"
             (keydown)="createOnEnter($event)"
           />
+          <!-- 단추를 잠그는 것만으로는 왜 세워지지 않는지 말하지 않는다(PRJ-001 A1). -->
+          @if (createForm.name().touched()) {
+            @for (error of createForm.name().errors(); track error.kind) {
+              <hlm-field-error forceShow>{{ error.message }}</hlm-field-error>
+            }
+          }
         </div>
 
         <p class="text-foreground-secondary text-sm">
@@ -94,7 +100,11 @@ export class ProjectCreateDialog {
 
   // --- 상태 --------------------------------------------------------------------------------------
   private readonly draft = signal({ name: '' });
-  protected readonly createForm = form(this.draft);
+  protected readonly createForm = form(this.draft, (path) => {
+    validate(path.name, ({ value }) =>
+      value().trim() === '' ? requiredError({ message: '이름을 입력해 주세요.' }) : undefined,
+    );
+  });
 
   // --- 파생 --------------------------------------------------------------------------------------
   protected readonly creatable = computed(() => this.draft().name.trim().length > 0);
