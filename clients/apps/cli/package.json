@@ -10,8 +10,7 @@
     "build": "tsc",
     "test": "vitest run",
     "check": "npm test && npm run build",
-    "prepublishOnly": "npm run check",
-    "backlog:export": "npm run build && node dist/index.js issue export --out ../../../.backlog.json"
+    "prepublishOnly": "npm run check"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

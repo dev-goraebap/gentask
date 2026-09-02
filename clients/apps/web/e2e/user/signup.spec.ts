@@ -8,12 +8,12 @@ import {
   코드를_받는다,
 } from './account-support';
 
-// GT-26 계정 만들기
+// 계정 만들기
 
 test.use(로그인_전);
 
-test.describe('GT-26 계정 만들기', () => {
-  test('GT-26 #1: 이메일과 비밀번호로 등록하면 계정을 만든다', async ({ page }) => {
+test.describe('계정 만들기', () => {
+  test('이메일과 비밀번호로 등록하면 계정을 만든다', async ({ page }) => {
     const email = 새_이메일();
 
     // 세션이 붙을 때까지 기다린다. 누르자마자 물으면 등록 요청이 아직 가는 중일 수 있다.
@@ -26,14 +26,14 @@ test.describe('GT-26 계정 만들기', () => {
     expect(응답.status()).toBe(409);
   });
 
-  test('GT-26 #7: 등록이 끝나면 곧바로 로그인 상태로 작업 목록을 보여 준다', async ({ page }) => {
+  test('등록이 끝나면 곧바로 로그인 상태로 작업 목록을 보여 준다', async ({ page }) => {
     await 등록한다(page, 새_이메일());
 
     await expect(page).toHaveURL(/\/todo\//);
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
 
-  test('GT-26 #2: 이미 등록된 이메일로 등록하려 하면 이미 등록된 이메일임을 알린다', async ({
+  test('이미 등록된 이메일로 등록하려 하면 이미 등록된 이메일임을 알린다', async ({
     page,
   }) => {
     const email = 새_이메일();

@@ -11,7 +11,7 @@ Angular 프론트엔드와 Spring Boot 백엔드 모노레포의 참조 아키�
 
 ## 문서 탐색 순서
 
-- **개발 프로세스**: [결정-0007](docs/architecture/decisions/0007-shared-software-process.md)을 따릅니다. 요구사항의 원본과 백로그, 구현과 검증, 추적의 규약이 여기 있습니다.
+- **개발 프로세스**: [결정-0007](docs/architecture/decisions/0007-shared-software-process.md)을 따릅니다. 요구사항의 원본과 백로그, 구현과 검증, 커밋의 참조 규약이 여기 있습니다.
 - **테스트**: [결정-0008](docs/architecture/decisions/0008-shared-testing.md)을 따릅니다. 어느 층에 무엇을 두고 무엇을 두지 않는가가 여기 있습니다.
 - **아키텍처**: [docs/architecture/index.md](docs/architecture/index.md)부터 진입합니다. 횡단 관심사 문서는 `docs/architecture/concepts/`의 `<축>-<순번>-<주제>.md`를 확인합니다 (`frontend` · `backend` · `shared`).
 - **코드 스타일**: 코드를 작성하기 전에 해당 축의 코드 스타일 가이드(`FE-STY-NNN` · `BE-STY-NNN`)를 확인합니다.
@@ -36,11 +36,10 @@ Angular 프론트엔드와 Spring Boot 백엔드 모노레포의 참조 아키�
 | 프론트엔드 | `cd clients && npm run check -w web` |
 | 백엔드 | `cd server && ./gradlew build` |
 | 에이전트 | `cd clients && npm run check -w gentask` |
-| 추적 | `npm run backlog:export --prefix clients/apps/cli` 뒤 `node scripts/trace-check.mjs` |
+| 종단 | `cd clients/apps/web && npm run e2e` |
 
 - 검증을 통과하지 않은 상태로 커밋하거나 병합하지 않습니다.
-- 추적 검사는 인수 조건과 테스트 이름을 대조합니다. 없는 인수 조건을 가리키는 접두어는 실패이고, 테스트가 없는 인수 조건은 목록으로만 냅니다.
-- **검사 전에 백로그를 내려야 합니다.** 원본이 트래커이므로 사본(`.backlog.json`)이 없거나 오래되면 검사가 옛 것을 봅니다. 검사기는 사본이 아예 없으면 무엇을 해야 하는지 알립니다.
+- **테스트 이름에는 백로그 항목의 ID 를 두지 않습니다.** 테스트는 지금의 명세를 말하고, 어느 항목의 일이었는지는 커밋의 트레일러가 갖습니다.
 - 각 명령의 세부 검사 항목과 실패 조건은 각 축의 개발 환경 문서를 확인합니다.
 
 ## 에이전트 스킬
@@ -68,7 +67,6 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 - 결번은 번호를 지우지 않고 문장을 `(결번)` 으로 바꿔 표시합니다. 번호는 부여 뒤 불변입니다.
 - 서술서가 아직 없는 착수 후보는 `BACKLOG` 상태로 둡니다. 별도 목록이 아니라 상태 하나입니다.
 - Epic 소속은 선택입니다. 사용자 가치를 직접 내지 않는 기술 작업은 최상위 Task 로 두고, 자식 하나뿐인 Epic 을 만들지 않습니다.
-
 - **프로젝트를 가리키는 것과 이슈의 접두어는 다릅니다.** 주소와 명령줄 인자가 담는 것은 프로젝트의 식별자(nanoid)이고, 접두어(`GT`)는 작업 아이템의 이름에만 쓰입니다. 근거는 `GT-60` 이 갖습니다.
 - **`project use` 는 지금 디렉터리에 매여 저장됩니다.** 저장소마다 다른 프로젝트를 가리킬 수 있으며, 하위 디렉터리에서 불러도 가장 가까운 자리의 것을 씁니다.
 
@@ -84,9 +82,3 @@ gentask issue state GT-30 STARTED
 gentask issue rm GT-30 --yes                 # --yes 없이는 지울 것만 보인다
 ```
 
-- **추적 검사는 내린 사본을 읽습니다.** `.backlog.json` 이 그것이며 추적되지 않습니다. 검사가 API 를 직접 부르면 서버와 토큰 없이는 돌지 않게 되므로 내리는 한 단계를 둡니다.
-
-```bash
-npm run backlog:export --prefix clients/apps/cli   # 트래커 → .backlog.json
-node scripts/trace-check.mjs                       # 그 사본을 읽어 대조
-```

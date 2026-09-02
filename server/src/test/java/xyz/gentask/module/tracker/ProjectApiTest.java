@@ -47,7 +47,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("GT-42 #3: 계정을 만들면 기본 프로젝트가 함께 선다")
+    @DisplayName("계정을 만들면 기본 프로젝트가 함께 선다")
     void 계정을_만들면_기본_프로젝트가_함께_선다() throws Exception {
         mockMvc.perform(get("/api/v1/projects").cookie(session))
                 .andExpect(status().isOk())
@@ -56,7 +56,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("GT-60 #1: 이름과 접두어를 적어 세우면 사람이 정하지 않은 식별자로 닿게 한다")
+    @DisplayName("이름과 접두어를 적어 세우면 사람이 정하지 않은 식별자로 닿게 한다")
     void 세우면_식별자로_닿는다() throws Exception {
         String projectId = 프로젝트를_세운다("Gentask Tracker", "GT");
 
@@ -71,7 +71,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("GT-60 #2: 접두어가 비어 있거나 모양에 맞지 않으면 알린다")
+    @DisplayName("접두어가 비어 있거나 모양에 맞지 않으면 알린다")
     void 접두어가_모양에_맞지_않으면_알린다() throws Exception {
         세우기를_거절한다("{\"name\":\"빈 접두어\",\"key\":\"   \"}");
         세우기를_거절한다("{\"name\":\"한글 접두어\",\"key\":\"프로젝트\"}");
@@ -83,7 +83,7 @@ class ProjectApiTest {
      * 겹치지 않는 것을 뽑아 주던 자리(`GE2` · `GE3`)를 걷었다.
      */
     @Test
-    @DisplayName("GT-60 #3: 접두어가 겹쳐도 그대로 세운다")
+    @DisplayName("접두어가 겹쳐도 그대로 세운다")
     void 접두어가_겹쳐도_그대로_세운다() throws Exception {
         String first = 프로젝트를_세운다("첫째", "GT");
         String second = 프로젝트를_세운다("둘째", "GT");
@@ -96,7 +96,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("GT-60 #4: 접두어를 바꾸면 이미 매겨진 번호는 그대로 둔다")
+    @DisplayName("접두어를 바꾸면 이미 매겨진 번호는 그대로 둔다")
     void 접두어를_바꿔도_번호는_그대로다() throws Exception {
         String projectId = 프로젝트를_세운다("옛 접두어", "TG");
         작업_아이템을_세운다(projectId);
@@ -114,7 +114,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("GT-60 #5: 주소의 식별자가 모양에 맞지 않으면 없는 것으로 낸다")
+    @DisplayName("주소의 식별자가 모양에 맞지 않으면 없는 것으로 낸다")
     void 모양이_아닌_식별자는_없는_것으로_낸다() throws Exception {
         mockMvc.perform(get("/api/v1/projects/{projectId}", "쓸 수 없는 글자").cookie(session))
                 .andExpect(status().isNotFound())
@@ -122,13 +122,13 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("GT-42 #4: 이름이 비어 있으면 이름이 필요함을 알린다")
+    @DisplayName("이름이 비어 있으면 이름이 필요함을 알린다")
     void 이름이_비어_있으면_알린다() throws Exception {
         세우기를_거절한다("{\"name\":\"   \",\"key\":\"GT\"}");
     }
 
     @Test
-    @DisplayName("GT-42 #5: 목록을 열면 그 사용자의 프로젝트만 온다")
+    @DisplayName("목록을 열면 그 사용자의 프로젝트만 온다")
     void 목록은_그_사용자의_프로젝트만_낸다() throws Exception {
         프로젝트를_세운다("Mine", "MN");
 
@@ -140,7 +140,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("GT-42 #6: 사용자의 것이 아닌 프로젝트는 없는 것으로 낸다")
+    @DisplayName("사용자의 것이 아닌 프로젝트는 없는 것으로 낸다")
     void 남의_프로젝트는_없는_것으로_낸다() throws Exception {
         String mine = 프로젝트를_세운다("Mine", "MN");
 

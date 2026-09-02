@@ -1,9 +1,9 @@
 import { 빈_계정으로_바꾼다, 작업을_만든다, 하위_자원을_바꾼다, expect, test } from '../fixtures';
 
-// GT-17 스마트 목록으로 작업 보기
+// 스마트 목록으로 작업 보기
 //
 // 완료된 작업은 별도의 스마트 목록이 아니라 각 목록 하단의 접힌 목록이다.
-// 그래서 AC1 은 그 목록이 무엇을 담는가를 묻는다. 완료 자체는 GT-23 이 갖는다.
+// 그래서 AC1 은 그 목록이 무엇을 담는가를 묻는다. 완료 자체는 작업 완료 시험이 갖는다.
 
 function 내일(): string {
   const date = new Date();
@@ -11,8 +11,8 @@ function 내일(): string {
   return date.toISOString().slice(0, 10);
 }
 
-test.describe('GT-17 스마트 목록으로 작업 보기', () => {
-  test('GT-17 #1: 완료 목록을 펼치면 보고 있는 스마트 목록의 완료된 작업만 나온다', async ({
+test.describe('스마트 목록으로 작업 보기', () => {
+  test('완료 목록을 펼치면 보고 있는 스마트 목록의 완료된 작업만 나온다', async ({
     page,
   }) => {
     await 빈_계정으로_바꾼다(page);
@@ -30,7 +30,7 @@ test.describe('GT-17 스마트 목록으로 작업 보기', () => {
     await expect(완료목록.getByRole('link', { name: '평범한 완료 작업' })).toHaveCount(0);
   });
 
-  test('GT-17 #2: 나의 하루 목록은 나의 하루에 추가된 완료되지 않은 작업만 보여 준다', async ({
+  test('나의 하루 목록은 나의 하루에 추가된 완료되지 않은 작업만 보여 준다', async ({
     page,
   }) => {
     await 빈_계정으로_바꾼다(page);
@@ -44,7 +44,7 @@ test.describe('GT-17 스마트 목록으로 작업 보기', () => {
     await expect(page.getByRole('link', { name: '담지 않은 작업' })).toHaveCount(0);
   });
 
-  test('GT-17 #3: 중요 목록은 중요하다고 표시한 완료되지 않은 작업만 보여 준다', async ({
+  test('중요 목록은 중요하다고 표시한 완료되지 않은 작업만 보여 준다', async ({
     page,
   }) => {
     await 빈_계정으로_바꾼다(page);
@@ -58,7 +58,7 @@ test.describe('GT-17 스마트 목록으로 작업 보기', () => {
     await expect(page.getByRole('link', { name: '중요하지 않은 작업' })).toHaveCount(0);
   });
 
-  test('GT-17 #4: 계획된 일정 목록은 기한이 있는 완료되지 않은 작업만 보여 준다', async ({
+  test('계획된 일정 목록은 기한이 있는 완료되지 않은 작업만 보여 준다', async ({
     page,
   }) => {
     await 빈_계정으로_바꾼다(page);

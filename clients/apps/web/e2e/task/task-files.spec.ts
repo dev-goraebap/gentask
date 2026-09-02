@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { 작업을_만든다, expect, test } from '../fixtures';
 
-// GT-32 작업에 파일 붙이기
+// 작업에 파일 붙이기
 //
 // 올리기는 presigned PUT, 받기는 presigned GET 이며 브라우저가 보관소와 직접 주고받는다.
 // 제한은 Uppy 가 먼저 알리고 서버가 붙임 확정에서 강제한다. 이 시나리오는 앞쪽을 지난다.
@@ -67,8 +67,8 @@ async function 파일을_붙인다(
   await page.getByRole('button', { name: /파일 업로드/ }).click();
 }
 
-test.describe('GT-32 작업에 파일 붙이기', () => {
-  test('GT-32 #1: 파일을 붙이면 목록에 이름과 크기가 온다', async ({ page, request }) => {
+test.describe('작업에 파일 붙이기', () => {
+  test('파일을 붙이면 목록에 이름과 크기가 온다', async ({ page, request }) => {
     await 작업을_만든다(request, '파일을 붙일 작업');
     await 상세를_연다(page, '파일을 붙일 작업');
 
@@ -80,7 +80,7 @@ test.describe('GT-32 작업에 파일 붙이기', () => {
     await expect(page.getByText('2KB')).toBeVisible();
   });
 
-  test('GT-32 #3: 붙인 파일을 받으면 올린 그것이 그 이름으로 온다', async ({ page, request }) => {
+  test('붙인 파일을 받으면 올린 그것이 그 이름으로 온다', async ({ page, request }) => {
     const 원본 = 텍스트_파일('회의록.txt', '올린 그대로 와야 한다');
     await 작업을_만든다(request, '파일을 받을 작업');
     await 상세를_연다(page, '파일을 받을 작업');
@@ -97,7 +97,7 @@ test.describe('GT-32 작업에 파일 붙이기', () => {
     expect(await readFile(경로)).toEqual(원본.buffer);
   });
 
-  test('GT-32 #4: 파일을 떼면 목록과 보관소에서 함께 사라진다', async ({ page, request }) => {
+  test('파일을 떼면 목록과 보관소에서 함께 사라진다', async ({ page, request }) => {
     await 작업을_만든다(request, '파일을 뗄 작업');
     await 상세를_연다(page, '파일을 뗄 작업');
     await 파일을_붙인다(page, [텍스트_파일('버릴것.txt', '지워질 내용')]);
@@ -112,7 +112,7 @@ test.describe('GT-32 작업에 파일 붙이기', () => {
   });
 
   for (const { 사유, 파일들, 문구 } of 거절될_붙임) {
-    test(`GT-32 #2: ${사유} 그 붙임이 목록에 담기지 않는다`, async ({ page, request }) => {
+    test(`${사유} 그 붙임이 목록에 담기지 않는다`, async ({ page, request }) => {
       await 작업을_만든다(request, `거절될 붙임 ${사유}`);
       await 상세를_연다(page, `거절될 붙임 ${사유}`);
 
@@ -121,7 +121,7 @@ test.describe('GT-32 작업에 파일 붙이기', () => {
       await expect(page.locator('.uppy-Dashboard-Item')).toHaveCount(0);
     });
 
-    test(`GT-32 #5: ${사유} 거절 사유를 알린다`, async ({ page, request }) => {
+    test(`${사유} 거절 사유를 알린다`, async ({ page, request }) => {
       await 작업을_만든다(request, `사유를 알릴 붙임 ${사유}`);
       await 상세를_연다(page, `사유를 알릴 붙임 ${사유}`);
 

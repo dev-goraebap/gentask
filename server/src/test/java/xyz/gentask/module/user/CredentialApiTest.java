@@ -46,7 +46,7 @@ class CredentialApiTest {
     // --- 가입 --------------------------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("GT-38 #1: 가입을 요청하면 그 주소로 코드가 간다")
+    @DisplayName("가입을 요청하면 그 주소로 코드가 간다")
     void 가입을_요청하면_코드가_간다() throws Exception {
         String email = 주소("signup-code");
 
@@ -56,7 +56,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("GT-38 #3: 코드를 확인하기 전에는 그 이메일로 계정이 생기지 않는다")
+    @DisplayName("코드를 확인하기 전에는 그 이메일로 계정이 생기지 않는다")
     void 확인하기_전에는_계정이_생기지_않는다() throws Exception {
         String email = 주소("not-yet");
         mockMvc.perform(가입요청(email, PASSWORD)).andExpect(status().isAccepted());
@@ -72,7 +72,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("GT-38 #7: 코드를 다시 요청하면 앞서 보낸 것이 더 이상 통하지 않는다")
+    @DisplayName("코드를 다시 요청하면 앞서 보낸 것이 더 이상 통하지 않는다")
     void 다시_요청하면_앞의_코드가_거둬진다() throws Exception {
         String email = 주소("resend");
         mockMvc.perform(가입요청(email, PASSWORD)).andExpect(status().isAccepted());
@@ -90,7 +90,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("GT-38 #8: 정해진 횟수보다 많이 틀리면 그 코드가 거둬진다")
+    @DisplayName("정해진 횟수보다 많이 틀리면 그 코드가 거둬진다")
     void 여러_번_틀리면_코드가_거둬진다() throws Exception {
         String email = 주소("exhaust");
         mockMvc.perform(가입요청(email, PASSWORD)).andExpect(status().isAccepted());
@@ -108,7 +108,7 @@ class CredentialApiTest {
     // --- 비밀번호 재설정 -------------------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("GT-39 #1: 가입한 이메일로 재설정을 요청하면 그 주소로 코드가 간다")
+    @DisplayName("가입한 이메일로 재설정을 요청하면 그 주소로 코드가 간다")
     void 재설정을_요청하면_코드가_간다() throws Exception {
         String email = 주소("reset-code");
         AuthTestSupport.가입한다(mockMvc, mail, email);
@@ -119,7 +119,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("GT-39 #3: 재설정하면 그 계정의 세션과 API 토큰이 모두 거둬진다")
+    @DisplayName("재설정하면 그 계정의 세션과 API 토큰이 모두 거둬진다")
     void 재설정하면_세션과_토큰이_거둬진다() throws Exception {
         String email = 주소("revoke-all");
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, email);
@@ -146,7 +146,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("GT-39 #4: 등록되지 않은 이메일도 보낸 경우와 같은 응답을 낸다")
+    @DisplayName("등록되지 않은 이메일도 보낸 경우와 같은 응답을 낸다")
     void 등록되지_않은_이메일도_같은_응답을_낸다() throws Exception {
         String unknownEmail = 주소("nobody");
 
@@ -156,7 +156,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("GT-39 #8: 재설정 코드를 다시 요청하면 앞서 보낸 것이 더 이상 통하지 않는다")
+    @DisplayName("재설정 코드를 다시 요청하면 앞서 보낸 것이 더 이상 통하지 않는다")
     void 재설정_코드를_다시_요청하면_앞의_것이_거둬진다() throws Exception {
         String email = 주소("reset-resend");
         AuthTestSupport.가입한다(mockMvc, mail, email);
@@ -177,7 +177,7 @@ class CredentialApiTest {
     // --- 비밀번호 변경 --------------------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("GT-40 #3: 비밀번호를 바꾸면 지금 쓰는 자리를 뺀 나머지 세션이 거둬진다")
+    @DisplayName("비밀번호를 바꾸면 지금 쓰는 자리를 뺀 나머지 세션이 거둬진다")
     void 바꾸면_다른_자리의_세션이_거둬진다() throws Exception {
         String email = 주소("change-sessions");
         Cookie firstSeat = AuthTestSupport.가입한다(mockMvc, mail, email);

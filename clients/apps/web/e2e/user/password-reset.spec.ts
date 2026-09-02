@@ -2,7 +2,7 @@ import { type Page } from '@playwright/test';
 import { expect, test, 받은_코드 } from '../fixtures';
 import { 등록한다, 로그인_전, 로그인한다, 새_이메일, 비밀번호 } from './account-support';
 
-// GT-39 비밀번호 재설정하기
+// 비밀번호 재설정하기
 
 test.use(로그인_전);
 
@@ -21,8 +21,8 @@ async function 재설정을_시작한다(page: Page): Promise<string> {
   return email;
 }
 
-test.describe('GT-39 비밀번호 재설정하기', () => {
-  test('GT-39 #2: 코드와 새 비밀번호를 제출하면 새 비밀번호로 로그인하게 한다', async ({
+test.describe('비밀번호 재설정하기', () => {
+  test('코드와 새 비밀번호를 제출하면 새 비밀번호로 로그인하게 한다', async ({
     page,
   }) => {
     const email = await 재설정을_시작한다(page);
@@ -38,7 +38,7 @@ test.describe('GT-39 비밀번호 재설정하기', () => {
     await expect(page).toHaveURL(/\/todo\//);
   });
 
-  test('GT-39 #5: 새 비밀번호가 규칙에 맞지 않으면 충족하지 못한 조건을 알린다', async ({
+  test('새 비밀번호가 규칙에 맞지 않으면 충족하지 못한 조건을 알린다', async ({
     page,
   }) => {
     const email = await 재설정을_시작한다(page);
@@ -55,7 +55,7 @@ test.describe('GT-39 비밀번호 재설정하기', () => {
     await expect(page.locator('#reset-code')).toBeVisible();
   });
 
-  test('GT-39 #6: 제출한 코드가 맞지 않으면 코드가 맞지 않음을 알린다', async ({ page }) => {
+  test('제출한 코드가 맞지 않으면 코드가 맞지 않음을 알린다', async ({ page }) => {
     const email = await 재설정을_시작한다(page);
 
     await page.locator('#reset-code').fill('000000');

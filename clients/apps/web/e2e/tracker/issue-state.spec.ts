@@ -1,7 +1,7 @@
 import { expect, test } from '../fixtures';
 import { 작업_아이템을_만든다, 작업_아이템을_읽는다, 프로젝트를_만든다 } from './tracker-support';
 
-// GT-44 작업 아이템의 상태를 옮긴다
+// 작업 아이템의 상태를 옮긴다
 //
 // 상태는 상세의 곁의 열이 갖는다(ITM-003). 옮긴 뒤에 다시 실어 보는 것은 화면의 신호가 아니라
 // 담긴 것을 보기 위해서다 — 목록과 상세는 서로 다른 리소스라 한쪽만 다시 실으면 어긋난다.
@@ -23,8 +23,8 @@ function 지금_상태(page: import('@playwright/test').Page) {
   return page.locator('aside app-issue-state-chip');
 }
 
-test.describe('GT-44 작업 아이템의 상태를 옮긴다', () => {
-  test('GT-44 #1: 상태를 옮기면 그 상태를 항목에 남긴다', async ({ page, request }) => {
+test.describe('작업 아이템의 상태를 옮긴다', () => {
+  test('상태를 옮기면 그 상태를 항목에 남긴다', async ({ page, request }) => {
     const 프로젝트 = await 프로젝트를_만든다(request, 'State Kept');
     const 항목 = await 작업_아이템을_만든다(request, 프로젝트, '진행 중으로 옮길 것');
 
@@ -38,7 +38,7 @@ test.describe('GT-44 작업 아이템의 상태를 옮긴다', () => {
     await expect(지금_상태(page)).toContainText('진행 중');
   });
 
-  test('GT-44 #2: 완료나 취소로 옮기면 그 순간을 닫힌 때로 남긴다', async ({ page, request }) => {
+  test('완료나 취소로 옮기면 그 순간을 닫힌 때로 남긴다', async ({ page, request }) => {
     const 프로젝트 = await 프로젝트를_만든다(request, 'Closed At');
     const 항목 = await 작업_아이템을_만든다(request, 프로젝트, '닫을 것');
 
@@ -51,7 +51,7 @@ test.describe('GT-44 작업 아이템의 상태를 옮긴다', () => {
     await expect(page.getByText(/\d{4}-\d{2}-\d{2} 닫힘/)).toBeVisible();
   });
 
-  test('GT-44 #3: 닫힌 것을 되돌리면 닫힌 때를 지운다', async ({ page, request }) => {
+  test('닫힌 것을 되돌리면 닫힌 때를 지운다', async ({ page, request }) => {
     const 프로젝트 = await 프로젝트를_만든다(request, 'Reopened');
     const 항목 = await 작업_아이템을_만든다(request, 프로젝트, '되돌릴 것');
 
@@ -65,7 +65,7 @@ test.describe('GT-44 작업 아이템의 상태를 옮긴다', () => {
     expect((await 작업_아이템을_읽는다(page.request, 프로젝트, 항목)).summary.closedAt).toBeNull();
   });
 
-  test('GT-44 #4: 지금 상태와 같은 상태로 옮기면 아무것도 바꾸지 않는다', async ({
+  test('지금 상태와 같은 상태로 옮기면 아무것도 바꾸지 않는다', async ({
     page,
     request,
   }) => {

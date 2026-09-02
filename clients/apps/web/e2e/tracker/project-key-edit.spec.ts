@@ -1,13 +1,12 @@
 import { expect, test } from '../fixtures';
 import { 작업_아이템을_만든다, 프로젝트를_만든다 } from './tracker-support';
 
-// GT-60 프로젝트를 식별자로 가리키고 접두어를 사람이 정한다
+// 이미 선 프로젝트의 접두어를 고치는 자리.
 //
-// 세우는 흐름(#1 · #2 · #3)은 세우는 덮개가 있는 GT-42 쪽에서 지난다. 여기는 이미 선 프로젝트의
-// 접두어를 고치는 자리다.
+// 세우면서 정하는 흐름은 project-create 가 지난다.
 
-test.describe('GT-60 접두어를 고친다', () => {
-  test('GT-60 #4: 접두어를 바꾸면 이미 매겨진 번호를 그대로 둔다', async ({ page, request }) => {
+test.describe('접두어를 고친다', () => {
+  test('접두어를 바꾸면 이미 매겨진 번호를 그대로 둔다', async ({ page, request }) => {
     const 프로젝트 = await 프로젝트를_만든다(request, 'Prefix Changed', 'OLD');
     await 작업_아이템을_만든다(request, 프로젝트, '번호가 매겨진 것');
 

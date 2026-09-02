@@ -69,7 +69,7 @@ class AdminPushApiTest {
     private Clock clock;
 
     @Test
-    @DisplayName("GT-37 #2: 관리자가 알림 문제를 열면 실패한 자리가 최근 것부터 온다")
+    @DisplayName("관리자가 알림 문제를 열면 실패한 자리가 최근 것부터 온다")
     void 실패한_자리가_최근_것부터_온다() throws Exception {
         Cookie admin = 관리자로_가입한다();
         String endpoint = 실패를_하나_만든다();
@@ -86,7 +86,7 @@ class AdminPushApiTest {
     }
 
     @Test
-    @DisplayName("GT-37 #3: 자리를 거두면 그 기기는 더 이상 보낼 대상이 아니다")
+    @DisplayName("자리를 거두면 그 기기는 더 이상 보낼 대상이 아니다")
     void 자리를_거두면_보낼_대상이_아니다() throws Exception {
         Cookie admin = 관리자로_가입한다();
         String endpoint = 실패를_하나_만든다();
@@ -102,7 +102,7 @@ class AdminPushApiTest {
     }
 
     @Test
-    @DisplayName("GT-37 #4: 처리했다고 표시하면 그 항목이 처리됨으로 갈린다")
+    @DisplayName("처리했다고 표시하면 그 항목이 처리됨으로 갈린다")
     void 처리하면_처리됨으로_갈린다() throws Exception {
         Cookie admin = 관리자로_가입한다();
         String endpoint = 실패를_하나_만든다();

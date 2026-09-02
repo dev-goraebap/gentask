@@ -34,7 +34,7 @@ export const ISSUE_HELP = `작업 아이템
                                  넘긴 것만 바꿉니다. --parent "" 는 최상위로 올립니다
   issue state <키> <상태>        상태를 옮깁니다
   issue rm <키> [--yes]          지웁니다. --yes 없이는 무엇을 지우는지만 보입니다
-  issue export [--out 파일]      전부를 JSON 으로 내립니다. 추적 검사가 이것을 읽습니다
+  issue export [--out 파일]      본문과 인수 조건까지 전부를 JSON 으로 내립니다
 
 프로젝트
   project list                   내 프로젝트와 그 식별자를 봅니다
@@ -307,10 +307,10 @@ export async function runIssue(
 /**
  * 전부를 JSON 으로 내린다.
  *
- * <p>추적 검사가 이것을 읽는다. 검사가 API 를 직접 부르게 하면 서버와 토큰 없이는 돌지 않게 되는데,
- * 그 검사는 지금까지 오프라인으로 돌던 것이라 내리는 한 단계를 두어 그 성질을 지킨다.
+ * <p>`list --json` 은 목록의 줄만 내므로 본문과 인수 조건이 빠진다. 백로그 전체를 한 번에 읽거나
+ * 다른 도구에 넘길 때 이 명령을 쓴다.
  *
- * <p>본문을 함께 담는다. 인수 조건이 본문 안의 체크 항목이므로 그것 없이는 셀 수 없다.
+ * <p>본문은 상세에만 있어 항목마다 한 번씩 묻는다. 그것이 이 명령이 치르는 값이다.
  */
 async function runExport(
   argv: readonly string[],

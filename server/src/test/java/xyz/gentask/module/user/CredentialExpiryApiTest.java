@@ -53,7 +53,7 @@ class CredentialExpiryApiTest {
     private MovableClock clock;
 
     @Test
-    @DisplayName("GT-38 #6: 가입 코드의 수명이 지나면 만료를 알린다")
+    @DisplayName("가입 코드의 수명이 지나면 만료를 알린다")
     void 가입_코드가_만료된다() throws Exception {
         String email = "signup-expiry-" + UUID.randomUUID() + "@example.com";
         mockMvc.perform(post("/api/v1/auth/signup")
@@ -71,7 +71,7 @@ class CredentialExpiryApiTest {
     }
 
     @Test
-    @DisplayName("GT-39 #7: 재설정 코드의 수명이 지나면 만료를 알린다")
+    @DisplayName("재설정 코드의 수명이 지나면 만료를 알린다")
     void 재설정_코드가_만료된다() throws Exception {
         String email = "reset-expiry-" + UUID.randomUUID() + "@example.com";
         AuthTestSupport.가입한다(mockMvc, mail, email);

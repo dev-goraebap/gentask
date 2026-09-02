@@ -1,6 +1,6 @@
 import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 
-// GT-28 프로필 이미지 올리기
+// 프로필 이미지 올리기
 //
 // 올리기는 서버가 내준 presigned PUT 으로 브라우저가 보관소에 직접 보낸다.
 // 종단 테스트도 그 경로를 그대로 지나며 로컬에서는 MinIO 가 받는다.
@@ -58,8 +58,8 @@ function 아바타(page: import('@playwright/test').Page) {
   return page.getByRole('main').locator('app-user-avatar');
 }
 
-test.describe('GT-28 프로필 이미지 올리기', () => {
-  test('GT-28 #1: 이미지를 올리면 아바타 자리에 그 이미지가 온다', async ({ page }) => {
+test.describe('프로필 이미지 올리기', () => {
+  test('이미지를 올리면 아바타 자리에 그 이미지가 온다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await page.goto('/me');
 
@@ -68,7 +68,7 @@ test.describe('GT-28 프로필 이미지 올리기', () => {
     await expect(아바타(page).locator('img')).toBeVisible();
   });
 
-  test('GT-28 #3: 이미지를 지우면 아바타가 이니셜로 돌아온다', async ({ page }) => {
+  test('이미지를 지우면 아바타가 이니셜로 돌아온다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await page.goto('/me');
     await 이미지를_올린다(page);
@@ -81,7 +81,7 @@ test.describe('GT-28 프로필 이미지 올리기', () => {
   });
 
   for (const { 사유, 파일, 문구 } of 거절될_파일) {
-    test(`GT-28 #2: ${사유} 아바타 자리가 그대로 남는다`, async ({ page }) => {
+    test(`${사유} 아바타 자리가 그대로 남는다`, async ({ page }) => {
       await 빈_계정으로_바꾼다(page);
       await page.goto('/me');
 
@@ -92,7 +92,7 @@ test.describe('GT-28 프로필 이미지 올리기', () => {
       await expect(아바타(page).locator('img')).toHaveCount(0);
     });
 
-    test(`GT-28 #4: ${사유} 거절 사유를 알린다`, async ({ page }) => {
+    test(`${사유} 거절 사유를 알린다`, async ({ page }) => {
       await 빈_계정으로_바꾼다(page);
       await page.goto('/me');
 

@@ -1,6 +1,6 @@
 import { type APIRequestContext, type Page, expect } from '@playwright/test';
 
-// 트래커의 Story 넷(GT-42 · GT-43 · GT-44 · GT-55)이 함께 쓴다.
+// 트래커의 시험들이 함께 쓴다.
 //
 // 준비 데이터는 화면 조작이 아니라 API 로 만든다(결정-0008). 세울 수 있음을 확인하는 것은 그
 // Story 의 시나리오 하나가 하고, 나머지 시나리오는 이미 서 있는 것을 놓고 시작한다.
@@ -65,7 +65,7 @@ export async function 작업_아이템을_읽는다(
   return response.json();
 }
 
-/** 접두어와 번호를 사람이 부르는 이름으로 잇는다. 자릿수를 채우지 않는다(GT-60 #6). */
+/** 접두어와 번호를 사람이 부르는 이름으로 잇는다. 자릿수를 채우지 않는다. */
 export function 이름(projectKey: string, number: number): string {
   return `${projectKey}-${number}`;
 }

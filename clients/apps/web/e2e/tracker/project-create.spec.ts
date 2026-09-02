@@ -1,10 +1,10 @@
 import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 import { 기본_프로젝트, 작업_아이템을_만든다, 프로젝트를_만든다 } from './tracker-support';
 
-// GT-42 프로젝트를 세우고 고른다
+// 프로젝트를 세우는 자리.
 //
-// #1 · #2 · #7 은 접두어를 이름에서 뽑던 때의 것이라 결번이 되었다. 지금 세우는 흐름은 GT-60 이
-// 갖는다 — 이름과 접두어를 함께 받고, 주소가 담는 식별자는 시스템이 만든다.
+// 이름과 접두어를 함께 받는다. 접두어를 이름에서 뽑던 규칙은 걷었다 — 한글로만 지은 이름에서 남는
+// 것이 없어 뜻 없는 값이 나왔다. 주소가 담는 식별자는 사람이 정하지 않고 시스템이 만든다.
 
 /** 세우는 덮개를 열고 이름과 접두어를 적는다. */
 async function 적는다(
@@ -19,8 +19,8 @@ async function 적는다(
   await page.locator('#project-create-key').fill(접두어);
 }
 
-test.describe('GT-42 프로젝트를 세우고 고른다', () => {
-  test('GT-60 #1: 이름과 접두어를 적어 세우면 사람이 정하지 않은 식별자로 닿게 한다', async ({
+test.describe('프로젝트를 세우고 고른다', () => {
+  test('이름과 접두어를 적어 세우면 사람이 정하지 않은 식별자로 닿게 한다', async ({
     page,
   }) => {
     await 빈_계정으로_바꾼다(page);
@@ -35,7 +35,7 @@ test.describe('GT-42 프로젝트를 세우고 고른다', () => {
     await expect(page.getByText('GW · 작업 아이템 0 · 문서 0')).toBeVisible();
   });
 
-  test('GT-60 #2: 접두어가 비어 있거나 모양에 맞지 않으면 알린다', async ({ page }) => {
+  test('접두어가 비어 있거나 모양에 맞지 않으면 알린다', async ({ page }) => {
     await 적는다(page, '접두어를 잘못 적은 것', '한글');
     await page.locator('#project-create-key').blur();
 
@@ -47,7 +47,7 @@ test.describe('GT-42 프로젝트를 세우고 고른다', () => {
    * 접두어는 이슈 이름에만 쓰이고 해석은 주소의 식별자가 한다. 겹치지 않는 것을 뽑아 주던 자리를
    * 걷었으므로, 같은 접두어를 두 번 적어도 그대로 선다.
    */
-  test('GT-60 #3: 접두어가 겹쳐도 그대로 세운다', async ({ page }) => {
+  test('접두어가 겹쳐도 그대로 세운다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
 
     await 적는다(page, '첫째', 'DUP');
@@ -65,7 +65,7 @@ test.describe('GT-42 프로젝트를 세우고 고른다', () => {
     await expect(page.getByText('DUP · 작업 아이템 0 · 문서 0')).toHaveCount(2);
   });
 
-  test('GT-42 #4: 이름이 비어 있으면 이름이 필요함을 알린다', async ({ page }) => {
+  test('이름이 비어 있으면 이름이 필요함을 알린다', async ({ page }) => {
     await 적는다(page, '   ', 'GW');
     await page.locator('#project-create-name').blur();
 
@@ -73,7 +73,7 @@ test.describe('GT-42 프로젝트를 세우고 고른다', () => {
     await expect(page.getByRole('button', { name: '세우기' })).toBeDisabled();
   });
 
-  test('GT-42 #5: 목록을 열면 그 사용자의 프로젝트만 작업 아이템 수와 함께 낸다', async ({
+  test('목록을 열면 그 사용자의 프로젝트만 작업 아이템 수와 함께 낸다', async ({
     page,
     request,
   }) => {

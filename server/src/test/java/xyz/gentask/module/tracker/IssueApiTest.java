@@ -54,7 +54,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-43 #1: 제목을 적어 세우면 지금 프로젝트의 다음 번호를 받는다")
+    @DisplayName("제목을 적어 세우면 지금 프로젝트의 다음 번호를 받는다")
     void 세우면_다음_번호를_받는다() throws Exception {
         작업_아이템을_세운다("{\"title\":\"첫 것\"}");
         작업_아이템을_세운다("{\"title\":\"둘째 것\"}");
@@ -69,7 +69,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-43 #2: 유형을 고르지 않고 세우면 TASK 다")
+    @DisplayName("유형을 고르지 않고 세우면 TASK 다")
     void 유형을_고르지_않으면_TASK_다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"유형 없이\"}");
 
@@ -85,7 +85,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-43 #3: 본문을 적어 세우면 그 본문을 그대로 담는다")
+    @DisplayName("본문을 적어 세우면 그 본문을 그대로 담는다")
     void 본문을_그대로_담는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"본문 있는 것\",\"body\":\"첫 줄\\n\\n둘째 줄\"}");
 
@@ -129,7 +129,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-43 #4: 제목이 비어 있으면 제목이 필요함을 알린다")
+    @DisplayName("제목이 비어 있으면 제목이 필요함을 알린다")
     void 제목이_비어_있으면_알린다() throws Exception {
         mockMvc.perform(post("/api/v1/projects/{projectId}/issues", projectId)
                         .cookie(session)
@@ -139,7 +139,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-43 #6: 목록을 열면 지금 프로젝트의 작업 아이템만 온다")
+    @DisplayName("목록을 열면 지금 프로젝트의 작업 아이템만 온다")
     void 목록은_지금_프로젝트의_것만_낸다() throws Exception {
         작업_아이템을_세운다("{\"title\":\"이 프로젝트의 것\"}");
 
@@ -152,7 +152,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-43 #7: 하나를 열면 본문과 부모를 함께 낸다")
+    @DisplayName("하나를 열면 본문과 부모를 함께 낸다")
     void 상세는_본문과_부모를_함께_낸다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"부모 없는 것\",\"body\":\"본문\"}");
 
@@ -165,7 +165,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-43 #8: 지금 프로젝트에 없는 번호는 없는 것으로 낸다")
+    @DisplayName("지금 프로젝트에 없는 번호는 없는 것으로 낸다")
     void 없는_번호는_없는_것으로_낸다() throws Exception {
         작업_아이템을_세운다("{\"title\":\"하나뿐\"}");
 
@@ -179,7 +179,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-55 #1: 제목과 본문을 고쳐 담으면 고친 것이 남는다")
+    @DisplayName("제목과 본문을 고쳐 담으면 고친 것이 남는다")
     void 고친_것이_남는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
 
@@ -191,7 +191,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-55 #2: 본문의 체크 항목을 고치면 바뀐 인수 조건을 그대로 읽는다")
+    @DisplayName("본문의 체크 항목을 고치면 바뀐 인수 조건을 그대로 읽는다")
     void 본문을_고치면_인수_조건도_바뀐다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"인수 조건\",\"body\":\"- [ ] #1 첫 조건\"}");
 
@@ -208,7 +208,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-55 #3: 제목이 비어 있으면 알리고 고치기 전의 것을 그대로 둔다")
+    @DisplayName("제목이 비어 있으면 알리고 고치기 전의 것을 그대로 둔다")
     void 제목이_비면_고치지_않는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"그대로 둘 것\"}");
 
@@ -222,7 +222,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-55 #5: 유형을 바꿔도 번호는 그대로다")
+    @DisplayName("유형을 바꿔도 번호는 그대로다")
     void 유형을_바꿔도_번호는_그대로다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"유형 바꿀 것\",\"kind\":\"TASK\"}");
 
@@ -234,7 +234,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-55 #6: 사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
+    @DisplayName("사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
     void 남의_것은_고치지_못한다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"내 것\"}");
 
@@ -270,7 +270,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-44 #1: 상태를 옮기면 그 상태가 항목에 남는다")
+    @DisplayName("상태를 옮기면 그 상태가 항목에 남는다")
     void 상태를_옮기면_남는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"옮길 것\"}");
 
@@ -282,7 +282,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-44 #2: 완료나 취소로 옮기면 그 순간이 닫힌 때로 남는다")
+    @DisplayName("완료나 취소로 옮기면 그 순간이 닫힌 때로 남는다")
     void 닫으면_닫힌_때가_남는다() throws Exception {
         int completed = 작업_아이템을_세운다("{\"title\":\"끝낸 것\"}");
         int canceled = 작업_아이템을_세운다("{\"title\":\"거둔 것\"}");
@@ -295,7 +295,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-44 #3: 닫힌 것을 되돌리면 닫힌 때를 지운다")
+    @DisplayName("닫힌 것을 되돌리면 닫힌 때를 지운다")
     void 되돌리면_닫힌_때를_지운다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"되돌릴 것\"}");
 
@@ -306,7 +306,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-44 #4: 이미 그 상태이면 아무것도 바꾸지 않는다")
+    @DisplayName("이미 그 상태이면 아무것도 바꾸지 않는다")
     void 같은_상태로_옮기면_바뀌지_않는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"그대로 둘 것\"}");
 
@@ -321,7 +321,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-44 #5: 사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
+    @DisplayName("사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
     void 남의_프로젝트의_항목은_없는_것으로_낸다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"내 것\"}");
 
@@ -336,7 +336,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-56 #2: 지우면 그 자리가 사라진다")
+    @DisplayName("지우면 그 자리가 사라진다")
     void 지우면_그_자리가_사라진다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"걷을 것\"}");
 
@@ -349,7 +349,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-43 #5: 지운 뒤 새로 세우면 지운 것의 번호를 다시 쓰지 않는다")
+    @DisplayName("지운 뒤 새로 세우면 지운 것의 번호를 다시 쓰지 않는다")
     void 지운_것의_번호를_다시_쓰지_않는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"지울 것\"}");
 
@@ -364,7 +364,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-56 #4: 자식이 딸려 있으면 그 자식을 지우지 않고 최상위로 올린다")
+    @DisplayName("자식이 딸려 있으면 그 자식을 지우지 않고 최상위로 올린다")
     void 지운_것의_자식은_최상위로_올라간다() throws Exception {
         int parent = 작업_아이템을_세운다("{\"title\":\"덮는 에픽\",\"kind\":\"EPIC\"}");
         int child = 작업_아이템을_세운다("{\"title\":\"딸린 것\",\"parentKey\":\"%s-%d\"}".formatted(접두어, parent));
@@ -375,7 +375,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-56 #5: 사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
+    @DisplayName("사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
     void 남의_프로젝트의_항목은_지우지_못한다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"내 것\"}");
 
@@ -388,7 +388,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("GT-56 #6: 이미 지워진 번호를 지우면 없는 것으로 낸다")
+    @DisplayName("이미 지워진 번호를 지우면 없는 것으로 낸다")
     void 이미_지워진_번호는_없는_것으로_낸다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"두 번 지울 것\"}");
         지운다(number);

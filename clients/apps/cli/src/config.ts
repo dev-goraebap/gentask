@@ -121,7 +121,7 @@ export function storeProject(
  * 토큰을 저장한다.
  *
  * <p>소유자만 읽을 수 있게 둔다. 같은 기계의 다른 사용자가 읽을 수 있으면 그 계정의 전권이 함께
- * 넘어간다. GT-11 의 #8 이 이것이다.
+ * 넘어간다. 토큰이 담긴 파일이므로 그 권한을 좁힌다.
  */
 export function storeToken(
   token: string,
@@ -152,7 +152,7 @@ export function clearToken(env: NodeJS.ProcessEnv = process.env): boolean {
  * 자격을 찾는다. 환경이 파일을 이긴다.
  *
  * <p>환경변수는 그 프로세스 하나에만 걸리므로, 저장해 둔 것을 건드리지 않고 다른 계정이나 다른
- * 서버를 한 번 볼 수 있다. GT-11 의 #9 가 이것이다.
+ * 서버를 한 번 볼 수 있다. 저장해 둔 것을 건드리지 않는 길이다.
  */
 export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const token = env['GENTASK_TOKEN']?.trim() || readStoredToken(env);

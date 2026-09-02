@@ -187,7 +187,7 @@ describe('gentask project use 가 자리마다 다르게 남는다', () => {
    * 설정 하나에 프로젝트 하나만 두면 저장소를 옮겨도 앞의 값을 그대로 본다. 조용히 남의 프로젝트를
    * 읽는 쪽이라 눈치채기 어렵다.
    */
-  it('GT-60 #7: 자리마다 따로 담는다', () => {
+  it('자리마다 따로 담는다', () => {
     storeProject('AAAAAAAAAAAA', env, '/work/one');
     storeProject('BBBBBBBBBBBB', env, '/work/two');
 
@@ -197,7 +197,7 @@ describe('gentask project use 가 자리마다 다르게 남는다', () => {
   });
 
   /** 저장소의 하위에서 불러도 같은 프로젝트를 본다. 어디서 멈출지 정할 필요는 없다. */
-  it('GT-60 #7: 하위 디렉터리에서 불러도 가장 가까운 자리를 고른다', () => {
+  it('하위 디렉터리에서 불러도 가장 가까운 자리를 고른다', () => {
     storeProject('AAAAAAAAAAAA', env, '/work/one');
     storeProject('CCCCCCCCCCCC', env, '/work/one/clients');
 
@@ -206,7 +206,7 @@ describe('gentask project use 가 자리마다 다르게 남는다', () => {
   });
 
   /** 윈도우의 역슬래시와 대소문자가 같은 자리를 둘로 만들지 않는다. */
-  it('GT-60 #7: 경로의 모양이 달라도 같은 자리로 본다', () => {
+  it('경로의 모양이 달라도 같은 자리로 본다', () => {
     storeProject('AAAAAAAAAAAA', env, String.raw`C:\Work\One`);
 
     expect(readStoredProject(env, 'c:/work/one/server')).toBe('AAAAAAAAAAAA');
@@ -226,7 +226,7 @@ describe('gentask issue rm', () => {
    * 명령줄에는 되물을 사람이 없다. 되묻는 자리를 지나야 한다는 것(ITM-005)을 여기서는 무엇이
    * 지워지는지 보이고 멈추는 것으로 지킨다.
    */
-  it('GT-56 #7: --yes 가 없으면 지울 것만 보이고 지우지 않는다', async () => {
+  it('--yes 가 없으면 지울 것만 보이고 지우지 않는다', async () => {
     const { calls, fetchFn } = spy([
       { body: issue({}, { key: 'GT-30', number: 30, title: '걷을 것' }) },
       { body: [] },
@@ -240,7 +240,7 @@ describe('gentask issue rm', () => {
     expect(calls.some((call) => call.method === 'DELETE')).toBe(false);
   });
 
-  it('GT-56 #7: --yes 를 주면 지우고 딸린 것이 올라감을 알린다', async () => {
+  it('--yes 를 주면 지우고 딸린 것이 올라감을 알린다', async () => {
     const { calls, fetchFn } = spy([
       { body: issue({}, { key: 'GT-30', number: 30, title: '걷을 것' }) },
       { body: [summary({ key: 'GT-31', number: 31, parentKey: 'GT-30' })] },
@@ -271,7 +271,7 @@ describe('gentask issue export', () => {
   });
 
   /*
-   * 추적 검사가 이것을 읽는다. 본문과 인수 조건이 함께 담기지 않으면 그 검사가 아무것도 세지 못한다.
+   * 목록의 줄에는 본문이 없다. 그것 없이 내리면 인수 조건이 통째로 빠져 백로그를 옮길 수 없다.
    */
   it('본문과 인수 조건을 함께 담아 내린다', async () => {
     const criteria = [{ number: 1, sentence: '무엇을 한다', verified: false, retired: false }];
