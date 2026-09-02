@@ -60,7 +60,8 @@ export function displayWidth(text: string): number {
   return width;
 }
 
-function padTo(text: string, target: number): string {
+/** 표의 세로줄을 맞춘다. 글자 수가 아니라 칸 수로 센다. */
+export function padTo(text: string, target: number): string {
   return text + ' '.repeat(Math.max(0, target - displayWidth(text)));
 }
 

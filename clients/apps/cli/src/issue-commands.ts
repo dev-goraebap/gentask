@@ -1,5 +1,5 @@
 import { parseArgs } from 'node:util';
-import { readConfig, storeProject } from './config.js';
+import { currentProject, readConfig, storeProject } from './config.js';
 import type { GentaskClient, IssueKind, IssueState, IssueSummary } from './gentask-client.js';
 import { formatIssue, formatIssues } from './issue-format.js';
 
@@ -39,31 +39,6 @@ export const ISSUE_HELP = `작업 아이템
 프로젝트
   project list                   내 프로젝트와 그 식별자를 봅니다
   project use <식별자>           이 자리의 프로젝트를 정합니다. 지금 디렉터리에 매여 남습니다`;
-
-/**
- * 지금 자리의 프로젝트.
- *
- * <p>정해지지 않았으면 무엇을 하면 되는지까지 알린다. 부르는 것이 사람일 수도 에이전트일 수도
- * 있으므로 <b>부르는 쪽이 스스로 실행할 수 있는 명령</b>으로 적는다 — 사람에게 부탁하라는 말로
- * 읽히면 에이전트가 거기서 멈춘다.
- */
-function currentProject(env: NodeJS.ProcessEnv): string {
-  const projectId = readConfig(env).projectId;
-  if (projectId === null) {
-    throw new Error(
-      [
-        '이 자리의 프로젝트가 정해지지 않았습니다. 아래를 차례로 실행하면 정해집니다.',
-        '',
-        '  gentask project list           내 프로젝트와 그 식별자를 봅니다',
-        '  gentask project use <식별자>   이 자리의 프로젝트로 둡니다',
-        '',
-        '고른 것은 지금 디렉터리에 매여 저장되므로 다른 저장소의 것을 건드리지 않습니다.',
-        '한 번만 다른 것을 보려면 GENTASK_PROJECT 로 넘깁니다.',
-      ].join('\n'),
-    );
-  }
-  return projectId;
-}
 
 /** 사람이 부르는 이름에서 번호를 읽는다. 붙이는 규칙은 서버가 갖는다. */
 function numberOf(key: string): number {

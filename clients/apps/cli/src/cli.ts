@@ -8,6 +8,7 @@ import {
   readStoredToken,
   storeToken,
 } from './config.js';
+import { DOC_HELP, runDoc } from './doc-commands.js';
 import { GentaskClient, type Task } from './gentask-client.js';
 import { formatList, formatTask } from './format.js';
 import { ISSUE_HELP, runIssue, runProject } from './issue-commands.js';
@@ -49,6 +50,8 @@ const HELP = `gentask — 작업을 명령줄에서 다룹니다
 
 ${ISSUE_HELP}
 
+${DOC_HELP}
+
 식별자는 앞 몇 자만 적어도 됩니다. 그것으로 하나가 가려지지 않으면 그 사실을 알립니다.`;
 
 /**
@@ -74,6 +77,10 @@ export async function run(
 
   if (command === 'issue') {
     return await runIssue(rest, makeClient(), env);
+  }
+
+  if (command === 'doc') {
+    return await runDoc(rest, makeClient(), env);
   }
 
   if (command === 'project') {

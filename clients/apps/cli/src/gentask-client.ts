@@ -21,6 +21,12 @@ export type Issue = components['schemas']['IssueView'];
 export type IssueKind = NonNullable<components['schemas']['CreateIssue']['kind']>;
 export type IssueState = components['schemas']['ChangeState']['state'];
 
+/** 목록의 문서 한 줄. */
+export type DocSummary = components['schemas']['DocumentSummary'];
+
+/** 지금 참인 개정의 본문까지 담은 문서. */
+export type Doc = components['schemas']['DocumentView'];
+
 /**
  * 서버가 거절했다.
  *
@@ -142,6 +148,32 @@ export class GentaskClient {
     await this.raw('DELETE', `${issuesPath(projectId)}/${number}`);
   }
 
+  // --- 문서 ---------------------------------------------------------------------------------------
+  docs(projectId: string): Promise<readonly DocSummary[]> {
+    return this.send<readonly DocSummary[]>('GET', docsPath(projectId));
+  }
+
+  /** 본문은 여기에만 있다. 목록의 줄은 제목과 때만 갖는다. */
+  doc(projectId: string, documentId: string): Promise<Doc> {
+    return this.send<Doc>('GET', `${docsPath(projectId)}/${encodeURIComponent(documentId)}`);
+  }
+
+  /** 세운 것의 식별자는 Location 헤더가 낸다. 문서는 번호를 매기지 않는다. */
+  async addDoc(projectId: string, fields: { title: string; body?: string }): Promise<string> {
+    const response = await this.raw('POST', docsPath(projectId), fields);
+    const location = response.headers.get('location') ?? '';
+    return location.split('/').pop() ?? '';
+  }
+
+  /** 제목과 본문을 함께 보낸다. 서버의 편집은 부분 갱신이 아니라 그 둘을 그대로 받는다. */
+  async editDoc(
+    projectId: string,
+    documentId: string,
+    fields: { title: string; body: string; comment?: string | null },
+  ): Promise<void> {
+    await this.raw('PATCH', `${docsPath(projectId)}/${encodeURIComponent(documentId)}`, fields);
+  }
+
   // --- 보조 ---------------------------------------------------------------------------------------
 
   private async send<T>(method: string, path: string): Promise<T> {
@@ -168,6 +200,10 @@ export class GentaskClient {
 
 function issuesPath(projectId: string): string {
   return `/api/v1/projects/${encodeURIComponent(projectId)}/issues`;
+}
+
+function docsPath(projectId: string): string {
+  return `/api/v1/projects/${encodeURIComponent(projectId)}/documents`;
 }
 
 /**

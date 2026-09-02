@@ -1,4 +1,4 @@
-import { displayWidth } from './format.js';
+import { displayWidth, padTo } from './format.js';
 import type { Issue, IssueSummary } from './gentask-client.js';
 
 /**
@@ -29,10 +29,6 @@ export function kindLabel(kind: IssueSummary['kind']): string {
 
 export function stateLabel(state: IssueSummary['state']): string {
   return STATE_LABEL[state];
-}
-
-function padTo(text: string, target: number): string {
-  return text + ' '.repeat(Math.max(0, target - displayWidth(text)));
 }
 
 /**

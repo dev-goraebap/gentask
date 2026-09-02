@@ -149,6 +149,33 @@ export function clearToken(env: NodeJS.ProcessEnv = process.env): boolean {
 }
 
 /**
+ * 지금 자리의 프로젝트. 정해지지 않았으면 무엇을 하면 되는지까지 알린다.
+ *
+ * <p>부르는 것이 사람일 수도 에이전트일 수도 있으므로 <b>부르는 쪽이 스스로 실행할 수 있는
+ * 명령</b>으로 적는다 — 사람에게 부탁하라는 말로 읽히면 에이전트가 거기서 멈춘다.
+ *
+ * <p>프로젝트 아래에 선 것이 작업 아이템만이 아니므로 자리를 여기에 둔다. 문서도 같은 것을 묻고
+ * 같은 말을 들어야 한다.
+ */
+export function currentProject(env: NodeJS.ProcessEnv = process.env): string {
+  const projectId = readConfig(env).projectId;
+  if (projectId === null) {
+    throw new Error(
+      [
+        '이 자리의 프로젝트가 정해지지 않았습니다. 아래를 차례로 실행하면 정해집니다.',
+        '',
+        '  gentask project list           내 프로젝트와 그 식별자를 봅니다',
+        '  gentask project use <식별자>   이 자리의 프로젝트로 둡니다',
+        '',
+        '고른 것은 지금 디렉터리에 매여 저장되므로 다른 저장소의 것을 건드리지 않습니다.',
+        '한 번만 다른 것을 보려면 GENTASK_PROJECT 로 넘깁니다.',
+      ].join('\n'),
+    );
+  }
+  return projectId;
+}
+
+/**
  * 자격을 찾는다. 환경이 파일을 이긴다.
  *
  * <p>환경변수는 그 프로세스 하나에만 걸리므로, 저장해 둔 것을 건드리지 않고 다른 계정이나 다른
