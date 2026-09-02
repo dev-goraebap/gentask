@@ -8,14 +8,12 @@ export const ROUTES = {
   todo: () => '/todo',
   taskList: (view = 'all') => `/todo/${view}`,
 
-  /*
-   * 메모와 팻과 뽀모도로는 모드에 매이지 않는다. 다른 모드의 메뉴에서도 더보기로 서야 하므로
-   * 어느 그릇 안에도 넣지 않는다.
-   */
-  memos: () => '/memos',
-
   account: () => '/me',
 
+  /*
+   * 팻과 뽀모도로는 모드에 매이지 않는다. 다른 모드의 메뉴에서도 더보기로 서야 하므로 어느 그릇
+   * 안에도 넣지 않는다.
+   */
   pets: () => '/pets',
   pomodoro: () => '/pomodoro',
 
@@ -50,12 +48,6 @@ export const ISSUE_CREATE_PANEL = {
   param: 'new',
   open: () => ({ new: 1 }),
   close: () => ({ new: null }),
-} as const;
-
-/** 고른 메모. 곁자리의 목록에서 무엇을 펼쳐 두었는가를 주소가 갖는다. */
-export const MEMO_PANEL = {
-  param: 'memo',
-  open: (id: string) => ({ memo: id }),
 } as const;
 
 /** 세우는 중인 프로젝트. 덮개가 열려 있는가를 주소가 갖는다. */

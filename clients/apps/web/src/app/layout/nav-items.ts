@@ -23,15 +23,11 @@ export const NAV_GROUPS = new InjectionToken<Signal<readonly NavGroup[]>>('NAV_G
     signal<readonly NavGroup[]>([
       {
         label: '작업',
-        items: [
-          ...TASK_VIEWS.map((view) => ({
-            label: view.label,
-            icon: view.icon,
-            link: ROUTES.taskList(view.value),
-          })),
-          // 메모는 목록을 거른 것이 아니라 정리 전의 자리다. 같은 갈래에 두되 뒤에 붙인다.
-          { label: '메모', icon: 'hgiNote' as const, link: ROUTES.memos() },
-        ],
+        items: TASK_VIEWS.map((view) => ({
+          label: view.label,
+          icon: view.icon,
+          link: ROUTES.taskList(view.value),
+        })),
       },
       // 프로젝트는 할 일과 갈래가 다르므로 이름 없는 묶음으로 사이에 선다.
       { items: [PROJECTS_NAV_ITEM] },

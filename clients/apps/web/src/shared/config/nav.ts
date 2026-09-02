@@ -46,7 +46,6 @@ export const PROJECTS_NAV_ITEM: NavItem = {
  */
 export const TODO_BOTTOM_NAV: readonly NavItem[] = [
   { label: '작업', icon: 'hgiTask', link: ROUTES.taskList('my-day') },
-  { label: '메모', icon: 'hgiNote', link: ROUTES.memos() },
   PROJECTS_NAV_ITEM,
 ];
 

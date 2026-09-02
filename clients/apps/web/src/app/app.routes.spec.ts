@@ -53,12 +53,10 @@ describe('app.routes 의 첫 자리', () => {
   it('모드에 매이지 않는 자리는 그릇 밖에 선다', () => {
     const paths = shellChildren().map((child) => child.path);
 
-    expect(paths).toContain('memos');
     expect(paths).toContain('pets');
     expect(paths).toContain('pomodoro');
     expect(paths).toContain('me');
 
-    expect(ROUTES.memos()).toBe('/memos');
     expect(ROUTES.account()).toBe('/me');
   });
 

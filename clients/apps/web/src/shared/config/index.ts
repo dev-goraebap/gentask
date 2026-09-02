@@ -1,11 +1,5 @@
 export { CURRENT_PROJECT_ID } from './project-scope';
-export {
-  ISSUE_CREATE_PANEL,
-  MEMO_PANEL,
-  PROJECT_CREATE_PANEL,
-  ROUTES,
-  TASK_PANEL,
-} from './routes';
+export { ISSUE_CREATE_PANEL, PROJECT_CREATE_PANEL, ROUTES, TASK_PANEL } from './routes';
 export {
   MORE_NAV_ITEMS,
   MORE_SHEET_ITEMS,
