@@ -3,6 +3,7 @@
 // 키의 규약은 결정-0007 이, 층의 규약은 결정-0008 이 갖는다.
 //   끊긴 참조 — 없는 인수 조건을 가리키는 접두어. 오류이며 종료 코드 1.
 //   미검증    — 그 인수 조건을 덮는 층이 하나도 없다. 진행 상태이며 목록만 낸다.
+//   취소      — 항목이 CANCELED 다. 요구가 아니므로 세지 않고 목록에만 남긴다.
 //   Story 는 E2E 열이 채워졌을 때 닫는다.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -67,6 +68,14 @@ try {
 
 const criteria = [];
 for (const issue of exported.issues) {
+  /*
+   * 취소된 항목은 근거를 잃어 더 이상 유효하지 않은 것이다(결정-0007). 그 인수 조건이 테스트를
+   * 요구하면 지워진 요구가 계속 미검증으로 남고, 진짜 빈 자리가 그 속에 묻힌다.
+   *
+   * <p>목록에서 빼지 않고 세는 데서만 뺀다. 빼 버리면 그것을 가리키던 접두어가 없는 인수 조건을
+   * 가리키는 것이 되어 끊긴 참조로 잡히는데, 그것은 오류가 아니라 취소되기 전에 쓴 테스트다.
+   */
+  const canceled = issue.state === 'CANCELED';
   // 경계를 표시하지 않는다. `#n` 이 붙은 체크 항목 자체가 인수 조건이다. 화면의 편집기가 HTML
   // 주석을 담을 자리를 갖지 않아, 마커로 가르면 저장하는 순간 인수 조건이 사라진다.
   for (const criterion of issue.criteria) {
@@ -79,6 +88,7 @@ for (const issue of exported.issues) {
       key: `${issue.key} #${criterion.number}`,
       text: criterion.sentence.replace(/^\[서버\]\s*/, ''),
       serverOnly,
+      canceled,
     });
   }
 }
@@ -104,8 +114,10 @@ for (const [layer, dir, matches] of SOURCES) {
 const known = new Set(criteria.map((c) => c.key));
 const dangling = [...referenced].filter(([key]) => !known.has(key));
 const layersOf = (key) => referenced.get(key)?.layers ?? new Set();
-const uncovered = criteria.filter((c) => layersOf(c.key).size === 0);
-const openStories = criteria.filter((c) => !c.serverOnly && !layersOf(c.key).has('E2E'));
+const uncovered = criteria.filter((c) => !c.canceled && layersOf(c.key).size === 0);
+const openStories = criteria.filter(
+  (c) => !c.canceled && !c.serverOnly && !layersOf(c.key).has('E2E'),
+);
 
 for (const [key, hit] of dangling) console.error(`끊긴 참조  ${key}  ${hit.file}`);
 
@@ -113,14 +125,28 @@ for (const c of criteria) {
   const layers = layersOf(c.key);
   const mark = (name) => `${name} ${layers.has(name) ? '✓' : '-'}`;
   const covered = layers.size > 0;
-  const state = !covered ? '미검증' : c.serverOnly ? '닫힘[서버]' : layers.has('E2E') ? '닫힘' : '열림';
+  const state = c.canceled
+    ? '취소'
+    : !covered
+      ? '미검증'
+      : c.serverOnly
+        ? '닫힘[서버]'
+        : layers.has('E2E')
+          ? '닫힘'
+          : '열림';
   console.log(
     `${c.key.padEnd(14)} ${c.serverOnly ? 'E2E 면제' : mark('E2E')}  ${mark('BE')}  ${mark('FE')}  ${mark('CLI')}   ${state.padEnd(10)} ${c.text.slice(0, 36)}`,
   );
 }
 
+// 취소된 것을 센 자리에 함께 두면 덮인 수가 실제보다 커진다. 세는 모수에서 먼저 뺀다.
+const canceledCount = criteria.filter((c) => c.canceled).length;
+const live = criteria.length - canceledCount;
+
 console.log(
-  `\n인수 조건 ${criteria.length}건 — 덮임 ${criteria.length - uncovered.length}, ` +
-    `미검증 ${uncovered.length}, E2E 미도달 ${openStories.length}, 끊긴 참조 ${dangling.length}`,
+  `\n인수 조건 ${criteria.length}건 — 취소 ${canceledCount} 을 뺀 ${live}건 가운데 ` +
+    `덮임 ${live - uncovered.length}, 미검증 ${uncovered.length}, ` +
+    `E2E 미도달 ${openStories.length}, 끊긴 참조 ${dangling.length}`,
 );
+
 process.exit(dangling.length ? 1 : 0);
