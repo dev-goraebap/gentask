@@ -27,6 +27,15 @@ export type DocSummary = components['schemas']['DocumentSummary'];
 /** 지금 참인 개정의 본문까지 담은 문서. */
 export type Doc = components['schemas']['DocumentView'];
 
+/** 개정 이력의 한 줄. 본문은 담지 않는다. */
+export type DocRevisionSummary = components['schemas']['RevisionSummary'];
+
+/** 이력의 한 쪽. 전체 수를 함께 주므로 더 볼 것이 남았는지 부르는 쪽이 안다. */
+export type DocRevisionPage = components['schemas']['RevisionPageView'];
+
+/** 그때의 제목과 본문까지 담은 개정 하나. */
+export type DocRevision = components['schemas']['RevisionView'];
+
 /**
  * 서버가 거절했다.
  *
@@ -174,6 +183,55 @@ export class GentaskClient {
     await this.raw('PATCH', `${docsPath(projectId)}/${encodeURIComponent(documentId)}`, fields);
   }
 
+  /**
+   * 개정 이력의 한 쪽을 읽는다.
+   *
+   * <p>최근 것부터 오는 것은 서버가 정한다. 여기서 다시 세우지 않는 것은 두 자리가 어긋날 때 어느
+   * 쪽이 참인지 판정할 근거가 없기 때문이다.
+   */
+  revisions(
+    projectId: string,
+    documentId: string,
+    page?: { page?: number; size?: number },
+  ): Promise<DocRevisionPage> {
+    const query = new URLSearchParams();
+    if (page?.page !== undefined) {
+      query.set('page', String(page.page));
+    }
+    if (page?.size !== undefined) {
+      query.set('size', String(page.size));
+    }
+    const suffix = query.size === 0 ? '' : `?${query.toString()}`;
+    return this.send<DocRevisionPage>('GET', `${revisionsPath(projectId, documentId)}${suffix}`);
+  }
+
+  /** 그때의 본문은 여기에만 있다. 이력의 줄은 번호와 때와 사유만 갖는다. */
+  revision(projectId: string, documentId: string, revisionNo: number): Promise<DocRevision> {
+    return this.send<DocRevision>(
+      'GET',
+      `${revisionsPath(projectId, documentId)}/${revisionNo}`,
+    );
+  }
+
+  /**
+   * 그 개정의 본문을 담은 새 개정을 남긴다.
+   *
+   * <p>사이의 개정을 지우지 않으므로 되돌리기도 앞으로 가는 것이다(DOC-005). 사유를 넘기지 않으면
+   * 서버가 몇 번으로 되돌렸는지를 스스로 적으므로 여기서 그 문구를 만들지 않는다.
+   */
+  async revertDoc(
+    projectId: string,
+    documentId: string,
+    revisionNo: number,
+    comment?: string,
+  ): Promise<void> {
+    await this.raw(
+      'POST',
+      `${revisionsPath(projectId, documentId)}/${revisionNo}/revert`,
+      comment === undefined ? {} : { comment },
+    );
+  }
+
   // --- 보조 ---------------------------------------------------------------------------------------
 
   private async send<T>(method: string, path: string): Promise<T> {
@@ -204,6 +262,10 @@ function issuesPath(projectId: string): string {
 
 function docsPath(projectId: string): string {
   return `/api/v1/projects/${encodeURIComponent(projectId)}/documents`;
+}
+
+function revisionsPath(projectId: string, documentId: string): string {
+  return `${docsPath(projectId)}/${encodeURIComponent(documentId)}/revisions`;
 }
 
 /**
