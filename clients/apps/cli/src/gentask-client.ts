@@ -9,6 +9,18 @@ import type { components } from 'api-types';
  */
 export type Task = components['schemas']['TaskView'];
 
+/** 프로젝트 하나. 접두어가 주소와 번호 앞에 붙는 이름이다. */
+export type Project = components['schemas']['ProjectView'];
+
+/** 목록의 작업 아이템 한 줄. */
+export type IssueSummary = components['schemas']['IssueSummary'];
+
+/** 본문과 인수 조건까지 담은 작업 아이템. */
+export type Issue = components['schemas']['IssueView'];
+
+export type IssueKind = NonNullable<components['schemas']['CreateIssue']['kind']>;
+export type IssueState = components['schemas']['ChangeState']['state'];
+
 /**
  * 서버가 거절했다.
  *
@@ -88,6 +100,43 @@ export class GentaskClient {
     await this.raw('DELETE', `/api/v1/tasks/${encodeURIComponent(taskId)}`);
   }
 
+  // --- 프로젝트 -----------------------------------------------------------------------------------
+  projects(): Promise<readonly Project[]> {
+    return this.send<readonly Project[]>('GET', '/api/v1/projects');
+  }
+
+  // --- 작업 아이템 --------------------------------------------------------------------------------
+  issues(projectKey: string): Promise<readonly IssueSummary[]> {
+    return this.send<readonly IssueSummary[]>('GET', `${issuesPath(projectKey)}`);
+  }
+
+  issue(projectKey: string, number: number): Promise<Issue> {
+    return this.send<Issue>('GET', `${issuesPath(projectKey)}/${number}`);
+  }
+
+  /** 세운 것의 번호는 Location 헤더가 낸다. 번호는 서버가 매긴다. */
+  async addIssue(
+    projectKey: string,
+    fields: { title: string; kind?: IssueKind; body?: string; parentKey?: string | null },
+  ): Promise<number> {
+    const response = await this.raw('POST', issuesPath(projectKey), fields);
+    const location = response.headers.get('location') ?? '';
+    return Number(location.split('/').pop());
+  }
+
+  /** 셋을 함께 보낸다. 서버의 편집은 부분 갱신이 아니라 그 셋을 그대로 받는다. */
+  async editIssue(
+    projectKey: string,
+    number: number,
+    fields: { title: string; kind: IssueKind; body: string; parentKey: string | null },
+  ): Promise<void> {
+    await this.raw('PATCH', `${issuesPath(projectKey)}/${number}`, fields);
+  }
+
+  async setIssueState(projectKey: string, number: number, state: IssueState): Promise<void> {
+    await this.raw('PATCH', `${issuesPath(projectKey)}/${number}/state`, { state });
+  }
+
   // --- 보조 ---------------------------------------------------------------------------------------
 
   private async send<T>(method: string, path: string): Promise<T> {
@@ -110,6 +159,10 @@ export class GentaskClient {
     }
     return response;
   }
+}
+
+function issuesPath(projectKey: string): string {
+  return `/api/v1/projects/${encodeURIComponent(projectKey)}/issues`;
 }
 
 /**

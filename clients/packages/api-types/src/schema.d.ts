@@ -84,6 +84,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_2"];
+        put?: never;
+        post: operations["create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectKey}/issues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_3"];
+        put?: never;
+        post: operations["add_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/api-token": {
         parameters: {
             query?: never;
@@ -340,6 +372,54 @@ export interface paths {
         patch: operations["changeCompletion"];
         trace?: never;
     };
+    "/api/v1/projects/{projectKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["detail_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["rename"];
+        trace?: never;
+    };
+    "/api/v1/projects/{projectKey}/issues/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["detail_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["edit_1"];
+        trace?: never;
+    };
+    "/api/v1/projects/{projectKey}/issues/{number}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["changeState"];
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -379,7 +459,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_2"];
+        get: operations["list_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -395,7 +475,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_3"];
+        get: operations["list_5"];
         put?: never;
         post?: never;
         delete?: never;
@@ -456,6 +536,20 @@ export interface components {
             endpoint: string;
             p256dh: string;
             auth: string;
+        };
+        CreateProject: {
+            name: string;
+        };
+        CreateIssue: {
+            title: string;
+            /**
+             * @description 고르지 않으면 TASK 다
+             * @enum {string}
+             */
+            kind?: "EPIC" | "STORY" | "TASK" | "BUG";
+            body?: string;
+            /** @description 부모의 이름(TG-041). 없으면 최상위다 */
+            parentKey?: string | null;
         };
         IssuedApiToken: {
             token: string;
@@ -518,6 +612,21 @@ export interface components {
         ChangeCompletion: {
             completed: boolean;
         };
+        RenameProject: {
+            name: string;
+        };
+        EditIssue: {
+            title: string;
+            /** @enum {string} */
+            kind: "EPIC" | "STORY" | "TASK" | "BUG";
+            body: string;
+            /** @description 부모의 이름(TG-041). 비우면 최상위가 된다 */
+            parentKey: string | null;
+        };
+        ChangeState: {
+            /** @enum {string} */
+            state: "BACKLOG" | "UNSTARTED" | "STARTED" | "COMPLETED" | "CANCELED";
+        };
         ChangeNickname: {
             nickname: string;
         };
@@ -546,6 +655,62 @@ export interface components {
         };
         PushConfigView: {
             publicKey: string;
+        };
+        ProjectView: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description 작업 아이템 번호의 접두어 */
+            key: string;
+            /** Format: int32 */
+            issueCount: number;
+        };
+        IssueSummary: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description 사람이 부르는 이름. 접두어와 번호다
+             * @example TG-030
+             */
+            key: string;
+            /** Format: int32 */
+            number: number;
+            /** @enum {string} */
+            kind: "EPIC" | "STORY" | "TASK" | "BUG";
+            /** @enum {string} */
+            state: "BACKLOG" | "UNSTARTED" | "STARTED" | "COMPLETED" | "CANCELED";
+            title: string;
+            parentKey: string | null;
+            /** Format: date */
+            dueDate: string | null;
+            /** Format: date-time */
+            closedAt: string | null;
+            /** Format: int32 */
+            childCount: number;
+            /** Format: int32 */
+            closedChildCount: number;
+            /** Format: int32 */
+            criteriaCount: number;
+            /** Format: int32 */
+            unverifiedCount: number;
+        };
+        AcceptanceCriterionView: {
+            /** Format: int32 */
+            number: number;
+            sentence: string;
+            verified: boolean;
+            /** @description 결번인가 */
+            retired: boolean;
+        };
+        IssueView: {
+            summary: components["schemas"]["IssueSummary"];
+            /** @description 마크다운. 인수 조건이 이 안에 있다 */
+            body: string;
+            criteria: components["schemas"]["AcceptanceCriterionView"][];
+            /** @description 세운 사람의 별명 */
+            authorName: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         MeView: {
             /** Format: uuid */
@@ -830,6 +995,94 @@ export interface operations {
         responses: {
             /** @description No Content */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProjectView"][];
+                };
+            };
+        };
+    };
+    create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProject"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["IssueSummary"][];
+                };
+            };
+        };
+    };
+    add_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateIssue"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1249,6 +1502,125 @@ export interface operations {
             };
         };
     };
+    detail_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProjectView"];
+                };
+            };
+        };
+    };
+    rename: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenameProject"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    detail_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectKey: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["IssueView"];
+                };
+            };
+        };
+    };
+    edit_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectKey: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditIssue"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    changeState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectKey: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeState"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     me: {
         parameters: {
             query?: never;
@@ -1311,7 +1683,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_4: {
         parameters: {
             query?: {
                 keyword?: string;
@@ -1335,7 +1707,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_5: {
         parameters: {
             query?: {
                 includeResolved?: boolean;

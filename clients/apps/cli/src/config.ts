@@ -10,6 +10,8 @@ import { dirname, join } from 'node:path';
 export interface Config {
   readonly baseUrl: string;
   readonly token: string;
+  /** 지금 프로젝트의 접두어. 작업 아이템 명령이 이것 아래에서 돈다. 없으면 명령이 그때 알린다. */
+  readonly projectKey: string | null;
 }
 
 export const DEFAULT_BASE_URL = 'https://api.gentask.xyz';
@@ -36,17 +38,39 @@ export function configPath(env: NodeJS.ProcessEnv = process.env): string {
 
 interface StoredConfig {
   token?: string;
+  projectKey?: string;
+}
+
+function readStored(env: NodeJS.ProcessEnv): StoredConfig {
+  try {
+    return JSON.parse(readFileSync(configPath(env), 'utf8')) as StoredConfig;
+  } catch {
+    return {};
+  }
 }
 
 /** 저장된 토큰. 파일이 없거나 읽을 수 없으면 없는 것으로 본다. */
 export function readStoredToken(env: NodeJS.ProcessEnv = process.env): string | null {
-  try {
-    const raw = readFileSync(configPath(env), 'utf8');
-    const stored = JSON.parse(raw) as StoredConfig;
-    return stored.token?.trim() || null;
-  } catch {
-    return null;
-  }
+  return readStored(env).token?.trim() || null;
+}
+
+/** 저장된 프로젝트 접두어. */
+export function readStoredProject(env: NodeJS.ProcessEnv = process.env): string | null {
+  return readStored(env).projectKey?.trim() || null;
+}
+
+/**
+ * 지금 프로젝트를 저장한다. 토큰은 그대로 둔다.
+ *
+ * <p>프로젝트를 고르는 일이 자격을 다시 받는 일이 되어서는 안 되므로 두 값을 따로 쓴다.
+ */
+export function storeProject(projectKey: string, env: NodeJS.ProcessEnv = process.env): string {
+  const path = configPath(env);
+  const stored = readStored(env);
+  mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
+  writeFileSync(path, `${JSON.stringify({ ...stored, projectKey }, null, 2)}\n`, { mode: 0o600 });
+  chmodSync(path, 0o600);
+  return path;
 }
 
 /**
@@ -57,8 +81,9 @@ export function readStoredToken(env: NodeJS.ProcessEnv = process.env): string | 
  */
 export function storeToken(token: string, env: NodeJS.ProcessEnv = process.env): string {
   const path = configPath(env);
+  const stored = readStored(env);
   mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
-  writeFileSync(path, `${JSON.stringify({ token }, null, 2)}\n`, { mode: 0o600 });
+  writeFileSync(path, `${JSON.stringify({ ...stored, token }, null, 2)}\n`, { mode: 0o600 });
   chmodSync(path, 0o600);
   return path;
 }
@@ -87,5 +112,6 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   return {
     baseUrl: (env['GENTASK_BASE_URL']?.trim() || DEFAULT_BASE_URL).replace(/\/+$/, ''),
     token,
+    projectKey: env['GENTASK_PROJECT']?.trim() || readStoredProject(env),
   };
 }

@@ -54,7 +54,7 @@ public class IssueService {
 
     // --- 명령 --------------------------------------------------------------------------------------------------------
     @Transactional
-    public int add(UUID userId, String projectKey, String title, IssueKind kind, String body) {
+    public int add(UUID userId, String projectKey, String title, IssueKind kind, String body, String parentKey) {
         Project project = projectService.find(userId, projectKey);
         Instant now = clock.instant();
         int number = project.issueNumber(now);
@@ -70,6 +70,7 @@ public class IssueService {
                 userId,
                 number * ORDINAL_STEP,
                 now);
+        issue.changeParent(parentOf(project, parentKey), now);
         issueRepository.save(issue);
         return number;
     }
@@ -81,13 +82,44 @@ public class IssueService {
      * (ITM-004 A3).
      */
     @Transactional
-    public void edit(UUID userId, String projectKey, int number, String title, IssueKind kind, String body) {
-        Issue issue = find(userId, projectKey, number);
+    public void edit(
+            UUID userId, String projectKey, int number, String title, IssueKind kind, String body, String parentKey) {
+        Project project = projectService.find(userId, projectKey);
+        Issue issue =
+                issueRepository.findByNumber(project.id(), number).orElseThrow(TrackerErrorCode.ISSUE_NOT_FOUND::raise);
+
         Instant now = clock.instant();
         issue.changeTitle(IssueTitle.of(title), now);
         issue.changeKind(kind, now);
         issue.changeBody(IssueBody.of(body), now);
+        issue.changeParent(parentOf(project, parentKey), now);
         issueRepository.save(issue);
+    }
+
+    /**
+     * 부모의 이름을 그 식별자로 옮긴다.
+     *
+     * <p>스스로를 부모로 두는 것은 표의 check 가 막지만, 여기서 먼저 걸러 그 자리가 500 이 아니라
+     * 사람이 읽는 말로 나가게 한다.
+     */
+    private UUID parentOf(Project project, String parentKey) {
+        if (parentKey == null || parentKey.isBlank()) {
+            return null;
+        }
+        int number = numberOf(parentKey);
+        return issueRepository
+                .findByNumber(project.id(), number)
+                .map(Issue::id)
+                .orElseThrow(TrackerErrorCode.ISSUE_NOT_FOUND::raise);
+    }
+
+    /** 사람이 부르는 이름에서 번호를 읽는다. 붙이는 규칙은 이 서버가 갖는다. */
+    private static int numberOf(String key) {
+        try {
+            return Integer.parseInt(key.substring(key.lastIndexOf('-') + 1));
+        } catch (NumberFormatException ignored) {
+            throw TrackerErrorCode.ISSUE_NOT_FOUND.raise();
+        }
     }
 
     @Transactional

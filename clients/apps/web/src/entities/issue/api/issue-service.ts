@@ -97,8 +97,17 @@ export class IssueService {
     const projectKey = this.projectKey();
     if (projectKey === undefined) return;
 
+    // 부모는 화면이 바꾸지 않으나 서버의 편집은 넷을 그대로 받는다. 지금 것을 되돌려 주지 않으면
+    // 고칠 때마다 계층이 끊긴다.
+    const parentKey = this.find(id)?.parentId ?? null;
+
     await firstValueFrom(
-      this.httpClient.patch(ENDPOINTS.issue(projectKey, issueNumberOf(id)), { title, kind, body }),
+      this.httpClient.patch(ENDPOINTS.issue(projectKey, issueNumberOf(id)), {
+        title,
+        kind,
+        body,
+        parentKey,
+      }),
     );
     this.resource.reload();
   }

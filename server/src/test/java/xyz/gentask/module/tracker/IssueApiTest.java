@@ -178,7 +178,7 @@ class IssueApiTest {
     void 고친_것이_남는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
 
-        고친다(number, "{\"title\":\"고친 제목\",\"kind\":\"BUG\",\"body\":\"고친 본문\"}");
+        고친다(number, "{\"title\":\"고친 제목\",\"kind\":\"BUG\",\"body\":\"고친 본문\",\"parentKey\":null}");
 
         상세(number)
                 .andExpect(jsonPath("$.summary.title").value("고친 제목"))
@@ -192,7 +192,10 @@ class IssueApiTest {
 
         상세(number).andExpect(jsonPath("$.summary.unverifiedCount").value(1));
 
-        고친다(number, "{\"title\":\"인수 조건\",\"kind\":\"TASK\"," + "\"body\":\"- [x] #1 첫 조건\\n- [ ] #2 둘째 조건\"}");
+        고친다(
+                number,
+                "{\"title\":\"인수 조건\",\"kind\":\"TASK\",\"parentKey\":null,"
+                        + "\"body\":\"- [x] #1 첫 조건\\n- [ ] #2 둘째 조건\"}");
         상세(number)
                 .andExpect(jsonPath("$.summary.criteriaCount").value(2))
                 .andExpect(jsonPath("$.summary.unverifiedCount").value(1))
@@ -207,7 +210,7 @@ class IssueApiTest {
         mockMvc.perform(patch("/api/v1/projects/{key}/issues/{number}", projectKey, number)
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"   \",\"kind\":\"TASK\",\"body\":\"\"}"))
+                        .content("{\"title\":\"   \",\"kind\":\"TASK\",\"body\":\"\",\"parentKey\":null}"))
                 .andExpect(status().isBadRequest());
 
         상세(number).andExpect(jsonPath("$.summary.title").value("그대로 둘 것"));
@@ -218,7 +221,7 @@ class IssueApiTest {
     void 유형을_바꿔도_번호는_그대로다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"유형 바꿀 것\",\"kind\":\"TASK\"}");
 
-        고친다(number, "{\"title\":\"유형 바꿀 것\",\"kind\":\"EPIC\",\"body\":\"\"}");
+        고친다(number, "{\"title\":\"유형 바꿀 것\",\"kind\":\"EPIC\",\"body\":\"\",\"parentKey\":null}");
 
         상세(number)
                 .andExpect(jsonPath("$.summary.kind").value("EPIC"))
@@ -235,9 +238,30 @@ class IssueApiTest {
         mockMvc.perform(patch("/api/v1/projects/{key}/issues/{number}", projectKey, number)
                         .cookie(other)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"바꾸기\",\"kind\":\"TASK\",\"body\":\"\"}"))
+                        .content("{\"title\":\"바꾸기\",\"kind\":\"TASK\",\"body\":\"\",\"parentKey\":null}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
+    }
+
+    /*
+     * 계층을 번호가 갖지 않으므로(결정-0007) 부모를 잇는 길이 따로 있어야 한다. 이것이 없으면
+     * 명령줄로 Epic 아래 Story 를 세울 수 없어 백로그를 CLI 로 다루지 못한다.
+     */
+    @Test
+    @DisplayName("세울 때와 고칠 때 부모를 이을 수 있다")
+    void 부모를_이을_수_있다() throws Exception {
+        int epic = 작업_아이템을_세운다("{\"title\":\"묶는 것\",\"kind\":\"EPIC\"}");
+        String epicKey = "GE-%03d".formatted(epic);
+
+        int child = 작업_아이템을_세운다(
+                "{\"title\":\"아래 것\",\"kind\":\"STORY\",\"parentKey\":%s}".formatted("\"%s\"".formatted(epicKey)));
+
+        상세(child).andExpect(jsonPath("$.summary.parentKey").value(epicKey));
+        상세(epic).andExpect(jsonPath("$.summary.childCount").value(1));
+
+        // 비우면 최상위로 돌아간다.
+        고친다(child, "{\"title\":\"아래 것\",\"kind\":\"STORY\",\"body\":\"\",\"parentKey\":null}");
+        상세(child).andExpect(jsonPath("$.summary.parentKey").doesNotExist());
     }
 
     @Test

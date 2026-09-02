@@ -19,7 +19,12 @@ public final class IssueRequests {
 
             @Schema(description = "고르지 않으면 TASK 다") IssueKind kind,
 
-            @Size(max = IssueBody.MAX) String body) {}
+            @Size(max = IssueBody.MAX) String body,
+
+            @Schema(
+                    description = "부모의 이름(TG-041). 없으면 최상위다",
+                    types = {"string", "null"})
+            String parentKey) {}
 
     /**
      * 고치는 것은 제목 · 유형 · 본문 셋이다.
@@ -35,7 +40,13 @@ public final class IssueRequests {
             IssueKind kind,
 
             @Size(max = IssueBody.MAX) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            String body) {}
+            String body,
+
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    description = "부모의 이름(TG-041). 비우면 최상위가 된다",
+                    types = {"string", "null"})
+            String parentKey) {}
 
     public record ChangeState(
             @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

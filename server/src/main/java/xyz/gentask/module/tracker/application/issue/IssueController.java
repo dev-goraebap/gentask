@@ -40,7 +40,8 @@ public class IssueController {
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> add(
             @CurrentUser UUID userId, @PathVariable String projectKey, @Valid @RequestBody CreateIssue request) {
-        int number = issueService.add(userId, projectKey, request.title(), request.kind(), request.body());
+        int number = issueService.add(
+                userId, projectKey, request.title(), request.kind(), request.body(), request.parentKey());
         return ResponseEntity.created(URI.create("/api/v1/projects/" + projectKey + "/issues/" + number))
                 .build();
     }
@@ -62,7 +63,8 @@ public class IssueController {
             @PathVariable String projectKey,
             @PathVariable int number,
             @Valid @RequestBody EditIssue request) {
-        issueService.edit(userId, projectKey, number, request.title(), request.kind(), request.body());
+        issueService.edit(
+                userId, projectKey, number, request.title(), request.kind(), request.body(), request.parentKey());
     }
 
     @PatchMapping("/{number}/state")

@@ -3,6 +3,7 @@ import { parseArgs } from 'node:util';
 import { clearToken, configPath, readConfig, readStoredToken, storeToken } from './config.js';
 import { GentaskClient, type Task } from './gentask-client.js';
 import { formatList, formatTask } from './format.js';
+import { ISSUE_HELP, runIssue, runProject } from './issue-commands.js';
 
 /**
  * 명령의 결과.
@@ -39,6 +40,8 @@ const HELP = `gentask — 작업을 명령줄에서 다룹니다
   auth status                    어디서 온 토큰을 쓰는지 봅니다
   auth logout                    저장된 토큰을 지웁니다
 
+${ISSUE_HELP}
+
 식별자는 앞 몇 자만 적어도 됩니다. 그것으로 하나가 가려지지 않으면 그 사실을 알립니다.`;
 
 /**
@@ -60,6 +63,14 @@ export async function run(
 
   if (command === 'auth') {
     return await runAuth(rest, env, stdin);
+  }
+
+  if (command === 'issue') {
+    return await runIssue(rest, makeClient(), env);
+  }
+
+  if (command === 'project') {
+    return await runProject(rest, makeClient(), env);
   }
 
   return await runTask(command, rest, makeClient);
