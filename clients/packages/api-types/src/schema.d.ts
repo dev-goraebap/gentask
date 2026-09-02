@@ -116,6 +116,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{projectId}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_4"];
+        put?: never;
+        post: operations["add_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/documents/{documentId}/revisions/{revisionNo}/revert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["revert"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/api-token": {
         parameters: {
             query?: never;
@@ -420,6 +452,22 @@ export interface paths {
         patch: operations["changeState"];
         trace?: never;
     };
+    "/api/v1/projects/{projectId}/documents/{documentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["detail_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["edit_3"];
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -452,6 +500,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{projectId}/documents/{documentId}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["revisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/documents/{documentId}/revisions/{revisionNo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["revision"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -459,7 +539,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_4"];
+        get: operations["list_5"];
         put?: never;
         post?: never;
         delete?: never;
@@ -475,7 +555,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         post?: never;
         delete?: never;
@@ -549,8 +629,17 @@ export interface components {
              */
             kind?: "EPIC" | "STORY" | "TASK" | "BUG";
             body?: string;
-            /** @description 부모의 이름(TG-041). 없으면 최상위다 */
+            /** @description 부모의 이름(GT-41). 없으면 최상위다 */
             parentKey?: string | null;
+        };
+        CreateDocument: {
+            title: string;
+            /** @description 적지 않으면 빈 본문으로 선다 */
+            body?: string;
+        };
+        RevertRevision: {
+            /** @description 왜 되돌리는지. 적지 않아도 된다 */
+            comment?: string | null;
         };
         IssuedApiToken: {
             token: string;
@@ -622,12 +711,18 @@ export interface components {
             /** @enum {string} */
             kind: "EPIC" | "STORY" | "TASK" | "BUG";
             body: string;
-            /** @description 부모의 이름(TG-041). 비우면 최상위가 된다 */
+            /** @description 부모의 이름(GT-41). 비우면 최상위가 된다 */
             parentKey: string | null;
         };
         ChangeState: {
             /** @enum {string} */
             state: "BACKLOG" | "UNSTARTED" | "STARTED" | "COMPLETED" | "CANCELED";
+        };
+        EditDocument: {
+            title: string;
+            body: string;
+            /** @description 왜 고쳤는지. 적지 않아도 된다 */
+            comment?: string | null;
         };
         ChangeNickname: {
             nickname: string;
@@ -672,7 +767,7 @@ export interface components {
             id: string;
             /**
              * @description 사람이 부르는 이름. 접두어와 번호다
-             * @example TG-030
+             * @example GT-30
              */
             key: string;
             /** Format: int32 */
@@ -713,6 +808,65 @@ export interface components {
             authorName: string;
             /** Format: date-time */
             createdAt: string;
+        };
+        DocumentSummary: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DocumentView: {
+            summary: components["schemas"]["DocumentSummary"];
+            /** @description 지금 참인 개정의 본문. 마크다운 원문이다 */
+            body: string;
+            /**
+             * Format: int32
+             * @description 지금 참인 개정의 번호. 1부터 매긴다
+             */
+            revisionNo: number;
+            /** @description 세운 사람의 별명 */
+            authorName: string;
+        };
+        RevisionPageView: {
+            items: components["schemas"]["RevisionSummary"][];
+            /**
+             * Format: int64
+             * @description 이 문서의 개정 전체 수
+             */
+            total: number;
+            /**
+             * Format: int32
+             * @description 0부터 매긴 쪽 번호
+             */
+            page: number;
+            /**
+             * Format: int32
+             * @description 한 쪽에 담은 수
+             */
+            size: number;
+        };
+        RevisionSummary: {
+            /**
+             * Format: int32
+             * @description 문서 안의 개정 번호. 1부터 매긴다
+             */
+            revisionNo: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description 남긴 사람의 별명 */
+            authorName: string;
+            /** @description 왜 고쳤는지. 적지 않았으면 값이 없다 */
+            comment: string | null;
+        };
+        RevisionView: {
+            summary: components["schemas"]["RevisionSummary"];
+            /** @description 그때의 제목 */
+            title: string;
+            /** @description 그때의 본문. 마크다운 원문이다 */
+            body: string;
         };
         MeView: {
             /** Format: uuid */
@@ -1085,6 +1239,78 @@ export interface operations {
         responses: {
             /** @description Created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DocumentSummary"][];
+                };
+            };
+        };
+    };
+    add_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDocument"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    revert: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                documentId: string;
+                revisionNo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RevertRevision"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1644,6 +1870,54 @@ export interface operations {
             };
         };
     };
+    detail_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DocumentView"];
+                };
+            };
+        };
+    };
+    edit_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditDocument"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     me: {
         parameters: {
             query?: never;
@@ -1706,7 +1980,57 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    revisions: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                projectId: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RevisionPageView"];
+                };
+            };
+        };
+    };
+    revision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                documentId: string;
+                revisionNo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RevisionView"];
+                };
+            };
+        };
+    };
+    list_5: {
         parameters: {
             query?: {
                 keyword?: string;
@@ -1730,7 +2054,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_6: {
         parameters: {
             query?: {
                 includeResolved?: boolean;
