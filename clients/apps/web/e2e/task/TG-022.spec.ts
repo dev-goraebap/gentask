@@ -6,7 +6,7 @@ const 없는_작업 = '00000000-0000-0000-0000-000000000000';
 
 test.describe('TG-022 작업 편집 실패', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/tasks/all?task=${없는_작업}`);
+    await page.goto(`/todo/all?task=${없는_작업}`);
   });
 
   test('TG-022 #1: 편집하려는 작업이 없으면 찾을 수 없음을 알린다', async ({ page }) => {
@@ -21,6 +21,6 @@ test.describe('TG-022 작업 편집 실패', () => {
 
     await 닫기.click();
 
-    await expect(page).toHaveURL(/\/tasks\/all$/);
+    await expect(page).toHaveURL(/\/todo\/all$/);
   });
 });

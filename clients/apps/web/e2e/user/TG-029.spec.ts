@@ -18,7 +18,7 @@ function 토큰상자(page: import('@playwright/test').Page) {
 test.describe('TG-029 에이전트 토큰 발급', () => {
   test('TG-029 #1: 발급하면 그 자리에서 토큰 원문을 보여 준다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
-    await page.goto('/account');
+    await page.goto('/me');
     await expect(page.getByText('아직 발급한 토큰이 없습니다.')).toBeVisible();
 
     await page.getByRole('button', { name: '발급', exact: true }).click();
@@ -29,7 +29,7 @@ test.describe('TG-029 에이전트 토큰 발급', () => {
 
   test('TG-029 #5: 화면을 다시 열면 원문은 없고 발급 사실만 남는다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
-    await page.goto('/account');
+    await page.goto('/me');
     await page.getByRole('button', { name: '발급', exact: true }).click();
     const 원문 = (await 토큰상자(page).textContent()) ?? '';
     expect(원문).not.toBe('');

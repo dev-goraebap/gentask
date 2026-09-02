@@ -29,7 +29,7 @@ test.describe('TG-026 계정 만들기', () => {
   test('TG-026 #7: 등록이 끝나면 곧바로 로그인 상태로 작업 목록을 보여 준다', async ({ page }) => {
     await 등록한다(page, 새_이메일());
 
-    await expect(page).toHaveURL(/\/tasks\//);
+    await expect(page).toHaveURL(/\/todo\//);
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
 

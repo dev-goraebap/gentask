@@ -12,7 +12,7 @@ const 새_비밀번호 = 'reset-me-9!';
 async function 재설정을_시작한다(page: Page): Promise<string> {
   const email = 새_이메일();
   await 등록한다(page, email);
-  await expect(page).toHaveURL(/\/tasks\//);
+  await expect(page).toHaveURL(/\/todo\//);
 
   await page.goto('/password-reset');
   await page.locator('#reset-email').fill(email);
@@ -35,7 +35,7 @@ test.describe('TG-039 비밀번호 재설정하기', () => {
     await expect(page).toHaveURL(/\/login/);
 
     await 로그인한다(page, email, 새_비밀번호);
-    await expect(page).toHaveURL(/\/tasks\//);
+    await expect(page).toHaveURL(/\/todo\//);
   });
 
   test('TG-039 #5: 새 비밀번호가 규칙에 맞지 않으면 충족하지 못한 조건을 알린다', async ({
@@ -65,6 +65,6 @@ test.describe('TG-039 비밀번호 재설정하기', () => {
     await expect(page.getByRole('alert')).toContainText('코드');
     // 바뀌지 않았으므로 옛 비밀번호로 그대로 들어간다
     await 로그인한다(page, email, 비밀번호);
-    await expect(page).toHaveURL(/\/tasks\//);
+    await expect(page).toHaveURL(/\/todo\//);
   });
 });

@@ -5,7 +5,7 @@ import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 test.describe('TG-025 미리 알림 있는 작업 추가', () => {
   test.beforeEach(async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
   });
 
   async function 미리_알림을_고른다(page: import('@playwright/test').Page): Promise<void> {
@@ -47,7 +47,7 @@ test.describe('TG-025 미리 알림 있는 작업 추가', () => {
     await expect(page.getByRole('link', { name: '기한 없이 알림만 붙인 작업' })).toBeVisible();
 
     // 기한이 붙지 않았으므로 계획된 일정 목록에는 나타나지 않는다.
-    await page.goto('/tasks/planned');
+    await page.goto('/todo/planned');
     await expect(page.getByRole('link', { name: '기한 없이 알림만 붙인 작업' })).toHaveCount(0);
   });
 });

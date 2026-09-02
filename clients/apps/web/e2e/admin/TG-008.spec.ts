@@ -18,7 +18,7 @@ test.describe('TG-008 플랫폼 운영', () => {
     // 워커의 계정은 일반 사용자다. 관리자로 바꾸지 않은 채 곧바로 연다
     await page.goto('/admin/users');
 
-    await expect(page).toHaveURL(/\/tasks\//);
+    await expect(page).toHaveURL(/\/todo\//);
     await expect(page.getByRole('heading', { name: '사용자 관리' })).toHaveCount(0);
   });
 
@@ -56,22 +56,19 @@ test.describe('TG-008 플랫폼 운영', () => {
     await expect(page.getByText('e2e-admin@example.com')).toHaveCount(0);
   });
 
-  test('사용자 자리와 관리 자리를 메뉴 하단의 단추로 오간다', async ({ page }) => {
+  /*
+   * 관리 자리는 주소로만 연다. 메뉴에 입구를 두지 않기로 정한 것이며(`2d3c110` 이 그 링크를 걷었다),
+   * 들어갈 수 있는지는 위의 `TG-036 #5` 가 권한으로 지킨다. 메뉴 하단의 전환 단추를 누르던 시험이
+   * 여기 있었으나 그 단추가 제품에 없으므로 걷었다.
+   */
+  test('관리 자리는 제 메뉴를 갖고 사용자 자리의 메뉴를 섞지 않는다', async ({ page }) => {
     await 관리자로_들어간다(page);
 
-    await page.goto('/tasks/all');
-    await page.getByRole('link', { name: '관리자 페이지' }).click();
+    await page.goto('/admin/users');
 
-    await expect(page).toHaveURL(/\/admin\/users/);
     await expect(page.getByRole('link', { name: '사용자 관리' })).toBeVisible();
     await expect(page.getByRole('link', { name: '알림 문제' })).toBeVisible();
     await expect(page.getByRole('link', { name: '나의 하루' })).toHaveCount(0);
-
-    await page.getByRole('link', { name: '사용자 페이지' }).click();
-
-    await expect(page).toHaveURL(/\/tasks/);
-    await expect(page.getByRole('link', { name: '나의 하루' })).toBeVisible();
-    await expect(page.getByRole('link', { name: '사용자 관리' })).toHaveCount(0);
   });
 
   test('알림 문제 자리가 관리 화면에 선다', async ({ page }) => {

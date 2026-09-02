@@ -5,7 +5,7 @@ import { expect, test } from '../fixtures';
 
 test.describe('TG-014 제목만으로 작업 추가', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
 
@@ -39,8 +39,8 @@ test.describe('TG-014 제목만으로 작업 추가', () => {
     const 이전 = await page.getByRole('listitem').count();
 
     await 입력.fill('적다 만 작업');
-    await page.goto('/tasks/important');
-    await page.goto('/tasks/all');
+    await page.goto('/todo/important');
+    await page.goto('/todo/all');
 
     await expect(page.getByRole('listitem')).toHaveCount(이전);
     await expect(page.getByRole('link', { name: '적다 만 작업' })).toHaveCount(0);
@@ -48,9 +48,9 @@ test.describe('TG-014 제목만으로 작업 추가', () => {
 
   // 트리거가 셋이므로 파라미터화한다. 인수 조건은 하나다.
   for (const [스마트목록, 경로] of [
-    ['오늘', '/tasks/my-day'],
-    ['중요', '/tasks/important'],
-    ['기한', '/tasks/planned'],
+    ['오늘', '/todo/my-day'],
+    ['중요', '/todo/important'],
+    ['기한', '/todo/planned'],
   ] as const) {
     test(`TG-014 #4: ${스마트목록} 목록을 보는 중에 적으면 그 성질이 붙는다`, async ({ page }) => {
       await page.goto(경로);

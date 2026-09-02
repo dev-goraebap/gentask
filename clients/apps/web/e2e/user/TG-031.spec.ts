@@ -11,7 +11,7 @@ test.describe('TG-031 로그아웃하기', () => {
 
     await 로그아웃한다(page);
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await expect(page).toHaveURL(/\/login/);
   });
 });

@@ -73,7 +73,7 @@ test.describe('TG-018 순서를 골라 작업 보기', () => {
     test(`TG-018 #1: ${기준}을 고르면 그 기준으로 늘어놓는다`, async ({ page }) => {
       await 빈_계정으로_바꾼다(page);
       await 준비(page);
-      await page.goto('/tasks/all');
+      await page.goto('/todo/all');
 
       await 기준을_고른다(page, 기준);
 
@@ -85,7 +85,7 @@ test.describe('TG-018 순서를 골라 작업 보기', () => {
     await 빈_계정으로_바꾼다(page);
     await 작업을_만든다(page.request, '나중에 오는 제목');
     await 작업을_만든다(page.request, '가장 먼저 오는 제목');
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
 
     await 기준을_고른다(page, '제목');
     await expect.poll(() => 제목들(page)).toEqual(['가장 먼저 오는 제목', '나중에 오는 제목']);
@@ -98,7 +98,7 @@ test.describe('TG-018 순서를 골라 작업 보기', () => {
     await 빈_계정으로_바꾼다(page);
     await 작업을_만든다(page.request, '기한 없는 것');
     await 작업을_만든다(page.request, '기한 있는 것', { dueDate: 날짜(3) });
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
 
     await 기준을_고른다(page, '기한');
 
@@ -110,7 +110,7 @@ test.describe('TG-018 순서를 골라 작업 보기', () => {
     await 작업을_만든다(page.request, '먼저 만든 것');
     await 작업을_만든다(page.request, '나중에 만든 것');
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
 
     await expect.poll(() => 제목들(page)).toEqual(['나중에 만든 것', '먼저 만든 것']);
   });

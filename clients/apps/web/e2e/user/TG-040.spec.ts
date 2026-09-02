@@ -13,9 +13,9 @@ const 새_비밀번호 = 'change-me-9!';
 async function 계정_자리로_간다(page: Page): Promise<string> {
   const email = 새_이메일();
   await 등록한다(page, email);
-  await expect(page).toHaveURL(/\/tasks\//);
+  await expect(page).toHaveURL(/\/todo\//);
 
-  await page.goto('/account');
+  await page.goto('/me');
   await expect(page.locator('#account-current-password')).toBeVisible();
   return email;
 }
@@ -32,7 +32,7 @@ test.describe('TG-040 비밀번호 바꾸기', () => {
     await expect(page.getByText('비밀번호를 바꿨습니다.', { exact: false })).toBeVisible();
 
     // 바뀌었으면 옛 비밀번호로는 들어가지 못하고 새 것으로는 들어간다
-    await page.goto('/account');
+    await page.goto('/me');
     await page.getByRole('button', { name: '로그아웃' }).click();
     await expect(page).toHaveURL(/\/login/);
 
@@ -40,7 +40,7 @@ test.describe('TG-040 비밀번호 바꾸기', () => {
     await expect(page.getByRole('alert')).toBeVisible();
 
     await 로그인한다(page, email, 새_비밀번호);
-    await expect(page).toHaveURL(/\/tasks\//);
+    await expect(page).toHaveURL(/\/todo\//);
   });
 
   test('TG-040 #2: 바꾸어도 지금 쓰는 자리의 로그인은 유지된다', async ({ page }) => {
@@ -52,7 +52,7 @@ test.describe('TG-040 비밀번호 바꾸기', () => {
     await expect(page.getByText('비밀번호를 바꿨습니다.', { exact: false })).toBeVisible();
 
     // 이 자리는 그대로다. 로그인 자리로 밀려나지 않는다.
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
 
@@ -65,11 +65,11 @@ test.describe('TG-040 비밀번호 바꾸기', () => {
     await expect(page.getByText('현재 비밀번호가 맞지 않습니다', { exact: false })).toBeVisible();
 
     // 바뀌지 않았으므로 옛 비밀번호로 그대로 들어간다
-    await page.goto('/account');
+    await page.goto('/me');
     await page.getByRole('button', { name: '로그아웃' }).click();
     await expect(page).toHaveURL(/\/login/);
     await 로그인한다(page, email, 비밀번호);
-    await expect(page).toHaveURL(/\/tasks\//);
+    await expect(page).toHaveURL(/\/todo\//);
   });
 
   test('TG-040 #5: 새 비밀번호가 규칙에 맞지 않으면 충족하지 못한 조건을 알린다', async ({

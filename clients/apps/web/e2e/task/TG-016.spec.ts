@@ -10,7 +10,7 @@ test.describe('TG-016 완료되지 않은 작업 보기', () => {
     await 작업을_만든다(page.request, '남아 있을 작업');
     await 작업을_만든다(page.request, '완료할 작업');
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await page.getByRole('checkbox', { name: '완료할 작업' }).click();
     // 체크에는 유예가 있다. 목록에서 빠지는 것을 본 뒤에 새로고침해야 저장이 끝난 상태다.
     await expect(page.getByRole('link', { name: '완료할 작업' })).toHaveCount(0);
@@ -23,7 +23,7 @@ test.describe('TG-016 완료되지 않은 작업 보기', () => {
   test('TG-016 #2: 해당하는 작업이 없으면 고를 일이 없음을 알린다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
 
     await expect(page.getByText('작업이 없습니다')).toBeVisible();
   });
@@ -31,7 +31,7 @@ test.describe('TG-016 완료되지 않은 작업 보기', () => {
   test('TG-016 #4: 해당하는 작업이 없으면 다음 행동을 안내한다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
 
     await expect(page.getByText('아래에 입력해 하나 추가해 보세요.')).toBeVisible();
   });
@@ -40,7 +40,7 @@ test.describe('TG-016 완료되지 않은 작업 보기', () => {
     await 빈_계정으로_바꾼다(page);
     await 작업을_만든다(page.request, '모르는 목록에서도 보일 작업');
 
-    await page.goto('/tasks/알수없는목록');
+    await page.goto('/todo/알수없는목록');
 
     await expect(page.getByRole('link', { name: '모르는 목록에서도 보일 작업' })).toBeVisible();
   });

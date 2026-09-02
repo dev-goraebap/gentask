@@ -22,7 +22,7 @@ test.describe('TG-017 스마트 목록으로 작업 보기', () => {
     await 하위_자원을_바꾼다(page.request, 중요한것, 'completion', { completed: true });
     await 하위_자원을_바꾼다(page.request, 평범한것, 'completion', { completed: true });
 
-    await page.goto('/tasks/important');
+    await page.goto('/todo/important');
     await page.getByRole('button', { name: /완료 \d+개/ }).click();
 
     const 완료목록 = page.locator('#completed-tasks');
@@ -38,7 +38,7 @@ test.describe('TG-017 스마트 목록으로 작업 보기', () => {
     await 작업을_만든다(page.request, '담지 않은 작업');
     await 하위_자원을_바꾼다(page.request, 담은것, 'my-day', { inMyDay: true });
 
-    await page.goto('/tasks/my-day');
+    await page.goto('/todo/my-day');
 
     await expect(page.getByRole('link', { name: '나의 하루에 담은 작업' })).toBeVisible();
     await expect(page.getByRole('link', { name: '담지 않은 작업' })).toHaveCount(0);
@@ -52,7 +52,7 @@ test.describe('TG-017 스마트 목록으로 작업 보기', () => {
     await 작업을_만든다(page.request, '중요하지 않은 작업');
     await 하위_자원을_바꾼다(page.request, 중요한것, 'importance', { important: true });
 
-    await page.goto('/tasks/important');
+    await page.goto('/todo/important');
 
     await expect(page.getByRole('link', { name: '중요 표시한 작업' })).toBeVisible();
     await expect(page.getByRole('link', { name: '중요하지 않은 작업' })).toHaveCount(0);
@@ -65,7 +65,7 @@ test.describe('TG-017 스마트 목록으로 작업 보기', () => {
     await 작업을_만든다(page.request, '기한이 있는 작업', { dueDate: 내일() });
     await 작업을_만든다(page.request, '기한이 없는 작업');
 
-    await page.goto('/tasks/planned');
+    await page.goto('/todo/planned');
 
     await expect(page.getByRole('link', { name: '기한이 있는 작업' })).toBeVisible();
     await expect(page.getByRole('link', { name: '기한이 없는 작업' })).toHaveCount(0);

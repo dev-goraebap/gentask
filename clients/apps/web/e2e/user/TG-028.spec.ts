@@ -61,7 +61,7 @@ function 아바타(page: import('@playwright/test').Page) {
 test.describe('TG-028 프로필 이미지 올리기', () => {
   test('TG-028 #1: 이미지를 올리면 아바타 자리에 그 이미지가 온다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
-    await page.goto('/account');
+    await page.goto('/me');
 
     await 이미지를_올린다(page);
 
@@ -70,7 +70,7 @@ test.describe('TG-028 프로필 이미지 올리기', () => {
 
   test('TG-028 #3: 이미지를 지우면 아바타가 이니셜로 돌아온다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
-    await page.goto('/account');
+    await page.goto('/me');
     await 이미지를_올린다(page);
     await expect(아바타(page).locator('img')).toBeVisible();
 
@@ -83,7 +83,7 @@ test.describe('TG-028 프로필 이미지 올리기', () => {
   for (const { 사유, 파일, 문구 } of 거절될_파일) {
     test(`TG-028 #2: ${사유} 아바타 자리가 그대로 남는다`, async ({ page }) => {
       await 빈_계정으로_바꾼다(page);
-      await page.goto('/account');
+      await page.goto('/me');
 
       await 이미지를_고른다(page, 파일);
 
@@ -94,7 +94,7 @@ test.describe('TG-028 프로필 이미지 올리기', () => {
 
     test(`TG-028 #4: ${사유} 거절 사유를 알린다`, async ({ page }) => {
       await 빈_계정으로_바꾼다(page);
-      await page.goto('/account');
+      await page.goto('/me');
 
       await 이미지를_고른다(page, 파일);
 

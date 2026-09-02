@@ -4,7 +4,7 @@ import { 작업을_만든다, expect, test } from '../fixtures';
 
 test.describe('TG-019 작업 제목 편집', () => {
   async function 상세를_연다(page: import('@playwright/test').Page, 제목: string): Promise<void> {
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await page.getByRole('link', { name: 제목 }).click();
     await expect(page.locator('#task-title')).toHaveValue(제목);
   }
@@ -16,7 +16,7 @@ test.describe('TG-019 작업 제목 편집', () => {
     await page.locator('#task-title').fill('고쳐진 제목');
     await page.locator('#task-title').blur();
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await expect(page.getByRole('link', { name: '고쳐진 제목' })).toBeVisible();
   });
 
@@ -27,7 +27,7 @@ test.describe('TG-019 작업 제목 편집', () => {
     await page.locator('#task-title').fill('   ');
     await page.locator('#task-title').blur();
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await expect(page.getByRole('link', { name: '비우지 못할 제목' })).toBeVisible();
   });
 
@@ -51,7 +51,7 @@ test.describe('TG-019 작업 제목 편집', () => {
     await page.locator('#task-title').fill('반영되면 안 되는 제목');
     await page.locator('#task-title').press('Escape');
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await expect(page.getByRole('link', { name: '그만둘 제목' })).toBeVisible();
     await expect(page.getByRole('link', { name: '반영되면 안 되는 제목' })).toHaveCount(0);
   });

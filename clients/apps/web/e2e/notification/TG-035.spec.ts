@@ -17,7 +17,7 @@ test.describe('TG-035 홈 화면에 설치하기', () => {
   test('TG-035 #1: 홈 화면에 추가할 자리를 주소창 없이 열도록 정하고 그 아이콘을 낸다', async ({
     page,
   }) => {
-    await page.goto('/account');
+    await page.goto('/me');
     await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
       'href',
       /manifest\.webmanifest$/,
@@ -56,7 +56,7 @@ test.describe('TG-035 홈 화면에 설치하기', () => {
 
       // 흉내가 듣는지 먼저 확인한다. 안내가 애초에 나오지 않는 자리라면 뒤의 단언이 아무것도 재지
       // 못하고 통과한다.
-      await page.goto('/account');
+      await page.goto('/me');
       await expect(page.getByText('홈 화면에 생긴 아이콘으로 다시 엽니다')).toBeVisible();
 
       await 홈_화면에서_열린_것으로_한다(page);

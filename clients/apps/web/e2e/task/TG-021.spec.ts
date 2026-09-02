@@ -4,7 +4,7 @@ import { 작업을_만든다, expect, test } from '../fixtures';
 
 test.describe('TG-021 작업 삭제', () => {
   async function 상세를_연다(page: import('@playwright/test').Page, 제목: string): Promise<void> {
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await page.getByRole('link', { name: 제목 }).click();
     await expect(page.getByRole('button', { name: '작업 삭제' })).toBeVisible();
   }
@@ -25,7 +25,7 @@ test.describe('TG-021 작업 삭제', () => {
     await page.getByRole('button', { name: '작업 삭제' }).click();
     await page.getByRole('button', { name: '취소' }).click();
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await expect(page.getByRole('link', { name: '취소할 작업' })).toBeVisible();
   });
 
@@ -36,7 +36,7 @@ test.describe('TG-021 작업 삭제', () => {
     await page.getByRole('button', { name: '작업 삭제' }).click();
     await page.getByRole('button', { name: '삭제', exact: true }).click();
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await expect(page.getByRole('link', { name: '지울 작업' })).toHaveCount(0);
   });
 });

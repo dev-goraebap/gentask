@@ -5,7 +5,7 @@ import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 test.describe('TG-015 기한 있는 작업 추가', () => {
   test.beforeEach(async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
   });
 
   test('TG-015 #1: 기한을 고르고 확정하면 기한이 붙은 작업을 목록에 넣는다', async ({ page }) => {
@@ -18,7 +18,7 @@ test.describe('TG-015 기한 있는 작업 추가', () => {
     await expect(page.getByRole('link', { name: '기한이 붙은 작업' })).toBeVisible();
 
     // 기한이 실제로 붙었으면 계획된 일정 목록에 나타난다.
-    await page.goto('/tasks/planned');
+    await page.goto('/todo/planned');
     await expect(page.getByRole('link', { name: '기한이 붙은 작업' })).toBeVisible();
   });
 

@@ -32,11 +32,11 @@ export async function 등록한다(page: Page, email: string): Promise<void> {
 /** 등록이 끝나 세션이 붙을 때까지 기다린다. 기다리지 않고 이동하면 요청이 끊긴다. */
 export async function 등록하고_들어간다(page: Page, email: string): Promise<void> {
   await 등록한다(page, email);
-  await expect(page).toHaveURL(/\/tasks\//);
+  await expect(page).toHaveURL(/\/todo\//);
 }
 
 export async function 로그아웃한다(page: Page): Promise<void> {
-  await page.goto('/account');
+  await page.goto('/me');
   await page.getByRole('button', { name: '로그아웃' }).click();
 }
 

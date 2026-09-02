@@ -45,7 +45,7 @@ async function 상세를_연다(
   page: import('@playwright/test').Page,
   제목: string,
 ): Promise<void> {
-  await page.goto('/tasks/all');
+  await page.goto('/todo/all');
   await page.getByRole('link', { name: 제목 }).click();
   await expect(page.getByRole('button', { name: /파일 추가/ })).toBeVisible();
 }

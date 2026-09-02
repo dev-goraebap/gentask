@@ -7,7 +7,7 @@ test.describe('TG-020 작업 속성 편집', () => {
   async function 상세를_연다(page: import('@playwright/test').Page, 제목: string): Promise<void> {
     await 빈_계정으로_바꾼다(page);
     await 작업을_만든다(page.request, 제목);
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     await page.getByRole('link', { name: 제목 }).click();
     await expect(page.locator('#task-title')).toHaveValue(제목);
   }
@@ -28,7 +28,7 @@ test.describe('TG-020 작업 속성 편집', () => {
     await page.locator('#task-due').click();
     await page.getByRole('button', { name: '오늘', exact: false }).first().click();
 
-    await page.goto('/tasks/planned');
+    await page.goto('/todo/planned');
     await expect(page.getByRole('link', { name: '기한을 붙일 작업' })).toBeVisible();
   });
 
@@ -38,7 +38,7 @@ test.describe('TG-020 작업 속성 편집', () => {
     await page.locator('#task-remind').click();
     await page.getByRole('button', { name: '내일', exact: false }).first().click();
 
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
     const 행 = page.getByRole('listitem').filter({ hasText: '알림을 붙일 작업' });
     await expect(행).toContainText('내일');
   });
@@ -48,7 +48,7 @@ test.describe('TG-020 작업 속성 편집', () => {
 
     await page.getByRole('button', { name: '중요로 표시', exact: true }).click();
 
-    await page.goto('/tasks/important');
+    await page.goto('/todo/important');
     await expect(page.getByRole('link', { name: '중요로 표시할 작업' })).toBeVisible();
   });
 
@@ -57,7 +57,7 @@ test.describe('TG-020 작업 속성 편집', () => {
 
     await page.getByRole('button', { name: '나의 하루에 추가', exact: true }).click();
 
-    await page.goto('/tasks/my-day');
+    await page.goto('/todo/my-day');
     await expect(page.getByRole('link', { name: '나의 하루에 담을 작업' })).toBeVisible();
   });
 });

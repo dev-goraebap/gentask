@@ -23,7 +23,7 @@ test.describe('TG-030 로그인하기', () => {
 
     await 로그인한다(page, email, 비밀번호);
 
-    await expect(page).toHaveURL(/\/tasks\//);
+    await expect(page).toHaveURL(/\/todo\//);
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
 

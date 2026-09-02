@@ -11,7 +11,7 @@ test.describe('TG-038 이메일을 확인하고 가입하기', () => {
   }) => {
     await 등록한다(page, 새_이메일());
 
-    await expect(page).toHaveURL(/\/tasks\//);
+    await expect(page).toHaveURL(/\/todo\//);
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
 

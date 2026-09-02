@@ -14,7 +14,7 @@ async function 별명을_고친다(page: import('@playwright/test').Page, 별명
 
 test.describe('TG-027 프로필 보기와 계정 자리', () => {
   test('TG-027 #1: 계정 화면은 프로필 자리에 아바타를 둔다', async ({ page }) => {
-    await page.goto('/account');
+    await page.goto('/me');
 
     await expect(page.getByRole('main').locator('app-user-avatar')).toBeVisible();
   });
@@ -22,7 +22,7 @@ test.describe('TG-027 프로필 보기와 계정 자리', () => {
   test('TG-027 #2: 올린 이미지가 없으면 아바타 자리에 별명의 첫 글자가 온다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
 
-    await page.goto('/account');
+    await page.goto('/me');
 
     const 아바타 = page.getByRole('main').locator('app-user-avatar');
     await expect(아바타).toHaveText('빈');
@@ -36,7 +36,7 @@ test.describe('TG-027 프로필 보기와 계정 자리', () => {
       new Date(createdAt),
     );
 
-    await page.goto('/account');
+    await page.goto('/me');
 
     const 프로필 = page.getByRole('main');
     await expect(프로필.getByText(계정.email)).toBeVisible();
@@ -46,7 +46,7 @@ test.describe('TG-027 프로필 보기와 계정 자리', () => {
 
   test('TG-027 #3: 별명을 고치면 프로필의 이름 표시가 바뀐다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
-    await page.goto('/account');
+    await page.goto('/me');
 
     await 별명을_고친다(page, '고친별명');
 
@@ -55,7 +55,7 @@ test.describe('TG-027 프로필 보기와 계정 자리', () => {
 
   test('TG-027 #7: 별명을 고치면 사이드바의 이름 표시도 바뀐다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
-    await page.goto('/account');
+    await page.goto('/me');
     await expect(page.locator('#sidebar').getByText('빈계정')).toBeVisible();
 
     await 별명을_고친다(page, '사이드바별명');
@@ -64,11 +64,11 @@ test.describe('TG-027 프로필 보기와 계정 자리', () => {
   });
 
   test('TG-027 #8: 사이드바의 내 프로필을 고르면 계정 화면으로 간다', async ({ page, 계정 }) => {
-    await page.goto('/tasks/all');
+    await page.goto('/todo/all');
 
     await page.locator('#sidebar').getByRole('link', { name: 계정.nickname }).click();
 
-    await expect(page).toHaveURL(/\/account/);
+    await expect(page).toHaveURL(/\/me/);
     await expect(page.getByRole('heading', { name: '계정' })).toBeVisible();
   });
 });
