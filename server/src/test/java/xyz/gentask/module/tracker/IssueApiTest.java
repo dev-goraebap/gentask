@@ -174,7 +174,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("TG-046 #1: 제목과 본문을 고쳐 담으면 고친 것이 남는다")
+    @DisplayName("TG-055 #1: 제목과 본문을 고쳐 담으면 고친 것이 남는다")
     void 고친_것이_남는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
 
@@ -186,7 +186,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("TG-046 #2: 본문의 체크 항목을 고치면 바뀐 인수 조건을 그대로 읽는다")
+    @DisplayName("TG-055 #2: 본문의 체크 항목을 고치면 바뀐 인수 조건을 그대로 읽는다")
     void 본문을_고치면_인수_조건도_바뀐다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"인수 조건\",\"body\":\"- [ ] #1 첫 조건\"}");
 
@@ -203,7 +203,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("TG-046 #3: 제목이 비어 있으면 알리고 고치기 전의 것을 그대로 둔다")
+    @DisplayName("TG-055 #3: 제목이 비어 있으면 알리고 고치기 전의 것을 그대로 둔다")
     void 제목이_비면_고치지_않는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"그대로 둘 것\"}");
 
@@ -217,7 +217,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("TG-046 #5: 유형을 바꿔도 번호는 그대로다")
+    @DisplayName("TG-055 #5: 유형을 바꿔도 번호는 그대로다")
     void 유형을_바꿔도_번호는_그대로다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"유형 바꿀 것\",\"kind\":\"TASK\"}");
 
@@ -229,7 +229,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("TG-046 #6: 사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
+    @DisplayName("TG-055 #6: 사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
     void 남의_것은_고치지_못한다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"내 것\"}");
 

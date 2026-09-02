@@ -6,7 +6,7 @@ Angular 프론트엔드와 Spring Boot 백엔드 모노레포의 참조 아키�
 
 | 축 | 위치 | 성격 |
 | :--- | :--- | :--- |
-| **요구사항 축** | `docs/prd.md` · `docs/spec/` · `backlog/tasks/` | 프로젝트별 요구사항 |
+| **요구사항 축** | `docs/prd.md` · `docs/spec/` · 트래커의 백로그 | 프로젝트별 요구사항 |
 | **참조 아키텍처** | `docs/architecture/` | 프로젝트 공통 참조 아키텍처 |
 
 ## 문서 탐색 순서
@@ -17,7 +17,7 @@ Angular 프론트엔드와 Spring Boot 백엔드 모노레포의 참조 아키�
 - **코드 스타일**: 코드를 작성하기 전에 해당 축의 코드 스타일 가이드(`FE-STY-NNN` · `BE-STY-NNN`)를 확인합니다.
 - **아키텍처 결정**: 규칙이나 설계를 변경하기 전에 [9. 아키텍처 결정](docs/architecture/09-architecture-decisions.md)을 확인합니다.
 - **유스케이스 서술서**: [docs/spec/작성지침.md](docs/spec/작성지침.md)를 따릅니다.
-- **백로그 항목**: Epic · Story · Task 가 `backlog/tasks/` 에 함께 있고 프런트매터의 `type` 이 유형을 가릅니다. 착수 전 후보는 `backlog/drafts/`, 오래 닫힌 항목은 `backlog/completed/` 에 있습니다.
+- **백로그 항목**: 원본은 **트래커**이며 저장소에 파일로 두지 않습니다. `gentask issue` 명령으로 읽고 씁니다. Epic · Story · Task · Bug 가 한 자리에 있고 `kind` 가 유형을, `state` 가 상태를 가릅니다.
 - **문서 참조 범위**: 현재 작업에 필요한 문서만 읽고 전체 문서를 불필요하게 적재하지 않습니다.
 
 ## 전역 규칙
@@ -36,10 +36,11 @@ Angular 프론트엔드와 Spring Boot 백엔드 모노레포의 참조 아키�
 | 프론트엔드 | `cd clients && npm run check -w web` |
 | 백엔드 | `cd server && ./gradlew build` |
 | 에이전트 | `cd clients && npm run check -w gentask` |
-| 추적 | `node scripts/trace-check.mjs` |
+| 추적 | `npm run backlog:export --prefix clients/apps/cli` 뒤 `node scripts/trace-check.mjs` |
 
 - 검증을 통과하지 않은 상태로 커밋하거나 병합하지 않습니다.
 - 추적 검사는 인수 조건과 테스트 이름을 대조합니다. 없는 인수 조건을 가리키는 접두어는 실패이고, 테스트가 없는 인수 조건은 목록으로만 냅니다.
+- **검사 전에 백로그를 내려야 합니다.** 원본이 트래커이므로 사본(`.backlog.json`)이 없거나 오래되면 검사가 옛 것을 봅니다. 검사기는 사본이 아예 없으면 무엇을 해야 하는지 알립니다.
 - 각 명령의 세부 검사 항목과 실패 조건은 각 축의 개발 환경 문서를 확인합니다.
 
 ## 에이전트 스킬
@@ -61,18 +62,26 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 
 ## 백로그
 
-- 항목은 [Backlog.md](https://github.com/MrLesk/Backlog.md) 가 다룹니다. 구조와 채번의 규약은 [결정-0007](docs/architecture/decisions/0007-shared-software-process.md)이 갖습니다.
-- 상태와 인수 조건을 바꿀 때는 `backlog` CLI 를 씁니다. 프런트매터를 직접 고치면 항목 사이의 관계가 어긋납니다.
-- **소속만 예외입니다.** 세울 때 `-p` 를 주면 도구가 자식에게 계층 ID 를 매기고 뒤에 부모를 바꾸는 수단이 없으므로, `-p` 없이 세운 뒤 `parent_task_id` 를 직접 적습니다. 근거는 [결정-0007](docs/architecture/decisions/0007-shared-software-process.md)이 갖습니다.
-- 인수 조건은 `- [ ] #<n> <문장>` 형태의 체크 항목입니다. **경계를 표시하지 않으며** 본문 어디에 있든 번호가 붙은 체크 항목을 검사기가 모두 읽습니다. Backlog.md 가 심는 `<!-- AC:BEGIN -->` 마커는 그대로 두어도 되고, 검사기는 그것을 보지 않습니다.
-- 결번은 `backlog task edit <ID> --remove-ac` 로 만들지 않습니다. 그 명령이 뒤 번호를 당깁니다. 문장을 `(결번)` 으로 바꿉니다.
-- 서술서가 아직 없는 후보는 Draft 로 둡니다. 착수 순서는 Draft 번호가 갖습니다 — `ordinal` 은 Draft 목록의 정렬에 쓰이지 않습니다.
+- **원본은 트래커입니다.** 저장소에 `backlog/` 파일을 두지 않으며, 읽고 쓰는 것은 `gentask` CLI 와 웹 화면입니다. 옮긴 근거는 [결정-0007](docs/architecture/decisions/0007-shared-software-process.md)이 갖습니다.
+- 항목 ID 는 `TG-NNN` 이며 **평평하게** 매깁니다. 계층은 번호가 아니라 부모가 갖고 `--parent` 로 잇습니다.
+- 인수 조건은 본문 안의 `- [ ] #<n> <문장>` 체크 항목입니다. **경계를 표시하지 않으며** 본문 어디에 있든 번호가 붙은 체크 항목을 모두 읽습니다.
+- 결번은 번호를 지우지 않고 문장을 `(결번)` 으로 바꿔 표시합니다. 번호는 부여 뒤 불변입니다.
+- 서술서가 아직 없는 착수 후보는 `BACKLOG` 상태로 둡니다. 별도 목록이 아니라 상태 하나입니다.
 - Epic 소속은 선택입니다. 사용자 가치를 직접 내지 않는 기술 작업은 최상위 Task 로 두고, 자식 하나뿐인 Epic 을 만들지 않습니다.
 
 ```bash
-backlog task list --plain          # 목록
-backlog task view <ID> --json      # 항목 하나
-backlog draft list --plain         # 착수 전 후보
-backlog draft promote <ID>         # 후보를 TG 채번으로 올린다
-backlog browser --port 6420        # 웹 GUI
+gentask project use TG                       # 지금 프로젝트를 정한다
+gentask issue list                           # 닫히지 않은 것
+gentask issue list --all --json              # 전부를 JSON 으로
+gentask issue show TG-030                    # 본문과 인수 조건까지
+gentask issue add "제목" --kind STORY --parent TG-041
+gentask issue edit TG-030 --body "..."       # 넘긴 것만 바꾼다
+gentask issue state TG-030 STARTED
+```
+
+- **추적 검사는 내린 사본을 읽습니다.** `.backlog.json` 이 그것이며 추적되지 않습니다. 검사가 API 를 직접 부르면 서버와 토큰 없이는 돌지 않게 되므로 내리는 한 단계를 둡니다.
+
+```bash
+npm run backlog:export --prefix clients/apps/cli   # 트래커 → .backlog.json
+node scripts/trace-check.mjs                       # 그 사본을 읽어 대조
 ```

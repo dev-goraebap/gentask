@@ -63,8 +63,15 @@ function client(fetchFn: typeof fetch): GentaskClient {
   return new GentaskClient({ baseUrl: 'https://api.example', token: 'T', projectKey: 'TG' }, fetchFn);
 }
 
-/** 지금 프로젝트는 환경이 준다. 설정 파일을 건드리지 않기 위해서다. */
-const ENV = { GENTASK_TOKEN: 'T', GENTASK_PROJECT: 'TG' } as NodeJS.ProcessEnv;
+/*
+ * 자격과 프로젝트를 환경으로 준다. 설정 자리도 임시로 돌려 둔다 — 돌리지 않으면 검사가 이 기계를
+ * 쓰는 사람의 진짜 설정을 읽고, 쓰는 자리를 지나면 그것을 덮는다.
+ */
+const ENV = {
+  GENTASK_TOKEN: 'T',
+  GENTASK_PROJECT: 'TG',
+  XDG_CONFIG_HOME: mkdtempSync(join(tmpdir(), 'gentask-cfg-')),
+} as NodeJS.ProcessEnv;
 
 describe('gentask issue', () => {
   it('목록은 지금 프로젝트 아래를 부르고 닫힌 것을 감춘다', async () => {
@@ -156,7 +163,10 @@ describe('gentask issue', () => {
     const { fetchFn } = spy([{ body: [] }]);
 
     await expect(
-      run(['issue', 'list'], () => client(fetchFn), { GENTASK_TOKEN: 'T' } as NodeJS.ProcessEnv),
+      run(['issue', 'list'], () => client(fetchFn), {
+        GENTASK_TOKEN: 'T',
+        XDG_CONFIG_HOME: mkdtempSync(join(tmpdir(), 'gentask-cfg-')),
+      } as NodeJS.ProcessEnv),
     ).rejects.toThrow(/project use/);
   });
 });

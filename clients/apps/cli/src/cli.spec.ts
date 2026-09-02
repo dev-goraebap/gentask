@@ -167,7 +167,11 @@ describe('TG-011 자격을 두는 자리', () => {
 
     expect(outcome.code).toBe(0);
     const path = configPath(env);
-    expect(JSON.parse(readFileSync(path, 'utf8'))).toEqual({ token: 'T-1' });
+    // 토큰이 어느 서버의 것인지 함께 남는다. 주소를 매번 넘기게 두면 잊는 순간 운영을 부른다.
+    expect(JSON.parse(readFileSync(path, 'utf8'))).toEqual({
+      token: 'T-1',
+      baseUrl: 'https://api.gentask.xyz',
+    });
     // 윈도우는 POSIX 권한 비트를 그대로 갖지 않으므로 그 자리에서는 세지 않는다.
     if (process.platform !== 'win32') {
       expect(statSync(path).mode & 0o777).toBe(0o600);
@@ -175,7 +179,7 @@ describe('TG-011 자격을 두는 자리', () => {
   });
 
   it('TG-011 #9: 환경변수와 파일에 토큰이 모두 있으면 환경변수의 것을 쓴다', () => {
-    storeToken('저장된것', env);
+    storeToken('저장된것', 'https://api.example', env);
 
     expect(readConfig({ ...env, GENTASK_TOKEN: '환경의것' }).token).toBe('환경의것');
     expect(readConfig(env).token).toBe('저장된것');
@@ -184,7 +188,7 @@ describe('TG-011 자격을 두는 자리', () => {
   it('auth status 가 어디서 온 토큰인지 말한다', async () => {
     expect((await run(['auth', 'status'], undefined, env)).code).toBe(1);
 
-    storeToken('T', env);
+    storeToken('T', 'https://api.example', env);
     expect((await run(['auth', 'status'], undefined, env)).out).toContain(configPath(env));
 
     const withEnv = await run(['auth', 'status'], undefined, { ...env, GENTASK_TOKEN: 'T' });
@@ -192,7 +196,7 @@ describe('TG-011 자격을 두는 자리', () => {
   });
 
   it('auth logout 이 저장된 것을 지운다', async () => {
-    storeToken('T', env);
+    storeToken('T', 'https://api.example', env);
 
     expect((await run(['auth', 'logout'], undefined, env)).out).toContain('지웠습니다');
     expect((await run(['auth', 'logout'], undefined, env)).out).toContain('지울 토큰이 없습니다');

@@ -1,6 +1,13 @@
 import { createInterface } from 'node:readline/promises';
 import { parseArgs } from 'node:util';
-import { clearToken, configPath, readConfig, readStoredToken, storeToken } from './config.js';
+import {
+  clearToken,
+  configPath,
+  DEFAULT_BASE_URL,
+  readConfig,
+  readStoredToken,
+  storeToken,
+} from './config.js';
 import { GentaskClient, type Task } from './gentask-client.js';
 import { formatList, formatTask } from './format.js';
 import { ISSUE_HELP, runIssue, runProject } from './issue-commands.js';
@@ -92,8 +99,10 @@ async function runAuth(
     if (!token) {
       throw new Error('토큰이 비어 있습니다.');
     }
-    const path = storeToken(token, env);
-    return { out: `토큰을 ${path} 에 저장했습니다.`, code: 0 };
+    // 토큰과 함께 그 토큰이 통하는 서버도 남긴다. 주소를 매번 넘기게 두면 잊는 순간 운영을 부른다.
+    const baseUrl = (env['GENTASK_BASE_URL']?.trim() || DEFAULT_BASE_URL).replace(/\/+$/, '');
+    const path = storeToken(token, baseUrl, env);
+    return { out: `${baseUrl} 의 토큰을 ${path} 에 저장했습니다.`, code: 0 };
   }
 
   if (sub === 'status') {
@@ -101,7 +110,7 @@ async function runAuth(
       return { out: 'GENTASK_TOKEN 의 토큰을 씁니다. 저장된 것보다 이것이 먼저입니다.', code: 0 };
     }
     if (readStoredToken(env)) {
-      return { out: `${configPath(env)} 의 토큰을 씁니다.`, code: 0 };
+      return { out: `${readConfig(env).baseUrl} — ${configPath(env)} 의 토큰을 씁니다.`, code: 0 };
     }
     return { out: '저장된 토큰이 없습니다.', code: 1 };
   }

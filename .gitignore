@@ -33,3 +33,6 @@ Thumbs.db
 !.agents/skills/angular-developer/
 # 설치 기록에는 개인 스킬 목록이 함께 들어가므로 공유하지 않습니다.
 skills-lock.json
+
+# 백로그의 원본은 트래커이며 이것은 추적 검사가 읽는 사본이다. 내리는 것은 gentask CLI 다.
+.backlog.json

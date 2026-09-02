@@ -20,8 +20,22 @@ const SOURCES = [
   ['CLI', join(ROOT, 'clients', 'apps', 'cli', 'src'), (n) => n.endsWith('.spec.ts')],
 ];
 
-// cleanup 이 오래 닫힌 항목을 completed/ 로 옮기므로 두 자리를 함께 읽는다.
-const ITEMS = [join(ROOT, 'backlog', 'tasks'), join(ROOT, 'backlog', 'completed')];
+/*
+ * 인수 조건의 원본은 트래커다. 저장소의 backlog/ 마크다운은 걷었다.
+ *
+ * 이 검사가 API 를 직접 부르지 않는 것은 지금까지 오프라인으로 돌던 성질을 지키기 위해서다 —
+ * 서버와 토큰이 있어야 도는 검사는 홈서버가 잠깐 안 뜨면 함께 멈춘다. 대신 CLI 가 내린 것을 읽고,
+ * 그것이 없으면 무엇을 해야 하는지 알린다.
+ */
+const EXPORT = join(ROOT, '.backlog.json');
+
+const EXPORT_MISSING = [
+  `백로그를 내린 것이 없습니다: ${relative(ROOT, EXPORT)}`,
+  '',
+  '  npm run backlog:export --prefix clients/apps/cli',
+  '',
+  '을 실행한 뒤 다시 검사하세요. 원본은 트래커이며 이 파일은 그 사본입니다.',
+].join('\n');
 
 // 줄바꿈이 CRLF 로 섞여 들어와도 대조가 깨지지 않게 읽는 자리에서 고른다.
 // 어긋난 파일 하나가 인수 조건을 조용히 빠뜨리는 것보다 여기서 흡수하는 편이 안전하다.
@@ -43,25 +57,29 @@ function walk(dir, matches, out = []) {
   return out;
 }
 
+let exported;
+try {
+  exported = JSON.parse(read(EXPORT));
+} catch {
+  console.error(EXPORT_MISSING);
+  process.exit(1);
+}
+
 const criteria = [];
-for (const dir of ITEMS) {
-  for (const file of walk(dir, (n) => n.endsWith('.md'))) {
-    const body = read(file);
-    const id = /^id:\s*(TG-[\d.]+)\s*$/m.exec(body)?.[1];
-    if (!id) continue;
-    // 경계를 표시하지 않는다. `#n` 이 붙은 체크 항목 자체가 인수 조건이다. 화면의 편집기가 HTML
-    // 주석을 담을 자리를 갖지 않아, 마커로 가르면 저장하는 순간 인수 조건이 사라진다.
-    for (const line of body.split('\n')) {
-      const m = /^- \[[ x]\] #(\d+) (.+)$/.exec(line);
-      if (!m) continue;
-      const text = m[2].trim();
-      // 결번은 번호를 비워 두기 위한 자리이며 검증 대상이 아니다. 규약은 AGENTS.md 의 번호 불변.
-      if (text === '(결번)') continue;
-      // [서버] 는 브라우저로 도달할 수 없음을 뜻하며 E2E 열을 면제한다. 이 저장소의 표기이며
-      // ISO/IEC/IEEE 29148 의 검증 방법 속성과는 축이 다르다. 규약은 결정-0008 이 갖는다.
-      const serverOnly = text.startsWith('[서버]');
-      criteria.push({ key: `${id} #${m[1]}`, text: text.replace(/^\[서버\]\s*/, ''), serverOnly });
-    }
+for (const issue of exported.issues) {
+  // 경계를 표시하지 않는다. `#n` 이 붙은 체크 항목 자체가 인수 조건이다. 화면의 편집기가 HTML
+  // 주석을 담을 자리를 갖지 않아, 마커로 가르면 저장하는 순간 인수 조건이 사라진다.
+  for (const criterion of issue.criteria) {
+    // 결번은 번호를 비워 두기 위한 자리이며 검증 대상이 아니다. 규약은 AGENTS.md 의 번호 불변.
+    if (criterion.retired) continue;
+    // [서버] 는 브라우저로 도달할 수 없음을 뜻하며 E2E 열을 면제한다. 이 저장소의 표기이며
+    // ISO/IEC/IEEE 29148 의 검증 방법 속성과는 축이 다르다. 규약은 결정-0008 이 갖는다.
+    const serverOnly = criterion.sentence.startsWith('[서버]');
+    criteria.push({
+      key: `${issue.key} #${criterion.number}`,
+      text: criterion.sentence.replace(/^\[서버\]\s*/, ''),
+      serverOnly,
+    });
   }
 }
 

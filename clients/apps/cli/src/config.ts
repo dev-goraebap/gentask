@@ -39,6 +39,8 @@ export function configPath(env: NodeJS.ProcessEnv = process.env): string {
 interface StoredConfig {
   token?: string;
   projectKey?: string;
+  /** 그 토큰이 통하는 서버. 토큰은 서버마다 다르므로 둘을 함께 저장한다. */
+  baseUrl?: string;
 }
 
 function readStored(env: NodeJS.ProcessEnv): StoredConfig {
@@ -52,6 +54,11 @@ function readStored(env: NodeJS.ProcessEnv): StoredConfig {
 /** 저장된 토큰. 파일이 없거나 읽을 수 없으면 없는 것으로 본다. */
 export function readStoredToken(env: NodeJS.ProcessEnv = process.env): string | null {
   return readStored(env).token?.trim() || null;
+}
+
+/** 저장된 서버 주소. */
+export function readStoredBaseUrl(env: NodeJS.ProcessEnv = process.env): string | null {
+  return readStored(env).baseUrl?.trim() || null;
 }
 
 /** 저장된 프로젝트 접두어. */
@@ -79,11 +86,17 @@ export function storeProject(projectKey: string, env: NodeJS.ProcessEnv = proces
  * <p>소유자만 읽을 수 있게 둔다. 같은 기계의 다른 사용자가 읽을 수 있으면 그 계정의 전권이 함께
  * 넘어간다. TG-011 의 #8 이 이것이다.
  */
-export function storeToken(token: string, env: NodeJS.ProcessEnv = process.env): string {
+export function storeToken(
+  token: string,
+  baseUrl: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
   const path = configPath(env);
   const stored = readStored(env);
   mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
-  writeFileSync(path, `${JSON.stringify({ ...stored, token }, null, 2)}\n`, { mode: 0o600 });
+  writeFileSync(path, `${JSON.stringify({ ...stored, token, baseUrl }, null, 2)}\n`, {
+    mode: 0o600,
+  });
   chmodSync(path, 0o600);
   return path;
 }
@@ -110,7 +123,15 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error(MISSING_TOKEN);
   }
   return {
-    baseUrl: (env['GENTASK_BASE_URL']?.trim() || DEFAULT_BASE_URL).replace(/\/+$/, ''),
+    /*
+     * 저장된 주소가 기본값을 이긴다. 토큰은 서버마다 다르므로, 개발 서버에 로그인해 둔 채로
+     * 주소만 운영으로 돌아가면 그 토큰이 거절되거나 — 더 나쁘게는 — 운영을 건드린다.
+     */
+    baseUrl: (
+      env['GENTASK_BASE_URL']?.trim() ||
+      readStoredBaseUrl(env) ||
+      DEFAULT_BASE_URL
+    ).replace(/\/+$/, ''),
     token,
     projectKey: env['GENTASK_PROJECT']?.trim() || readStoredProject(env),
   };
