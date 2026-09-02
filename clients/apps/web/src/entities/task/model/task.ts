@@ -106,7 +106,7 @@ export const TASK_VIEWS: readonly TaskViewItem[] = [
   { value: 'my-day', label: '나의 하루', icon: 'hgiSun' },
   { value: 'important', label: '중요', icon: 'hgiStar' },
   { value: 'planned', label: '계획된 일정', icon: 'hgiCalendarRange' },
-  { value: 'all', label: '할 일', icon: 'hgiHome' },
+  { value: 'all', label: '할 일', icon: 'hgiCheckCircle' },
 ];
 
 export function taskViewLabel(view: TaskView): string {

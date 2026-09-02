@@ -45,7 +45,7 @@ export const PROJECTS_NAV_ITEM: NavItem = {
  * <p>넷을 넘기지 않는다. 좁은 화면에서 다섯 칸이 되면 글자가 접히거나 잘린다.
  */
 export const TODO_BOTTOM_NAV: readonly NavItem[] = [
-  { label: '작업', icon: 'hgiTask', link: ROUTES.taskList('my-day') },
+  { label: '작업', icon: 'hgiCheckCircle', link: ROUTES.taskList('my-day') },
   PROJECTS_NAV_ITEM,
 ];
 
