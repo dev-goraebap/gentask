@@ -10,6 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import xyz.gentask.module.tracker.application.TrackerErrorCode;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentView;
+import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionPageView;
+import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionSummary;
+import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionView;
 import xyz.gentask.module.tracker.application.project.ProjectService;
 import xyz.gentask.module.tracker.domain.doc.Document;
 import xyz.gentask.module.tracker.domain.doc.DocumentBody;
@@ -22,6 +25,15 @@ import xyz.gentask.module.tracker.domain.project.Project;
 @Service
 @RequiredArgsConstructor
 public class DocumentService {
+
+    // --- 상수 --------------------------------------------------------------------------------------------------------
+    /**
+     * 이력 한 쪽의 최대 크기.
+     *
+     * <p>쪽 번호와 크기로 나눈다. 이 저장소의 목록 API 가 이미 쓰는 규약이라 그것을 따랐고, 이력은
+     * 번호가 촘촘히 매겨져 있어 쪽을 건너뛰어 짚는 일이 실제로 일어난다.
+     */
+    static final int MAX_PAGE_SIZE = 100;
 
     // --- 의존 --------------------------------------------------------------------------------------------------------
     private final DocumentRepository documentRepository;
@@ -41,6 +53,43 @@ public class DocumentService {
         return documentQuery
                 .findOne(project.id(), readId(documentId))
                 .orElseThrow(TrackerErrorCode.DOCUMENT_NOT_FOUND::raise);
+    }
+
+    /**
+     * 개정 이력 한 쪽. 최근 것부터 낸다(DOC-004).
+     *
+     * <p>개정이 하나도 없다는 것은 그 문서가 없다는 뜻이다. 세우는 것이 곧 첫 개정이므로 이력이 빈
+     * 문서는 없고, 지워진 것과 남의 것은 조회가 걸러 낸다(DOC-004 A4 · A5).
+     */
+    @Transactional(readOnly = true)
+    public RevisionPageView revisions(UUID userId, String projectId, String documentId, int page, int size) {
+        Project project = projectService.find(userId, projectId);
+        UUID id = readId(documentId);
+
+        int limitedSize = Math.clamp(size, 1, MAX_PAGE_SIZE);
+        int safePage = Math.max(page, 0);
+
+        long total = documentQuery.countRevisions(project.id(), id);
+        if (total == 0) {
+            throw TrackerErrorCode.DOCUMENT_NOT_FOUND.raise();
+        }
+
+        List<RevisionSummary> items =
+                documentQuery.findRevisions(project.id(), id, limitedSize, safePage * limitedSize);
+        return new RevisionPageView(items, total, safePage, limitedSize);
+    }
+
+    /**
+     * 개정 하나. 그때의 제목과 본문을 그대로 낸다(DOC-004).
+     *
+     * <p>두 개정의 차이를 여기서 계산하지 않는다. 본문을 그대로 내고 견주는 일은 읽는 쪽이 한다.
+     */
+    @Transactional(readOnly = true)
+    public RevisionView revision(UUID userId, String projectId, String documentId, String revisionNo) {
+        Project project = projectService.find(userId, projectId);
+        return documentQuery
+                .findRevision(project.id(), readId(documentId), readRevisionNo(revisionNo))
+                .orElseThrow(TrackerErrorCode.REVISION_NOT_FOUND::raise);
     }
 
     // --- 명령 --------------------------------------------------------------------------------------------------------
@@ -104,7 +153,47 @@ public class DocumentService {
         documentRepository.save(document);
     }
 
+    /**
+     * 고른 개정으로 되돌린다.
+     *
+     * <p>사이의 개정을 지우지 않는다. 고른 개정의 제목과 본문을 담은 새 개정을 남기고 문서가 그것을
+     * 가리키게 한다. 그래서 되돌린 것을 다시 되돌릴 수 있다(DOC-005).
+     *
+     * <p>고른 개정이 지금 참인 것과 같으면 아무것도 담지 않고 성공으로 답한다. 고쳐 담는 자리와 같은
+     * 규칙이며 되돌리기라고 예외를 두지 않는다(DOC-005 A2).
+     */
+    @Transactional
+    public void revert(UUID userId, String projectId, String documentId, String revisionNo, String comment) {
+        Project project = projectService.find(userId, projectId);
+        Document document = documentRepository
+                .findById(project.id(), readId(documentId))
+                .orElseThrow(TrackerErrorCode.DOCUMENT_NOT_FOUND::raise);
+        int targetNo = readRevisionNo(revisionNo);
+        DocumentRevision target = documentRepository
+                .findRevisionByNo(document.id(), targetNo)
+                .orElseThrow(TrackerErrorCode.REVISION_NOT_FOUND::raise);
+        DocumentRevision head = head(document);
+
+        if (head.hasSameContent(target.title(), target.body())) {
+            return;
+        }
+
+        Instant now = clock.instant();
+        DocumentRevision next = head.next(
+                UUID.randomUUID(), target.title(), target.body(), revertReason(comment, targetNo), userId, now);
+        documentRepository.append(next);
+
+        document.moveHead(next.id(), next.title(), userId, now);
+        documentRepository.save(document);
+    }
+
     // --- 보조 --------------------------------------------------------------------------------------------------------
+    /** 되돌린 이유를 적지 않으면 몇 번째 개정으로 되돌렸는지를 시스템이 적는다(DOC-005 A3). */
+    private static RevisionComment revertReason(String rawComment, int revisionNo) {
+        RevisionComment comment = RevisionComment.of(rawComment);
+        return comment.isPresent() ? comment : RevisionComment.revertedTo(revisionNo);
+    }
+
     private DocumentRevision head(Document document) {
         if (document.headRevisionId() == null) {
             throw new IllegalStateException("개정 없는 문서가 서 있다");
@@ -125,6 +214,15 @@ public class DocumentService {
             return UUID.fromString(rawId);
         } catch (IllegalArgumentException ignored) {
             throw TrackerErrorCode.DOCUMENT_NOT_FOUND.raise();
+        }
+    }
+
+    /** 주소에서 받은 개정 번호를 읽는다. 모양이 맞지 않는 것도 없는 자리로 낸다. */
+    private static int readRevisionNo(String rawRevisionNo) {
+        try {
+            return Integer.parseInt(rawRevisionNo);
+        } catch (NumberFormatException ignored) {
+            throw TrackerErrorCode.REVISION_NOT_FOUND.raise();
         }
     }
 }

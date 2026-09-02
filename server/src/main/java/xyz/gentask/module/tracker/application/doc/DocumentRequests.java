@@ -35,4 +35,16 @@ public final class DocumentRequests {
                     description = "왜 고쳤는지. 적지 않아도 된다",
                     types = {"string", "null"})
             String comment) {}
+
+    /**
+     * 되돌리기. 되돌아갈 개정은 주소가 담으므로 여기 담는 것은 왜 되돌리는지뿐이다.
+     *
+     * <p>적지 않아도 되며, 적지 않으면 몇 번째 개정으로 되돌렸는지를 시스템이 사유 자리에 적는다
+     * (DOC-005 A3).
+     */
+    public record RevertRevision(
+            @Size(max = RevisionComment.MAX) @Schema(
+                    description = "왜 되돌리는지. 적지 않아도 된다",
+                    types = {"string", "null"})
+            String comment) {}
 }

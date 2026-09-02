@@ -30,6 +30,15 @@ public record RevisionComment(String value) implements ValueObject {
         return new RevisionComment(strippedComment);
     }
 
+    /**
+     * 되돌리면서 이유를 적지 않았을 때 시스템이 스스로 적는 사유(DOC-005 A3).
+     *
+     * <p>이력에서 되돌린 자리를 알아볼 수 있어야 하므로 몇 번째 개정으로 되돌렸는지를 담는다.
+     */
+    public static RevisionComment revertedTo(int revisionNo) {
+        return new RevisionComment(revisionNo + "번 개정으로 되돌림");
+    }
+
     public boolean isPresent() {
         return !value.isEmpty();
     }

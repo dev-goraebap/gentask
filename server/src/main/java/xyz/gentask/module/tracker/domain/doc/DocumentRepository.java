@@ -28,4 +28,7 @@ public interface DocumentRepository {
     void append(DocumentRevision revision);
 
     Optional<DocumentRevision> findRevisionById(UUID revisionId);
+
+    /** 되돌릴 자리를 사람이 부른 번호로 찾는다(DOC-005). */
+    Optional<DocumentRevision> findRevisionByNo(UUID documentId, int revisionNo);
 }

@@ -9,12 +9,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.Record4;
 import org.springframework.stereotype.Repository;
 import xyz.gentask.module.tracker.application.doc.DocumentQuery;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentView;
+import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionSummary;
+import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionView;
 
 /**
  * 문서의 목록과 상세를 낸다.
@@ -70,6 +74,80 @@ class JooqDocumentQuery implements DocumentQuery {
                         record.get(DOCUMENT_REVISIONS.BODY),
                         record.get(DOCUMENT_REVISIONS.REVISION_NO),
                         record.get(USERS.NICKNAME) == null ? "" : record.get(USERS.NICKNAME)));
+    }
+
+    @Override
+    public List<RevisionSummary> findRevisions(UUID projectId, UUID documentId, int limit, int offset) {
+        return dslContext
+                .select(
+                        DOCUMENT_REVISIONS.REVISION_NO,
+                        DOCUMENT_REVISIONS.CREATED_AT,
+                        USERS.NICKNAME,
+                        DOCUMENT_REVISIONS.COMMENT)
+                .from(DOCUMENT_REVISIONS)
+                .join(DOCUMENTS)
+                .on(DOCUMENTS.ID.eq(DOCUMENT_REVISIONS.DOCUMENT_ID))
+                .leftJoin(USERS)
+                .on(USERS.ID.eq(DOCUMENT_REVISIONS.CREATED_BY))
+                .where(livingDocument(projectId, documentId))
+                .orderBy(DOCUMENT_REVISIONS.REVISION_NO.desc())
+                .limit(limit)
+                .offset(offset)
+                .fetch(JooqDocumentQuery::toRevisionSummary);
+    }
+
+    @Override
+    public long countRevisions(UUID projectId, UUID documentId) {
+        return dslContext
+                .selectCount()
+                .from(DOCUMENT_REVISIONS)
+                .join(DOCUMENTS)
+                .on(DOCUMENTS.ID.eq(DOCUMENT_REVISIONS.DOCUMENT_ID))
+                .where(livingDocument(projectId, documentId))
+                .fetchSingle()
+                .value1();
+    }
+
+    @Override
+    public Optional<RevisionView> findRevision(UUID projectId, UUID documentId, int revisionNo) {
+        return dslContext
+                .select(
+                        DOCUMENT_REVISIONS.REVISION_NO,
+                        DOCUMENT_REVISIONS.CREATED_AT,
+                        USERS.NICKNAME,
+                        DOCUMENT_REVISIONS.COMMENT,
+                        DOCUMENT_REVISIONS.TITLE,
+                        DOCUMENT_REVISIONS.BODY)
+                .from(DOCUMENT_REVISIONS)
+                .join(DOCUMENTS)
+                .on(DOCUMENTS.ID.eq(DOCUMENT_REVISIONS.DOCUMENT_ID))
+                .leftJoin(USERS)
+                .on(USERS.ID.eq(DOCUMENT_REVISIONS.CREATED_BY))
+                .where(livingDocument(projectId, documentId))
+                .and(DOCUMENT_REVISIONS.REVISION_NO.eq(revisionNo))
+                .fetchOptional()
+                .map(record -> new RevisionView(
+                        toRevisionSummary(record),
+                        record.get(DOCUMENT_REVISIONS.TITLE),
+                        record.get(DOCUMENT_REVISIONS.BODY)));
+    }
+
+    /** 남의 것과 지워진 것을 이력에서도 걸러 낸다(DOC-004 A4 · A5). */
+    private static Condition livingDocument(UUID projectId, UUID documentId) {
+        return DOCUMENTS
+                .ID
+                .eq(documentId)
+                .and(DOCUMENTS.PROJECT_ID.eq(projectId))
+                .and(DOCUMENTS.DELETED_AT.isNull());
+    }
+
+    private static RevisionSummary toRevisionSummary(Record record) {
+        String nickname = record.get(USERS.NICKNAME);
+        return new RevisionSummary(
+                record.get(DOCUMENT_REVISIONS.REVISION_NO),
+                record.get(DOCUMENT_REVISIONS.CREATED_AT),
+                nickname == null ? "" : nickname,
+                record.get(DOCUMENT_REVISIONS.COMMENT));
     }
 
     private static DocumentSummary toSummary(Record4<UUID, String, Instant, Instant> record) {

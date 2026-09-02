@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.gentask.AuthTestSupport;
 import xyz.gentask.FakeMailConfiguration;
@@ -44,8 +45,8 @@ class DocumentApiTest {
     private RecordingMailSender mail;
 
     /*
-     * 개정 이력을 내는 길이 아직 없으므로(GT-66) 앞의 개정이 그대로 남는지는 표를 직접 보고
-     * 확인한다. 시험이 지나는 입구는 그대로 HTTP 다.
+     * 개정에 담긴 것 가운데 응답이 내지 않는 자리가 있어 표를 직접 보고 확인한다. 시험이 지나는
+     * 입구는 그대로 HTTP 다.
      */
     @Autowired
     private DSLContext dslContext;
@@ -288,7 +289,281 @@ class DocumentApiTest {
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
 
+    @Test
+    @DisplayName("이력을 열면 개정이 최근 것부터 몇 번째인지와 언제와 누가와 사유를 담아 온다")
+    void 이력은_최근_것부터_온다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
+        고친다(documentId, "{\"title\":\"고친 제목\",\"body\":\"고친 본문\",\"comment\":\"왜 고쳤는지\"}");
+
+        이력(documentId)
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.items", hasSize(2)))
+                .andExpect(jsonPath("$.items[0].revisionNo").value(2))
+                .andExpect(jsonPath("$.items[0].comment").value("왜 고쳤는지"))
+                .andExpect(jsonPath("$.items[0].authorName").isNotEmpty())
+                .andExpect(jsonPath("$.items[0].createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.items[1].revisionNo").value(1))
+                .andExpect(jsonPath("$.items[1].comment").isEmpty());
+    }
+
+    @Test
+    @DisplayName("이력의 한 줄에 본문을 싣지 않는다")
+    void 이력은_본문을_싣지_않는다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"제목\",\"body\":\"긴 본문\"}");
+
+        이력(documentId).andExpect(jsonPath("$.items[0].body").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("세운 뒤 한 번도 고치지 않았으면 세운 개정 하나만 온다")
+    void 고치지_않았으면_개정이_하나다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"그대로\",\"body\":\"본문\"}");
+
+        이력(documentId)
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items", hasSize(1)))
+                .andExpect(jsonPath("$.items[0].revisionNo").value(1));
+    }
+
+    @Test
+    @DisplayName("개정이 한 쪽에 담기지 않으면 최근 것부터 일부를 내고 다음 쪽을 이어 낸다")
+    void 이력을_쪽으로_나눠_낸다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"제목\",\"body\":\"본문 1\"}");
+        고친다(documentId, "{\"title\":\"제목\",\"body\":\"본문 2\"}");
+        고친다(documentId, "{\"title\":\"제목\",\"body\":\"본문 3\"}");
+
+        이력(documentId, "?page=0&size=2")
+                .andExpect(jsonPath("$.total").value(3))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(2))
+                .andExpect(jsonPath("$.items", hasSize(2)))
+                .andExpect(jsonPath("$.items[0].revisionNo").value(3))
+                .andExpect(jsonPath("$.items[1].revisionNo").value(2));
+
+        이력(documentId, "?page=1&size=2")
+                .andExpect(jsonPath("$.items", hasSize(1)))
+                .andExpect(jsonPath("$.items[0].revisionNo").value(1));
+    }
+
+    @Test
+    @DisplayName("개정 하나를 고르면 그때의 제목과 본문이 온다")
+    void 개정_하나는_그때의_본문을_낸다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
+        고친다(documentId, "{\"title\":\"고친 제목\",\"body\":\"고친 본문\",\"comment\":null}");
+
+        개정(documentId, 1)
+                .andExpect(jsonPath("$.title").value("처음 제목"))
+                .andExpect(jsonPath("$.body").value("처음 본문"))
+                .andExpect(jsonPath("$.summary.revisionNo").value(1));
+
+        개정(documentId, 2)
+                .andExpect(jsonPath("$.title").value("고친 제목"))
+                .andExpect(jsonPath("$.body").value("고친 본문"));
+    }
+
+    @Test
+    @DisplayName("없는 개정 번호를 고르면 없는 것으로 낸다")
+    void 없는_개정은_없는_것으로_낸다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"제목\",\"body\":\"본문\"}");
+
+        mockMvc.perform(get(
+                                "/api/v1/projects/{projectId}/documents/{documentId}/revisions/{revisionNo}",
+                                projectId,
+                                documentId,
+                                "9")
+                        .cookie(session))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("REVISION_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("사용자의 프로젝트에 속하지 않으면 이력에 닿을 수 없다")
+    void 남의_문서의_이력에는_닿을_수_없다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"내 것\",\"body\":\"내 본문\"}");
+
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
+
+        mockMvc.perform(get("/api/v1/projects/{projectId}/documents/{documentId}/revisions", projectId, documentId)
+                        .cookie(other))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("다른 프로젝트의 자리에서 이력을 열면 없는 것으로 낸다")
+    void 다른_프로젝트에서는_이력이_없다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"이 프로젝트의 것\",\"body\":\"본문\"}");
+
+        String other = 프로젝트를_세운다(session, "Other", "OT");
+
+        mockMvc.perform(get("/api/v1/projects/{projectId}/documents/{documentId}/revisions", other, documentId)
+                        .cookie(session))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("DOCUMENT_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("지난 개정으로 되돌리면 그 본문을 담은 새 개정을 남기고 문서가 그것을 가리킨다")
+    void 되돌리면_새_개정을_가리킨다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
+        고친다(documentId, "{\"title\":\"고친 제목\",\"body\":\"고친 본문\",\"comment\":null}");
+
+        되돌린다(documentId, 1, null);
+
+        상세(documentId)
+                .andExpect(jsonPath("$.summary.title").value("처음 제목"))
+                .andExpect(jsonPath("$.body").value("처음 본문"))
+                .andExpect(jsonPath("$.revisionNo").value(3));
+    }
+
+    @Test
+    @DisplayName("되돌려도 사이의 개정을 지우지도 고치지도 않는다")
+    void 되돌려도_사이의_개정이_남는다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
+        고친다(documentId, "{\"title\":\"고친 제목\",\"body\":\"고친 본문\",\"comment\":null}");
+
+        되돌린다(documentId, 1, null);
+
+        List<DocumentRevisionsRecord> revisions = 개정들(documentId);
+        assertThat(revisions).hasSize(3);
+        assertThat(revisions.get(1).getRevisionNo()).isEqualTo(2);
+        assertThat(revisions.get(1).getTitle()).isEqualTo("고친 제목");
+        assertThat(revisions.get(1).getBody()).isEqualTo("고친 본문");
+    }
+
+    @Test
+    @DisplayName("이유를 적지 않고 되돌리면 몇 번째 개정으로 되돌렸는지를 사유 자리에 적는다")
+    void 되돌린_사유를_스스로_적는다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
+        고친다(documentId, "{\"title\":\"고친 제목\",\"body\":\"고친 본문\",\"comment\":null}");
+
+        되돌린다(documentId, 1, null);
+
+        이력(documentId)
+                .andExpect(jsonPath("$.items[0].revisionNo").value(3))
+                .andExpect(jsonPath("$.items[0].comment").value("1번 개정으로 되돌림"));
+    }
+
+    @Test
+    @DisplayName("되돌린 이유를 적으면 그것을 사유로 남긴다")
+    void 되돌린_이유를_적을_수_있다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
+        고친다(documentId, "{\"title\":\"고친 제목\",\"body\":\"고친 본문\",\"comment\":null}");
+
+        되돌린다(documentId, 1, "{\"comment\":\"고친 쪽이 틀렸다\"}");
+
+        이력(documentId).andExpect(jsonPath("$.items[0].comment").value("고친 쪽이 틀렸다"));
+    }
+
+    @Test
+    @DisplayName("고른 개정의 본문이 지금 참인 것과 같으면 새 개정을 만들지 않는다")
+    void 같은_것으로_되돌리면_개정을_만들지_않는다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"그대로\",\"body\":\"그대로인 본문\"}");
+
+        되돌린다(documentId, 1, null);
+
+        상세(documentId).andExpect(jsonPath("$.revisionNo").value(1));
+        assertThat(개정들(documentId)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("되돌린 것을 다시 되돌릴 수 있고 그것도 새 개정이 된다")
+    void 되돌린_것을_다시_되돌린다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
+        고친다(documentId, "{\"title\":\"고친 제목\",\"body\":\"고친 본문\",\"comment\":null}");
+
+        되돌린다(documentId, 1, null);
+        되돌린다(documentId, 2, null);
+
+        상세(documentId)
+                .andExpect(jsonPath("$.body").value("고친 본문"))
+                .andExpect(jsonPath("$.revisionNo").value(4));
+    }
+
+    @Test
+    @DisplayName("없는 개정 번호로는 되돌리지 못하고 아무것도 담지 않는다")
+    void 없는_개정으로는_되돌리지_못한다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"제목\",\"body\":\"본문\"}");
+
+        mockMvc.perform(post(
+                                "/api/v1/projects/{projectId}/documents/{documentId}/revisions/{revisionNo}/revert",
+                                projectId,
+                                documentId,
+                                "9")
+                        .cookie(session))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("REVISION_NOT_FOUND"));
+
+        assertThat(개정들(documentId)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("사용자의 프로젝트에 속하지 않으면 되돌리지 못한다")
+    void 남의_문서는_되돌리지_못한다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"내 것\",\"body\":\"내 본문\"}");
+        고친다(documentId, "{\"title\":\"내 것\",\"body\":\"고친 본문\",\"comment\":null}");
+
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
+
+        mockMvc.perform(post(
+                                "/api/v1/projects/{projectId}/documents/{documentId}/revisions/{revisionNo}/revert",
+                                projectId,
+                                documentId,
+                                "1")
+                        .cookie(other))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
+
+        상세(documentId).andExpect(jsonPath("$.body").value("고친 본문"));
+    }
+
+    @Test
+    @DisplayName("로그인 없이 이력에 닿을 수 없다")
+    void 로그인_없이_이력에_닿을_수_없다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"제목\",\"body\":\"본문\"}");
+
+        mockMvc.perform(get("/api/v1/projects/{projectId}/documents/{documentId}/revisions", projectId, documentId))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
     // --- 준비 --------------------------------------------------------------------------------------------------------
+    private ResultActions 이력(String documentId) throws Exception {
+        return 이력(documentId, "");
+    }
+
+    private ResultActions 이력(String documentId, String query) throws Exception {
+        return mockMvc.perform(get(
+                                "/api/v1/projects/{projectId}/documents/{documentId}/revisions" + query,
+                                projectId,
+                                documentId)
+                        .cookie(session))
+                .andExpect(status().isOk());
+    }
+
+    private ResultActions 개정(String documentId, int revisionNo) throws Exception {
+        return mockMvc.perform(get(
+                                "/api/v1/projects/{projectId}/documents/{documentId}/revisions/{revisionNo}",
+                                projectId,
+                                documentId,
+                                revisionNo)
+                        .cookie(session))
+                .andExpect(status().isOk());
+    }
+
+    private void 되돌린다(String documentId, int revisionNo, String body) throws Exception {
+        MockHttpServletRequestBuilder request = post(
+                        "/api/v1/projects/{projectId}/documents/{documentId}/revisions/{revisionNo}/revert",
+                        projectId,
+                        documentId,
+                        revisionNo)
+                .cookie(session);
+        if (body != null) {
+            request.contentType(MediaType.APPLICATION_JSON).content(body);
+        }
+        mockMvc.perform(request).andExpect(status().isNoContent());
+    }
+
     private ResultActions 목록() throws Exception {
         return mockMvc.perform(
                         get("/api/v1/projects/{projectId}/documents", projectId).cookie(session))

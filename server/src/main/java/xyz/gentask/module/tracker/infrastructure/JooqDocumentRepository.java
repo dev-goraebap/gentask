@@ -84,6 +84,16 @@ class JooqDocumentRepository implements DocumentRepository {
                 .map(JooqDocumentRepository::toDomain);
     }
 
+    @Override
+    public Optional<DocumentRevision> findRevisionByNo(UUID documentId, int revisionNo) {
+        return dslContext
+                .selectFrom(DOCUMENT_REVISIONS)
+                .where(DOCUMENT_REVISIONS.DOCUMENT_ID.eq(documentId))
+                .and(DOCUMENT_REVISIONS.REVISION_NO.eq(revisionNo))
+                .fetchOptional()
+                .map(JooqDocumentRepository::toDomain);
+    }
+
     private static Document toDomain(DocumentsRecord documentsRecord) {
         return Document.restore(
                 documentsRecord.getId(),

@@ -14,12 +14,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.gentask.module.tracker.application.doc.DocumentRequests.CreateDocument;
 import xyz.gentask.module.tracker.application.doc.DocumentRequests.EditDocument;
+import xyz.gentask.module.tracker.application.doc.DocumentRequests.RevertRevision;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentView;
+import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionPageView;
+import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionView;
 import xyz.gentask.shared.web.CurrentUser;
 
 /**
@@ -63,5 +67,41 @@ public class DocumentController {
             @PathVariable String documentId,
             @Valid @RequestBody EditDocument request) {
         documentService.edit(userId, projectId, documentId, request.title(), request.body(), request.comment());
+    }
+
+    @GetMapping("/{documentId}/revisions")
+    public RevisionPageView revisions(
+            @CurrentUser UUID userId,
+            @PathVariable String projectId,
+            @PathVariable String documentId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return documentService.revisions(userId, projectId, documentId, page, size);
+    }
+
+    @GetMapping("/{documentId}/revisions/{revisionNo}")
+    public RevisionView revision(
+            @CurrentUser UUID userId,
+            @PathVariable String projectId,
+            @PathVariable String documentId,
+            @PathVariable String revisionNo) {
+        return documentService.revision(userId, projectId, documentId, revisionNo);
+    }
+
+    /**
+     * 되돌리기.
+     *
+     * <p>경로에 동사를 두지 않는다는 BE-STY-079 의 예외다. 되돌리기가 만드는 것은 아직 번호가 없는 새
+     * 개정이라 그것을 가리키는 자리에 PUT 이나 PATCH 를 걸 수 없고, 이력 자체는 고칠 수 없는 자원이다.
+     */
+    @PostMapping("/{documentId}/revisions/{revisionNo}/revert")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void revert(
+            @CurrentUser UUID userId,
+            @PathVariable String projectId,
+            @PathVariable String documentId,
+            @PathVariable String revisionNo,
+            @Valid @RequestBody(required = false) RevertRevision request) {
+        documentService.revert(userId, projectId, documentId, revisionNo, request == null ? null : request.comment());
     }
 }
