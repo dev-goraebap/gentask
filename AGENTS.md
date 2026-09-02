@@ -61,7 +61,8 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 
 ## 백로그
 
-- **원본은 트래커입니다.** 저장소에 `backlog/` 파일을 두지 않으며, 읽고 쓰는 것은 `gentask` CLI 와 웹 화면입니다. 옮긴 근거는 [결정-0007](docs/architecture/decisions/0007-shared-software-process.md)이 갖습니다.
+- **원본은 트래커이며 운영(`gentask.xyz`)에 있습니다.** 저장소에 `backlog/` 파일을 두지 않으며, 읽고 쓰는 것은 `gentask` CLI 와 웹 화면입니다. 옮긴 근거는 [결정-0007](docs/architecture/decisions/0007-shared-software-process.md)이 갖습니다.
+- **개발 서버를 보지 않습니다.** 백로그는 계속 떠 있는 자리에 있어야 하며, `localhost:8080` 은 서버를 고치는 동안에만 봅니다.
 - 항목 ID 는 `GT-43` 처럼 접두어와 번호이며 **평평하게** 매깁니다. 계층은 번호가 아니라 부모가 갖고 `--parent` 로 잇습니다.
 - 인수 조건은 본문 안의 `- [ ] #<n> <문장>` 체크 항목입니다. **경계를 표시하지 않으며** 본문 어디에 있든 번호가 붙은 체크 항목을 모두 읽습니다.
 - 결번은 번호를 지우지 않고 문장을 `(결번)` 으로 바꿔 표시합니다. 번호는 부여 뒤 불변입니다.
@@ -72,7 +73,7 @@ npx --yes skills@latest add ./.agents/skills --skill '*' -a claude-code -y
 
 ```bash
 gentask project list                         # 내 프로젝트와 그 식별자
-gentask project use 0a6259b9cd01             # 이 자리의 프로젝트를 정한다
+gentask project use 9G5xhlf0c_6t             # 이 자리의 프로젝트를 정한다
 gentask issue list                           # 닫히지 않은 것
 gentask issue list --all --json              # 전부를 JSON 으로
 gentask issue show GT-30                     # 본문과 인수 조건까지
