@@ -54,9 +54,6 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	// 로컬 실행 시 compose.yaml 의 컨테이너를 함께 띄운다. 배포 산출물에는 들어가지 않는다.
-	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
-
 	// 코드 생성기 클래스패스 — DDLDatabase(SQL 파일에서 생성)를 쓰기 위해 필요하다.
 	jooqCodegen 'org.jooq:jooq-meta-extensions:3.21.6'
 

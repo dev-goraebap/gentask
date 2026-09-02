@@ -61,6 +61,7 @@
 | [0011](./decisions/0011-backend-outbound-email.md) | backend | 메일을 Gmail SMTP 로 보내고 발송을 포트 뒤에 둔다 | 유효 | 배포가 셸 스크립트 하나로 남는 대신 하루 500통과 반송을 알지 못하는 것을 받습니다 |
 | [0012](./decisions/0012-shared-credential-policy.md) | shared | 비밀번호에 구성 규칙을 걸고 이메일 소유를 일회용 코드로 확인한다 | 유효 | 확인된 주소만 계정이 되는 대신 구성 규칙에는 NIST 의 반대 근거가 붙어 있습니다 |
 | [0013](./decisions/0013-agent-cli.md) | cli | 에이전트가 붙는 자리를 명령줄 도구로 두고 자격을 파일과 환경에서 받는다 | 유효 | 셸이 있는 곳이면 어디서나 서고 필요한 가지만 읽는 대신 모델이 이 명령을 모릅니다 |
+| [0014](./decisions/0014-backend-development-backing-services.md) | backend | 개발용 데이터베이스와 파일 보관소를 홈서버에 두고 아는 자리에서만 연다 | 유효 | 개발 데이터가 기계를 따라다니는 대신 등록되지 않은 자리에서는 첨부가 막힙니다 |
 
 ## 발행 예정
 

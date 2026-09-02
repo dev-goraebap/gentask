@@ -135,7 +135,7 @@ flowchart LR
 
 - **환경 변수 격리 (`.env`)**: 데이터베이스 자격 증명, `AUTH_SECRET`, R2 API 키 등의 민감 정보는 서버 내부의 `.env` 파일에서만 관리하며 버전 관리 시스템(Git)에 커밋하지 않습니다. 환경 변수 키 이름은 `server/src/main/resources/application.properties`에 정의된 환경 변수 명세와 일치합니다.
 - **누락은 기동 실패로 드러납니다**: `application.properties`가 자격증명의 기본값을 갖지 않으므로, `.env`에 키가 빠지면 컨테이너가 뜨지 않습니다. 기본값을 두던 시기에는 주입을 빠뜨려도 로컬 값으로 기동이 성립했고 그 상태가 로그에 드러나지 않았습니다. 배포 전에 `.env`가 해당 키를 모두 갖는지 확인합니다.
-- **스토리지 CORS 설정**: Cloudflare R2 버킷의 CORS 정책은 `https://gentask.xyz` 출처에 대한 `GET`, `PUT` 메서드 허용과 더불어 **`ExposeHeaders`에 `etag`가 반드시 포함되어야 합니다**. 클라이언트 브라우저가 Presigned URL로 직접 파일을 업로드한 후, Uppy 라이브러리가 업로드 정합성을 검증하기 위해 응답의 `ETag` 헤더를 참조합니다. 해당 헤더가 노출되지 않으면 업로드 완료 처리가 중단됩니다. 로컬 개발 환경은 R2 대신 Docker Compose로 구동되는 MinIO(기본 설정)를 사용합니다.
+- **스토리지 CORS 설정**: Cloudflare R2 버킷의 CORS 정책은 `https://gentask.xyz` 출처에 대한 `GET`, `PUT` 메서드 허용과 더불어 **`ExposeHeaders`에 `etag`가 반드시 포함되어야 합니다**. 클라이언트 브라우저가 Presigned URL로 직접 파일을 업로드한 후, Uppy 라이브러리가 업로드 정합성을 검증하기 위해 응답의 `ETag` 헤더를 참조합니다. 해당 헤더가 노출되지 않으면 업로드 완료 처리가 중단됩니다. 개발 환경은 R2 대신 홈서버의 MinIO(기본 설정)를 사용하며, 그 자리와 접속 경로는 [결정-0014](./decisions/0014-backend-development-backing-services.md)가 갖습니다.
 
 ```json
 [
