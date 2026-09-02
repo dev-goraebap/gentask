@@ -328,3 +328,41 @@ app-shell:has(.aside-enter, .aside-leave) header {
 .illustration-500 {
   mask-image: url('/illustrations/500.svg');
 }
+
+/*
+ * 가로 시트를 한 칸씩 넘겨 그린다.
+ *
+ * 배경 자리를 퍼센트로 옮기지 않는 것이 요령이다. 배경 자리의 퍼센트는 그림의 너비가 아니라
+ * `요소 너비 - 그림 너비` 를 기준으로 삼으므로, 여섯 칸짜리 시트를 0% 에서 100% 까지 여섯
+ * 단계로 나누면 다섯 칸을 여섯으로 쪼개게 되어 칸이 어긋난다. 칸 수와 칸 크기를 곱해 화소로
+ * 옮겨야 정확히 떨어진다.
+ */
+.pixel-sprite {
+  --pixel-sprite-frames: 6;
+  --pixel-sprite-px: 48px;
+  --pixel-sprite-duration: 840ms;
+
+  display: block;
+  width: var(--pixel-sprite-px);
+  height: var(--pixel-sprite-px);
+  background-image: var(--pixel-sprite-sheet);
+  background-repeat: no-repeat;
+  background-size: calc(var(--pixel-sprite-frames) * var(--pixel-sprite-px))
+    var(--pixel-sprite-px);
+  /* 늘릴 때 화소 사이를 섞지 않는다. 섞으면 픽셀 그림이 흐려진다. */
+  image-rendering: pixelated;
+  animation: pixel-sprite var(--pixel-sprite-duration) steps(var(--pixel-sprite-frames)) infinite;
+}
+
+@keyframes pixel-sprite {
+  to {
+    background-position-x: calc(-1 * var(--pixel-sprite-frames) * var(--pixel-sprite-px));
+  }
+}
+
+/* 움직임을 줄여 달라고 한 자리에서는 첫 칸만 세운다. */
+@media (prefers-reduced-motion: reduce) {
+  .pixel-sprite {
+    animation: none;
+  }
+}
