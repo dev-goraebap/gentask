@@ -4,8 +4,11 @@ import ArrowDown01Icon from '@hugeicons/core-free-icons/ArrowDown01Icon';
 import ArrowLeft01Icon from '@hugeicons/core-free-icons/ArrowLeft01Icon';
 import ArrowRight01Icon from '@hugeicons/core-free-icons/ArrowRight01Icon';
 import ArrowRightDoubleIcon from '@hugeicons/core-free-icons/ArrowRightDoubleIcon';
+import ArrowTurnBackwardIcon from '@hugeicons/core-free-icons/ArrowTurnBackwardIcon';
+import ArrowTurnForwardIcon from '@hugeicons/core-free-icons/ArrowTurnForwardIcon';
 import ArrowUp01Icon from '@hugeicons/core-free-icons/ArrowUp01Icon';
 import Attachment01Icon from '@hugeicons/core-free-icons/Attachment01Icon';
+import BoldIcon from '@hugeicons/core-free-icons/BoldIcon';
 import Bookmark01Icon from '@hugeicons/core-free-icons/Bookmark01Icon';
 import BookOpen01Icon from '@hugeicons/core-free-icons/BookOpen01Icon';
 import Bug01Icon from '@hugeicons/core-free-icons/Bug01Icon';
@@ -18,6 +21,7 @@ import CatIcon from '@hugeicons/core-free-icons/CatIcon';
 import CheckmarkCircle02Icon from '@hugeicons/core-free-icons/CheckmarkCircle02Icon';
 import CircleArrowRight01Icon from '@hugeicons/core-free-icons/CircleArrowRight01Icon';
 import Clock01Icon from '@hugeicons/core-free-icons/Clock01Icon';
+import CodeSquareIcon from '@hugeicons/core-free-icons/CodeSquareIcon';
 import ComputerIcon from '@hugeicons/core-free-icons/ComputerIcon';
 import Delete02Icon from '@hugeicons/core-free-icons/Delete02Icon';
 import File01Icon from '@hugeicons/core-free-icons/File01Icon';
@@ -26,9 +30,14 @@ import FlashIcon from '@hugeicons/core-free-icons/FlashIcon';
 import Folder01Icon from '@hugeicons/core-free-icons/Folder01Icon';
 import GitBranchIcon from '@hugeicons/core-free-icons/GitBranchIcon';
 import GithubIcon from '@hugeicons/core-free-icons/GithubIcon';
+import Heading02Icon from '@hugeicons/core-free-icons/Heading02Icon';
+import Heading03Icon from '@hugeicons/core-free-icons/Heading03Icon';
 import Home01Icon from '@hugeicons/core-free-icons/Home01Icon';
 import InformationCircleIcon from '@hugeicons/core-free-icons/InformationCircleIcon';
+import ItalicIcon from '@hugeicons/core-free-icons/ItalicIcon';
 import Layers01Icon from '@hugeicons/core-free-icons/Layers01Icon';
+import LeftToRightListBulletIcon from '@hugeicons/core-free-icons/LeftToRightListBulletIcon';
+import LeftToRightListNumberIcon from '@hugeicons/core-free-icons/LeftToRightListNumberIcon';
 import Link01Icon from '@hugeicons/core-free-icons/Link01Icon';
 import Loading03Icon from '@hugeicons/core-free-icons/Loading03Icon';
 import Menu01Icon from '@hugeicons/core-free-icons/Menu01Icon';
@@ -38,12 +47,14 @@ import Note01Icon from '@hugeicons/core-free-icons/Note01Icon';
 import NotificationOff01Icon from '@hugeicons/core-free-icons/NotificationOff01Icon';
 import OctagonXIcon from '@hugeicons/core-free-icons/OctagonXIcon';
 import PlusSignIcon from '@hugeicons/core-free-icons/PlusSignIcon';
+import QuoteDownIcon from '@hugeicons/core-free-icons/QuoteDownIcon';
 import Search01Icon from '@hugeicons/core-free-icons/Search01Icon';
 import Settings01Icon from '@hugeicons/core-free-icons/Settings01Icon';
 import Shield01Icon from '@hugeicons/core-free-icons/Shield01Icon';
 import SidebarLeft01Icon from '@hugeicons/core-free-icons/SidebarLeft01Icon';
 import SidebarLeftIcon from '@hugeicons/core-free-icons/SidebarLeftIcon';
 import StarIcon from '@hugeicons/core-free-icons/StarIcon';
+import StrikethroughIcon from '@hugeicons/core-free-icons/StrikethroughIcon';
 import Sun03Icon from '@hugeicons/core-free-icons/Sun03Icon';
 import Task01Icon from '@hugeicons/core-free-icons/Task01Icon';
 import TerminalIcon from '@hugeicons/core-free-icons/TerminalIcon';
@@ -100,6 +111,17 @@ function toSvg(icon: IconSvgObject): string {
  */
 export const HGI_ICONS = {
   hgiAlarmClock: toSvg(AlarmClockIcon),
+  hgiBold: toSvg(BoldIcon),
+  hgiCodeBlock: toSvg(CodeSquareIcon),
+  hgiHeading2: toSvg(Heading02Icon),
+  hgiHeading3: toSvg(Heading03Icon),
+  hgiItalic: toSvg(ItalicIcon),
+  hgiListBullet: toSvg(LeftToRightListBulletIcon),
+  hgiListNumber: toSvg(LeftToRightListNumberIcon),
+  hgiQuote: toSvg(QuoteDownIcon),
+  hgiRedo: toSvg(ArrowTurnForwardIcon),
+  hgiStrikethrough: toSvg(StrikethroughIcon),
+  hgiUndo: toSvg(ArrowTurnBackwardIcon),
   hgiAlert: toSvg(TriangleAlertIcon),
   hgiArrowDown: toSvg(ArrowDown01Icon),
   hgiArrowLeft: toSvg(ArrowLeft01Icon),

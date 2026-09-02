@@ -10,19 +10,60 @@ import {
   model,
   PLATFORM_ID,
   signal,
-  ViewEncapsulation,
   viewChild,
 } from '@angular/core';
 import type { Editor } from '@tiptap/core';
+import { HlmButton } from '@/shared/ui/button';
+import { AppIcon, type IconName } from '@/shared/ui/icon';
+
+/** 도구 하나. 무엇을 켜고 끄는지와 어떤 그림으로 보이는지를 함께 갖는다. */
+interface Tool {
+  readonly key: string;
+  readonly icon: IconName;
+  readonly label: string;
+  /** 앞에 칸을 띄운다. 성격이 다른 묶음을 눈으로 가른다. */
+  readonly group?: boolean;
+}
+
+const TOOLS: readonly Tool[] = [
+  { key: 'undo', icon: 'hgiUndo', label: '되돌리기' },
+  { key: 'redo', icon: 'hgiRedo', label: '다시 하기' },
+  { key: 'bold', icon: 'hgiBold', label: '굵게', group: true },
+  { key: 'italic', icon: 'hgiItalic', label: '기울임' },
+  { key: 'strike', icon: 'hgiStrikethrough', label: '취소선' },
+  { key: 'code', icon: 'hgiTerminal', label: '인라인 코드' },
+  { key: 'h2', icon: 'hgiHeading2', label: '제목', group: true },
+  { key: 'h3', icon: 'hgiHeading3', label: '작은 제목' },
+  { key: 'bullet', icon: 'hgiListBullet', label: '목록', group: true },
+  { key: 'ordered', icon: 'hgiListNumber', label: '번호 목록' },
+  { key: 'task', icon: 'hgiTask', label: '체크 항목' },
+  { key: 'quote', icon: 'hgiQuote', label: '인용', group: true },
+  { key: 'codeBlock', icon: 'hgiCodeBlock', label: '코드 판' },
+];
+
+/** 켜져 있는지 보는 이름. 되돌리기처럼 켜짐이 없는 것은 여기 없다. */
+const ACTIVE: Record<string, [string, Record<string, unknown>?]> = {
+  bold: ['bold'],
+  italic: ['italic'],
+  strike: ['strike'],
+  code: ['code'],
+  h2: ['heading', { level: 2 }],
+  h3: ['heading', { level: 3 }],
+  bullet: ['bulletList'],
+  ordered: ['orderedList'],
+  task: ['taskList'],
+  quote: ['blockquote'],
+  codeBlock: ['codeBlock'],
+};
 
 /**
  * 마크다운을 적는 자리.
  *
- * <p>보이는 것은 완성된 글이고 담기는 것은 마크다운이다. 원문을 그대로 두는 편집기는 사람이 기호를
- * 직접 치게 하는데, 여기 적는 사람은 대개 에이전트가 아니라 사람이므로 쓰는 동안 이미 읽히는 편이 낫다.
+ * <p>보이는 것은 완성된 글이고 담기는 것은 마크다운이다. 읽는 자리와 같은 서식(`doc-body prose`)을
+ * 입으므로 적으면서 결과를 가늠할 수 있다.
  *
- * <p><b>인수 조건은 번호가 붙은 체크 항목이다.</b> 예전 규약의 `&lt;!-- AC:BEGIN --&gt;` 주석은 이
- * 편집기가 담을 자리를 갖지 않아 저장할 때 사라진다. 그래서 경계를 걷고 번호로 가리게 했다(결정-0007).
+ * <p><b>인수 조건은 번호가 붙은 체크 항목이다.</b> 예전 규약의 HTML 주석은 이 편집기가 담을 자리를
+ * 갖지 않아 저장할 때 사라진다. 그래서 경계를 걷고 번호로 가리게 했다(결정-0007).
  *
  * <p>편집기는 <b>브라우저에서만, 그것도 늦게</b> 싣는다. TipTap 과 ProseMirror 를 첫 묶음에 넣으면
  * 목록과 상세를 여는 사람까지 그 값을 치른다. 서버에서 그리는 동안에는 아무것도 세우지 않으며, 그
@@ -30,12 +71,41 @@ import type { Editor } from '@tiptap/core';
  */
 @Component({
   selector: 'app-markdown-editor',
+  imports: [HlmButton, AppIcon],
   host: { class: 'flex min-h-0 flex-1 flex-col' },
   template: `
     @if (ready()) {
       <div
+        role="toolbar"
+        aria-label="서식"
+        aria-controls="markdown-editor-body"
+        class="border-border flex flex-wrap items-center gap-0.5 border-b pb-2"
+      >
+        @for (tool of tools; track tool.key) {
+          @if (tool.group) {
+            <span class="bg-border mx-1 h-4 w-px" aria-hidden="true"></span>
+          }
+          <button
+            hlmBtn
+            type="button"
+            variant="ghost"
+            size="icon"
+            class="size-7 max-md:min-h-9 max-md:min-w-9"
+            [attr.aria-label]="tool.label"
+            [attr.aria-pressed]="pressed(tool.key)"
+            [title]="tool.label"
+            (mousedown)="$event.preventDefault()"
+            (click)="run(tool.key)"
+          >
+            <app-icon [name]="tool.icon" />
+          </button>
+        }
+      </div>
+
+      <div
         #host
-        class="tiptap-host min-h-40 flex-1 overflow-y-auto text-sm/6 [scrollbar-gutter:stable]"
+        id="markdown-editor-body"
+        class="min-h-40 flex-1 overflow-y-auto pt-3 [scrollbar-gutter:stable]"
       ></div>
     } @else {
       <textarea
@@ -47,112 +117,12 @@ import type { Editor } from '@tiptap/core';
       ></textarea>
     }
   `,
-  /*
-   * 편집기의 알맹이는 ProseMirror 가 우리 템플릿 밖에서 만든다. 그래서 그 자식들에게는 Angular 가
-   * 범위 표시를 달지 못하고, 껍데기를 씌운 스타일이 닿지 않는다. 대신 모든 규칙을 `.tiptap-host`
-   * 아래에 두어 밖으로 새지 않게 한다.
-   */
-  encapsulation: ViewEncapsulation.None,
-  styles: `
-    .tiptap-host .tiptap-body > * + * {
-      margin-top: 0.75rem;
-    }
-
-    .tiptap-host h1,
-    .tiptap-host h2,
-    .tiptap-host h3 {
-      font-weight: 600;
-      line-height: 1.4;
-    }
-
-    .tiptap-host h1 {
-      font-size: 1.25rem;
-    }
-    .tiptap-host h2 {
-      font-size: 1.125rem;
-    }
-    .tiptap-host h3 {
-      font-size: 1rem;
-    }
-
-    .tiptap-host ul,
-    .tiptap-host ol {
-      padding-left: 1.25rem;
-    }
-
-    .tiptap-host ul {
-      list-style: disc;
-    }
-    .tiptap-host ol {
-      list-style: decimal;
-    }
-
-    /* 인수 조건이 사는 자리다. 표식을 지우고 칸을 앞에 세운다. */
-    .tiptap-host ul[data-type='taskList'] {
-      list-style: none;
-      padding-left: 0;
-    }
-
-    .tiptap-host ul[data-type='taskList'] li {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-
-    .tiptap-host ul[data-type='taskList'] li > label {
-      margin-top: 0.25rem;
-      user-select: none;
-    }
-
-    .tiptap-host ul[data-type='taskList'] li > div {
-      min-width: 0;
-      flex: 1;
-    }
-
-    .tiptap-host blockquote {
-      border-left: 2px solid var(--border);
-      padding-left: 0.75rem;
-      color: var(--muted-foreground);
-    }
-
-    .tiptap-host code {
-      font-family: var(--font-mono);
-      font-size: 0.875em;
-      background: var(--muted);
-      border-radius: 0.25rem;
-      padding: 0.1em 0.3em;
-    }
-
-    .tiptap-host pre {
-      font-family: var(--font-mono);
-      background: var(--muted);
-      border-radius: 0.5rem;
-      padding: 0.75rem;
-      overflow-x: auto;
-    }
-
-    /* 판 안의 코드는 이미 판이 바탕을 갖는다. 두 번 칠하지 않는다. */
-    .tiptap-host pre code {
-      background: none;
-      padding: 0;
-    }
-
-    .tiptap-host hr {
-      border-top: 1px solid var(--border);
-    }
-
-    /* 비어 있을 때만 안내를 보여 준다. 적기 시작하면 사라진다. */
-    .tiptap-host p.is-editor-empty:first-child::before {
-      content: attr(data-placeholder);
-      color: var(--muted-foreground);
-      float: left;
-      height: 0;
-      pointer-events: none;
-    }
-  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarkdownEditor {
+  // --- 상수 --------------------------------------------------------------------------------------
+  protected readonly tools = TOOLS;
+
   // --- 계약 --------------------------------------------------------------------------------------
   readonly value = model<string>('');
   readonly placeholder = input('');
@@ -165,6 +135,9 @@ export class MarkdownEditor {
   // --- 상태 --------------------------------------------------------------------------------------
   private readonly host = viewChild<ElementRef<HTMLElement>>('host');
   protected readonly ready = signal(false);
+
+  /** 편집기 안이 바뀔 때마다 오른다. 단추의 눌린 모습이 이것을 따라간다. */
+  private readonly revision = signal(0);
 
   private editor: Editor | null = null;
 
@@ -197,6 +170,73 @@ export class MarkdownEditor {
   }
 
   // --- 동작 --------------------------------------------------------------------------------------
+  /** 켜져 있는가. 단추의 눌린 모습이며, 켜짐이 없는 것은 undefined 를 낸다. */
+  protected pressed(key: string): boolean | undefined {
+    this.revision();
+
+    const active = ACTIVE[key];
+    if (active === undefined || this.editor === null) return undefined;
+
+    const [name, attrs] = active;
+    return this.editor.isActive(name, attrs);
+  }
+
+  /**
+   * 도구를 누른다.
+   *
+   * <p>누르기 전에 mousedown 을 막는다. 막지 않으면 편집기가 초점을 잃어 커서 자리가 사라지고,
+   * 명령이 어디에 걸리는지가 흔들린다.
+   */
+  protected run(key: string): void {
+    const editor = this.editor;
+    if (editor === null) return;
+
+    const chain = editor.chain().focus();
+    switch (key) {
+      case 'undo':
+        chain.undo().run();
+        return;
+      case 'redo':
+        chain.redo().run();
+        return;
+      case 'bold':
+        chain.toggleBold().run();
+        return;
+      case 'italic':
+        chain.toggleItalic().run();
+        return;
+      case 'strike':
+        chain.toggleStrike().run();
+        return;
+      case 'code':
+        chain.toggleCode().run();
+        return;
+      case 'h2':
+        chain.toggleHeading({ level: 2 }).run();
+        return;
+      case 'h3':
+        chain.toggleHeading({ level: 3 }).run();
+        return;
+      case 'bullet':
+        chain.toggleBulletList().run();
+        return;
+      case 'ordered':
+        chain.toggleOrderedList().run();
+        return;
+      case 'task':
+        chain.toggleTaskList().run();
+        return;
+      case 'quote':
+        chain.toggleBlockquote().run();
+        return;
+      case 'codeBlock':
+        chain.toggleCodeBlock().run();
+        return;
+      default:
+        return;
+    }
+  }
+
   protected onFallbackInput(event: Event): void {
     this.value.set((event.target as HTMLTextAreaElement).value);
   }
@@ -212,10 +252,16 @@ export class MarkdownEditor {
     const { createEditor, readMarkdown } = await import('./tiptap');
     this.read = readMarkdown;
 
-    this.editor = createEditor(host, this.value(), this.placeholder(), (markdown) => {
-      this.writing = true;
-      this.value.set(markdown);
-      this.writing = false;
-    });
+    this.editor = createEditor(
+      host,
+      this.value(),
+      this.placeholder(),
+      (markdown) => {
+        this.writing = true;
+        this.value.set(markdown);
+        this.writing = false;
+      },
+      () => this.revision.update((each) => each + 1),
+    );
   }
 }

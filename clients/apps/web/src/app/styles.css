@@ -12,6 +12,7 @@
  * `--color-fd-*` 를 우리 토큰에 이어 준다(shared/ui/markdown-view).
  */
 @plugin '@fumadocs/tailwind/typography';
+@import '../shared/ui/markdown-view/src/lib/doc-body.css';
 
 @import '@uppy/core/css/style.min.css';
 @import '@uppy/dashboard/css/style.min.css';

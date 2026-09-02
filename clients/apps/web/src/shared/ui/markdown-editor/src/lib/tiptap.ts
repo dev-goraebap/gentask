@@ -16,6 +16,7 @@ export function createEditor(
   content: string,
   placeholder: string,
   onChange: (markdown: string) => void,
+  onStateChange: () => void,
 ): Editor {
   const editor = new Editor({
     element: host,
@@ -36,11 +37,15 @@ export function createEditor(
     content,
     editorProps: {
       attributes: {
-        // 바깥에서 클래스로 꾸민다. 편집기가 스스로 모양을 갖지 않는다.
-        class: 'tiptap-body outline-none',
+        // 읽는 자리와 같은 서식을 입는다. 쓰는 화면과 읽는 화면이 달라 보이면 적으면서 결과를
+        // 가늠하지 못한다.
+        class: 'doc-body prose max-w-none outline-none',
       },
     },
     onUpdate: ({ editor: current }) => onChange(readMarkdown(current)),
+    // 무엇이 켜져 있는지가 커서 자리마다 다르다. 단추의 눌린 모습이 그것을 따라가야 한다.
+    onSelectionUpdate: onStateChange,
+    onTransaction: onStateChange,
   });
 
   return editor;
