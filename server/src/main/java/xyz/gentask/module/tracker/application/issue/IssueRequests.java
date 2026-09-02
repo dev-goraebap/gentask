@@ -21,6 +21,22 @@ public final class IssueRequests {
 
             @Size(max = IssueBody.MAX) String body) {}
 
+    /**
+     * 고치는 것은 제목 · 유형 · 본문 셋이다.
+     *
+     * <p>번호는 불변이고 상태는 제 자리(ITM-003)가 갖는다. 인수 조건은 본문 안의 체크 항목이므로
+     * 본문을 담는 것이 곧 인수 조건을 담는 것이다.
+     */
+    public record EditIssue(
+            @NotBlank(message = IssueTitle.REQUIRED) @Size(max = IssueTitle.MAX) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            String title,
+
+            @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            IssueKind kind,
+
+            @Size(max = IssueBody.MAX) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            String body) {}
+
     public record ChangeState(
             @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             IssueState state) {}

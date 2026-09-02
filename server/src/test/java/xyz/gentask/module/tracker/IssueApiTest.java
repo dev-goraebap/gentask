@@ -174,6 +174,73 @@ class IssueApiTest {
     }
 
     @Test
+    @DisplayName("TG-046 #1: 제목과 본문을 고쳐 담으면 고친 것이 남는다")
+    void 고친_것이_남는다() throws Exception {
+        int number = 작업_아이템을_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
+
+        고친다(number, "{\"title\":\"고친 제목\",\"kind\":\"BUG\",\"body\":\"고친 본문\"}");
+
+        상세(number)
+                .andExpect(jsonPath("$.summary.title").value("고친 제목"))
+                .andExpect(jsonPath("$.body").value("고친 본문"));
+    }
+
+    @Test
+    @DisplayName("TG-046 #2: 본문의 체크 항목을 고치면 바뀐 인수 조건을 그대로 읽는다")
+    void 본문을_고치면_인수_조건도_바뀐다() throws Exception {
+        int number = 작업_아이템을_세운다("{\"title\":\"인수 조건\",\"body\":\"- [ ] #1 첫 조건\"}");
+
+        상세(number).andExpect(jsonPath("$.summary.unverifiedCount").value(1));
+
+        고친다(number, "{\"title\":\"인수 조건\",\"kind\":\"TASK\"," + "\"body\":\"- [x] #1 첫 조건\\n- [ ] #2 둘째 조건\"}");
+        상세(number)
+                .andExpect(jsonPath("$.summary.criteriaCount").value(2))
+                .andExpect(jsonPath("$.summary.unverifiedCount").value(1))
+                .andExpect(jsonPath("$.criteria[0].verified").value(true));
+    }
+
+    @Test
+    @DisplayName("TG-046 #3: 제목이 비어 있으면 알리고 고치기 전의 것을 그대로 둔다")
+    void 제목이_비면_고치지_않는다() throws Exception {
+        int number = 작업_아이템을_세운다("{\"title\":\"그대로 둘 것\"}");
+
+        mockMvc.perform(patch("/api/v1/projects/{key}/issues/{number}", projectKey, number)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"   \",\"kind\":\"TASK\",\"body\":\"\"}"))
+                .andExpect(status().isBadRequest());
+
+        상세(number).andExpect(jsonPath("$.summary.title").value("그대로 둘 것"));
+    }
+
+    @Test
+    @DisplayName("TG-046 #5: 유형을 바꿔도 번호는 그대로다")
+    void 유형을_바꿔도_번호는_그대로다() throws Exception {
+        int number = 작업_아이템을_세운다("{\"title\":\"유형 바꿀 것\",\"kind\":\"TASK\"}");
+
+        고친다(number, "{\"title\":\"유형 바꿀 것\",\"kind\":\"EPIC\",\"body\":\"\"}");
+
+        상세(number)
+                .andExpect(jsonPath("$.summary.kind").value("EPIC"))
+                .andExpect(jsonPath("$.summary.number").value(number));
+    }
+
+    @Test
+    @DisplayName("TG-046 #6: 사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
+    void 남의_것은_고치지_못한다() throws Exception {
+        int number = 작업_아이템을_세운다("{\"title\":\"내 것\"}");
+
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
+
+        mockMvc.perform(patch("/api/v1/projects/{key}/issues/{number}", projectKey, number)
+                        .cookie(other)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"바꾸기\",\"kind\":\"TASK\",\"body\":\"\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
+    }
+
+    @Test
     @DisplayName("TG-044 #1: 상태를 옮기면 그 상태가 항목에 남는다")
     void 상태를_옮기면_남는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"옮길 것\"}");
@@ -252,6 +319,14 @@ class IssueApiTest {
         return mockMvc.perform(get("/api/v1/projects/{key}/issues/{number}", projectKey, number)
                         .cookie(session))
                 .andExpect(status().isOk());
+    }
+
+    private void 고친다(int number, String body) throws Exception {
+        mockMvc.perform(patch("/api/v1/projects/{key}/issues/{number}", projectKey, number)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isNoContent());
     }
 
     private void 상태를_옮긴다(int number, String state) throws Exception {

@@ -74,6 +74,22 @@ public class IssueService {
         return number;
     }
 
+    /**
+     * 제목 · 유형 · 본문을 고친다.
+     *
+     * <p>번호는 손대지 않는다. 유형을 바꿔도 옮길 표가 없으므로 번호가 따라 바뀔 이유가 없다
+     * (ITM-004 A3).
+     */
+    @Transactional
+    public void edit(UUID userId, String projectKey, int number, String title, IssueKind kind, String body) {
+        Issue issue = find(userId, projectKey, number);
+        Instant now = clock.instant();
+        issue.changeTitle(IssueTitle.of(title), now);
+        issue.changeKind(kind, now);
+        issue.changeBody(IssueBody.of(body), now);
+        issueRepository.save(issue);
+    }
+
     @Transactional
     public void changeState(UUID userId, String projectKey, int number, IssueState state) {
         Issue issue = find(userId, projectKey, number);

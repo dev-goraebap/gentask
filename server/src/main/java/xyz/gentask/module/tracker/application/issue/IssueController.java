@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.gentask.module.tracker.application.issue.IssueRequests.ChangeState;
 import xyz.gentask.module.tracker.application.issue.IssueRequests.CreateIssue;
+import xyz.gentask.module.tracker.application.issue.IssueRequests.EditIssue;
 import xyz.gentask.module.tracker.application.issue.IssueViews.IssueSummary;
 import xyz.gentask.module.tracker.application.issue.IssueViews.IssueView;
 import xyz.gentask.shared.web.CurrentUser;
@@ -52,6 +53,16 @@ public class IssueController {
     @GetMapping("/{number}")
     public IssueView detail(@CurrentUser UUID userId, @PathVariable String projectKey, @PathVariable int number) {
         return issueService.detail(userId, projectKey, number);
+    }
+
+    @PatchMapping("/{number}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void edit(
+            @CurrentUser UUID userId,
+            @PathVariable String projectKey,
+            @PathVariable int number,
+            @Valid @RequestBody EditIssue request) {
+        issueService.edit(userId, projectKey, number, request.title(), request.kind(), request.body());
     }
 
     @PatchMapping("/{number}/state")

@@ -92,6 +92,17 @@ export class IssueService {
     return detail.summary.key;
   }
 
+  /** 제목 · 유형 · 본문을 고친다. 번호와 상태는 이 자리가 다루지 않는다(ITM-004). */
+  async edit(id: string, title: string, kind: IssueKind, body: string): Promise<void> {
+    const projectKey = this.projectKey();
+    if (projectKey === undefined) return;
+
+    await firstValueFrom(
+      this.httpClient.patch(ENDPOINTS.issue(projectKey, issueNumberOf(id)), { title, kind, body }),
+    );
+    this.resource.reload();
+  }
+
   async setState(id: string, state: IssueState): Promise<void> {
     const projectKey = this.projectKey();
     if (projectKey === undefined) return;
@@ -108,7 +119,7 @@ export class IssueService {
    * <p>목록의 줄은 본문과 인수 조건을 갖지 않으므로 상세는 따로 묻는다. 주입 자리에서 불러야 하며,
    * 받은 신호가 바뀌면 스스로 다시 싣는다.
    */
-  detailOf(id: Signal<string | undefined>): Signal<Issue | undefined> {
+  detailOf(id: Signal<string | undefined>): IssueDetail {
     const resource = httpResource<Issue>(
       () => {
         const projectKey = this.projectKey();
@@ -123,8 +134,22 @@ export class IssueService {
       { parse: (raw) => toIssue(raw as IssueResponse) },
     );
 
-    return computed(() => (resource.hasValue() ? resource.value() : undefined));
+    return {
+      value: computed(() => (resource.hasValue() ? resource.value() : undefined)),
+      reload: () => resource.reload(),
+    };
   }
+}
+
+/**
+ * 상세 하나를 싣는 자리.
+ *
+ * <p>다시 싣는 길을 함께 낸다. 목록과 다른 리소스라 목록만 다시 실으면 방금 고친 것이 화면에 남지
+ * 않는다.
+ */
+export interface IssueDetail {
+  readonly value: Signal<Issue | undefined>;
+  readonly reload: () => void;
 }
 
 function toSummary(response: IssueSummaryResponse): IssueSummary {

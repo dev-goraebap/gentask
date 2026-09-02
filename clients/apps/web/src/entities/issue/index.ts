@@ -21,6 +21,6 @@ export {
   type IssueSummary,
 } from './model/issue';
 
-export { IssueService } from './api/issue-service';
+export { IssueService, type IssueDetail } from './api/issue-service';
 export { IssueKindBadge } from './ui/issue-kind-badge';
 export { IssueStateChip } from './ui/issue-state-chip';
