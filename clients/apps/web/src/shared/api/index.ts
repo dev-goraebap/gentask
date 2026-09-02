@@ -12,6 +12,9 @@ export type ChangeImportance = components['schemas']['ChangeImportance'];
 export type ChangeMyDay = components['schemas']['ChangeMyDay'];
 export type TaskFileView = components['schemas']['TaskFileView'];
 export type PresignedUpload = components['schemas']['PresignedUpload'];
+export type RevisionSummary = components['schemas']['RevisionSummary'];
+export type RevisionPageView = components['schemas']['RevisionPageView'];
+export type RevisionView = components['schemas']['RevisionView'];
 export type MeView = components['schemas']['MeView'];
 export type IssuedApiToken = components['schemas']['IssuedApiToken'];
 export type Signup = components['schemas']['Signup'];
@@ -22,4 +25,3 @@ export type AdminUserView = components['schemas']['AdminUserView'];
 export type AdminUserPageView = components['schemas']['AdminUserPageView'];
 export type PushFailureView = components['schemas']['PushFailureView'];
 export type PushFailurePageView = components['schemas']['PushFailurePageView'];
-

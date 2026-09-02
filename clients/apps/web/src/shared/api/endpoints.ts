@@ -40,12 +40,21 @@ export const ENDPOINTS = {
   project: (projectKey: string) => `${PROJECTS}/${projectKey}`,
   issues: (projectKey: string) => `${PROJECTS}/${projectKey}/issues`,
   issue: (projectKey: string, number: number) => `${PROJECTS}/${projectKey}/issues/${number}`,
-  issueState: (projectKey: string, number: number) => `${PROJECTS}/${projectKey}/issues/${number}/state`,
+  issueState: (projectKey: string, number: number) =>
+    `${PROJECTS}/${projectKey}/issues/${number}/state`,
 
   // 문서는 번호를 매기지 않으므로 그 자리에 식별자가 그대로 온다.
   docs: (projectKey: string) => `${PROJECTS}/${projectKey}/documents`,
   doc: (projectKey: string, documentId: string) =>
     `${PROJECTS}/${projectKey}/documents/${documentId}`,
+
+  // 개정은 문서 안에서만 번호를 갖는다. 그래서 문서 아래에 붙고 지우는 자리는 없다(DOC-004).
+  docRevisions: (projectKey: string, documentId: string) =>
+    `${PROJECTS}/${projectKey}/documents/${documentId}/revisions`,
+  docRevision: (projectKey: string, documentId: string, revisionNo: number) =>
+    `${PROJECTS}/${projectKey}/documents/${documentId}/revisions/${revisionNo}`,
+  docRevisionRevert: (projectKey: string, documentId: string, revisionNo: number) =>
+    `${PROJECTS}/${projectKey}/documents/${documentId}/revisions/${revisionNo}/revert`,
 
   adminUsers: `${ADMIN}/users`,
   adminPushFailures: `${ADMIN}/push/failures`,

@@ -1,10 +1,26 @@
 import { isPlatformServer } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
-import { computed, inject, Injectable, PLATFORM_ID, signal, type Signal } from '@angular/core';
+import {
+  computed,
+  inject,
+  Injectable,
+  PLATFORM_ID,
+  signal,
+  type ResourceStatus,
+  type Signal,
+} from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ENDPOINTS } from '@/shared/api';
+import { ENDPOINTS, type RevisionPageView, type RevisionView } from '@/shared/api';
 import { CURRENT_PROJECT_ID } from '@/shared/config';
 import type { Doc, DocFolder, DocSummary } from '../model/doc';
+
+/**
+ * 이력 한 쪽에 담는 수.
+ *
+ * <p>한 화면에 담기지 않는 것을 전제로 한다(DOC-004 A3). 서버의 기본값과 같으나 넘기는 쪽이
+ * 정하는 값이므로 이 자리에 둔다.
+ */
+const REVISION_PAGE_SIZE = 20;
 
 /** 서버가 내는 목록의 한 줄. 화면의 어휘와 이름이 갈리는 자리는 여기서 맞춘다. */
 interface DocumentSummaryResponse {
@@ -90,7 +106,12 @@ export class DocService {
    * <p>개정 사유는 적지 않아도 된다(DOC-003). 앞의 개정과 같은 것을 담으면 개정을 만들지 않으며
    * 그 판정은 서버가 갖는다(DOC-003 A2).
    */
-  async edit(id: string, title: string, body: string, comment: string | null = null): Promise<void> {
+  async edit(
+    id: string,
+    title: string,
+    body: string,
+    comment: string | null = null,
+  ): Promise<void> {
     const projectId = this.projectId();
     if (projectId === undefined) return;
 
@@ -124,6 +145,82 @@ export class DocService {
     };
   }
 
+  /**
+   * 개정 이력 한 쪽을 싣는다.
+   *
+   * <p>최근 것부터 온다. 한 쪽에 담기지 않으면 쪽을 넘겨 더 본다(DOC-004 A3) — 몇 쪽인지는 부르는
+   * 쪽이 쥐며, 그 값이 바뀌면 스스로 다시 싣는다.
+   *
+   * <p>목록의 줄은 본문을 갖지 않는다. 이력을 여는 이유의 대부분은 언제 왜 고쳤는지를 훑는 것이고,
+   * 개정마다 본문 전체를 실으면 훑는 값이 문서 전체의 몇 배가 된다.
+   */
+  revisionsOf(id: Signal<string | undefined>, page: Signal<number>): DocRevisions {
+    const resource = httpResource<RevisionPageView>(() => {
+      const projectId = this.projectId();
+      const documentId = id();
+      if (this.isServer || projectId === undefined || documentId === undefined) return undefined;
+
+      return {
+        url: ENDPOINTS.docRevisions(projectId, documentId),
+        params: { page: page(), size: REVISION_PAGE_SIZE },
+      };
+    });
+
+    return {
+      value: computed(() => (resource.hasValue() ? resource.value() : undefined)),
+      status: resource.status,
+      reload: () => resource.reload(),
+    };
+  }
+
+  /**
+   * 개정 하나의 그때 본문을 싣는다.
+   *
+   * <p>개정마다 본문 전체를 갖는다(DOC-004). 앞의 것을 이어붙여 되살리지 않으므로 이 한 번으로
+   * 그릴 것이 전부 온다.
+   */
+  revisionOf(id: Signal<string | undefined>, revisionNo: Signal<number | undefined>): DocRevision {
+    const resource = httpResource<RevisionView>(() => {
+      const projectId = this.projectId();
+      const documentId = id();
+      const no = revisionNo();
+      if (
+        this.isServer ||
+        projectId === undefined ||
+        documentId === undefined ||
+        no === undefined
+      ) {
+        return undefined;
+      }
+
+      return ENDPOINTS.docRevision(projectId, documentId, no);
+    });
+
+    return {
+      value: computed(() => (resource.hasValue() ? resource.value() : undefined)),
+      status: resource.status,
+      reload: () => resource.reload(),
+    };
+  }
+
+  /**
+   * 고른 개정의 본문을 담은 <b>새 개정</b>을 남긴다.
+   *
+   * <p>사이의 개정을 지우지 않는다(DOC-005). 되돌리기도 앞으로 가는 것이므로 지우는 길은 없다.
+   *
+   * <p>되돌린 이유는 적지 않아도 된다(DOC-005 A3). 적지 않으면 몇 번째로 되돌렸는지를 서버가 스스로
+   * 적으므로 이 자리가 대신 지어내지 않는다.
+   */
+  async revert(id: string, revisionNo: number, comment: string | null = null): Promise<void> {
+    const projectId = this.projectId();
+    if (projectId === undefined) return;
+
+    await firstValueFrom(
+      this.httpClient.post(ENDPOINTS.docRevisionRevert(projectId, id, revisionNo), { comment }),
+    );
+    this.resource.reload();
+  }
+
   /** 목. 폴더가 서버에 서면(GT-70) 이 자리가 HTTP 로 바뀐다. */
   addFolder(name: string, parentId: string | null): void {
     this.folderList.update((folders) => [
@@ -147,6 +244,24 @@ export class DocService {
  */
 export interface DocDetail {
   readonly value: Signal<Doc | undefined>;
+  readonly reload: () => void;
+}
+
+/**
+ * 개정 이력 한 쪽을 싣는 자리.
+ *
+ * <p>실패를 함께 낸다. 이력이 하나뿐인 문서는 있어도 이력이 없는 문서는 없으므로(DOC-004 A2),
+ * 비어 있는 것과 싣지 못한 것을 같은 화면으로 그리면 없는 일을 있다고 그리게 된다.
+ */
+export interface DocRevisions {
+  readonly value: Signal<RevisionPageView | undefined>;
+  readonly status: Signal<ResourceStatus>;
+  readonly reload: () => void;
+}
+
+export interface DocRevision {
+  readonly value: Signal<RevisionView | undefined>;
+  readonly status: Signal<ResourceStatus>;
   readonly reload: () => void;
 }
 

@@ -54,6 +54,16 @@ describe('DocService', () => {
     };
   }
 
+  function revision(overrides: Record<string, unknown> = {}): object {
+    return {
+      revisionNo: 3,
+      createdAt: '2026-08-31T04:05:06Z',
+      authorName: '고래밥',
+      comment: null,
+      ...overrides,
+    };
+  }
+
   it('목록을 프로젝트 아래에서 묻고 고친 날만 남긴다', async () => {
     flushList([summary()]);
     await settle();
@@ -189,6 +199,142 @@ describe('DocService', () => {
       attachments: [],
       linkedIssues: [],
     });
+  });
+
+  it('이력은 문서 아래에서 쪽을 지어 묻는다', async () => {
+    flushList();
+
+    const revisions = TestBed.runInInjectionContext(() =>
+      docService.revisionsOf(signal<string | undefined>(DOCUMENT), signal(0)),
+    );
+
+    TestBed.tick();
+    const asked = httpTesting.expectOne(
+      (request) => request.url === ENDPOINTS.docRevisions(PROJECT, DOCUMENT),
+    );
+    expect(asked.request.params.get('page')).toBe('0');
+    expect(asked.request.params.get('size')).toBe('20');
+    asked.flush({ items: [revision()], total: 1, page: 0, size: 20 });
+    await settle();
+    TestBed.tick();
+
+    expect(revisions.value()?.items).toEqual([revision()]);
+  });
+
+  it('쪽을 넘기면 그 쪽을 다시 묻는다', async () => {
+    flushList();
+
+    const page = signal(0);
+    TestBed.runInInjectionContext(() =>
+      docService.revisionsOf(signal<string | undefined>(DOCUMENT), page),
+    );
+
+    TestBed.tick();
+    httpTesting
+      .expectOne((request) => request.url === ENDPOINTS.docRevisions(PROJECT, DOCUMENT))
+      .flush({ items: [], total: 40, page: 0, size: 20 });
+    await settle();
+
+    page.set(1);
+    TestBed.tick();
+    const next = httpTesting.expectOne(
+      (request) => request.url === ENDPOINTS.docRevisions(PROJECT, DOCUMENT),
+    );
+    expect(next.request.params.get('page')).toBe('1');
+    next.flush({ items: [], total: 40, page: 1, size: 20 });
+    await settle();
+  });
+
+  it('아직 이력을 열지 않았으면 묻지 않는다', () => {
+    flushList();
+
+    TestBed.runInInjectionContext(() =>
+      docService.revisionsOf(signal<string | undefined>(undefined), signal(0)),
+    );
+
+    TestBed.tick();
+    httpTesting.expectNone((request) => request.url.includes('/revisions'));
+  });
+
+  it('개정 하나는 그때의 제목과 본문을 그대로 낸다', async () => {
+    flushList();
+
+    const chosen = TestBed.runInInjectionContext(() =>
+      docService.revisionOf(signal<string | undefined>(DOCUMENT), signal<number | undefined>(3)),
+    );
+
+    TestBed.tick();
+    httpTesting
+      .expectOne({ url: ENDPOINTS.docRevision(PROJECT, DOCUMENT, 3), method: 'GET' })
+      .flush({ summary: revision(), title: '그때의 제목', body: '그때의 본문' });
+    await settle();
+    TestBed.tick();
+
+    expect(chosen.value()).toEqual({
+      summary: revision(),
+      title: '그때의 제목',
+      body: '그때의 본문',
+    });
+  });
+
+  it('고른 개정이 없으면 개정 하나를 묻지 않는다', () => {
+    flushList();
+
+    TestBed.runInInjectionContext(() =>
+      docService.revisionOf(
+        signal<string | undefined>(DOCUMENT),
+        signal<number | undefined>(undefined),
+      ),
+    );
+
+    TestBed.tick();
+    httpTesting.expectNone((request) => request.url.includes('/revisions'));
+  });
+
+  it('되돌릴 때 이유를 함께 넘긴다', async () => {
+    flushList();
+
+    const done = docService.revert(DOCUMENT, 3, '잘못 고쳤다');
+
+    const reverted = httpTesting.expectOne({
+      url: ENDPOINTS.docRevisionRevert(PROJECT, DOCUMENT, 3),
+      method: 'POST',
+    });
+    expect(reverted.request.body).toEqual({ comment: '잘못 고쳤다' });
+    reverted.flush(null);
+
+    await done;
+    flushList();
+  });
+
+  it('되돌린 이유를 적지 않으면 비운 채로 넘긴다', async () => {
+    flushList();
+
+    const done = docService.revert(DOCUMENT, 3);
+
+    const reverted = httpTesting.expectOne({
+      url: ENDPOINTS.docRevisionRevert(PROJECT, DOCUMENT, 3),
+      method: 'POST',
+    });
+    expect(reverted.request.body).toEqual({ comment: null });
+    reverted.flush(null);
+
+    await done;
+    flushList();
+  });
+
+  it('되돌리기가 실패하면 목록을 다시 싣지 않는다', async () => {
+    flushList();
+
+    const done = docService.revert(DOCUMENT, 3);
+
+    httpTesting
+      .expectOne({ url: ENDPOINTS.docRevisionRevert(PROJECT, DOCUMENT, 3), method: 'POST' })
+      .flush(null, { status: 404, statusText: 'Not Found' });
+
+    await expect(done).rejects.toBeDefined();
+    TestBed.tick();
+    httpTesting.expectNone({ url: ENDPOINTS.docs(PROJECT), method: 'GET' });
   });
 
   it('폴더는 목이므로 세운 것이 이 자리에만 남는다', () => {

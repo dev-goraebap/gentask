@@ -10,4 +10,6 @@ export {
   type DocSummary,
 } from './model/doc';
 
-export { DocService, type DocDetail } from './api/doc-service';
+export { DocService, type DocDetail, type DocRevision, type DocRevisions } from './api/doc-service';
+
+export { diffLines, type DiffLine, type DiffMark, type DiffResult } from './lib/diff-lines';

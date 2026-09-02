@@ -1,0 +1,42 @@
+<p class="text-foreground-secondary text-xs">
+  판 {{ fromLabel() }}에서 판 {{ toLabel() }}으로 · {{ summary() }}
+</p>
+
+@if (tooLarge()) {
+  <!--
+    표가 너무 커져 줄을 짝지어 세지 못한 자리다. 그 사실을 감추면 사람이 실제로 그만큼 고쳤다고
+    읽으므로 먼저 밝힌다.
+  -->
+  <p class="text-warning mt-2 text-xs">
+    두 본문이 너무 크게 갈려 줄을 짝짓지 못했습니다. 지운 줄 전부와 더한 줄 전부를 차례로 보입니다.
+  </p>
+}
+
+<ol class="border-border mt-3 overflow-x-auto border-y font-mono text-xs">
+  @for (row of rows(); track $index) {
+    <li
+      class="flex min-w-0 items-baseline gap-2 px-2 py-0.5"
+      [class.text-success]="row.added"
+      [class.text-destructive]="row.removed"
+    >
+      <span
+        class="text-foreground-secondary w-8 shrink-0 text-right tabular-nums"
+        aria-hidden="true"
+      >
+        {{ row.fromNo }}
+      </span>
+      <span
+        class="text-foreground-secondary w-8 shrink-0 text-right tabular-nums"
+        aria-hidden="true"
+      >
+        {{ row.toNo }}
+      </span>
+      <!-- 색만으로 가르지 않는다. 부호는 눈이, 이름은 소리가 읽는다. -->
+      <span class="w-2 shrink-0" aria-hidden="true">{{ row.sign }}</span>
+      @if (row.label !== '') {
+        <span class="sr-only">{{ row.label }}</span>
+      }
+      <span class="whitespace-pre-wrap wrap-break-word">{{ row.text }}</span>
+    </li>
+  }
+</ol>

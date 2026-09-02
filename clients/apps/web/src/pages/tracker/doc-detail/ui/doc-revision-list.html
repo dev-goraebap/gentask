@@ -1,0 +1,59 @@
+<ul class="divide-border border-border divide-y border-y">
+  @for (row of rows(); track row.summary.revisionNo) {
+    <li class="min-w-0">
+      <a
+        [routerLink]="link()"
+        [queryParams]="row.view"
+        [attr.aria-current]="row.chosen ? 'true' : null"
+        class="hover:bg-accent flex min-w-0 flex-col gap-0.5 px-2 py-2 aria-[current]:bg-accent"
+      >
+        <span class="flex min-w-0 items-center gap-1.5 text-sm">
+          <!-- 고른 것을 색으로만 가르지 않는다. 표시가 함께 서야 색을 가리지 못하는 눈에도 읽힌다. -->
+          @if (row.chosen) {
+            <app-icon name="hgiCheck" class="text-foreground-secondary shrink-0" />
+          }
+          <span class="shrink-0 font-mono">판 {{ row.summary.revisionNo }}</span>
+          @if (row.current) {
+            <span class="text-foreground-secondary shrink-0 text-xs">지금</span>
+          }
+          @if (row.compared) {
+            <span class="text-foreground-secondary shrink-0 text-xs">견주는 중</span>
+          }
+        </span>
+        <span class="text-foreground-secondary flex flex-wrap items-center gap-x-1.5 text-xs">
+          <span>{{ row.at }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ row.summary.authorName }}</span>
+        </span>
+        <span class="text-foreground-secondary min-w-0 truncate text-xs">{{ row.comment }}</span>
+      </a>
+
+      <!-- 둘을 고르는 자리(DOC-004 A1). 하나를 고르기 전에는 견줄 상대가 없으므로 서지 않는다. -->
+      @if (row.compare !== null) {
+        <a
+          [routerLink]="link()"
+          [queryParams]="row.compare"
+          class="text-foreground-secondary hover:text-foreground block px-2 pb-2 text-xs underline underline-offset-4"
+        >
+          판 {{ chosen() }}과 견주기
+        </a>
+      }
+    </li>
+  }
+</ul>
+
+<div class="mt-2 flex items-center gap-2">
+  <span class="text-foreground-secondary flex-1 text-xs">{{ range() }}</span>
+
+  <!-- 한 화면에 담기지 않으면 더 볼 수 있게 한다(DOC-004 A3). -->
+  @if (newer() !== null) {
+    <a [routerLink]="link()" [queryParams]="newer()" class="text-xs underline underline-offset-4">
+      최근 것
+    </a>
+  }
+  @if (older() !== null) {
+    <a [routerLink]="link()" [queryParams]="older()" class="text-xs underline underline-offset-4">
+      더 지난 것
+    </a>
+  }
+</div>
