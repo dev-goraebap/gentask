@@ -1,5 +1,6 @@
 import type { Route } from '@angular/router';
 import { describe, expect, it } from 'vitest';
+import { taskListRoutes } from '@/pages/task-list';
 import { ROUTES } from '@/shared/config';
 import { routes } from './app.routes';
 import { BOTTOM_NAV } from './layout/nav-items';
@@ -32,8 +33,21 @@ describe('app.routes 의 첫 자리', () => {
    * 사이드바가 그 일을 하므로, 화면으로 한 번 더 두면 같은 것을 두 곳에서 고르게 된다.
    */
   it('그릇에 닿으면 첫 칸으로 보낸다', () => {
-    expect(childOf(shellChildren(), 'todo', '')?.redirectTo).toBe('my-day');
+    // 투두의 라우트는 늦게 싣는 자리가 갖는다. 첫 칸으로 보내는 규칙도 그쪽에 있다.
+    expect(taskListRoutes.find((route) => route.path === '')?.redirectTo).toBe('my-day');
     expect(childOf(routes, 'projects/:projectId', '')?.redirectTo).toBe('issues');
+  });
+
+  /*
+   * 투두의 라우트를 이 파일이 직접 들고 있으면 날짜 고르개의 설정이 여기로 올라오고, 그것을 들여오는
+   * 순간 고르개와 달력 묶음이 첫 묶음에 실린다. 세어 보니 185 kB 였다. 터지지 않는 회귀라 검사가
+   * 없으면 되돌려도 아무도 모른다.
+   */
+  it('투두의 자리를 늦게 싣는다', () => {
+    const todo = shellChildren().find((route) => route.path === 'todo');
+
+    expect(todo?.loadChildren).toBeDefined();
+    expect(todo?.providers).toBeUndefined();
   });
 
   it('모드에 매이지 않는 자리는 그릇 밖에 선다', () => {

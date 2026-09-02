@@ -8,7 +8,6 @@ import { AuthService, UserService } from '@/entities/user/providers';
 import { CURRENT_PROJECT_KEY, trackerBottomNav } from '@/shared/config';
 import { MemoService } from '@/pages/memo-list/providers';
 import { TaskService } from '@/entities/task';
-import { provideTaskListDatePicker } from '@/pages/task-list/providers';
 import { AppShell } from './layout/app-shell';
 import {
   ADMIN_NAV_GROUPS,
@@ -185,17 +184,14 @@ export const routes: Routes = [
         loadComponent: () => import('@/pages/pomodoro').then((m) => m.PomodoroPage),
       },
       {
-        // 투두 모드. 그릇이 제 이름을 가지므로 메뉴 화면이 목록을 겸하지 않는다.
+        /*
+         * 투두 모드. 그릇이 제 이름을 가지므로 메뉴 화면이 목록을 겸하지 않는다.
+         *
+         * <p>그 아래의 라우트는 이 파일이 갖지 않는다. 날짜 고르개의 설정을 여기서 들여오면 고르개와
+         * 달력 묶음이 첫 묶음에 실리기 때문이며, 근거는 `pages/task-list/routes.ts` 가 갖는다.
+         */
         path: 'todo',
-        providers: [...provideTaskListDatePicker()],
-        children: [
-          // 관점을 고르는 자리는 좁은 화면에서 아래의 띠가, 넓은 화면에서 사이드바가 갖는다.
-          { path: '', pathMatch: 'full', redirectTo: 'my-day' },
-          {
-            path: ':view',
-            loadComponent: () => import('@/pages/task-list').then((m) => m.TaskListPage),
-          },
-        ],
+        loadChildren: () => import('@/pages/task-list').then((m) => m.taskListRoutes),
       },
     ],
   },
