@@ -239,6 +239,44 @@
         </div>
       }
 
+      <!--
+        지우는 자리. 되묻는 자리를 반드시 지난다 — 되돌릴 수 없고 되살릴 자리를 두지 않았다(ITM-005).
+        여는 단추와 확인하는 단추가 이름을 달리 갖는다. 같으면 어느 것을 눌렀는지 가릴 수 없다.
+      -->
+      <div class="border-border border-t pt-3">
+        <hlm-alert-dialog>
+          <button
+            hlmBtn
+            hlmAlertDialogTrigger
+            type="button"
+            variant="ghost"
+            size="sm"
+            class="text-foreground-secondary hover:text-warning w-full justify-start gap-2"
+            aria-label="작업 아이템 지우기"
+          >
+            <app-icon name="hgiTrash" />
+            지우기
+          </button>
+
+          <hlm-alert-dialog-content *hlmAlertDialogPortal>
+            <hlm-alert-dialog-header>
+              <h3 hlmAlertDialogTitle>{{ issue.id }} &lsquo;{{ issue.title }}&rsquo; 지우기</h3>
+              <p hlmAlertDialogDescription>
+                지운 뒤에는 되돌릴 수 없습니다.
+                @if (issue.childCount > 0) {
+                  딸린 {{ issue.childCount }}개는 지우지 않고 최상위로 올립니다.
+                }
+              </p>
+            </hlm-alert-dialog-header>
+
+            <hlm-alert-dialog-footer>
+              <button hlmAlertDialogCancel>그만두기</button>
+              <button hlmAlertDialogAction variant="destructive" (click)="remove()">지우기</button>
+            </hlm-alert-dialog-footer>
+          </hlm-alert-dialog-content>
+        </hlm-alert-dialog>
+      </div>
+
       <div class="border-border border-t pt-3">
         <h2 class="text-foreground-secondary mb-1.5 flex items-center gap-1.5 text-xs">
           <app-icon name="hgiTerminal" class="text-[length:--spacing(3)]" />

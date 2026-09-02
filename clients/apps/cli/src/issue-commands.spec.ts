@@ -171,6 +171,44 @@ describe('gentask issue', () => {
   });
 });
 
+describe('gentask issue rm', () => {
+  /*
+   * 명령줄에는 되물을 사람이 없다. 되묻는 자리를 지나야 한다는 것(ITM-005)을 여기서는 무엇이
+   * 지워지는지 보이고 멈추는 것으로 지킨다.
+   */
+  it('TG-056 #7: --yes 가 없으면 지울 것만 보이고 지우지 않는다', async () => {
+    const { calls, fetchFn } = spy([
+      { body: issue({}, { key: 'TG-030', number: 30, title: '걷을 것' }) },
+      { body: [] },
+    ]);
+
+    const outcome = await run(['issue', 'rm', 'TG-030'], () => client(fetchFn), ENV);
+
+    expect(outcome.code).toBe(1);
+    expect(outcome.out).toContain('걷을 것');
+    expect(outcome.out).toContain('--yes');
+    expect(calls.some((call) => call.method === 'DELETE')).toBe(false);
+  });
+
+  it('TG-056 #7: --yes 를 주면 지우고 딸린 것이 올라감을 알린다', async () => {
+    const { calls, fetchFn } = spy([
+      { body: issue({}, { key: 'TG-030', number: 30, title: '걷을 것' }) },
+      { body: [summary({ key: 'TG-031', number: 31, parentKey: 'TG-030' })] },
+      { status: 204 },
+    ]);
+
+    const outcome = await run(['issue', 'rm', 'TG-030', '--yes'], () => client(fetchFn), ENV);
+
+    expect(outcome.code).toBe(0);
+    expect(outcome.out).toContain('지웠습니다: TG-030');
+    expect(outcome.out).toContain('최상위');
+    expect(calls.at(-1)).toMatchObject({
+      method: 'DELETE',
+      url: 'https://api.example/api/v1/projects/TG/issues/30',
+    });
+  });
+});
+
 describe('gentask issue export', () => {
   let dir: string;
 

@@ -3,6 +3,7 @@ package xyz.gentask.module.tracker;
 import static java.util.Objects.requireNonNull;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -331,6 +332,70 @@ class IssueApiTest {
     }
 
     @Test
+    @DisplayName("TG-056 #2: 지우면 그 자리가 사라진다")
+    void 지우면_그_자리가_사라진다() throws Exception {
+        int number = 작업_아이템을_세운다("{\"title\":\"걷을 것\"}");
+
+        지운다(number);
+
+        mockMvc.perform(get("/api/v1/projects/{key}/issues/{number}", projectKey, number)
+                        .cookie(session))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("ISSUE_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("TG-043 #5: 지운 뒤 새로 세우면 지운 것의 번호를 다시 쓰지 않는다")
+    void 지운_것의_번호를_다시_쓰지_않는다() throws Exception {
+        int number = 작업_아이템을_세운다("{\"title\":\"지울 것\"}");
+
+        지운다(number);
+        작업_아이템을_세운다("{\"title\":\"뒤에 세울 것\"}");
+
+        // 최댓값이 아니라 프로젝트가 든 다음 번호에서 나온다. 최댓값이면 지운 자리를 다시 내준다.
+        mockMvc.perform(get("/api/v1/projects/{key}/issues", projectKey).cookie(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].number").value(number + 1));
+    }
+
+    @Test
+    @DisplayName("TG-056 #4: 자식이 딸려 있으면 그 자식을 지우지 않고 최상위로 올린다")
+    void 지운_것의_자식은_최상위로_올라간다() throws Exception {
+        int parent = 작업_아이템을_세운다("{\"title\":\"덮는 에픽\",\"kind\":\"EPIC\"}");
+        int child = 작업_아이템을_세운다("{\"title\":\"딸린 것\",\"parentKey\":\"%s-%03d\"}".formatted(projectKey, parent));
+
+        지운다(parent);
+
+        상세(child).andExpect(jsonPath("$.summary.parentKey").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("TG-056 #5: 사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
+    void 남의_프로젝트의_항목은_지우지_못한다() throws Exception {
+        int number = 작업_아이템을_세운다("{\"title\":\"내 것\"}");
+
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
+
+        mockMvc.perform(delete("/api/v1/projects/{key}/issues/{number}", projectKey, number)
+                        .cookie(other))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("TG-056 #6: 이미 지워진 번호를 지우면 없는 것으로 낸다")
+    void 이미_지워진_번호는_없는_것으로_낸다() throws Exception {
+        int number = 작업_아이템을_세운다("{\"title\":\"두 번 지울 것\"}");
+        지운다(number);
+
+        mockMvc.perform(delete("/api/v1/projects/{key}/issues/{number}", projectKey, number)
+                        .cookie(session))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("ISSUE_NOT_FOUND"));
+    }
+
+    @Test
     @DisplayName("로그인 없이 작업 아이템에 닿을 수 없다")
     void 로그인_없이_작업_아이템에_닿을_수_없다() throws Exception {
         mockMvc.perform(get("/api/v1/projects/{key}/issues", projectKey))
@@ -358,6 +423,12 @@ class IssueApiTest {
                         .cookie(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"state\":\"%s\"}".formatted(state)))
+                .andExpect(status().isNoContent());
+    }
+
+    private void 지운다(int number) throws Exception {
+        mockMvc.perform(delete("/api/v1/projects/{key}/issues/{number}", projectKey, number)
+                        .cookie(session))
                 .andExpect(status().isNoContent());
     }
 

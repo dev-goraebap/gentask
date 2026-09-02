@@ -398,7 +398,7 @@ export interface paths {
         get: operations["detail_2"];
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["remove_1"];
         options?: never;
         head?: never;
         patch: operations["edit_1"];
@@ -1568,6 +1568,27 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["IssueView"];
                 };
+            };
+        };
+    };
+    remove_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectKey: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

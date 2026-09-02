@@ -112,6 +112,22 @@ export class IssueService {
     this.resource.reload();
   }
 
+  /**
+   * 지운다.
+   *
+   * <p>되묻는 것은 화면이 한다. 자식은 함께 지워지지 않고 최상위로 올라오므로(ITM-005 A2) 목록을
+   * 다시 실어야 그 줄들이 제 자리에 선다.
+   */
+  async remove(id: string): Promise<void> {
+    const projectKey = this.projectKey();
+    if (projectKey === undefined) return;
+
+    await firstValueFrom(
+      this.httpClient.delete(ENDPOINTS.issue(projectKey, issueNumberOf(id))),
+    );
+    this.resource.reload();
+  }
+
   async setState(id: string, state: IssueState): Promise<void> {
     const projectKey = this.projectKey();
     if (projectKey === undefined) return;

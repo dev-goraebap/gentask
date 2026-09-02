@@ -5,8 +5,9 @@ import {
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   ISSUE_KIND_FACES,
   ISSUE_STATE_FACES,
@@ -19,6 +20,7 @@ import {
   type IssueState,
 } from '@/entities/issue';
 import { injectProjectRoutes } from '@/entities/project';
+import { HlmAlertDialog, HlmAlertDialogImports } from '@/shared/ui/alert-dialog';
 import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { HlmFieldError } from '@/shared/ui/field';
@@ -33,6 +35,7 @@ import { AppPageBack } from '@/shared/ui/page-back';
   selector: 'app-issue-detail',
   imports: [
     AppPageBack,
+    HlmAlertDialogImports,
     MarkdownEditor,
     MarkdownView,
     HlmInput,
@@ -59,6 +62,10 @@ export class IssueDetailPage {
 
   // --- 의존 --------------------------------------------------------------------------------------
   private readonly issueService = inject(IssueService);
+  private readonly router = inject(Router);
+
+  // --- 질의 --------------------------------------------------------------------------------------
+  private readonly confirm = viewChild(HlmAlertDialog);
 
   // --- 파생 --------------------------------------------------------------------------------------
   /** 목록의 줄은 본문과 인수 조건을 갖지 않으므로 상세는 따로 싣는다. */
@@ -138,6 +145,18 @@ export class IssueDetailPage {
   protected readonly command = computed(() => `gentask issue show ${this.id()}`);
 
   // --- 동작 --------------------------------------------------------------------------------------
+  /**
+   * 지운다.
+   *
+   * <p>되묻는 자리를 지난 뒤에만 여기에 닿는다. 지운 자리에 그대로 서 있으면 없는 것을 열고 있는
+   * 꼴이므로 목록으로 되돌린다(ITM-005).
+   */
+  protected async remove(): Promise<void> {
+    this.confirm()?.close();
+    await this.issueService.remove(this.id());
+    await this.router.navigateByUrl(this.routes().issues());
+  }
+
   protected async setState(state: IssueState): Promise<void> {
     await this.issueService.setState(this.id(), state);
     this.detail.reload();

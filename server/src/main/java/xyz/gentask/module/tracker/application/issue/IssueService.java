@@ -122,6 +122,20 @@ public class IssueService {
         }
     }
 
+    /**
+     * 작업 아이템을 지운다.
+     *
+     * <p>자식은 함께 지우지 않는다. 부모를 잃은 것은 최상위로 올라오며 그 자리는 표의 외래키가 맡는다
+     * (V9 의 {@code on delete set null}). 계층이 끊길 뿐 항목이 사라질 이유가 없다(ITM-005 A2).
+     *
+     * <p>번호는 프로젝트에 되돌려주지 않는다. 다음에 내줄 번호를 프로젝트가 따로 들고 있어, 지운
+     * 자리의 번호가 다음 항목에 다시 나가지 않는다(TG-043 #5).
+     */
+    @Transactional
+    public void remove(UUID userId, String projectKey, int number) {
+        issueRepository.deleteById(find(userId, projectKey, number).id());
+    }
+
     @Transactional
     public void changeState(UUID userId, String projectKey, int number, IssueState state) {
         Issue issue = find(userId, projectKey, number);

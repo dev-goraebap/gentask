@@ -33,6 +33,7 @@ export const ISSUE_HELP = `작업 아이템
   issue edit <키> [--title …] [--kind …] [--body …] [--parent 키|""]
                                  넘긴 것만 바꿉니다. --parent "" 는 최상위로 올립니다
   issue state <키> <상태>        상태를 옮깁니다
+  issue rm <키> [--yes]          지웁니다. --yes 없이는 무엇을 지우는지만 보입니다
   issue export [--out 파일]      전부를 JSON 으로 내립니다. 추적 검사가 이것을 읽습니다
 
 프로젝트
@@ -245,6 +246,43 @@ export async function runIssue(
       const project = currentProject(env);
       await client.setIssueState(project, numberOf(key), asState(state));
       return { out: `${key} 를 ${asState(state)} 로 옮겼습니다.`, code: 0 };
+    }
+
+    case 'rm': {
+      const { values, positionals } = parseArgs({
+        args: [...rest],
+        options: { yes: { type: 'boolean' } },
+        allowPositionals: true,
+      });
+      const key = positionals[0];
+      if (key === undefined) {
+        throw new Error('이름이 필요합니다: gentask issue rm <키>');
+      }
+
+      const project = currentProject(env);
+      const number = numberOf(key);
+      const target = await client.issue(project, number);
+
+      /*
+       * 되묻는 자리를 여기서도 지난다(ITM-005).
+       *
+       * <p>명령줄에는 되물을 사람이 없으므로 되묻는 대신 무엇이 지워지는지를 보이고 멈춘다. 지우는
+       * 것은 되돌릴 수 없고 되살릴 자리를 두지 않았으므로, 한 번 더 적게 하는 값이 그보다 싸다.
+       */
+      const children = (await client.issues(project)).filter(
+        (issue) => issue.parentKey === target.summary.key,
+      );
+      const 딸린것 = children.length === 0 ? '' : `\n딸린 ${children.length} 건은 최상위로 올라갑니다.`;
+
+      if (!values.yes) {
+        return {
+          out: `${target.summary.key} ${target.summary.title}${딸린것}\n\n지우려면 --yes 를 함께 넘기세요. 되돌릴 수 없습니다.`,
+          code: 1,
+        };
+      }
+
+      await client.removeIssue(project, number);
+      return { out: `지웠습니다: ${target.summary.key}${딸린것}`, code: 0 };
     }
 
     case 'export':

@@ -8,6 +8,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,6 +66,18 @@ public class IssueController {
             @Valid @RequestBody EditIssue request) {
         issueService.edit(
                 userId, projectKey, number, request.title(), request.kind(), request.body(), request.parentKey());
+    }
+
+    /**
+     * 작업 아이템을 지운다.
+     *
+     * <p>되묻는 것은 화면과 명령줄이 한다. 이 자리는 그것을 강제하지 않으며, 되살릴 자리도 두지
+     * 않는다(ITM-005).
+     */
+    @DeleteMapping("/{number}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void remove(@CurrentUser UUID userId, @PathVariable String projectKey, @PathVariable int number) {
+        issueService.remove(userId, projectKey, number);
     }
 
     @PatchMapping("/{number}/state")

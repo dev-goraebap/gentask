@@ -77,6 +77,7 @@ gentask issue show TG-030                    # 본문과 인수 조건까지
 gentask issue add "제목" --kind STORY --parent TG-041
 gentask issue edit TG-030 --body "..."       # 넘긴 것만 바꾼다
 gentask issue state TG-030 STARTED
+gentask issue rm TG-030 --yes                # --yes 없이는 지울 것만 보인다
 ```
 
 - **추적 검사는 내린 사본을 읽습니다.** `.backlog.json` 이 그것이며 추적되지 않습니다. 검사가 API 를 직접 부르면 서버와 토큰 없이는 돌지 않게 되므로 내리는 한 단계를 둡니다.

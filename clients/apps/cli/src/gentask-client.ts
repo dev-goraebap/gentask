@@ -137,6 +137,11 @@ export class GentaskClient {
     await this.raw('PATCH', `${issuesPath(projectKey)}/${number}/state`, { state });
   }
 
+  /** 되살릴 자리가 없다. 되묻는 것은 이 자리가 아니라 부르는 쪽이 한다(ITM-005). */
+  async removeIssue(projectKey: string, number: number): Promise<void> {
+    await this.raw('DELETE', `${issuesPath(projectKey)}/${number}`);
+  }
+
   // --- 보조 ---------------------------------------------------------------------------------------
 
   private async send<T>(method: string, path: string): Promise<T> {
