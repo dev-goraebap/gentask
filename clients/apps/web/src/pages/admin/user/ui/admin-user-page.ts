@@ -4,7 +4,6 @@ import { UserAvatar } from '@/entities/user';
 import { HlmButton } from '@/shared/ui/button';
 import { HlmInput } from '@/shared/ui/input';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { Veil } from '@/shared/ui/veil';
 import { ROUTES } from '@/shared/config';
 
 /** 한 쪽에 보여 줄 수. 서비스가 요청에 싣는 값과 같아야 쪽 수가 맞는다. */
@@ -12,10 +11,9 @@ const PAGE_SIZE = 20;
 
 @Component({
   selector: 'app-admin-user',
-  imports: [EmptyState, HlmButton, HlmInput, UserAvatar, Veil],
+  imports: [EmptyState, HlmButton, HlmInput, UserAvatar],
   host: {
     class: 'flex min-h-0 flex-1 flex-col',
-    '[attr.aria-busy]': 'veilLoading() || null',
   },
   providers: [AdminUserService],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,9 +32,6 @@ export class AdminUserPage {
   // --- 파생 --------------------------------------------------------------------------------------
   protected readonly users = this.adminUserService.value;
   protected readonly page = this.adminUserService.page;
-
-  protected readonly veilLoading = computed(() => this.adminUserService.status() === 'loading');
-  protected readonly veilFailed = computed(() => this.adminUserService.status() === 'error');
 
   protected readonly pageCount = computed(() =>
     Math.max(Math.ceil((this.users()?.total ?? 0) / PAGE_SIZE), 1),

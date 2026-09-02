@@ -10,7 +10,6 @@
       "@/entities/doc/providers": ["./src/entities/doc/api/providers.ts"],
       "@/entities/project/providers": ["./src/entities/project/api/providers.ts"],
       "@/pages/task-list/providers": ["./src/pages/task-list/providers.ts"],
-      "@/shared/ui/veil": ["./src/shared/ui/veil/src/index.ts"],
       "@/shared/ui/empty-state": ["./src/shared/ui/empty-state/src/index.ts"],
       "@/shared/ui/page-back": ["./src/shared/ui/page-back/src/index.ts"],
       "@/shared/ui/route-tabs": ["./src/shared/ui/route-tabs/src/index.ts"],

@@ -18,7 +18,6 @@ import { AsideOutlet } from '@/shared/lib';
 import { AppRouteTabs } from '@/shared/ui/route-tabs';
 import { HlmButton } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { Veil } from '@/shared/ui/veil';
 import { HlmCheckbox } from '@/shared/ui/checkbox';
 import { HlmDatePicker, HlmDatePickerTrigger } from '@/shared/ui/date-picker';
 import { HlmField, HlmFieldLabel } from '@/shared/ui/field';
@@ -80,11 +79,9 @@ import {
     TaskDetailPanel,
     AsideOutlet,
     EmptyState,
-    Veil,
   ],
   host: {
     class: 'flex min-h-0 flex-1 flex-col',
-    '[attr.aria-busy]': 'veil().visible() || null',
   },
   templateUrl: './task-list-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -113,7 +110,6 @@ export class TaskListPage {
   private readonly document = inject(DOCUMENT);
 
   // --- 질의 --------------------------------------------------------------------------------------
-  protected readonly veil = viewChild.required(Veil);
   private readonly addInput = viewChild<ElementRef<HTMLInputElement>>('addInput');
   private readonly addFormEl = viewChild<ElementRef<HTMLFormElement>>('addFormEl');
 

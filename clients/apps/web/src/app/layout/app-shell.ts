@@ -1,11 +1,5 @@
 import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { UserAvatar, UserService } from '@/entities/user';
 import { ROUTES } from '@/shared/config';
@@ -14,7 +8,6 @@ import { HlmButton } from '@/shared/ui/button';
 import { AppIcon } from '@/shared/ui/icon';
 import { ThemeToggle } from '@/shared/ui/theme-toggle';
 import { BottomNav } from './bottom-nav';
-import { NavigationVeil } from './navigation-veil';
 import { NAV_GROUPS, SHELL_AREA, SIDEBAR_LEAD } from './nav-items';
 import { SidebarService } from './sidebar-service';
 
@@ -29,7 +22,6 @@ import { SidebarService } from './sidebar-service';
     AppIcon,
     HlmButton,
     ThemeToggle,
-    NavigationVeil,
     BottomNav,
     UserAvatar,
   ],
@@ -48,9 +40,6 @@ export class AppShell {
   protected readonly asideSlotService = inject(AsideSlotService);
   protected readonly sidebarService = inject(SidebarService);
   protected readonly userService = inject(UserService);
-
-  // --- 질의 --------------------------------------------------------------------------------------
-  protected readonly veil = viewChild.required(NavigationVeil);
 
   // --- 파생 --------------------------------------------------------------------------------------
   /**

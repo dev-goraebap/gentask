@@ -24,7 +24,6 @@ import { HlmButton } from '@/shared/ui/button';
 import { HlmField, HlmFieldError, HlmFieldLabel } from '@/shared/ui/field';
 import { HlmInput } from '@/shared/ui/input';
 import { toast } from '@/shared/ui/sonner';
-import { Veil } from '@/shared/ui/veil';
 
 const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
 
@@ -39,11 +38,9 @@ const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
     HlmFieldError,
     HlmFieldLabel,
     UserAvatar,
-    Veil,
   ],
   host: {
     class: 'flex min-h-0 flex-1 flex-col',
-    '[attr.aria-busy]': 'veilLoading() || null',
   },
   providers: [PushService],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -94,9 +91,6 @@ export class AccountPage {
 
   // --- 파생 --------------------------------------------------------------------------------------
   protected readonly me = this.userService.me;
-  protected readonly veilLoading = computed(() => this.userService.status() === 'loading');
-  protected readonly veilFailed = computed(() => this.userService.status() === 'error');
-
   protected readonly joinedAt = computed(() => {
     const user = this.me();
     return user ? new Date(user.createdAt).toLocaleDateString('ko-KR') : '';
