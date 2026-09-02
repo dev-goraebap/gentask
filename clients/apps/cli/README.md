@@ -35,6 +35,40 @@ gentask auth login < t.txt  # 파이프로도 받습니다
 
 식별자는 앞 몇 자만 적어도 됩니다. 그것으로 하나가 가려지지 않으면 후보를 보여 주고 멈춥니다.
 
+## 작업 아이템과 프로젝트
+
+작업(투두)과 다른 자리입니다. 트래커의 백로그를 다루며 Epic · Story · Task · Bug 가 한 목록에 있습니다.
+
+| 명령 | 하는 일 |
+| :--- | :--- |
+| `issue list [--all] [--state …] [--kind …] [--json]` | 백로그를 봅니다. 기본은 닫히지 않은 것만입니다 |
+| `issue show <키> [--json]` | 하나를 펼칩니다. 본문과 인수 조건이 함께 옵니다 |
+| `issue add <제목> [--kind …] [--body …] [--parent 키]` | 세웁니다. 번호는 서버가 매깁니다 |
+| `issue edit <키> [--title] [--kind] [--body] [--parent]` | 넘긴 것만 바꿉니다. `--parent ""` 는 최상위로 올립니다 |
+| `issue state <키> <상태>` | 상태를 옮깁니다 |
+| `issue rm <키> [--yes]` | 지웁니다 |
+| `issue export [--out 파일]` | 본문과 인수 조건까지 전부를 JSON 으로 내립니다 |
+| `project list` | 내 프로젝트와 그 식별자를 봅니다 |
+| `project use <식별자>` | 이 자리의 프로젝트를 정합니다 |
+
+**작업 아이템의 이름과 프로젝트의 식별자는 다릅니다.** 이름(`GT-43`)은 프로젝트가 정한 접두어와 번호이고, 명령줄과 주소가 받는 것은 프로젝트의 식별자입니다. 접두어는 다른 프로젝트와 겹칠 수 있으므로 그것으로는 프로젝트가 가려지지 않습니다.
+
+```bash
+gentask project list                 # 식별자를 먼저 본다
+gentask project use V1StGXR8_Z5j
+gentask issue list
+gentask issue show GT-43
+```
+
+**`project use` 는 지금 디렉터리에 매여 저장됩니다.** 저장소마다 다른 프로젝트를 가리킬 수 있고, 하위 디렉터리에서 불러도 가장 가까운 자리의 것을 씁니다. 한 번만 다른 것을 보려면 `GENTASK_PROJECT` 로 넘깁니다.
+
+**지우기는 되돌릴 수 없습니다.** `--yes` 가 없으면 무엇이 지워지는지 보이고 멈춥니다.
+
+```bash
+gentask issue rm GT-43         # 지울 것만 보이고 멈춘다
+gentask issue rm GT-43 --yes   # 지운다
+```
+
 ## 출구
 
 사람이 읽는 것을 기본으로 내고 `--json` 이 기계가 읽는 것을 냅니다. 사람에게 하는 말은 표준오류로, 기계가 읽는 것은 표준출력으로 갑니다.

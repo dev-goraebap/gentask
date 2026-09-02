@@ -1,6 +1,6 @@
 {
   "name": "gentask",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "gentask 의 작업을 명령줄에서 다룹니다",
   "bin": {
