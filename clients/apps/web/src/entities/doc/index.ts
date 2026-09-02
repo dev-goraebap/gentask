@@ -4,11 +4,10 @@ export {
   foldersIn,
   type Doc,
   type DocAttachment,
-  type DocBlock,
   type DocCrumb,
   type DocFolder,
   type DocLinkedIssue,
   type DocSummary,
 } from './model/doc';
 
-export { DocService } from './api/doc-service';
+export { DocService, type DocDetail } from './api/doc-service';

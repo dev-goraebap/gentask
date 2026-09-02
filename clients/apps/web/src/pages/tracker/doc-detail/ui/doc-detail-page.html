@@ -1,6 +1,7 @@
 @if (doc(); as doc) {
   <section class="mx-auto grid w-full max-w-(--content-max) flex-1 gap-8 px-4 pt-8 md:pt-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
     <div class="min-w-0">
+      <!-- 폴더는 아직 목이다(GT-70). 실어 온 문서는 모두 뿌리에 선다. -->
       <nav aria-label="지나온 폴더" class="text-foreground-secondary flex flex-wrap items-center gap-x-1.5 text-xs">
         @for (crumb of crumbs(); track crumb.id) {
           <a
@@ -14,48 +15,74 @@
         }
       </nav>
 
-      <div class="flex min-w-0 items-center">
+      <div class="flex min-w-0 items-center gap-2">
         <app-page-back [to]="routes().docs()" />
-        <h1 class="mt-3 text-2xl font-semibold tracking-tight">{{ doc.title }}</h1>
+        @if (editing()) {
+          <input
+            hlmInput
+            id="doc-edit-title"
+            class="h-auto flex-1 border-0 px-0 text-2xl font-semibold tracking-tight shadow-none focus-visible:ring-0 dark:bg-transparent"
+            [value]="draftTitle()"
+            (input)="onTitleInput($event)"
+            placeholder="제목"
+            autocomplete="off"
+          />
+        } @else {
+          <h1 class="mt-3 flex-1 text-2xl font-semibold tracking-tight">{{ doc.title }}</h1>
+          <button hlmBtn type="button" variant="outline" size="sm" class="mt-2.5" (click)="startEdit()">
+            고치기
+          </button>
+        }
       </div>
       <p class="text-foreground-secondary mt-1.5 flex flex-wrap items-center gap-x-1.5 text-xs">
         <span>{{ doc.authorName }}이 {{ doc.updatedOn }}에 고침</span>
         <span aria-hidden="true">·</span>
-        <span>판 {{ doc.version }}</span>
+        <!-- 지난 개정을 보는 일은 아직 없다(GT-66 · GT-67). 지금 참인 것의 번호만 보인다. -->
+        <span>판 {{ doc.revisionNo }}</span>
       </p>
 
-      <div class="mt-7 flex max-w-(--reading-measure) flex-col gap-4 text-sm/7">
-        @for (block of doc.blocks; track $index) {
-          @switch (block.kind) {
-            @case ('heading') {
-              <h2 class="mt-2 text-base font-semibold">{{ block.text }}</h2>
-            }
-            @case ('paragraph') {
-              <p>{{ block.text }}</p>
-            }
-            @case ('bullets') {
-              <ul class="flex flex-col gap-1.5">
-                @for (item of block.items; track $index) {
-                  <li class="flex gap-2">
-                    <span class="text-foreground-secondary shrink-0" aria-hidden="true">—</span>
-                    <span>{{ item }}</span>
-                  </li>
-                }
-              </ul>
-            }
-            @case ('code') {
-              <pre class="bg-muted text-foreground-secondary overflow-x-auto p-3 text-xs/6">{{ block.text }}</pre>
-            }
-          }
-        } @empty {
-          <p class="text-muted-foreground">아직 본문이 비어 있습니다.</p>
+      @if (editing()) {
+        <div class="border-border mt-6 flex min-h-0 flex-col border-t pt-4">
+          <app-markdown-editor placeholder="적어 두기. 마크다운으로 적습니다" [(value)]="draftBody" />
+        </div>
+
+        <div class="mt-3">
+          <label for="doc-edit-comment" class="sr-only">개정 사유</label>
+          <input
+            hlmInput
+            id="doc-edit-comment"
+            class="h-10"
+            [value]="draftComment()"
+            (input)="onCommentInput($event)"
+            placeholder="왜 고쳤는지. 적지 않아도 됩니다"
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- 단추를 잠그는 것만으로는 왜 담기지 않는지 말하지 않는다(DOC-003 A1). -->
+        @if (!savable()) {
+          <hlm-field-error class="mt-2 block" forceShow>제목을 입력해 주세요.</hlm-field-error>
         }
-      </div>
+
+        <div class="mt-4 flex items-center gap-2">
+          <button hlmBtn type="button" size="sm" [disabled]="!savable()" (click)="save()">담기</button>
+          <button hlmBtn type="button" variant="ghost" size="sm" (click)="cancelEdit()">그만두기</button>
+        </div>
+      } @else if (doc.body !== '') {
+        <!--
+          본문을 글자로만 그린다(DOC-002). 마크다운 원문을 그대로 심으면 거기 적힌 것이 실행되므로
+          그리는 자리가 그 경로를 닫는다.
+        -->
+        <app-markdown-view class="mt-6 block max-w-(--reading-measure)" [value]="doc.body" />
+      } @else {
+        <p class="text-muted-foreground mt-6 text-sm">아직 본문이 비어 있습니다.</p>
+      }
 
       <div class="h-8"></div>
     </div>
 
     <aside class="border-border flex min-w-0 flex-col gap-5 lg:border-l lg:pl-6">
+      <!-- 첨부는 아직 서버에 자리가 없다(GT-71). 언제나 비어 있어 이 칸은 그려지지 않는다. -->
       @if (doc.attachments.length > 0) {
         <div>
           <h2 class="text-foreground-secondary mb-2 text-xs">첨부</h2>
@@ -74,6 +101,7 @@
         </div>
       }
 
+      <!-- 작업 아이템 잇기도 아직 서버에 자리가 없다(GT-72). 같은 이유로 그려지지 않는다. -->
       @if (doc.linkedIssues.length > 0) {
         <div>
           <h2 class="text-foreground-secondary mb-2 text-xs">이 문서를 거는 작업 아이템</h2>

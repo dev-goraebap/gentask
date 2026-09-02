@@ -42,6 +42,11 @@ export const ENDPOINTS = {
   issue: (projectKey: string, number: number) => `${PROJECTS}/${projectKey}/issues/${number}`,
   issueState: (projectKey: string, number: number) => `${PROJECTS}/${projectKey}/issues/${number}/state`,
 
+  // 문서는 번호를 매기지 않으므로 그 자리에 식별자가 그대로 온다.
+  docs: (projectKey: string) => `${PROJECTS}/${projectKey}/documents`,
+  doc: (projectKey: string, documentId: string) =>
+    `${PROJECTS}/${projectKey}/documents/${documentId}`,
+
   adminUsers: `${ADMIN}/users`,
   adminPushFailures: `${ADMIN}/push/failures`,
   adminPushFailureResolve: (failureId: string) => `${ADMIN}/push/failures/${failureId}/resolve`,

@@ -93,6 +93,7 @@
   </div>
 
   <ul class="divide-border border-border mt-3 divide-y border-y">
+    <!-- 폴더는 아직 목이다(GT-70). 서버가 갖지 않으므로 이 자리에서 세운 것만 보인다. -->
     @for (folder of childFolders(); track folder.id) {
       <li class="flex items-center gap-3 py-3">
         <app-icon name="hgiFolder" class="text-foreground-secondary" />
@@ -124,6 +125,7 @@
           </a>
           <p class="text-foreground-secondary mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs">
             <span>{{ doc.updatedOn }} 고침</span>
+            <!-- 아래 둘은 서버에 자리가 없어 언제나 0 이다. 작업 아이템 잇기(GT-72) · 첨부(GT-71). -->
             @if (doc.linkedIssueCount > 0) {
               <span aria-hidden="true">·</span>
               <span class="inline-flex items-center gap-1">

@@ -1,17 +1,9 @@
 /**
- * 문서 본문의 한 덩이.
+ * 문서를 담는 폴더. 폴더가 폴더를 담는다.
  *
- * <p>본문의 원본은 마크다운이지만 화면은 덩이의 목록으로 받는다. 받은 문자열을 그대로 `innerHTML`
- * 에 넣으면 다른 사람이 적은 것이 스크립트로 실행된다. 덩이로 나눠 받으면 각 덩이가 글자로만
- * 그려지므로 그 경로가 열리지 않는다.
+ * <p><b>아직 목이다.</b> 서버는 폴더를 갖지 않으므로(GT-70) 목록은 평평하게 온다. 폴더를 다루는
+ * 자리는 화면 안에서만 살아 있으며 새로 고치면 사라진다.
  */
-export type DocBlock =
-  | { readonly kind: 'heading'; readonly text: string }
-  | { readonly kind: 'paragraph'; readonly text: string }
-  | { readonly kind: 'bullets'; readonly items: readonly string[] }
-  | { readonly kind: 'code'; readonly text: string };
-
-/** 문서를 담는 폴더. 폴더가 폴더를 담는다. */
 export interface DocFolder {
   readonly id: string;
   readonly name: string;
@@ -23,27 +15,47 @@ export interface DocFolder {
 export interface DocSummary {
   readonly id: string;
   readonly title: string;
+  /** 서버에 폴더가 없으므로 실어 온 것은 언제나 뿌리에 선다(GT-70). */
   readonly folderId: string | null;
   readonly updatedOn: string;
+  /** 작업 아이템 잇기는 아직 서버에 자리가 없다(GT-72). 실어 온 줄은 언제나 0 이다. */
   readonly linkedIssueCount: number;
+  /** 첨부는 아직 서버에 자리가 없다(GT-71). 실어 온 줄은 언제나 0 이다. */
   readonly attachmentCount: number;
 }
 
-/** 문서에 붙는 파일. 본문에 들어가는 그림과 달리 문서 자체에 붙는다. */
+/**
+ * 문서에 붙는 파일. 본문에 들어가는 그림과 달리 문서 자체에 붙는다.
+ *
+ * <p><b>아직 목이다.</b> 서버에 자리가 없어(GT-71) 언제나 비어 있다.
+ */
 export interface DocAttachment {
   readonly name: string;
   readonly size: string;
 }
 
+/**
+ * 이 문서를 거는 작업 아이템.
+ *
+ * <p><b>아직 목이다.</b> 서버에 자리가 없어(GT-72) 언제나 비어 있다.
+ */
 export interface DocLinkedIssue {
   readonly id: string;
   readonly title: string;
 }
 
 export interface Doc extends DocSummary {
-  readonly blocks: readonly DocBlock[];
+  /**
+   * 지금 참인 개정의 본문. <b>마크다운 원문</b>이다.
+   *
+   * <p>덩이로 나눠 받지 않는다. 받은 문자열을 그대로 심으면 다른 사람이 적은 것이 스크립트로
+   * 실행되므로, 그리는 자리(`markdown-view`)가 그 경로를 닫는다 — 원문 자체는 위험하지 않고
+   * 위험은 그리는 자리에 있다(DOC-002 A5).
+   */
+  readonly body: string;
   readonly authorName: string;
-  readonly version: number;
+  /** 지금 참인 개정의 번호. 1부터 매긴다. */
+  readonly revisionNo: number;
   readonly attachments: readonly DocAttachment[];
   readonly linkedIssues: readonly DocLinkedIssue[];
 }

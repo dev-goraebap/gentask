@@ -48,6 +48,7 @@ export class DocListPage {
   // --- 파생 --------------------------------------------------------------------------------------
   protected readonly folderId = computed<string | null>(() => this.folder() ?? null);
 
+  /** 폴더는 아직 목이다(GT-70). 실어 온 문서는 모두 뿌리에 서므로 길은 대개 한 마디다. */
   protected readonly crumbs = computed(() =>
     buildCrumbs(this.docService.folders(), this.folderId()),
   );
@@ -57,6 +58,7 @@ export class DocListPage {
     return trail[trail.length - 1].name;
   });
 
+  /** 목. 서버에 폴더가 서기 전까지는 이 자리에서 세운 것만 보인다(GT-70). */
   protected readonly childFolders = computed(() =>
     foldersIn(this.docService.folders(), this.folderId()),
   );
@@ -80,7 +82,7 @@ export class DocListPage {
     this.draft.set({ name: '' });
   }
 
-  protected create(): void {
+  protected async create(): Promise<void> {
     const name = this.draft().name.trim();
     if (name === '') return;
 
@@ -90,14 +92,17 @@ export class DocListPage {
       return;
     }
 
-    const id = this.docService.addDoc(name, this.folderId());
+    // 본문은 비워 둔 채 세운다. 제목만 정해 두고 나중에 채우는 것이 흔한 이유다(DOC-001).
+    const id = await this.docService.add(name);
     this.cancelCreating();
-    void this.router.navigate([this.routes().doc(id)]);
+    if (id === undefined) return;
+
+    await this.router.navigate([this.routes().doc(id)]);
   }
 
   protected createOnEnter(event: KeyboardEvent): void {
     if (event.key !== 'Enter' || event.isComposing) return;
     event.preventDefault();
-    this.create();
+    void this.create();
   }
 }
