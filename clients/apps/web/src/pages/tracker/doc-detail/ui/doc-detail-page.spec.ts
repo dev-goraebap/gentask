@@ -79,6 +79,9 @@ describe('DocDetailPage 의 지나온 것', () => {
         .match({ url: ENDPOINTS.docs(PROJECT), method: 'GET' })
         .forEach((each) => each.flush([]));
       httpTesting
+        .match({ url: ENDPOINTS.docFolders(PROJECT), method: 'GET' })
+        .forEach((each) => each.flush([]));
+      httpTesting
         .match({ url: ENDPOINTS.doc(PROJECT, DOCUMENT), method: 'GET' })
         .forEach((each) => each.flush(doc()));
       httpTesting
@@ -193,6 +196,7 @@ function doc(): object {
     summary: {
       id: DOCUMENT,
       title: '아키텍처 진입',
+      folderId: null,
       createdAt: '2026-08-20T01:02:03Z',
       updatedAt: '2026-08-31T04:05:06Z',
     },

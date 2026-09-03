@@ -1,0 +1,44 @@
+<hlm-alert-dialog>
+  <button
+    hlmBtn
+    hlmAlertDialogTrigger
+    type="button"
+    variant="ghost"
+    size="sm"
+    [attr.aria-label]="label() + ' 옮기기'"
+  >
+    옮기기
+  </button>
+
+  <hlm-alert-dialog-content *hlmAlertDialogPortal>
+    <hlm-alert-dialog-header>
+      <h3 hlmAlertDialogTitle>{{ label() }} 옮기기</h3>
+      <p hlmAlertDialogDescription>
+        담을 자리를 고르면 그대로 옮깁니다. 담긴 문서와 하위 폴더가 함께 갑니다.
+      </p>
+    </hlm-alert-dialog-header>
+
+    @if (targets().length > 0) {
+      <ul class="divide-border border-border max-h-64 divide-y overflow-y-auto border-y">
+        @for (target of targets(); track target.id) {
+          <li>
+            <button
+              type="button"
+              class="hover:bg-muted focus-visible:ring-ring block w-full px-2 py-3 text-left text-sm focus-visible:ring-2 focus-visible:outline-none"
+              (click)="choose(target)"
+            >
+              {{ target.path }}
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <!-- 자기 자신과 자손을 뺀 뒤 남는 자리가 없는 경우다(DOC-008 A6). -->
+      <p class="text-foreground-secondary text-sm">옮겨 담을 다른 자리가 없습니다.</p>
+    }
+
+    <hlm-alert-dialog-footer>
+      <button hlmAlertDialogCancel>그만두기</button>
+    </hlm-alert-dialog-footer>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

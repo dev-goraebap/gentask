@@ -1,5 +1,5 @@
 <section class="mx-auto flex w-full max-w-(--content-max) flex-1 flex-col px-4 pt-8 md:pt-12">
-  <!-- 한 단계씩 오간다. 껍데기가 이미 쓰는 방식이다. -->
+  <!-- 지금까지 내려온 길. 폴더를 열 때마다 한 마디씩 쌓인다(DOC-002 A1). -->
   <nav aria-label="지나온 폴더" class="text-foreground-secondary flex flex-wrap items-center gap-x-1.5 text-xs">
     @for (crumb of crumbs(); track crumb.id; let last = $last) {
       @if (last) {
@@ -64,14 +64,14 @@
           [placeholder]="creatingLabel()"
           autocomplete="off"
           enterkeyhint="done"
+          (blur)="nameAsked.set(true)"
           (keydown)="createOnEnter($event)"
         />
       </div>
 
       <div class="flex shrink-0 items-center gap-1">
-        <button hlmBtn type="button" size="sm" [disabled]="!creatable()" (click)="create()">
-          세우기
-        </button>
+        <!-- 단추를 잠그면 왜 담기지 않는지 말하지 않는다. 눌러 보고 알게 한다(DOC-008 A1). -->
+        <button hlmBtn type="button" size="sm" (click)="create()">세우기</button>
         <button
           hlmBtn
           type="button"
@@ -84,76 +84,215 @@
         </button>
       </div>
     </form>
+
+    @if (nameAsked() && !creatable()) {
+      <hlm-field-error class="mt-2 block" forceShow>이름이 필요합니다.</hlm-field-error>
+    }
   }
 
-  <div class="mt-4 flex flex-wrap items-center gap-2">
-    <span class="text-foreground-secondary text-xs">
-      폴더 {{ childFolders().length }}개 · 문서 {{ childDocs().length }}개
-    </span>
-  </div>
-
-  <ul class="divide-border border-border mt-3 divide-y border-y">
-    <!-- 폴더는 아직 목이다(GT-70). 서버가 갖지 않으므로 이 자리에서 세운 것만 보인다. -->
-    @for (folder of childFolders(); track folder.id) {
-      <li class="flex items-center gap-3 py-3">
-        <app-icon name="hgiFolder" class="text-foreground-secondary" />
-        <div class="min-w-0 flex-1">
-          <a
-            [routerLink]="routes().docs()"
-            [queryParams]="{ folder: folder.id }"
-            class="block text-sm underline-offset-4 hover:underline"
-          >
-            {{ folder.name }}
-          </a>
-          <p class="text-foreground-secondary mt-0.5 text-xs">
-            문서 {{ folder.docCount }}개 · {{ folder.updatedOn }} 고침
-          </p>
-        </div>
-        <app-icon name="hgiArrowRight" class="text-foreground-secondary" />
-      </li>
+  @if (failed()) {
+    <!-- 싣지 못한 것을 비어 있음으로 그리지 않는다. -->
+    <div class="mt-6">
+      <p class="text-sm">문서 목록을 불러오지 못했습니다.</p>
+      <button hlmBtn type="button" variant="outline" size="sm" class="mt-2" (click)="reload()">
+        다시 시도
+      </button>
+    </div>
+  } @else {
+    <!-- 다 싣기 전에는 몇 개인지 말하지 않는다. 0 개라고 적어 두면 곧 채워질 자리를 없다고 말한다. -->
+    @if (settled()) {
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <span class="text-foreground-secondary text-xs">
+          폴더 {{ folderRows().length }}개 · 문서 {{ childDocs().length }}개
+        </span>
+      </div>
     }
 
-    @for (doc of childDocs(); track doc.id) {
-      <li class="flex items-center gap-3 py-3">
-        <app-icon name="hgiFile" class="text-foreground-secondary" />
-        <div class="min-w-0 flex-1">
-          <a
-            [routerLink]="routes().doc(doc.id)"
-            class="block text-sm underline-offset-4 hover:underline"
-          >
-            {{ doc.title }}
-          </a>
-          <p class="text-foreground-secondary mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs">
-            <span>{{ doc.updatedOn }} 고침</span>
-            <!-- 아래 둘은 서버에 자리가 없어 언제나 0 이다. 작업 아이템 잇기(GT-72) · 첨부(GT-71). -->
-            @if (doc.linkedIssueCount > 0) {
-              <span aria-hidden="true">·</span>
-              <span class="inline-flex items-center gap-1">
-                <app-icon name="hgiLink" class="text-[length:--spacing(3)]" />
-                작업 아이템 {{ doc.linkedIssueCount }}개가 이 문서를 건다
-              </span>
+    <ul class="divide-border border-border mt-3 divide-y border-y">
+      @for (row of folderRows(); track row.folder.id) {
+        <li class="flex flex-wrap items-center gap-3 py-3">
+          @if (renaming() === row.folder.id) {
+            <app-icon name="hgiFolder" class="text-foreground-secondary" />
+            <div hlmField class="min-w-0 flex-1">
+              <label hlmFieldLabel [for]="'rename-' + row.folder.id" class="sr-only">
+                폴더 이름
+              </label>
+              <input
+                hlmInput
+                [id]="'rename-' + row.folder.id"
+                class="h-9"
+                [value]="renameDraft()"
+                (input)="onRenameInput($event)"
+                (blur)="nameAsked.set(true)"
+                (keydown)="renameOnEnter($event)"
+                autocomplete="off"
+                enterkeyhint="done"
+              />
+            </div>
+            <div class="flex shrink-0 items-center gap-1">
+              <button hlmBtn type="button" size="sm" (click)="rename()">담기</button>
+              <button
+                hlmBtn
+                type="button"
+                variant="ghost"
+                size="sm"
+                (click)="cancelRenaming()"
+              >
+                그만두기
+              </button>
+            </div>
+            @if (nameAsked() && !renamable()) {
+              <hlm-field-error class="w-full" forceShow>이름이 필요합니다.</hlm-field-error>
             }
-            @if (doc.attachmentCount > 0) {
-              <span aria-hidden="true">·</span>
-              <span class="inline-flex items-center gap-1">
-                <app-icon name="hgiAttachment" class="text-[length:--spacing(3)]" />
-                첨부 {{ doc.attachmentCount }}개
-              </span>
-            }
-          </p>
-        </div>
-      </li>
-    }
+          } @else {
+            <app-icon name="hgiFolder" class="text-foreground-secondary" />
+            <div class="min-w-0 flex-1">
+              <a
+                [routerLink]="routes().docs()"
+                [queryParams]="{ folder: row.folder.id }"
+                class="block text-sm underline-offset-4 hover:underline"
+              >
+                {{ row.folder.name }}
+              </a>
+              <p class="text-foreground-secondary mt-0.5 text-xs">
+                폴더 {{ row.folder.folderCount }}개 · 문서 {{ row.folder.docCount }}개 ·
+                {{ row.folder.updatedOn }} 고침
+              </p>
+            </div>
 
-    @if (childFolders().length === 0 && childDocs().length === 0) {
-      <li>
-        <app-empty-state
-          title="이 자리에 아직 아무것도 없습니다"
-          description="폴더로 묶거나 문서를 바로 세울 수 있습니다."
-        />
-      </li>
-    }
-  </ul>
+            <div class="flex shrink-0 items-center gap-1">
+              <button
+                hlmBtn
+                type="button"
+                variant="ghost"
+                size="sm"
+                [attr.aria-label]="row.folder.name + ' 이름 바꾸기'"
+                (click)="startRenaming(row.folder)"
+              >
+                이름 바꾸기
+              </button>
+
+              <app-doc-move-dialog
+                [label]="row.folder.name"
+                [targets]="row.targets"
+                (chosen)="moveFolder(row.folder.id, $event)"
+              />
+
+              <!-- 지우는 것은 되돌릴 자리가 없으므로 나머지와 떨어뜨려 둔다. -->
+              <hlm-alert-dialog #removeDialog="hlmAlertDialog" class="ml-2">
+                <button
+                  hlmBtn
+                  hlmAlertDialogTrigger
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  [attr.aria-label]="row.folder.name + ' 지우기'"
+                >
+                  <app-icon name="hgiTrash" />
+                </button>
+
+                <hlm-alert-dialog-content *hlmAlertDialogPortal>
+                  <hlm-alert-dialog-header>
+                    <h3 hlmAlertDialogTitle>{{ row.folder.name }} 지우기</h3>
+                    <p hlmAlertDialogDescription>
+                      담긴 것을 함께 지우지 않습니다. 담긴 문서 {{ row.folder.docCount }}개와
+                      하위 폴더 {{ row.folder.folderCount }}개가 한 단계 위로 올라옵니다.
+                      지운 폴더를 되살릴 자리는 없습니다.
+                    </p>
+                  </hlm-alert-dialog-header>
+
+                  <hlm-alert-dialog-footer>
+                    <button hlmAlertDialogCancel>그만두기</button>
+                    <button
+                      hlmAlertDialogAction
+                      [disabled]="removing()"
+                      (click)="remove(row.folder, removeDialog)"
+                    >
+                      지우기
+                    </button>
+                  </hlm-alert-dialog-footer>
+                </hlm-alert-dialog-content>
+              </hlm-alert-dialog>
+            </div>
+          }
+        </li>
+      }
+
+      @for (doc of childDocs(); track doc.id) {
+        <li class="flex items-center gap-3 py-3">
+          <app-icon name="hgiFile" class="text-foreground-secondary" />
+          <div class="min-w-0 flex-1">
+            <a
+              [routerLink]="routes().doc(doc.id)"
+              class="block text-sm underline-offset-4 hover:underline"
+            >
+              {{ doc.title }}
+            </a>
+            <p class="text-foreground-secondary mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs">
+              <span>{{ doc.updatedOn }} 고침</span>
+              <!-- 아래 둘은 서버에 자리가 없어 언제나 0 이다. 작업 아이템 잇기(GT-72) · 첨부(GT-71). -->
+              @if (doc.linkedIssueCount > 0) {
+                <span aria-hidden="true">·</span>
+                <span class="inline-flex items-center gap-1">
+                  <app-icon name="hgiLink" class="text-[length:--spacing(3)]" />
+                  작업 아이템 {{ doc.linkedIssueCount }}개가 이 문서를 건다
+                </span>
+              }
+              @if (doc.attachmentCount > 0) {
+                <span aria-hidden="true">·</span>
+                <span class="inline-flex items-center gap-1">
+                  <app-icon name="hgiAttachment" class="text-[length:--spacing(3)]" />
+                  첨부 {{ doc.attachmentCount }}개
+                </span>
+              }
+            </p>
+          </div>
+
+          <div class="shrink-0">
+            <app-doc-move-dialog
+              [label]="doc.title"
+              [targets]="docTargets()"
+              (chosen)="moveDoc(doc.id, $event)"
+            />
+          </div>
+        </li>
+      }
+
+      <!-- 다 싣고 나서만 비어 있다고 말한다. 세우는 길을 함께 보인다(DOC-002 A2). -->
+      @if (empty()) {
+        <li>
+          <app-empty-state
+            title="이 자리에 아직 아무것도 없습니다"
+            description="폴더로 묶거나 문서를 바로 세울 수 있습니다."
+          >
+            <div class="flex items-center gap-2">
+              <button
+                hlmBtn
+                type="button"
+                variant="outline"
+                size="sm"
+                class="gap-1.5"
+                (click)="startCreating('folder')"
+              >
+                <app-icon name="hgiFolder" />
+                새 폴더
+              </button>
+              <button
+                hlmBtn
+                type="button"
+                size="sm"
+                class="gap-1.5"
+                (click)="startCreating('doc')"
+              >
+                <app-icon name="hgiPlus" />
+                새 문서
+              </button>
+            </div>
+          </app-empty-state>
+        </li>
+      }
+    </ul>
+  }
 
   <p class="text-foreground-secondary mt-5 flex items-center gap-2 text-xs">
     <app-icon name="hgiTerminal" class="text-[length:--spacing(3)]" />

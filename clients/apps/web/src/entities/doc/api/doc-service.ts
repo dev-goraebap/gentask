@@ -5,12 +5,18 @@ import {
   inject,
   Injectable,
   PLATFORM_ID,
-  signal,
   type ResourceStatus,
   type Signal,
 } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ENDPOINTS, type RevisionPageView, type RevisionView } from '@/shared/api';
+import {
+  ENDPOINTS,
+  type DocumentFolderSummary,
+  type DocumentSummary,
+  type DocumentView,
+  type RevisionPageView,
+  type RevisionView,
+} from '@/shared/api';
 import { CURRENT_PROJECT_ID } from '@/shared/config';
 import type { Doc, DocFolder, DocSummary } from '../model/doc';
 
@@ -22,29 +28,14 @@ import type { Doc, DocFolder, DocSummary } from '../model/doc';
  */
 const REVISION_PAGE_SIZE = 20;
 
-/** 서버가 내는 목록의 한 줄. 화면의 어휘와 이름이 갈리는 자리는 여기서 맞춘다. */
-interface DocumentSummaryResponse {
-  readonly id: string;
-  readonly title: string;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-}
-
-interface DocumentResponse {
-  readonly summary: DocumentSummaryResponse;
-  readonly body: string;
-  readonly revisionNo: number;
-  readonly authorName: string;
-}
-
 /**
- * 문서.
+ * 문서와 문서를 담는 폴더.
  *
  * <p>주소와 API 가 담는 것이 같다. 작업 아이템과 달리 문서는 번호를 매기지 않으므로 사람이 부르는
  * 이름과 식별자를 잇는 자리가 없다.
  *
- * <p>폴더는 아직 이 자리 안에서만 산다. 서버가 갖지 않으므로(GT-70) 실어 온 문서는 모두 뿌리에
- * 서며, 화면이 이미 가진 폴더 칸은 목 위에 그대로 둔다.
+ * <p>폴더는 평평한 목록에 담긴 자리를 실어 온다. 계층으로 세우는 것은 화면이 하며(`foldersIn`),
+ * 그래서 폴더 하나를 고쳐도 다시 묻는 것은 이 목록 하나다.
  */
 @Injectable()
 export class DocService {
@@ -55,14 +46,15 @@ export class DocService {
   /** 지금 프로젝트는 라우트가 내려 준다. 슬라이스끼리 직접 참조하지 않기 위해서다. */
   private readonly projectId = inject(CURRENT_PROJECT_ID);
 
-  // --- 상태 --------------------------------------------------------------------------------------
-  /** 목. 서버에 폴더가 없어(GT-70) 화면 안에서만 살고 새로 고치면 사라진다. */
-  private readonly folderList = signal<readonly DocFolder[]>([]);
-
   // --- 파생 --------------------------------------------------------------------------------------
-  private readonly resource = httpResource<readonly DocumentSummaryResponse[]>(() => {
+  private readonly resource = httpResource<readonly DocumentSummary[]>(() => {
     const id = this.projectId();
     return this.isServer || id === undefined ? undefined : ENDPOINTS.docs(id);
+  });
+
+  private readonly folderResource = httpResource<readonly DocumentFolderSummary[]>(() => {
+    const id = this.projectId();
+    return this.isServer || id === undefined ? undefined : ENDPOINTS.docFolders(id);
   });
 
   readonly list = computed<readonly DocSummary[]>(() =>
@@ -71,7 +63,11 @@ export class DocService {
 
   readonly status = this.resource.status;
 
-  readonly folders = this.folderList.asReadonly();
+  readonly folders = computed<readonly DocFolder[]>(() =>
+    this.folderResource.hasValue() ? this.folderResource.value().map(toFolder) : [],
+  );
+
+  readonly folderStatus = this.folderResource.status;
 
   // --- 동작 --------------------------------------------------------------------------------------
   /** 목록에 이미 실려 있는 것에서 찾는다. 본문이 필요 없는 자리가 이것을 쓴다. */
@@ -79,23 +75,35 @@ export class DocService {
     return this.list().find((doc) => doc.id === id);
   }
 
+  /** 둘 다 다시 묻는다. 싣지 못한 자리가 다시 시도하는 길이다. */
+  reload(): void {
+    this.resource.reload();
+    this.folderResource.reload();
+  }
+
   /**
    * 세운 것의 식별자를 낸다. 호출부가 곧바로 그 자리로 옮기기 때문이다.
    *
    * <p>세우는 것이 곧 첫 개정을 남기는 것이므로 본문을 함께 넘긴다(DOC-001). 본문이 비어 있어도
    * 세운다 — 검증하는 것은 제목뿐이다.
+   *
+   * <p>지금 열어 둔 자리가 담길 자리가 된다. 세우고 나서 다시 옮기게 하지 않기 위해서다.
    */
-  async add(title: string, body = ''): Promise<string | undefined> {
+  async add(title: string, body = '', folderId: string | null = null): Promise<string | undefined> {
     const projectId = this.projectId();
     if (projectId === undefined) return undefined;
 
     const created = await firstValueFrom(
-      this.httpClient.post(ENDPOINTS.docs(projectId), { title, body }, { observe: 'response' }),
+      this.httpClient.post(
+        ENDPOINTS.docs(projectId),
+        { title, body, folderId },
+        { observe: 'response' },
+      ),
     );
     const location = created.headers.get('Location') ?? '';
     const id = location.slice(location.lastIndexOf('/') + 1);
 
-    this.resource.reload();
+    this.reload();
 
     return id === '' ? undefined : id;
   }
@@ -122,6 +130,21 @@ export class DocService {
   }
 
   /**
+   * 문서가 담긴 자리를 바꾼다(DOC-006).
+   *
+   * <p>옮기는 것은 개정이 아니다. 본문도 제목도 건드리지 않으므로 상세를 다시 싣지 않는다.
+   * 자리를 비우면 최상위로 간다(DOC-006 A1).
+   */
+  async moveDoc(id: string, folderId: string | null): Promise<void> {
+    const projectId = this.projectId();
+    if (projectId === undefined) return;
+
+    await firstValueFrom(this.httpClient.put(ENDPOINTS.docParent(projectId, id), { folderId }));
+    // 폴더가 담은 수도 함께 바뀌므로 둘을 같이 묻는다.
+    this.reload();
+  }
+
+  /**
    * 상세 하나를 싣는다.
    *
    * <p>목록의 줄은 본문을 갖지 않으므로 상세는 따로 묻는다. 주입 자리에서 불러야 하며, 받은 신호가
@@ -136,7 +159,7 @@ export class DocService {
 
         return ENDPOINTS.doc(projectId, documentId);
       },
-      { parse: (raw) => toDoc(raw as DocumentResponse) },
+      { parse: (raw) => toDoc(raw as DocumentView) },
     );
 
     return {
@@ -221,18 +244,49 @@ export class DocService {
     this.resource.reload();
   }
 
-  /** 목. 폴더가 서버에 서면(GT-70) 이 자리가 HTTP 로 바뀐다. */
-  addFolder(name: string, parentId: string | null): void {
-    this.folderList.update((folders) => [
-      ...folders,
-      {
-        id: `folder-${folders.length + 1}`,
-        name,
-        parentId,
-        docCount: 0,
-        updatedOn: new Date().toISOString().slice(0, 10),
-      },
-    ]);
+  /** 지금 열어 둔 자리 아래에 선다(DOC-008 기본 흐름 6). 이름이 겹쳐도 막지 않는다(DOC-008 A2). */
+  async addFolder(name: string, parentId: string | null): Promise<void> {
+    const projectId = this.projectId();
+    if (projectId === undefined) return;
+
+    await firstValueFrom(this.httpClient.post(ENDPOINTS.docFolders(projectId), { name, parentId }));
+    this.folderResource.reload();
+  }
+
+  /** 이름을 바꿔도 그 폴더를 가리키던 길은 끊기지 않는다. 가리키는 것이 식별자이기 때문이다(DOC-008 A4). */
+  async renameFolder(id: string, name: string): Promise<void> {
+    const projectId = this.projectId();
+    if (projectId === undefined) return;
+
+    await firstValueFrom(this.httpClient.patch(ENDPOINTS.docFolder(projectId, id), { name }));
+    this.folderResource.reload();
+  }
+
+  /**
+   * 폴더를 다른 자리로 옮긴다(DOC-008 A5). 담긴 문서와 하위 폴더가 함께 간다.
+   *
+   * <p>자기 자신이나 자손 아래로는 갈 수 없다(DOC-008 A6). 그 판정은 서버가 쥐며 어긴 요청은
+   * 409 로 돌아온다.
+   */
+  async moveFolder(id: string, parentId: string | null): Promise<void> {
+    const projectId = this.projectId();
+    if (projectId === undefined) return;
+
+    await firstValueFrom(this.httpClient.put(ENDPOINTS.docFolderParent(projectId, id), { parentId }));
+    this.folderResource.reload();
+  }
+
+  /**
+   * 폴더를 지운다(DOC-008 A7).
+   *
+   * <p>담긴 것을 함께 지우지 않는다. 문서와 하위 폴더는 한 단계 위로 올라오므로 둘 다 다시 묻는다.
+   */
+  async removeFolder(id: string): Promise<void> {
+    const projectId = this.projectId();
+    if (projectId === undefined) return;
+
+    await firstValueFrom(this.httpClient.delete(ENDPOINTS.docFolder(projectId, id)));
+    this.reload();
   }
 }
 
@@ -265,19 +319,30 @@ export interface DocRevision {
   readonly reload: () => void;
 }
 
-function toSummary(response: DocumentSummaryResponse): DocSummary {
+function toSummary(response: DocumentSummary): DocSummary {
   return {
     id: response.id,
     title: response.title,
+    folderId: response.folderId,
     updatedOn: response.updatedAt.slice(0, 10),
-    // 아래 셋은 아직 서버에 자리가 없다. 폴더(GT-70) · 첨부(GT-71) · 작업 아이템 잇기(GT-72) 다.
-    folderId: null,
+    // 아래 둘은 아직 서버에 자리가 없다. 첨부(GT-71) · 작업 아이템 잇기(GT-72) 다.
     linkedIssueCount: 0,
     attachmentCount: 0,
   };
 }
 
-function toDoc(response: DocumentResponse): Doc {
+function toFolder(response: DocumentFolderSummary): DocFolder {
+  return {
+    id: response.id,
+    name: response.name,
+    parentId: response.parentId,
+    docCount: response.documentCount,
+    folderCount: response.folderCount,
+    updatedOn: response.updatedAt.slice(0, 10),
+  };
+}
+
+function toDoc(response: DocumentView): Doc {
   return {
     ...toSummary(response.summary),
     body: response.body,

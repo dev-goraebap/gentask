@@ -2,8 +2,22 @@ import { describe, expect, it } from 'vitest';
 import { buildCrumbs, docsIn, foldersIn, type DocFolder, type DocSummary } from './doc';
 
 const FOLDERS: readonly DocFolder[] = [
-  { id: 'arch', name: '아키텍처', parentId: null, docCount: 2, updatedOn: '2026-08-31' },
-  { id: 'adr', name: '결정 기록', parentId: 'arch', docCount: 1, updatedOn: '2026-08-31' },
+  {
+    id: 'arch',
+    name: '아키텍처',
+    parentId: null,
+    docCount: 2,
+    folderCount: 1,
+    updatedOn: '2026-08-31',
+  },
+  {
+    id: 'adr',
+    name: '결정 기록',
+    parentId: 'arch',
+    docCount: 1,
+    folderCount: 0,
+    updatedOn: '2026-08-31',
+  },
 ];
 
 function doc(id: string, folderId: string | null): DocSummary {

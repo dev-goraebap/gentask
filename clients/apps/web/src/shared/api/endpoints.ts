@@ -56,6 +56,17 @@ export const ENDPOINTS = {
   docRevisionRevert: (projectKey: string, documentId: string, revisionNo: number) =>
     `${PROJECTS}/${projectKey}/documents/${documentId}/revisions/${revisionNo}/revert`,
 
+  // 폴더는 문서와 나란히 선다. 문서 아래가 아니라 프로젝트 아래에 붙는 것은 폴더가 폴더도 담기 때문이다.
+  docFolders: (projectKey: string) => `${PROJECTS}/${projectKey}/document-folders`,
+  docFolder: (projectKey: string, folderId: string) =>
+    `${PROJECTS}/${projectKey}/document-folders/${folderId}`,
+  docFolderParent: (projectKey: string, folderId: string) =>
+    `${PROJECTS}/${projectKey}/document-folders/${folderId}/parent`,
+
+  // 문서가 담긴 자리. 바뀌는 것이 문서라서 폴더가 아니라 문서 아래에 붙는다(DOC-006).
+  docParent: (projectKey: string, documentId: string) =>
+    `${PROJECTS}/${projectKey}/documents/${documentId}/folder`,
+
   adminUsers: `${ADMIN}/users`,
   adminPushFailures: `${ADMIN}/push/failures`,
   adminPushFailureResolve: (failureId: string) => `${ADMIN}/push/failures/${failureId}/resolve`,

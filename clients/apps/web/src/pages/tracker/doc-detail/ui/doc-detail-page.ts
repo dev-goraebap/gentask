@@ -147,7 +147,7 @@ export class DocDetailPage {
     };
   });
 
-  /** 폴더는 아직 목이다(GT-70). 실어 온 문서는 뿌리에 서므로 길은 한 마디다. */
+  /** 문서가 담긴 자리에서 위로 올라가는 길. 뿌리에 서 있으면 한 마디다. */
   protected readonly crumbs = computed(() =>
     buildCrumbs(this.docService.folders(), this.doc()?.folderId ?? null),
   );

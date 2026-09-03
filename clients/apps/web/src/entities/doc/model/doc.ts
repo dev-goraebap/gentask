@@ -1,21 +1,20 @@
-/**
- * 문서를 담는 폴더. 폴더가 폴더를 담는다.
- *
- * <p><b>아직 목이다.</b> 서버는 폴더를 갖지 않으므로(GT-70) 목록은 평평하게 온다. 폴더를 다루는
- * 자리는 화면 안에서만 살아 있으며 새로 고치면 사라진다.
- */
+/** 문서를 담는 폴더. 폴더가 폴더를 담고 깊이를 제한하지 않는다(DOC-008). */
 export interface DocFolder {
   readonly id: string;
   readonly name: string;
+  /** 담긴 자리. 값이 없으면 뿌리에 선다. */
   readonly parentId: string | null;
+  /** 바로 아래에 담긴 문서 수. 지우기를 되묻는 자리가 이것을 보인다(DOC-008 A7). */
   readonly docCount: number;
+  /** 바로 아래에 담긴 폴더 수. */
+  readonly folderCount: number;
   readonly updatedOn: string;
 }
 
 export interface DocSummary {
   readonly id: string;
   readonly title: string;
-  /** 서버에 폴더가 없으므로 실어 온 것은 언제나 뿌리에 선다(GT-70). */
+  /** 담긴 폴더. 값이 없으면 뿌리에 선다. */
   readonly folderId: string | null;
   readonly updatedOn: string;
   /** 작업 아이템 잇기는 아직 서버에 자리가 없다(GT-72). 실어 온 줄은 언제나 0 이다. */
