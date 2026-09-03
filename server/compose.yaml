@@ -1,0 +1,48 @@
+# 개발용 백킹 서비스. 작업자마다 독립적이며 로컬 루프백에만 바인딩한다.
+# 근거: docs/architecture/decisions/0014-backend-development-backing-services.md
+#
+# spring-boot-docker-compose 가 애플리케이션 기동 시 함께 실행한다.
+# 직접 다루려면 이 디렉터리에서 docker compose up -d 를 사용한다.
+services:
+  postgres:
+    # 메이저 버전을 운영 인스턴스와 일치시킨다. 엔진 차이로 마이그레이션 결과가
+    # 갈리는 것을 막는다.
+    image: postgres:17-alpine
+    container_name: gentask-dev-postgres
+    environment:
+      POSTGRES_DB: gentask
+      POSTGRES_USER: gentask
+      POSTGRES_PASSWORD: gentask
+    ports:
+      # 다른 PostgreSQL 이 5432 를 쓰고 있으면 .env 에 DEV_DB_PORT 를 둔다.
+      - "127.0.0.1:${DEV_DB_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gentask -d gentask"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: gentask-dev-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: gentask
+      MINIO_ROOT_PASSWORD: gentask-dev-secret
+    ports:
+      # 브라우저가 presigned URL 로 직접 접근하므로 9000 은 호스트에서 닿아야 한다.
+      - "127.0.0.1:${DEV_MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${DEV_MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  postgres-data:
+  minio-data:

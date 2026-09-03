@@ -29,15 +29,26 @@
 
 저장소를 체크아웃한 후 `server/.env` 파일을 생성하고 `application.properties`에 `${VAR}`로 선언된 환경 변수 키를 설정한다. 이 파일은 버전 관리에서 제외되며, 필수 변수가 누락되면 애플리케이션 기동이 실패한다.
 
-**개발용 데이터베이스와 파일 스토리지는 로컬 컨테이너로 구동한다.** `compose.yaml`이 PostgreSQL과 MinIO를 정의하고 `spring-boot-docker-compose`가 애플리케이션 기동 시 함께 실행한다. 컨테이너와 데이터는 작업자마다 독립적이다. 상세 배경은 [결정-0014](../decisions/0014-backend-development-backing-services.md)에 기술되어 있다.
+**개발용 데이터베이스와 파일 스토리지는 로컬 컨테이너로 구동한다.** `server/compose.yaml`이 PostgreSQL과 MinIO를 정의하며 컨테이너와 데이터는 작업자마다 독립적이다. 상세 배경은 [결정-0014](../decisions/0014-backend-development-backing-services.md)에 기술되어 있다.
 
 ```bash
+cp .env.example .env
+docker compose up -d
 ./gradlew bootRun
 ```
 
+`.env.example`의 값은 `compose.yaml`의 컨테이너와 맞춰져 있으므로 그대로 복사해서 쓴다.
+
 **Docker 데몬이 실행 중이어야 한다.** 컨테이너를 기동하지 못하면 데이터베이스 연결에 실패하여 애플리케이션이 기동하지 않는다.
 
-브랜치를 전환하여 Flyway 체크섬이 어긋나면 개발 데이터베이스를 재생성하고 시드 스크립트로 테스트 데이터를 복원한다.
+**다른 PostgreSQL이 5432를 점유하고 있으면 포트를 바꾼다.** `.env`의 `DEV_DB_PORT`와 `DB_URL`의 포트를 함께 맞춘다. MinIO는 `DEV_MINIO_PORT`와 `DEV_MINIO_CONSOLE_PORT`로 옮긴다.
+
+브랜치를 전환하여 Flyway 체크섬이 어긋나면 데이터베이스를 재생성한다. 다음 기동 시 마이그레이션이 처음부터 적용된다.
+
+```bash
+bash scripts/reset-dev-db.sh          # 데이터베이스만
+bash scripts/reset-dev-db.sh --all    # 보관소까지
+```
 
 모든 접속 정보는 `server/.env` 파일에서 단일 관리한다. 애플리케이션은 `spring.config.import`를 통해 환경 변수를 로드하며, 배포 환경에서는 동일한 키를 컨테이너 환경 변수로 주입한다.
 
