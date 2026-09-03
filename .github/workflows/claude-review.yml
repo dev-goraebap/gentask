@@ -32,6 +32,9 @@ jobs:
     # secrets 컨텍스트는 if 에서 쓸 수 없다. 존재 여부만 env 로 옮겨 판정한다.
     env:
       HAS_GENTASK_TOKEN: ${{ secrets.GENTASK_TOKEN != '' }}
+      # doc 명령은 프로젝트 문맥을 요구한다. `project use` 는 디렉터리에 매여 저장되므로
+      # 매번 새로 만들어지는 러너에는 맞지 않는다. 식별자이지 자격 증명이 아니라 평문으로 둔다.
+      GENTASK_PROJECT: 9G5xhlf0c_6t
     if: |
       (github.event_name == 'pull_request'
         && github.event.pull_request.draft == false
