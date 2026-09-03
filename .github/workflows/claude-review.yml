@@ -32,8 +32,11 @@ jobs:
     # secrets 컨텍스트는 if 에서 쓸 수 없다. 존재 여부만 env 로 옮겨 판정한다.
     env:
       HAS_GENTASK_TOKEN: ${{ secrets.GENTASK_TOKEN != '' }}
-      # doc 명령은 프로젝트 문맥을 요구한다. `project use` 는 디렉터리에 매여 저장되므로
-      # 매번 새로 만들어지는 러너에는 맞지 않는다. 식별자이지 자격 증명이 아니라 평문으로 둔다.
+      # CLI 는 저장된 설정보다 이 두 환경 변수를 먼저 본다(clients/apps/cli/src/config.ts).
+      # 그래서 러너에서 auth login 과 project use 를 하지 않아도 된다. 저장 경로가
+      # 리뷰를 실행하는 프로세스에 보이는지 따질 필요도 없어진다.
+      GENTASK_TOKEN: ${{ secrets.GENTASK_TOKEN }}
+      # 식별자이지 자격 증명이 아니라 평문으로 둔다.
       GENTASK_PROJECT: 9G5xhlf0c_6t
     if: |
       (github.event_name == 'pull_request'
@@ -51,11 +54,7 @@ jobs:
       # 저장소 안의 것만 보고 검토한다.
       - name: gentask CLI 를 설치한다
         if: env.HAS_GENTASK_TOKEN == 'true'
-        run: |
-          npm i -g gentask@latest
-          printf '%s' "$GENTASK_TOKEN" | gentask auth login
-        env:
-          GENTASK_TOKEN: ${{ secrets.GENTASK_TOKEN }}
+        run: npm i -g gentask@latest
 
       - uses: anthropics/claude-code-action@v1
         with:
