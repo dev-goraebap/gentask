@@ -20,18 +20,29 @@ import lombok.NonNull;
 public final class Issue {
 
     @NonNull private final UUID id;
+
     @NonNull private final UUID projectId;
+
     private final int number;
+
     @NonNull private IssueKind kind;
+
     @NonNull private IssueState state;
+
     @NonNull private IssueTitle title;
+
     @NonNull private IssueBody body;
+
     private UUID parentId;
     private int ordinal;
+
     @NonNull private final UUID authorId;
+
     private LocalDate dueDate;
     private Instant closedAt;
+
     @NonNull private final Instant createdAt;
+
     @NonNull private Instant updatedAt;
 
     public static Issue create(
