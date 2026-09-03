@@ -31,6 +31,5 @@ Thumbs.db
 # 팀 공용으로 승격하려면 아래 예외 목록에 추가합니다.
 .agents/skills/*
 !.agents/skills/angular-developer/
-!.agents/skills/your-writing-is-a-mess/
 # 설치 기록에는 개인 스킬 목록이 함께 들어가므로 공유하지 않습니다.
 skills-lock.json
