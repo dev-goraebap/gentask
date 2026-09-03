@@ -99,15 +99,11 @@ export async function 본문을_적는다(page: Page, 내용: string): Promise<v
 /**
  * 인수 조건 한 줄을 적는다.
  *
- * <p>`- [ ] ` 를 손으로 치지 않는다. 편집기가 입력 규칙으로 그것을 체크 항목으로 바꾸는지가 이
- * 시나리오가 보려는 것이 아니며, 도구 단추를 쓰면 무엇을 눌렀는지가 시험에 남는다.
+ * `- [ ] ` 를 직접 입력하지 않는다. 편집기의 입력 규칙이 체크 항목으로 변환하는지는 이 시나리오의
+ * 검증 대상이 아니며, 도구 단추를 사용해야 무엇을 눌렀는지가 기록으로 남는다.
  */
 export async function 인수_조건을_적는다(page: Page, 문장: string): Promise<void> {
   await 본문을_적는다(page, '');
   await page.getByRole('button', { name: '체크 항목' }).click();
   await page.keyboard.type(문장);
-}
-
-function 꼬리(location: string): string {
-  return location.slice(location.lastIndexOf('/') + 1);
 }
