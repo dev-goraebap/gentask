@@ -31,11 +31,13 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 class S3ObjectStorage implements ObjectStorage {
 
     private final StorageProperties properties;
+    private final String keyPrefix;
     private final S3Client s3Client;
     private final S3Presigner presigner;
 
     S3ObjectStorage(StorageProperties properties) {
         this.properties = properties;
+        this.keyPrefix = properties.normalizedKeyPrefix();
         AwsBasicCredentials credentials = AwsBasicCredentials.create(properties.accessKey(), properties.secretKey());
         this.s3Client = S3Client.builder()
                 .endpointOverride(URI.create(properties.endpoint()))
@@ -74,7 +76,7 @@ class S3ObjectStorage implements ObjectStorage {
     public String presignPut(String objectKey, String contentType, Duration expiry) {
         PutObjectRequest putRequest = PutObjectRequest.builder()
                 .bucket(properties.bucket())
-                .key(objectKey)
+                .key(resolve(objectKey))
                 .contentType(contentType)
                 .build();
         return presigner
@@ -89,7 +91,7 @@ class S3ObjectStorage implements ObjectStorage {
     @Override
     public String presignGet(String objectKey, String downloadFileName, Duration expiry) {
         GetObjectRequest.Builder getRequestBuilder =
-                GetObjectRequest.builder().bucket(properties.bucket()).key(objectKey);
+                GetObjectRequest.builder().bucket(properties.bucket()).key(resolve(objectKey));
         if (downloadFileName != null) {
             getRequestBuilder.responseContentDisposition(contentDisposition(downloadFileName));
         }
@@ -108,7 +110,7 @@ class S3ObjectStorage implements ObjectStorage {
         try {
             return Optional.of(s3Client.headObject(HeadObjectRequest.builder()
                             .bucket(properties.bucket())
-                            .key(objectKey)
+                            .key(resolve(objectKey))
                             .build())
                     .contentLength());
         } catch (NoSuchKeyException noSuchKey) {
@@ -120,8 +122,13 @@ class S3ObjectStorage implements ObjectStorage {
     public void delete(String objectKey) {
         s3Client.deleteObject(DeleteObjectRequest.builder()
                 .bucket(properties.bucket())
-                .key(objectKey)
+                .key(resolve(objectKey))
                 .build());
+    }
+
+    /** 환경별 접두어를 붙인다. 데이터베이스가 보관하는 키는 접두어를 포함하지 않는다. */
+    private String resolve(String objectKey) {
+        return keyPrefix + objectKey;
     }
 
     private static String contentDisposition(String downloadFileName) {
