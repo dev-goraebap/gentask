@@ -5,7 +5,7 @@
 tmp
 
 # 배포 대상과 서버 내 자리. 값은 이 파일만 갖는다.
-.deploy.env
+.deploy.*.env
 
 # 어느 자리에서나 난다
 node_modules
