@@ -42,7 +42,7 @@ public class ProjectService implements Projects {
     /**
      * 주소의 식별자로 프로젝트를 낸다.
      *
-     * <p>식별자가 전역으로 유일하므로 그것만으로 하나가 가려지나 소유자를 함께 본다. 있으나 권한이
+     * 식별자가 전역으로 유일하므로 그것만으로 하나가 가려지나 소유자를 함께 본다. 있으나 권한이
      * 없다고 알리면 어떤 프로젝트가 존재하는지가 새어 나간다(PRJ-002 A2).
      */
     @Transactional(readOnly = true)
@@ -56,7 +56,7 @@ public class ProjectService implements Projects {
     /**
      * 프로젝트를 세우고 주소가 담을 식별자를 낸다.
      *
-     * <p>접두어는 사람이 받아 넘긴다. 이름에서 뽑던 규칙과 겹칠 때 숫자를 붙이던 자리는 함께 걷었다 —
+     * 접두어는 사람이 받아 넘긴다. 이름에서 뽑던 규칙과 겹칠 때 숫자를 붙이던 자리는 함께 걷었다 —
      * 접두어가 주소에 쓰이지 않게 되어 유일할 이유가 없어졌다.
      */
     @Override
@@ -88,7 +88,7 @@ public class ProjectService implements Projects {
     /**
      * 주소에서 받은 식별자를 읽는다.
      *
-     * <p>모양이 맞지 않는 것을 잘못된 요청이 아니라 없는 자리로 낸다. 주소에 담긴 값이라 사람이 손으로
+     * 모양이 맞지 않는 것을 잘못된 요청이 아니라 없는 자리로 낸다. 주소에 담긴 값이라 사람이 손으로
      * 고치거나 옛 링크를 따라온 것이며, 그때 보아야 하는 것은 400 이 아니라 없다는 말이다.
      */
     private static ProjectPublicId readPublicId(String rawId) {

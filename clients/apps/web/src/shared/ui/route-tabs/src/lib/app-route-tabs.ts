@@ -9,13 +9,7 @@ export interface RouteTab {
 }
 
 /**
- * 주소로 도는 탭.
- *
- * <p>Spartan 의 탭은 제 안에 든 판을 갈아 끼우는 것이라 주소를 갖지 않는다. 여기의 탭은 자리마다
- * 주소가 있어야 하므로 — 새로고침과 주소 건네기가 성립해야 한다 — 그 모양만 가져오고 고르는 일은
- * 라우터가 한다.
- *
- * <p>켜진 것을 `data-active` 로 알리는 것도 Spartan 을 따른다. 그 표식에 모양이 매여 있다.
+ * 라우터 경로 기반 탭 컴포넌트다. 활성 상태는 data-active 속성으로 표현한다.
  */
 @Component({
   selector: 'app-route-tabs',

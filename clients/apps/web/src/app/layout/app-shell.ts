@@ -43,10 +43,7 @@ export class AppShell {
 
   // --- 파생 --------------------------------------------------------------------------------------
   /**
-   * 사이드바는 넓은 화면에만 선다.
-   *
-   * <p>좁은 화면에서는 목록들이 화면 하나를 온전히 쓰는 첫 자리이며, 그것을 띠로 접어 아래에 두면
-   * 목록이 늘었을 때 담기지 않는다.
+   * 데스크톱 뷰포트에서만 좌측 사이드바를 렌더링한다.
    */
   protected readonly navClass = computed(() => {
     const width = this.sidebarService.collapsed() ? 'md:w-14' : 'md:w-64';
@@ -59,7 +56,7 @@ export class AppShell {
     return this.sidebarService.collapsed() ? `${base} md:justify-center` : base;
   });
 
-  /** 사이드바의 마크를 누르면 가는 자리. 그 자리의 첫 화면이다. */
+  /** 사이드바 로고 클릭 시 이동하는 기본 경로다. */
   protected readonly areaHome = computed(() => {
     if (this.area === 'admin') return ROUTES.adminUsers();
     if (this.area === 'tracker') return ROUTES.projects();

@@ -16,7 +16,7 @@ public interface DocumentQuery {
     /**
      * 프로젝트의 폴더 전부. 평평하게 내고 트리로 세우는 것은 읽는 쪽이 한다(DOC-008).
      *
-     * <p>바로 아래에 담긴 문서와 폴더의 수를 함께 센다. 지우기 전에 되묻는 자리가 그것을 쓴다.
+     * 바로 아래에 담긴 문서와 폴더의 수를 함께 센다. 지우기 전에 되묻는 자리가 그것을 쓴다.
      */
     List<FolderSummary> findFolders(UUID projectId);
 
@@ -25,7 +25,7 @@ public interface DocumentQuery {
     /**
      * 개정 이력 한 쪽. 최근 것부터 낸다(DOC-004).
      *
-     * <p>프로젝트를 함께 받아 남의 것과 지워진 것을 그 자리에서 걸러 낸다(DOC-004 A4 · A5).
+     * 프로젝트를 함께 받아 남의 것과 지워진 것을 그 자리에서 걸러 낸다(DOC-004 A4 · A5).
      */
     List<RevisionSummary> findRevisions(UUID projectId, UUID documentId, int limit, int offset);
 

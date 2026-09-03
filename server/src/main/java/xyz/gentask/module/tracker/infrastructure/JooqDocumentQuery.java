@@ -26,12 +26,7 @@ import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionView;
 
 /**
- * 문서의 목록과 상세를 낸다.
- *
- * <p>목록은 개정을 잇지 않는다. 제목과 고친 때를 문서가 앞당겨 들고 있기 때문이다. 상세만 지금 참인
- * 개정을 이어 본문과 개정 번호를 싣는다.
- *
- * <p>지워진 문서는 두 자리 모두에서 걸러 낸다(DOC-002 A3).
+ * 문서 목록 및 상세 조회를 담당하는 jOOQ 쿼리 구현체다.
  */
 @Repository
 @RequiredArgsConstructor
@@ -51,8 +46,7 @@ class JooqDocumentQuery implements DocumentQuery {
     }
 
     /*
-     * 담긴 것의 수는 폴더마다 따로 센다. 트리를 조립하지 않고 평평하게 내므로 바로 아래의 것만
-     * 세면 되고, 그 수가 되묻는 자리에서 몇이 올라오는지를 말한다(DOC-008 A7).
+     * 폴더별 하위 문서 및 자식 폴더 수를 집계한다(DOC-008 A7).
      */
     @Override
     public List<FolderSummary> findFolders(UUID projectId) {
@@ -178,7 +172,7 @@ class JooqDocumentQuery implements DocumentQuery {
                         record.get(DOCUMENT_REVISIONS.BODY)));
     }
 
-    /** 남의 것과 지워진 것을 이력에서도 걸러 낸다(DOC-004 A4 · A5). */
+    /** 타 프로젝트 문서 또는 논리 삭제된 문서의 개정 이력 조회를 차단한다(DOC-004 A4, A5). */
     private static Condition livingDocument(UUID projectId, UUID documentId) {
         return DOCUMENTS
                 .ID

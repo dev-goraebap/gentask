@@ -12,7 +12,7 @@ import xyz.gentask.module.user.Users;
 import xyz.gentask.module.user.domain.user.UserSummary;
 import xyz.gentask.module.user.domain.user.UserSummaryQuery;
 
-/** {@link Users} 창구의 구현. 다른 모듈이 사용자를 이름으로 보여 줄 때 지난다. */
+/** Users 창구의 구현. 다른 모듈이 사용자를 이름으로 보여 줄 때 지난다. */
 @Service
 @RequiredArgsConstructor
 public class UserDirectoryService implements Users {

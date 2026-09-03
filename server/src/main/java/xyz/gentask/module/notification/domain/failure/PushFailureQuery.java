@@ -2,13 +2,11 @@ package xyz.gentask.module.notification.domain.failure;
 
 import java.util.List;
 
-/** 관리 화면의 알림 문제 목록을 읽는다. */
+/** 관리자 화면용 웹 푸시 실패 목록 조회 포트다. */
 public interface PushFailureQuery {
 
     /**
-     * 최근 일어난 것부터 한 쪽을 읽는다.
-     *
-     * @param includeResolved 처리됨으로 표시한 것도 함께 볼지
+     * 웹 푸시 실패 이력을 최신순으로 페이징 조회한다.
      */
     List<PushDeliveryFailure> search(boolean includeResolved, int limit, int offset);
 

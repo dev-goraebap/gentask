@@ -3,20 +3,18 @@ import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 /**
- * 붙을 자리와 자격.
- *
- * <p>규격은 결정-0013 이 갖는다.
+ * CLI 연결 설정 및 인증 자격 증명 인터페이스다.
  */
 export interface Config {
   readonly baseUrl: string;
   readonly token: string;
-  /** 지금 프로젝트의 식별자. 작업 아이템 명령이 이것 아래에서 돈다. 없으면 명령이 그때 알린다. */
+  /** 현재 작업 디렉터리에 설정된 프로젝트 식별자다. */
   readonly projectId: string | null;
 }
 
 export const DEFAULT_BASE_URL = 'https://api.gentask.xyz';
 
-/** 토큰이 없을 때 사용자에게 보일 말. 무엇을 어디서 해야 하는지까지 담는다. */
+/** 인증 토큰 미설정 시 출력할 가이드 메시지다. */
 export const MISSING_TOKEN = [
   '토큰이 없습니다. gentask.xyz 의 계정 화면에서 에이전트 토큰을 발급한 뒤',
   '',
@@ -26,10 +24,9 @@ export const MISSING_TOKEN = [
 ].join('\n');
 
 /**
- * 저장된 자격이 사는 자리.
+ * CLI 설정 파일 경로를 반환한다.
  *
- * <p>XDG 를 따르되 그 변수가 없으면 홈 아래 `.config` 로 간다. 리눅스와 맥은 이것이 관례이고,
- * 윈도우에는 XDG 가 없으나 홈 아래에 나는 것이 사용자가 찾기 쉽다.
+ * XDG_CONFIG_HOME 환경 변수가 설정되어 있으면 해당 경로를 따르고, 없으면 홈 디렉터리의 .config/gentask/config.json 경로를 반환한다.
  */
 export function configPath(env: NodeJS.ProcessEnv = process.env): string {
   const base = env['XDG_CONFIG_HOME']?.trim() || join(homedir(), '.config');
@@ -39,13 +36,10 @@ export function configPath(env: NodeJS.ProcessEnv = process.env): string {
 interface StoredConfig {
   token?: string;
   /**
-   * 일하는 자리마다 고른 프로젝트. 열쇠는 그 자리의 경로다.
-   *
-   * <p>하나만 두면 저장소를 옮겨도 앞의 값을 그대로 본다. 조용히 남의 프로젝트를 읽는 쪽이라 눈치채기
-   * 어렵고, 그 사이의 명령이 모두 엉뚱한 자리에 쓰인다.
+   * 작업 디렉터리 경로별 매핑된 프로젝트 식별자 목록이다.
    */
   projects?: Record<string, string>;
-  /** 그 토큰이 통하는 서버. 토큰은 서버마다 다르므로 둘을 함께 저장한다. */
+  /** 인증 토큰과 매핑된 대상 API 서버 주소다. */
   baseUrl?: string;
 }
 
@@ -57,27 +51,25 @@ function readStored(env: NodeJS.ProcessEnv): StoredConfig {
   }
 }
 
-/** 저장된 토큰. 파일이 없거나 읽을 수 없으면 없는 것으로 본다. */
+/** 저장된 인증 토큰을 반환하며 파일이 없거나 읽을 수 없으면 null을 반환한다. */
 export function readStoredToken(env: NodeJS.ProcessEnv = process.env): string | null {
   return readStored(env).token?.trim() || null;
 }
 
-/** 저장된 서버 주소. */
+/** 저장된 API 서버 기본 주소를 반환한다. */
 export function readStoredBaseUrl(env: NodeJS.ProcessEnv = process.env): string | null {
   return readStored(env).baseUrl?.trim() || null;
 }
 
-/** 경로를 열쇠로 쓸 모양으로 고른다. 윈도우의 역슬래시와 대소문자가 같은 자리를 둘로 만든다. */
+/** 디렉터리 경로의 역슬래시 및 대소문자를 정규화하여 키로 반환한다. */
 function normalize(where: string): string {
   return where.replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase();
 }
 
 /**
- * 지금 자리의 프로젝트.
+ * 현재 작업 디렉터리에 매핑된 프로젝트 식별자를 조회한다.
  *
- * <p>정확히 일치하는 것이 없으면 상위로 올라가며 찾는다 — 저장소의 하위 디렉터리에서 불러도 같은
- * 프로젝트를 보아야 하기 때문이다. 어디서 멈출지 정할 필요는 없다. 담긴 열쇠 가운데 지금 자리를
- * 앞에서 덮는 것 중 가장 긴 것이 가장 가까운 자리다.
+ * 하위 디렉터리에서 실행 시 상위 디렉터리의 설정을 상속 탐색한다.
  */
 export function readStoredProject(
   env: NodeJS.ProcessEnv = process.env,
@@ -99,9 +91,7 @@ export function readStoredProject(
 }
 
 /**
- * 지금 자리의 프로젝트를 저장한다. 토큰은 그대로 둔다.
- *
- * <p>프로젝트를 고르는 일이 자격을 다시 받는 일이 되어서는 안 되므로 두 값을 따로 쓴다.
+ * 현재 작업 디렉터리에 대상 프로젝트 식별자를 저장한다.
  */
 export function storeProject(
   projectId: string,
@@ -118,10 +108,7 @@ export function storeProject(
 }
 
 /**
- * 토큰을 저장한다.
- *
- * <p>소유자만 읽을 수 있게 둔다. 같은 기계의 다른 사용자가 읽을 수 있으면 그 계정의 전권이 함께
- * 넘어간다. 토큰이 담긴 파일이므로 그 권한을 좁힌다.
+ * 인증 토큰 및 서버 주소를 소유자 전용 권한(0600)으로 파일에 저장한다.
  */
 export function storeToken(
   token: string,
@@ -138,7 +125,7 @@ export function storeToken(
   return path;
 }
 
-/** 저장된 자격을 지운다. 없었으면 false 를 낸다. */
+/** 저장된 인증 설정을 삭제한다. */
 export function clearToken(env: NodeJS.ProcessEnv = process.env): boolean {
   const path = configPath(env);
   if (readStoredToken(env) === null) {
@@ -149,13 +136,7 @@ export function clearToken(env: NodeJS.ProcessEnv = process.env): boolean {
 }
 
 /**
- * 지금 자리의 프로젝트. 정해지지 않았으면 무엇을 하면 되는지까지 알린다.
- *
- * <p>부르는 것이 사람일 수도 에이전트일 수도 있으므로 <b>부르는 쪽이 스스로 실행할 수 있는
- * 명령</b>으로 적는다 — 사람에게 부탁하라는 말로 읽히면 에이전트가 거기서 멈춘다.
- *
- * <p>프로젝트 아래에 선 것이 작업 아이템만이 아니므로 자리를 여기에 둔다. 문서도 같은 것을 묻고
- * 같은 말을 들어야 한다.
+ * 현재 유효한 프로젝트 식별자를 반환하며, 미설정 시 설정 가이드 오류를 던진다.
  */
 export function currentProject(env: NodeJS.ProcessEnv = process.env): string {
   const projectId = readConfig(env).projectId;
@@ -176,10 +157,7 @@ export function currentProject(env: NodeJS.ProcessEnv = process.env): string {
 }
 
 /**
- * 자격을 찾는다. 환경이 파일을 이긴다.
- *
- * <p>환경변수는 그 프로세스 하나에만 걸리므로, 저장해 둔 것을 건드리지 않고 다른 계정이나 다른
- * 서버를 한 번 볼 수 있다. 저장해 둔 것을 건드리지 않는 길이다.
+ * 현재 CLI 설정을 로드한다. 환경 변수 설정이 저장된 설정 파일보다 우선한다.
  */
 export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const token = env['GENTASK_TOKEN']?.trim() || readStoredToken(env);
@@ -188,8 +166,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   }
   return {
     /*
-     * 저장된 주소가 기본값을 이긴다. 토큰은 서버마다 다르므로, 개발 서버에 로그인해 둔 채로
-     * 주소만 운영으로 돌아가면 그 토큰이 거절되거나 — 더 나쁘게는 — 운영을 건드린다.
+     * 저장된 서버 주소가 기본 주소보다 우선 적용된다.
      */
     baseUrl: (
       env['GENTASK_BASE_URL']?.trim() ||

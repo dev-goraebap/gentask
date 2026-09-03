@@ -11,16 +11,12 @@ import lombok.NonNull;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ApiToken {
 
-    // 식별자
     @NonNull private final UUID id;
 
-    // 소유자
     @NonNull private final UUID userId;
 
-    // 토큰의 HMAC-SHA256 hex
     @NonNull private final String tokenHash;
 
-    // 발급 시각
     @NonNull private final Instant createdAt;
 
     public static ApiToken issue(UUID id, UUID userId, String tokenHash, Instant now) {

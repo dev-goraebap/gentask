@@ -10,7 +10,7 @@ import lombok.NonNull;
 /**
  * 개정.
  *
- * <p>남긴 뒤 고치지 않는다. 그래서 상태를 바꾸는 메서드가 없고 고친 때와 고친 사람도 없다. 다음
+ * 남긴 뒤 고치지 않는다. 그래서 상태를 바꾸는 메서드가 없고 고친 때와 고친 사람도 없다. 다음
  * 개정은 이 개정에서 나오며 번호가 하나 올라간다(DOC-003).
  */
 @Getter
@@ -20,7 +20,6 @@ public final class DocumentRevision {
     /** 첫 개정의 번호. 문서 안에서 1부터 매긴다. */
     public static final int FIRST_NO = 1;
 
-    // 식별자
     @NonNull private final UUID id;
 
     // 딸린 문서
@@ -87,7 +86,7 @@ public final class DocumentRevision {
     /**
      * 담으려는 것이 이 개정과 같은가.
      *
-     * <p>본문은 SHA-1 로 견주고 제목은 짧으니 그대로 견준다. 같으면 개정을 만들지 않는다
+     * 본문은 SHA-1 로 견주고 제목은 짧으니 그대로 견준다. 같으면 개정을 만들지 않는다
      * (DOC-003 A2).
      */
     public boolean hasSameContent(@NonNull DocumentTitle title, @NonNull DocumentBody body) {

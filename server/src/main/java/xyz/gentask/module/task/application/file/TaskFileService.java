@@ -12,10 +12,7 @@ import xyz.gentask.module.task.application.file.TaskFileViews.TaskFileView;
 import xyz.gentask.module.task.application.task.TaskService;
 
 /**
- * 작업에 붙는 파일. 보관과 정책은 file 모듈이 갖고 여기는 그 앞에서 작업 소유를 판정한다.
- *
- * <p>file 을 부르기 전에 {@code taskService.find} 가 그 작업이 이 사용자의 것인지 확인한다. file 은
- * 접근 판정을 되풀이하지 않으므로 이 호출을 빠뜨리면 남의 작업에 파일이 붙는다.
+ * 작업 첨부 파일 연결 및 작업 소유권 검증 서비스다.
  */
 @Service
 @RequiredArgsConstructor
@@ -38,8 +35,7 @@ public class TaskFileService {
     // --- 명령 --------------------------------------------------------------------------------------------------------
 
     /**
-     * 이름과 형식은 발급 때 받아 둔 것을 쓰므로 이 요청의 값을 보지 않는다. 두 요청이 같은 파일을
-     * 가리키는 한 값이 같고, 다르면 발급 시점의 검사를 통과한 쪽이 맞다. 인자는 API 계약이라 남긴다.
+     * 발급 시점에 검증된 메타데이터를 기반으로 작업에 파일을 첨부한다.
      */
     @Transactional
     public TaskFileView attach(UUID userId, UUID taskId, String objectKey, String fileName, String contentType) {
@@ -53,7 +49,7 @@ public class TaskFileService {
         attachments.detach(SLOT, taskId, taskFileId);
     }
 
-    /** 작업이 사라지면 붙은 파일도 함께 걷는다. 다형 연결이라 표가 대신 지워 주지 않는다. */
+    /** 작업 삭제 시 연관된 모든 첨부 파일을 함께 삭제한다. */
     @Transactional
     public void detachAll(UUID taskId) {
         attachments.detachAll(SLOT, taskId);

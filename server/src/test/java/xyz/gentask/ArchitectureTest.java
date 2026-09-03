@@ -30,7 +30,7 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAPackage(MODULE)
-            .because("공용 기반에 도메인 지식이 유입되면 그것은 더 이상 공용이 아니라 또 하나의 모듈이다");
+            .because("공용 모듈에 특정 도메인 지식이 유입되는 것을 방지하기 위함이다");
 
     @ArchTest
     static final ArchRule 도메인은_상위_계층을_참조하지_않는다 = noClasses()
@@ -39,7 +39,7 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage("xyz.gentask.module.(*).application..", "xyz.gentask.module.(*).infrastructure..")
-            .because("도메인은 자기를 쓰는 쪽을 알지 않는다");
+            .because("도메인 계층은 상위 계층에 의존하지 않아야 한다");
 
     @ArchTest
     static final ArchRule 도메인은_프레임워크를_참조하지_않는다 = noClasses()
@@ -48,7 +48,7 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage("org.springframework..", "org.jooq..", "jakarta..")
-            .because("도메인의 검증이 컨텍스트 없이 돌아야 한다");
+            .because("도메인 모델은 프레임워크 컨텍스트 없이 독립적으로 테스트 가능해야 한다");
 
     @ArchTest
     static final ArchRule 컨트롤러는_도메인을_직접_참조하지_않는다 = noClasses()
@@ -57,7 +57,7 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .resideInAPackage(DOMAIN)
-            .because("유스케이스를 우회한 데이터 접근이 열린다");
+            .because("유스케이스를 우회한 도메인 직접 접근을 방지하기 위함이다");
 
     @ArchTest
     static final ArchRule 컨트롤러는_조회_포트를_직접_참조하지_않는다 = noClasses()
@@ -66,7 +66,7 @@ class ArchitectureTest {
             .should()
             .dependOnClassesThat()
             .haveSimpleNameEndingWith("Query")
-            .because("조회 서비스가 전후에 수행하는 가공이 누락된다");
+            .because("조회 서비스의 비즈니스 가공 로직 누락을 방지하기 위함이다");
 
     @ArchTest
     static final ArchRule 저장소는_화면_타입을_반환하지_않는다 = noMethods()
@@ -77,7 +77,7 @@ class ArchitectureTest {
             .haveRawReturnType(com.tngtech.archunit.base.DescribedPredicate.describe(
                     "application 패키지의 타입",
                     javaClass -> javaClass.getPackageName().contains(".application")))
-            .because("화면 어휘의 타입이 필요해지는 순간 그것은 조회 포트다");
+            .because("저장소는 영속성 계층만 다루며, 화면 표현 모델은 별도의 조회 포트에서 처리해야 한다");
 
     @ArchTest
     static final ArchRule 값_객체의_정규_생성자는_재구성에만_쓴다 = noClasses()
@@ -85,7 +85,7 @@ class ArchitectureTest {
             .resideOutsideOfPackages(DOMAIN, "xyz.gentask.module.(*).infrastructure..")
             .should()
             .callConstructorWhere(target(owner(assignableTo(ValueObject.class))))
-            .because("바깥에서 들어온 값은 검증하는 팩토리(of)를 지나야 한다");
+            .because("외부 입력값은 유효성 검증 팩토리 메서드(of)를 통해 생성해야 한다");
 
     @ArchTest
     static final ArchRule 서비스의_공개_메서드는_트랜잭션을_선언한다 = methods()
@@ -96,7 +96,7 @@ class ArchitectureTest {
             .areAnnotatedWith(Service.class)
             .should()
             .beAnnotatedWith(Transactional.class)
-            .because("빠뜨리면 트랜잭션 없이 도는 쓰기가 생기고 그것은 실패했을 때만 드러난다");
+            .because("비트랜잭션 쓰기 작업으로 인한 데이터 불일치를 방지하기 위함이다");
 
     @ArchTest
     static final ArchRule 인프라_구현은_모듈_밖에_공개되지_않는다 = classes()
@@ -106,5 +106,5 @@ class ArchitectureTest {
             .haveSimpleNameStartingWith("Jooq")
             .should()
             .notBePublic()
-            .because("바깥은 포트로만 쓴다");
+            .because("모듈 외부는 포트 인터페이스를 통해서만 인프라에 접근해야 한다");
 }

@@ -12,25 +12,19 @@ import xyz.gentask.module.user.domain.Email;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class User {
 
-    // 식별자
     @NonNull private final UUID id;
 
-    // 이메일
     @NonNull private final Email email;
 
-    // 별명
     @NonNull private Nickname nickname;
 
-    // 역할
     @NonNull private Role role;
 
-    // 만든 시각
     @NonNull private final Instant createdAt;
 
-    // 고친 시각
     @NonNull private Instant updatedAt;
 
-    /** 가입은 늘 일반 사용자로 시작한다. 관리자는 이미 관리자인 사람이 올려서만 된다. */
+    /** 신규 가입 사용자는 기본 USER 역할로 생성된다. */
     public static User create(UUID id, Email email, Nickname nickname, Instant now) {
         return new User(id, email, nickname, Role.USER, now, now);
     }

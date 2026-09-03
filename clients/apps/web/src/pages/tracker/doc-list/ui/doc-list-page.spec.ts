@@ -86,7 +86,7 @@ describe('DocListPage', () => {
     return harness;
   }
 
-  it('GT-64 #4: 자리가 비면 비어 있음을 알리고 세우는 길을 함께 보인다', async () => {
+  it('GT-64 #4: 빈 폴더인 경우 빈 상태 메시지와 생성 버튼을 표시한다', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl(DOCS_URL);
     await drain([], []);
@@ -173,7 +173,7 @@ describe('DocListPage', () => {
     renamed.flush(null, { status: 204, statusText: 'No Content' });
   });
 
-  it('폴더를 옮길 때 자기 자신과 자손을 고를 수 없다', async () => {
+  it('폴더 이동 시 자기 자신과 하위 자손 폴더는 이동 대상에서 제외한다', async () => {
     const harness = await open(DOCS_URL);
 
     press('아키텍처 옮기기', harness);

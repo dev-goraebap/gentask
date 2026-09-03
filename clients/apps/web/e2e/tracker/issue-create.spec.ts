@@ -1,15 +1,14 @@
 import { expect, test } from '../fixtures';
 import { 본문을_적는다, 이름, 작업_아이템을_만든다, 프로젝트를_만든다 } from './tracker-support';
 
-// 작업 아이템을 세우고 본다
+// 작업 항목 생성 및 조회
 //
-// 시나리오마다 프로젝트를 새로 세운다. 번호는 프로젝트 안에서 1 부터 매겨지므로(ITM-001) 그
-// 자리를 함께 쓰면 몇 번이 나오는지가 앞선 시나리오에 달리게 된다.
+// 시나리오별로 프로젝트를 새로 생성하여 일련번호 정합성을 보장한다(ITM-001).
 
-/** 이 시험이 세우는 프로젝트의 접두어. 이름이 이것을 앞에 단다. */
+/** 테스트용 프로젝트 키 접두어다. */
 const 접두어 = 'TS';
 
-/** 세우는 덮개를 열고 제목을 적는다. */
+/** 작업 항목 생성 다이얼로그를 열고 제목을 입력한다. */
 async function 제목을_적는다(
   page: import('@playwright/test').Page,
   projectId: string,
@@ -21,9 +20,9 @@ async function 제목을_적는다(
   await page.locator('#issue-title').fill(제목);
 }
 
-test.describe('작업 아이템을 세우고 본다', () => {
-  // 이름의 자릿수 채움을 걷은 것도 여기서 함께 본다 — `TS-1` 이지 `TS-001` 이 아니다.
-  test('제목을 적어 세우면 지금 프로젝트의 다음 번호를 매긴다', async ({
+test.describe('작업 항목 생성 및 조회', () => {
+  // 작업 표시 키는 0 채움 없는 번호 형태(TS-1)로 표기된다.
+  test('제목을 입력하여 생성하면 현재 프로젝트의 다음 일련번호가 부여된다', async ({
     page,
     request,
   }) => {
@@ -39,18 +38,18 @@ test.describe('작업 아이템을 세우고 본다', () => {
     await expect(page).toHaveURL(`/projects/${프로젝트}/issues/${이름(접두어, 2)}`);
   });
 
-  test('유형을 고르지 않고 세우면 Task 로 선다', async ({ page, request }) => {
+  test('유형을 선택하지 않고 생성하면 기본 Task 유형으로 생성된다', async ({ page, request }) => {
     const 프로젝트 = await 프로젝트를_만든다(request, 'Default Kind');
 
     await 제목을_적는다(page, 프로젝트, '유형을 고르지 않은 것');
     await page.getByRole('button', { name: '세우기' }).click();
 
     await expect(page).toHaveURL(`/projects/${프로젝트}/issues/${이름(접두어, 1)}`);
-    // 유형은 곁의 열이 낸다. 세우는 덮개의 고르개와 같은 낱말을 쓰므로 자리를 좁혀 본다.
+    // 테이블 행의 유형 열과 생성 다이얼로그의 선택자를 구분하여 지정한다.
     await expect(page.locator('aside').getByText('태스크')).toBeVisible();
   });
 
-  test('본문을 적어 세우면 그 본문을 그대로 담는다', async ({ page, request }) => {
+  test('본문을 입력하여 생성하면 해당 본문이 저장된다', async ({ page, request }) => {
     const 프로젝트 = await 프로젝트를_만든다(request, 'Body Kept');
 
     await 제목을_적는다(page, 프로젝트, '본문이 있는 것');

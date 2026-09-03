@@ -2,10 +2,9 @@
 import { run } from './cli.js';
 
 /**
- * 명령이 들어오는 자리.
+ * CLI 메인 진입점.
  *
- * <p>기계가 읽는 것은 표준출력으로, 사람에게 하는 말은 표준오류로 낸다. 파이프로 이어 붙일 때
- * 안내나 오류가 섞이면 받는 쪽이 그것까지 파싱한다.
+ * 결과 데이터는 표준 출력(stdout)으로 출력하고 오류 및 안내 메시지는 표준 오류(stderr)로 분리 출력한다.
  */
 async function main(): Promise<void> {
   const outcome = await run(process.argv.slice(2));

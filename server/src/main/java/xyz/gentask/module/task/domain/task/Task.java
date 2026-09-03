@@ -13,37 +13,26 @@ import lombok.NonNull;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Task {
 
-    // 식별자
     @NonNull private final UUID id;
 
-    // 소유자. 작업은 계정 단위로 격리된다 (USR-001)
     @NonNull private final UUID userId;
 
-    // 제목
     @NonNull private TaskTitle title;
 
-    // 메모
     @NonNull private TaskNote note;
 
-    // 기한
     private LocalDate dueDate;
 
-    // 미리 알림 시각
     private LocalDateTime remindAt;
 
-    // 중요 표시
     private boolean important;
 
-    // 나의 하루에 담은 날짜
     private LocalDate myDayOn;
 
-    // 완료 시각
     private Instant completedAt;
 
-    // 만든 시각
     @NonNull private final Instant createdAt;
 
-    // 고친 시각
     @NonNull private Instant updatedAt;
 
     public static Task create(UUID id, UUID userId, TaskTitle title, Instant now) {

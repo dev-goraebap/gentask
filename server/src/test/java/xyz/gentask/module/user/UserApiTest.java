@@ -44,7 +44,7 @@ class UserApiTest {
     private FakeObjectStorage fakeStorage;
 
     @Test
-    @DisplayName("등록하면 세션이 붙고 프로필이 초기값으로 조회된다")
+    @DisplayName("회원가입 완료 시 세션 쿠키가 발급되고 초기 프로필이 반환된다")
     void 등록하면_곧바로_로그인_상태다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "signup@example.com");
 
@@ -57,7 +57,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("이미 등록된 이메일은 409 와 EMAIL_ALREADY_USED 를 낸다")
+    @DisplayName("이미 등록된 이메일로 가입 요청 시 409 Conflict와 EMAIL_ALREADY_USED를 반환한다")
     void 이미_등록된_이메일은_다시_등록되지_않는다() throws Exception {
         AuthTestSupport.가입한다(mockMvc, mail, "dup@example.com");
 
@@ -69,7 +69,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("로그인하면 httpOnly 세션 쿠키를 받는다")
+    @DisplayName("로그인 성공 시 HttpOnly 세션 쿠키를 발급한다")
     void 맞는_자격으로_로그인하면_세션_쿠키를_받는다() throws Exception {
         AuthTestSupport.가입한다(mockMvc, mail, "login@example.com");
 
@@ -82,7 +82,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("자격이 맞지 않으면 어느 쪽이 틀렸는지 구분하지 않는다")
+    @DisplayName("로그인 실패 시 계정 존재 여부 및 비밀번호 오류를 구분하지 않고 동일한 오류를 반환한다")
     void 자격이_맞지_않으면_어느_쪽이_틀렸는지_구분하지_않는다() throws Exception {
         AuthTestSupport.가입한다(mockMvc, mail, "wrong@example.com");
 
@@ -100,7 +100,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("로그아웃하면 쿠키가 만료되고 그 세션은 401 이다")
+    @DisplayName("로그아웃 시 세션 쿠키를 만료 처리하고 이후 요청에 401을 반환한다")
     void 로그아웃하면_그_세션으로_다시_닿을_수_없다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "logout@example.com");
 
@@ -112,7 +112,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("별명을 고치면 그 별명이 프로필 응답에 남는다")
+    @DisplayName("닉네임을 수정하면 프로필 응답에 수정된 닉네임이 반영된다")
     void 별명을_고치면_프로필이_그_별명을_보여_준다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "nick@example.com");
 
@@ -127,7 +127,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("#2, #3: 발급한 토큰은 Bearer 인증에 성립하고, 재발급하면 이전 것이 죽는다")
+    @DisplayName("#2, #3: 발급된 API 토큰으로 Bearer 인증이 가능하며, 재발급 시 기존 토큰은 만료된다")
     void 발급한_토큰은_Bearer_인증에_성립하고_재발급하면_이전_것이_죽는다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "token@example.com");
 
@@ -145,7 +145,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("토큰을 지우면 그 접근이 끊긴다")
+    @DisplayName("API 토큰을 삭제하면 해당 토큰을 사용한 인증이 거부된다")
     void 토큰을_지우면_그_접근이_끊긴다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "revoke@example.com");
         String token = 토큰을_발급한다(session);
@@ -157,7 +157,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("이미지를 올려 확정하면 프로필 응답에 아바타 주소가 실린다")
+    @DisplayName("프로필 이미지를 업로드하고 확정하면 프로필 응답에 아바타 URL이 포함된다")
     void 이미지를_올려_확정하면_아바타_주소가_생긴다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "avatar@example.com");
 
@@ -190,7 +190,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("이미지가 아니면 올리기 자리를 내주지 않는다")
+    @DisplayName("이미지 형식이 아닌 파일은 아바타 업로드 URL 발급을 거부한다")
     void 이미지가_아니면_올리기_자리를_내주지_않는다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "notimage@example.com");
 
@@ -204,7 +204,7 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("이메일 형식이 아니면 등록되지 않는다")
+    @DisplayName("이메일 형식이 올바르지 않으면 가입 요청을 거부한다")
     void 이메일_형식이_아니면_등록되지_않는다() throws Exception {
         mockMvc.perform(post("/api/v1/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)

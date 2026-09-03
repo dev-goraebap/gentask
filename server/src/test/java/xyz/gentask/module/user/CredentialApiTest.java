@@ -24,10 +24,9 @@ import xyz.gentask.TestcontainersConfiguration;
 import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 
 /**
- * 가입의 이메일 확인과 비밀번호 재설정 · 변경.
+ * 회원가입 이메일 인증, 비밀번호 재설정 및 변경 API를 검증한다.
  *
- * <p>트랜잭션을 두지 않는다. 틀린 횟수를 올리는 자리가 별도 트랜잭션이라, 시험이 한 트랜잭션을
- * 붙들고 있으면 아직 커밋되지 않은 행을 그쪽이 만나 서로 기다린다. 대신 시험마다 다른 주소를 쓴다.
+ * 인증 실패 횟수 갱신 등 독립 트랜잭션 작업과의 교착 상태를 방지하기 위해 테스트 레벨 트랜잭션을 적용하지 않으며, 테스트 격리는 고유 이메일 주소 발급을 통해 보장한다.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,7 +45,7 @@ class CredentialApiTest {
     // --- 가입 --------------------------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("가입을 요청하면 그 주소로 코드가 간다")
+    @DisplayName("회원가입 요청 시 해당 이메일로 인증 코드를 발송한다")
     void 가입을_요청하면_코드가_간다() throws Exception {
         String email = 주소("signup-code");
 
@@ -56,23 +55,22 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("코드를 확인하기 전에는 그 이메일로 계정이 생기지 않는다")
+    @DisplayName("인증 코드를 확인하기 전에는 계정이 생성되지 않는다")
     void 확인하기_전에는_계정이_생기지_않는다() throws Exception {
         String email = 주소("not-yet");
         mockMvc.perform(가입요청(email, PASSWORD)).andExpect(status().isAccepted());
 
-        // 계정이 생겼다면 그 자격으로 로그인할 수 있어야 한다
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(본문("email", email, "password", PASSWORD)))
                 .andExpect(status().isUnauthorized());
 
-        // 그 주소는 아직 쓰이지 않았으므로 다른 사람이 그대로 가입을 시작할 수 있다
+        // 가입 미완료 이메일은 가입 요청을 재시도할 수 있다.
         mockMvc.perform(가입요청(email, PASSWORD)).andExpect(status().isAccepted());
     }
 
     @Test
-    @DisplayName("코드를 다시 요청하면 앞서 보낸 것이 더 이상 통하지 않는다")
+    @DisplayName("인증 코드를 재요청하면 기존에 발급된 코드는 만료된다")
     void 다시_요청하면_앞의_코드가_거둬진다() throws Exception {
         String email = 주소("resend");
         mockMvc.perform(가입요청(email, PASSWORD)).andExpect(status().isAccepted());
@@ -90,7 +88,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("정해진 횟수보다 많이 틀리면 그 코드가 거둬진다")
+    @DisplayName("인증 코드 입력 실패 횟수가 상한(5회)에 도달하면 해당 코드를 만료 처리한다")
     void 여러_번_틀리면_코드가_거둬진다() throws Exception {
         String email = 주소("exhaust");
         mockMvc.perform(가입요청(email, PASSWORD)).andExpect(status().isAccepted());
@@ -99,7 +97,7 @@ class CredentialApiTest {
         for (int attempt = 0; attempt < 4; attempt++) {
             mockMvc.perform(가입확인(email, "000000")).andExpect(status().isBadRequest());
         }
-        // 다섯 번째가 한도를 채운다. 거둔 코드는 만료된 것과 같은 응답을 낸다.
+        // 5회 실패 시 코드가 만료되며 이후 입력은 만료 응답을 반환한다.
         mockMvc.perform(가입확인(email, "000000")).andExpect(status().isGone());
 
         mockMvc.perform(가입확인(email, realCode)).andExpect(status().isGone());
@@ -108,7 +106,7 @@ class CredentialApiTest {
     // --- 비밀번호 재설정 -------------------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("가입한 이메일로 재설정을 요청하면 그 주소로 코드가 간다")
+    @DisplayName("가입된 이메일로 비밀번호 재설정 요청 시 인증 코드를 발송한다")
     void 재설정을_요청하면_코드가_간다() throws Exception {
         String email = 주소("reset-code");
         AuthTestSupport.가입한다(mockMvc, mail, email);
@@ -119,7 +117,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("재설정하면 그 계정의 세션과 API 토큰이 모두 거둬진다")
+    @DisplayName("비밀번호 재설정 완료 시 해당 계정의 모든 활성 세션과 API 토큰을 만료 처리한다")
     void 재설정하면_세션과_토큰이_거둬진다() throws Exception {
         String email = 주소("revoke-all");
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, email);
@@ -138,7 +136,7 @@ class CredentialApiTest {
         mockMvc.perform(get("/api/v1/me").cookie(session)).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
-        // 새 비밀번호로는 들어간다
+        // 변경된 비밀번호로 정상 로그인된다.
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(본문("email", email, "password", NEW_PASSWORD)))
@@ -146,7 +144,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("등록되지 않은 이메일도 보낸 경우와 같은 응답을 낸다")
+    @DisplayName("미가입 이메일로의 재설정 요청도 계정 열거 공격 방지를 위해 동일한 성공 응답을 반환한다")
     void 등록되지_않은_이메일도_같은_응답을_낸다() throws Exception {
         String unknownEmail = 주소("nobody");
 
@@ -156,7 +154,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("재설정 코드를 다시 요청하면 앞서 보낸 것이 더 이상 통하지 않는다")
+    @DisplayName("재설정 코드를 재요청하면 기존에 발급된 재설정 코드는 만료된다")
     void 재설정_코드를_다시_요청하면_앞의_것이_거둬진다() throws Exception {
         String email = 주소("reset-resend");
         AuthTestSupport.가입한다(mockMvc, mail, email);
@@ -177,7 +175,7 @@ class CredentialApiTest {
     // --- 비밀번호 변경 --------------------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("비밀번호를 바꾸면 지금 쓰는 자리를 뺀 나머지 세션이 거둬진다")
+    @DisplayName("비밀번호 변경 시 현재 활성 세션을 제외한 다른 모든 세션을 만료 처리한다")
     void 바꾸면_다른_자리의_세션이_거둬진다() throws Exception {
         String email = 주소("change-sessions");
         Cookie firstSeat = AuthTestSupport.가입한다(mockMvc, mail, email);
@@ -194,7 +192,7 @@ class CredentialApiTest {
     }
 
     @Test
-    @DisplayName("현재 비밀번호가 맞지 않으면 CURRENT_PASSWORD_MISMATCH 를 낸다")
+    @DisplayName("현재 비밀번호가 불일치하면 CURRENT_PASSWORD_MISMATCH 오류를 반환한다")
     void 현재_비밀번호가_맞지_않으면_바뀌지_않는다() throws Exception {
         String email = 주소("wrong-current");
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, email);

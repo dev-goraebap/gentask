@@ -16,10 +16,9 @@ public final class AuthTestSupport {
     private AuthTestSupport() {}
 
     /**
-     * 이미 있는 계정이면 로그인해서 세션을 얻는다.
+     * 기존 계정이면 로그인하여 세션을 획득하고, 미가입 계정이면 회원가입 후 세션을 획득한다.
      *
-     * <p>트랜잭션을 두지 않는 시험은 앞 시험이 만든 계정이 남는다. 설정으로 고정된 계정(첫 관리자)은
-     * 매번 새로 만들 수 없으므로 이 자리가 두 경우를 함께 다룬다.
+     * 트랜잭션 롤백을 수행하지 않는 테스트 환경 및 사전 정의된 고정 계정(초기 관리자)을 지원하기 위해 가입과 로그인을 통합 처리한다.
      */
     public static Cookie 가입하거나_로그인한다(MockMvc mockMvc, RecordingMailSender mail, String email) throws Exception {
         var requested = mockMvc.perform(요청(email)).andReturn();
@@ -29,7 +28,7 @@ public final class AuthTestSupport {
         return 로그인한다(mockMvc, email);
     }
 
-    /** 가입은 두 단계다. 코드를 메일에서 꺼내 두 번째 단계에 넣는다. */
+    /** 인증 코드를 수신하여 회원가입 절차를 완료하고 세션 쿠키를 반환한다. */
     public static Cookie 가입한다(MockMvc mockMvc, RecordingMailSender mail, String email) throws Exception {
         mockMvc.perform(요청(email)).andExpect(status().isAccepted());
         return 코드로_마친다(mockMvc, mail, email);

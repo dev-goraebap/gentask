@@ -4,10 +4,9 @@ import xyz.gentask.shared.domain.ValueObject;
 import xyz.gentask.shared.error.DomainRuleViolation;
 
 /**
- * 작업 아이템의 본문. 마크다운 자유 서술이다.
+ * 작업 항목 마크다운 본문 값 객체다(최대 20,000자).
  *
- * <p>인수 조건도 이 안의 관례로 적는다. 칸으로 강제하지 않는 것은 제목 하나만 남기려는 사람이 매번 그
- * 자리를 지나야 하기 때문이다. 관례는 결정-0007 이 갖는다.
+ * 본문 내 체크리스트 규약으로 인수 조건을 기술한다(결정-0007).
  */
 public record IssueBody(String value) implements ValueObject {
 

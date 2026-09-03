@@ -7,9 +7,9 @@ import { HlmPopoverImports } from '@/shared/ui/popover';
 import { ProjectService } from '../api/project-service';
 
 /**
- * 트래커 자리의 머리에 서는 프로젝트 고르개.
+ * 트래커 상단에 배치되는 프로젝트 선택기 컴포넌트다.
  *
- * <p>사이드바가 이것을 직접 알지 않는다. 라우트가 껍데기에 내려 주므로 투두 자리에는 서지 않는다.
+ * 사이드바가 이것을 직접 알지 않는다. 라우트가 껍데기에 내려 주므로 투두 자리에는 서지 않는다.
  */
 @Component({
   selector: 'app-project-picker',
@@ -65,7 +65,7 @@ export class ProjectPicker {
   /**
    * 고른 것으로 옮긴다.
    *
-   * <p>서비스의 상태만 바꾸면 주소는 앞의 프로젝트를 가리킨 채로 남아 둘이 어긋난다. 주소가 지금
+   * 서비스의 상태만 바꾸면 주소는 앞의 프로젝트를 가리킨 채로 남아 둘이 어긋난다. 주소가 지금
    * 프로젝트의 진실이므로 그것을 바꾸고 길잡이가 서비스를 맞추게 한다.
    */
   protected choose(projectId: string): void {

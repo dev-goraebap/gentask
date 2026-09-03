@@ -2,8 +2,7 @@ export const ROUTES = {
   home: () => '/',
 
   /*
-   * 투두 모드의 자리는 전부 `/todo` 아래에 있다. 그릇에 제 이름이 있어야 그 아래 목록들과 층이
-   * 갈린다 — 그릇 이름과 그 안의 항목 이름이 같으면 `할 일` 처럼 한 말이 두 층을 가리킨다.
+   * 투두 모드 라우터 경로 정의다.
    */
   todo: () => '/todo',
   taskList: (view = 'all') => `/todo/${view}`,
@@ -11,15 +10,13 @@ export const ROUTES = {
   account: () => '/me',
 
   /*
-   * 팻과 뽀모도로는 모드에 매이지 않는다. 다른 모드의 메뉴에서도 더보기로 서야 하므로 어느 그릇
-   * 안에도 넣지 않는다.
+   * 펫 및 뽀모도로 등 모드 무관 전역 경로 정의다.
    */
   pets: () => '/pets',
   pomodoro: () => '/pomodoro',
 
   /*
-   * 트래커의 자리는 전부 프로젝트 아래에 있다. 프로젝트를 기본으로 하나 주므로 그 하나만 쓰는
-   * 사람에게도 주소에 프로젝트가 드러나고, 둘째가 생겨도 주소의 모양이 바뀌지 않는다.
+   * 트래커 모드 라우터 경로 정의다.
    */
   projects: () => '/projects',
   project: (projectId: string) => `/projects/${projectId}`,
@@ -43,14 +40,14 @@ export const TASK_PANEL = {
   close: () => ({ task: null }),
 } as const;
 
-/** 세우는 중인 작업 아이템. 덮개가 열려 있는가를 주소가 갖는다. */
+/** 작업 항목 생성 다이얼로그 오버레이 경로다. */
 export const ISSUE_CREATE_PANEL = {
   param: 'new',
   open: () => ({ new: 1 }),
   close: () => ({ new: null }),
 } as const;
 
-/** 세우는 중인 프로젝트. 덮개가 열려 있는가를 주소가 갖는다. */
+/** 프로젝트 생성 다이얼로그 오버레이 경로다. */
 export const PROJECT_CREATE_PANEL = {
   param: 'new',
   open: () => ({ new: 1 }),

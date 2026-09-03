@@ -9,7 +9,7 @@ test.use(로그인_전);
 
 const 새_비밀번호 = 'change-me-9!';
 
-/** 계정을 만들고 그 자리에서 비밀번호 자리를 연다. */
+/** 계정을 생성하고 비밀번호 변경 모달을 연다. */
 async function 계정_자리로_간다(page: Page): Promise<string> {
   const email = 새_이메일();
   await 등록한다(page, email);
@@ -43,7 +43,7 @@ test.describe('비밀번호 바꾸기', () => {
     await expect(page).toHaveURL(/\/todo\//);
   });
 
-  test('바꾸어도 지금 쓰는 자리의 로그인은 유지된다', async ({ page }) => {
+  test('비밀번호를 변경해도 현재 브라우저 세션의 로그인은 유지된다', async ({ page }) => {
     await 계정_자리로_간다(page);
 
     await page.locator('#account-current-password').fill(비밀번호);
@@ -51,7 +51,7 @@ test.describe('비밀번호 바꾸기', () => {
     await page.locator('#account-change-password').click();
     await expect(page.getByText('비밀번호를 바꿨습니다.', { exact: false })).toBeVisible();
 
-    // 이 자리는 그대로다. 로그인 자리로 밀려나지 않는다.
+    // 현재 세션이 유지되어 로그인 화면으로 이동하지 않는다.
     await page.goto('/todo/all');
     await expect(page.getByPlaceholder('작업 추가')).toBeVisible();
   });
@@ -81,7 +81,7 @@ test.describe('비밀번호 바꾸기', () => {
     await page.locator('#account-new-password').fill('onlyletters');
     await page.locator('#account-change-password').click();
 
-    // 규칙 안내문에도 같은 낱말이 있어 오류 자리로 좁힌다
+    // 오류 메시지 영역을 명시적으로 탐색한다
     await expect(
       page.locator('hlm-field-error').filter({ hasText: '숫자 · 특수문자' }),
     ).toBeVisible();

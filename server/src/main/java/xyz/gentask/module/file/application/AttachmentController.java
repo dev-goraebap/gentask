@@ -12,11 +12,9 @@ import xyz.gentask.shared.storage.PresignedUpload;
 import xyz.gentask.shared.web.CurrentUser;
 
 /**
- * 올릴 자리를 내주는 자리. 도메인마다 두지 않는 것은 발급이 어느 레코드에 붙을지와 무관한 일이기
- * 때문이며, Active Storage 의 direct upload 도 애플리케이션 전체에 하나를 둔다.
+ * 첨부 파일 직접 업로드를 위한 Presigned URL 발급 컨트롤러다.
  *
- * <p>붙이는 것은 여기 없다. 그것은 어느 레코드에 매는지를 정하는 일이라 그 레코드를 소유한 모듈의
- * 경로가 받는다.
+ * 업로드 대상 도메인과 무관하게 공통 엔드포인트를 제공하며, 실제 엔터티와의 첨부 연결은 각 도메인 모듈의 API에서 처리한다.
  */
 @RestController
 @RequestMapping("/api/v1/attachments")

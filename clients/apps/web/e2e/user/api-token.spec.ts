@@ -6,17 +6,16 @@ import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 // 브라우저가 보내지 않는 요청이므로 백엔드 통합 테스트가 갖는다.
 
 /**
- * 발급된 원문 토큰.
+ * 발급된 원문 토큰 요소다.
  *
- * <p>자리를 id 로 짚는다. 이 섹션에는 붙이는 절차를 알리는 `code` 가 여럿 있어 태그로 고르면
- * 안내 문구가 바뀔 때마다 이 시험이 함께 깨진다.
+ * 태그 대신 요소 ID로 지정하여 안내 문구 변경 시 영향도를 최소화한다.
  */
 function 토큰상자(page: import('@playwright/test').Page) {
   return page.locator('#agent-token');
 }
 
 test.describe('에이전트 토큰 발급', () => {
-  test('발급하면 그 자리에서 토큰 원문을 보여 준다', async ({ page }) => {
+  test('발급 시 화면에 토큰 원문을 표시한다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await page.goto('/me');
     await expect(page.getByText('아직 발급한 토큰이 없습니다.')).toBeVisible();

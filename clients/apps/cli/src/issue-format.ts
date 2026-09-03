@@ -2,10 +2,7 @@ import { displayWidth, padTo } from './format.js';
 import type { Issue, IssueSummary } from './gentask-client.js';
 
 /**
- * 작업 아이템을 글자로 그린다.
- *
- * <p>백로그가 트래커로 옮겨 간 뒤 사람이 그것을 읽는 자리 하나가 여기다. 화면을 열지 않고도 무엇이
- * 남았는지 보이도록, 목록은 한 줄에 한 항목을 담고 상세는 본문을 그대로 낸다.
+ * 작업 항목 터미널 콘솔 출력 서식 모듈.
  */
 
 const KIND_LABEL: Record<IssueSummary['kind'], string> = {
@@ -32,10 +29,7 @@ export function stateLabel(state: IssueSummary['state']): string {
 }
 
 /**
- * 목록을 표로 그린다.
- *
- * <p>자식은 제목을 한 칸 들여 부모 아래임을 보인다. 계층을 번호가 갖지 않으므로 눈으로 가릴 자리가
- * 이것뿐이다.
+ * 작업 항목 목록을 계층형 콘솔 표 형식으로 출력한다. 하위 항목은 들여쓰기를 적용한다.
  */
 export function formatIssues(issues: readonly IssueSummary[]): string {
   if (issues.length === 0) {
@@ -63,7 +57,7 @@ export function formatIssues(issues: readonly IssueSummary[]): string {
     .join('\n');
 }
 
-/** 하나를 펼친다. 본문은 마크다운 그대로 낸다 — 인수 조건이 그 안에 있다. */
+/** 단일 작업 항목의 상세 내용 및 인수 조건을 콘솔에 출력한다. */
 export function formatIssue(issue: Issue): string {
   const s = issue.summary;
   const lines = [

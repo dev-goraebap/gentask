@@ -30,7 +30,7 @@ class DocumentBodyTest {
         assertThatThrownBy(() -> DocumentBody.of(tooLong)).isInstanceOf(DomainRuleViolation.class);
     }
 
-    /** 이 저장소의 가장 긴 문서가 21,238 자다. 작업 아이템의 상한(20,000)으로는 그것이 들어가지 못한다. */
+    /** 작업 항목 본문 상한(20,000자)을 초과하는 대용량 기술 문서 수용을 검증한다. */
     @Test
     void 이만_자를_넘는_문서를_받는다() {
         String longest = "가".repeat(21_238);

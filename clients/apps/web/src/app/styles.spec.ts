@@ -193,7 +193,7 @@ const UI_PAIRS: Array<[front: string, back: string]> = [
 /**
  * 반투명한 바탕 위의 글자.
  *
- * <p>사이드바와 바닥의 띠가 앉는 자리다. 띠의 글자는 11px 까지 작아지므로 작은 글자의 기준을 쓴다.
+ * 사이드바와 바닥의 띠가 앉는 자리다. 띠의 글자는 11px 까지 작아지므로 작은 글자의 기준을 쓴다.
  * 바탕이 비치므로 뒤에 깔린 것과 합친 뒤에 잰다.
  */
 const TEXT_ON_TRANSLUCENT: Array<[front: string, surface: string, under: string]> = [

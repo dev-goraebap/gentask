@@ -14,25 +14,18 @@ public final class Account {
 
     public static final String CREDENTIAL = "credential";
 
-    // 식별자
     @NonNull private final UUID id;
 
-    // 소유자
     @NonNull private final UUID userId;
 
-    // 자격의 종류
     @NonNull private final String provider;
 
-    // 그 종류 안에서의 식별자
     @NonNull private final String providerAccountId;
 
-    // 비밀번호 해시. credential 에서만 값을 갖는다
     private String passwordHash;
 
-    // 만든 시각
     @NonNull private final Instant createdAt;
 
-    // 고친 시각
     @NonNull private Instant updatedAt;
 
     public static Account createCredential(UUID id, UUID userId, Email email, String passwordHash, Instant now) {
@@ -51,10 +44,7 @@ public final class Account {
     }
 
     /**
-     * 비밀번호를 갈아 끼운다.
-     *
-     * <p>credential 이 아닌 자격에는 비밀번호가 없으므로 이 자리에 오지 않는다. 소셜이 붙으면 그
-     * 자격은 provider 쪽이 갖는다.
+     * 비밀번호 해시를 변경한다.
      */
     public void changePassword(String newPasswordHash, Instant now) {
         if (!CREDENTIAL.equals(provider)) {

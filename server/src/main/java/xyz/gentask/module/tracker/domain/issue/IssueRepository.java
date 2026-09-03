@@ -9,7 +9,7 @@ public interface IssueRepository {
 
     Optional<Issue> findById(UUID issueId);
 
-    /** 번호는 프로젝트 안에서만 유일하므로 둘을 함께 받는다. */
+    /** 프로젝트 식별자와 일련번호 조합으로 작업 항목을 조회한다. */
     Optional<Issue> findByNumber(UUID projectId, int number);
 
     void deleteById(UUID issueId);

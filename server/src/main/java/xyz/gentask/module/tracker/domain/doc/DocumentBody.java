@@ -8,14 +8,9 @@ import xyz.gentask.shared.domain.ValueObject;
 import xyz.gentask.shared.error.DomainRuleViolation;
 
 /**
- * 문서 본문. 마크다운 자유 서술이다.
+ * 문서 본문 값 객체다. 마크다운 자유 서식을 지원하며 최대 100,000자로 제한한다.
  *
- * <p>상한이 작업 아이템의 것(20,000)보다 훨씬 크다. 문서는 한 주제를 끝까지 적는 자리이고, 이
- * 저장소의 가장 긴 문서가 21,238 자라 작업 아이템의 상한을 그대로 쓰면 지금 있는 문서 하나가 이미
- * 들어가지 못한다.
- *
- * <p>본문의 SHA-1 을 이 값이 낸다. 달라지지 않은 저장이 개정을 만들지 않게 하는 자리이며, 견주는
- * 규칙이 본문 자체의 성질이므로 여기에 둔다(DOC-003 A2).
+ * 내용 변경 여부를 신속히 비교하기 위해 본문의 SHA-1 해시를 계산하여 제공한다(DOC-003 A2).
  */
 public record DocumentBody(String value) implements ValueObject {
 
@@ -37,7 +32,7 @@ public record DocumentBody(String value) implements ValueObject {
         return new DocumentBody(rawBody);
     }
 
-    /** 본문의 SHA-1. 소문자 16진수 마흔 자다. */
+    /** 본문의 SHA-1 해시를 소문자 40자리 16진수 문자열로 반환한다. */
     public String sha1() {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");

@@ -29,7 +29,7 @@ public final class DocumentRequests {
     /**
      * 문서를 옮긴다. 담길 자리만 담는다.
      *
-     * <p>값이 없으면 뿌리다(DOC-006 A1). 자리를 비우는 것과 적지 않은 것을 가르지 않으므로 이 자리에
+     * 값이 없으면 뿌리다(DOC-006 A1). 자리를 비우는 것과 적지 않은 것을 가르지 않으므로 이 자리에
      * 널을 그대로 받는다.
      */
     public record MoveDocument(
@@ -58,7 +58,7 @@ public final class DocumentRequests {
     /**
      * 폴더를 옮긴다. 담긴 문서와 하위 폴더는 이 폴더를 가리키고 있으므로 함께 간다(DOC-008 A5).
      *
-     * <p>값이 없으면 최상위다.
+     * 값이 없으면 최상위다.
      */
     public record MoveFolder(
             @Schema(
@@ -70,7 +70,7 @@ public final class DocumentRequests {
     /**
      * 고치는 것은 제목과 본문 둘이며 개정 사유를 함께 받는다.
      *
-     * <p>앞의 개정과 같은 것을 담으면 개정을 만들지 않는다(DOC-003 A2).
+     * 앞의 개정과 같은 것을 담으면 개정을 만들지 않는다(DOC-003 A2).
      */
     public record EditDocument(
             @NotBlank(message = DocumentTitle.REQUIRED) @Size(max = DocumentTitle.MAX) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -87,7 +87,7 @@ public final class DocumentRequests {
     /**
      * 되돌리기. 되돌아갈 개정은 주소가 담으므로 여기 담는 것은 왜 되돌리는지뿐이다.
      *
-     * <p>적지 않아도 되며, 적지 않으면 몇 번째 개정으로 되돌렸는지를 시스템이 사유 자리에 적는다
+     * 적지 않아도 되며, 적지 않으면 몇 번째 개정으로 되돌렸는지를 시스템이 사유 자리에 적는다
      * (DOC-005 A3).
      */
     public record RevertRevision(

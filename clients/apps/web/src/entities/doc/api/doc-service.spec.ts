@@ -136,7 +136,7 @@ describe('DocService', () => {
     flushAll();
   });
 
-  it('본문을 넘기지 않으면 빈 본문으로 세운다', async () => {
+  it('본문을 전달하지 않으면 빈 문자열로 문서를 생성한다', async () => {
     flushAll();
 
     const done = docService.add('제목만');
@@ -153,7 +153,7 @@ describe('DocService', () => {
     flushAll();
   });
 
-  it('세울 때 지금 열어 둔 자리를 담길 자리로 넘긴다', async () => {
+  it('생성 시 현재 폴더를 대상 폴더로 전달한다', async () => {
     flushAll();
 
     const done = docService.add('새 문서', '', FOLDER);
@@ -382,7 +382,7 @@ describe('DocService', () => {
     httpTesting.expectNone({ url: ENDPOINTS.docs(PROJECT), method: 'GET' });
   });
 
-  it('폴더 목록은 평평하게 오고 담긴 자리와 담은 수를 그대로 낸다', async () => {
+  it('폴더 목록은 플랫 배열로 상위 폴더 식별자와 자식 수를 반환한다', async () => {
     flushAll([], [folder(), folder({ id: DOCUMENT, name: '결정 기록', parentId: FOLDER })]);
     await settle();
     TestBed.tick();
@@ -407,7 +407,7 @@ describe('DocService', () => {
     ]);
   });
 
-  it('폴더를 세울 때 지금 열어 둔 자리를 담을 자리로 넘긴다', async () => {
+  it('폴더 생성 시 현재 폴더를 상위 폴더로 전달한다', async () => {
     flushAll();
 
     const done = docService.addFolder('결정 기록', FOLDER);
@@ -440,7 +440,7 @@ describe('DocService', () => {
     flushFolders();
   });
 
-  it('폴더를 최상위로 옮기는 것은 담을 자리를 비우는 것이다', async () => {
+  it('폴더를 최상위로 이동 시 parentId를 null로 전달한다', async () => {
     flushAll();
 
     const done = docService.moveFolder(FOLDER, null);

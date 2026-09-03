@@ -4,10 +4,7 @@ import type { GentaskClient, IssueKind, IssueState, IssueSummary } from './genta
 import { formatIssue, formatIssues } from './issue-format.js';
 
 /**
- * 백로그를 명령줄에서 다루는 자리.
- *
- * <p>저장소의 `backlog/` 마크다운이 갖던 일을 이 명령들이 받는다. 사람은 화면으로 읽고 에이전트는
- * 여기로 읽는다 — 트래커의 두 번째 소비자가 에이전트다.
+ * CLI 작업 항목 및 프로젝트 관리 명령어 처리 모듈.
  */
 
 export interface Outcome {
@@ -40,7 +37,7 @@ export const ISSUE_HELP = `작업 아이템
   project list                   내 프로젝트와 그 식별자를 봅니다
   project use <식별자>           이 자리의 프로젝트를 정합니다. 지금 디렉터리에 매여 남습니다`;
 
-/** 사람이 부르는 이름에서 번호를 읽는다. 붙이는 규칙은 서버가 갖는다. */
+/** 작업 항목 키(예: GT-12)에서 일련번호 정수값을 추출한다. */
 function numberOf(key: string): number {
   const number = Number(key.slice(key.lastIndexOf('-') + 1));
   if (!Number.isInteger(number)) {
@@ -65,7 +62,7 @@ function asState(raw: string): IssueState {
   return state;
 }
 
-/** 닫히지 않은 것. 목록을 처음 열었을 때 눈에 먼저 들어와야 하는 것들이다. */
+/** 미완료 작업 항목 필터. */
 function isLive(issue: IssueSummary): boolean {
   return issue.state !== 'COMPLETED' && issue.state !== 'CANCELED';
 }
@@ -80,7 +77,7 @@ export async function runProject(
   if (sub === 'list') {
     const projects = await client.projects();
     const current = readConfig(env).projectId;
-    // 식별자를 앞에 둔다. `use` 에 넘길 것이 그것이고 접두어는 이슈 이름에만 쓰인다.
+    // 프로젝트 고유 식별자(ID)를 첫 열에 배치하고 접두어(Key)를 병기한다.
     const out = projects
       .map(
         (p) =>
@@ -95,7 +92,7 @@ export async function runProject(
     if (projectId === undefined) {
       throw new Error('식별자가 필요합니다: gentask project use <식별자>');
     }
-    // 있는 것인지 먼저 본다. 없는 것을 저장해 두면 그 뒤의 모든 명령이 같은 자리에서 실패한다.
+    // 설정 저장 전 대상 프로젝트의 실존 여부를 먼저 검증한다.
     await client.projects().then((projects) => {
       if (!projects.some((p) => p.id === projectId)) {
         throw new Error(`그 프로젝트가 없습니다: ${projectId}`);
@@ -209,7 +206,7 @@ export async function runIssue(
         throw new Error('바꿀 것이 없습니다. --title · --kind · --body · --parent 중 하나를 넘기세요.');
       }
 
-      // 서버의 편집은 셋을 그대로 받는다. 넘기지 않은 것은 지금 값을 그대로 되돌려 준다.
+      // 전체 갱신 규약에 따라 미전달 필드는 기존 값을 유지하여 전송한다.
       const project = currentProject(env);
       const number = numberOf(key);
       const now = await client.issue(project, number);
@@ -250,10 +247,7 @@ export async function runIssue(
       const target = await client.issue(project, number);
 
       /*
-       * 되묻는 자리를 여기서도 지난다(ITM-005).
-       *
-       * <p>명령줄에는 되물을 사람이 없으므로 되묻는 대신 무엇이 지워지는지를 보이고 멈춘다. 지우는
-       * 것은 되돌릴 수 없고 되살릴 자리를 두지 않았으므로, 한 번 더 적게 하는 값이 그보다 싸다.
+       * 비대화형 환경에서 실수로 인한 삭제를 방지하기 위해 --yes 플래그 없이 실행 시 삭제 대상만 표시하고 중단한다.
        */
       const children = (await client.issues(project)).filter(
         (issue) => issue.parentKey === target.summary.key,
@@ -280,12 +274,7 @@ export async function runIssue(
 }
 
 /**
- * 전부를 JSON 으로 내린다.
- *
- * <p>`list --json` 은 목록의 줄만 내므로 본문과 인수 조건이 빠진다. 백로그 전체를 한 번에 읽거나
- * 다른 도구에 넘길 때 이 명령을 쓴다.
- *
- * <p>본문은 상세에만 있어 항목마다 한 번씩 묻는다. 그것이 이 명령이 치르는 값이다.
+ * 백로그의 모든 작업 항목을 본문 및 인수 조건과 함께 JSON 형태로 내보낸다.
  */
 async function runExport(
   argv: readonly string[],
@@ -297,7 +286,7 @@ async function runExport(
   const project = currentProject(env);
   const summaries = await client.issues(project);
 
-  // 본문은 상세에만 있다. 항목마다 한 번씩 묻는 것이 이 명령이 치르는 값이다.
+  // 본문 및 인수 조건 수집을 위해 각 작업 항목의 상세 API를 순회 호출한다.
   const issues = [];
   for (const summary of summaries) {
     const issue = await client.issue(project, summary.number);

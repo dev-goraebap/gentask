@@ -31,7 +31,7 @@ test.describe('비밀번호 재설정하기', () => {
     await page.locator('#reset-new-password').fill(새_비밀번호);
     await page.locator('#reset-confirm').click();
 
-    // 앞서 열린 자리를 모두 거두었으므로 로그인 자리로 온다
+    // 기존 세션이 만료되었으므로 로그인 화면으로 리다이렉트된다
     await expect(page).toHaveURL(/\/login/);
 
     await 로그인한다(page, email, 새_비밀번호);
@@ -47,11 +47,11 @@ test.describe('비밀번호 재설정하기', () => {
     await page.locator('#reset-new-password').fill('onlyletters');
     await page.locator('#reset-confirm').click();
 
-    // 규칙 안내문에도 같은 낱말이 있어 오류 자리로 좁힌다
+    // 오류 메시지 영역을 명시적으로 탐색한다
     await expect(
       page.locator('hlm-field-error').filter({ hasText: '숫자 · 특수문자' }),
     ).toBeVisible();
-    // 규칙에 걸렸으므로 코드는 그대로 남고 자리에 머문다
+    // 유효성 검증 실패 시 인증 코드가 유지되고 현재 단계에 머무른다
     await expect(page.locator('#reset-code')).toBeVisible();
   });
 

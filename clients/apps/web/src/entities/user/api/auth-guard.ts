@@ -22,7 +22,7 @@ export const authGuard: CanActivateFn = async () => {
 /**
  * 관리자만 지난다.
  *
- * <p>서버가 같은 판정을 인터셉터에서 다시 한다. 이 자리는 관리자가 아닌 사람에게 빈 화면 대신 자기
+ * 서버가 같은 판정을 인터셉터에서 다시 한다. 이 자리는 관리자가 아닌 사람에게 빈 화면 대신 자기
  * 자리를 보여 주기 위한 것이며, 접근을 막는 근거는 서버가 갖는다.
  */
 export const adminGuard: CanActivateFn = async () => {

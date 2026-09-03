@@ -59,13 +59,13 @@ const ACTIVE: Record<string, [string, Record<string, unknown>?]> = {
 /**
  * 마크다운을 적는 자리.
  *
- * <p>보이는 것은 완성된 글이고 담기는 것은 마크다운이다. 읽는 자리와 같은 서식(`doc-body prose`)을
+ * 보이는 것은 완성된 글이고 담기는 것은 마크다운이다. 읽는 자리와 같은 서식(`doc-body prose`)을
  * 입으므로 적으면서 결과를 가늠할 수 있다.
  *
- * <p><b>인수 조건은 번호가 붙은 체크 항목이다.</b> 예전 규약의 HTML 주석은 이 편집기가 담을 자리를
+ * 인수 조건은 번호가 붙은 체크 항목이다. 예전 규약의 HTML 주석은 이 편집기가 담을 자리를
  * 갖지 않아 저장할 때 사라진다. 그래서 경계를 걷고 번호로 가리게 했다(결정-0007).
  *
- * <p>편집기는 <b>브라우저에서만, 그것도 늦게</b> 싣는다. TipTap 과 ProseMirror 를 첫 묶음에 넣으면
+ * 편집기는 브라우저에서만, 그것도 늦게 싣는다. TipTap 과 ProseMirror 를 첫 묶음에 넣으면
  * 목록과 상세를 여는 사람까지 그 값을 치른다. 서버에서 그리는 동안에는 아무것도 세우지 않으며, 그
  * 자리는 적은 것을 그대로 담은 textarea 가 대신한다 — 스크립트가 죽어도 글은 적힌다.
  */
@@ -151,7 +151,7 @@ export class MarkdownEditor {
   constructor() {
     if (!this.isServer) void this.load();
 
-    // 자리가 생기면 세운다. 늦게 실은 뒤에야 자리가 생기므로 효과로 기다린다.
+    // 에디터 컨테이너가 DOM에 마운트된 후 인스턴스를 초기화한다.
     effect(() => {
       const host = this.host()?.nativeElement;
       if (host === undefined || this.editor !== null) return;
@@ -184,7 +184,7 @@ export class MarkdownEditor {
   /**
    * 도구를 누른다.
    *
-   * <p>누르기 전에 mousedown 을 막는다. 막지 않으면 편집기가 초점을 잃어 커서 자리가 사라지고,
+   * 누르기 전에 mousedown 을 막는다. 막지 않으면 편집기가 초점을 잃어 커서 자리가 사라지고,
    * 명령이 어디에 걸리는지가 흔들린다.
    */
   protected run(key: string): void {

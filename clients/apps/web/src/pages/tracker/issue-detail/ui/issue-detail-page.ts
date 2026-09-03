@@ -95,7 +95,7 @@ export class IssueDetailPage {
   /**
    * 고치는 중인가.
    *
-   * <p>적던 것은 이 자리에만 있고 그만두면 사라진다. 되살릴 자리를 두려면 어디에 얼마나 남길지가
+   * 적던 것은 이 자리에만 있고 그만두면 사라진다. 되살릴 자리를 두려면 어디에 얼마나 남길지가
    * 먼저 정해져야 한다(ITM-004 A2).
    */
   protected readonly editing = signal(false);
@@ -148,7 +148,7 @@ export class IssueDetailPage {
   /**
    * 지운다.
    *
-   * <p>되묻는 자리를 지난 뒤에만 여기에 닿는다. 지운 자리에 그대로 서 있으면 없는 것을 열고 있는
+   * 되묻는 자리를 지난 뒤에만 여기에 닿는다. 지운 자리에 그대로 서 있으면 없는 것을 열고 있는
    * 꼴이므로 목록으로 되돌린다(ITM-005).
    */
   protected async remove(): Promise<void> {

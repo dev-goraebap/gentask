@@ -35,10 +35,9 @@ import xyz.gentask.module.notification.domain.subscription.PushSubscription;
 import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 
 /**
- * 정한 시각에 보내는 경로. 실제 푸시 서비스에 닿지 않도록 발송 포트를 가짜로 바꾼다.
+ * 예약 시각 도래에 따른 푸시 알림 발송 스케줄러를 검증한다.
  *
- * <p>트랜잭션을 두지 않는 것은 스케줄러가 그렇게 도는 것과 같은 조건에서 보기 위해서다. 각 테스트가
- * 자기 사용자를 새로 만들어 서로 간섭하지 않는다.
+ * 실제 외부 푸시 서비스 호출을 방지하기 위해 모의 발송 포트를 사용하며, 스케줄러 환경과 동일하게 비트랜잭션으로 실행한다. 각 테스트는 전용 사용자를 생성하여 독립성을 유지한다.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -78,7 +77,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("#1, #2: 시각이 지나면 켜 둔 기기로 작업 제목을 담아 보낸다")
+    @DisplayName("#1, #2: 알림 시각이 도래하면 등록된 기기로 작업 제목이 포함된 푸시 알림을 발송한다")
     void 시각이_지나면_제목을_담아_보낸다() throws Exception {
         Cookie session = 가입한다();
         구독한다(session, "https://push.example.com/" + UUID.randomUUID());
@@ -91,7 +90,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("이미 보낸 미리 알림은 다시 보내지 않는다")
+    @DisplayName("이미 발송된 미리 알림은 중복 발송하지 않는다")
     void 이미_보낸_것은_다시_보내지_않는다() throws Exception {
         Cookie session = 가입한다();
         구독한다(session, "https://push.example.com/" + UUID.randomUUID());
@@ -105,7 +104,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("자리가 더 이상 유효하지 않으면 그 자리를 거둔다")
+    @DisplayName("구독 엔드포인트가 만료되면 해당 구독을 자동 해제한다")
     void 죽은_자리는_거둔다() throws Exception {
         Cookie session = 가입한다();
         String endpoint = "https://push.example.com/gone-" + UUID.randomUUID();
@@ -124,7 +123,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("켜 둔 기기가 없으면 보내지 않고 넘어간다")
+    @DisplayName("등록된 기기 구독이 없으면 발송을 건너뛴다")
     void 켜_둔_기기가_없으면_넘어간다() throws Exception {
         Cookie session = 가입한다();
         작업을_만든다(session, "받을 사람 없음", 지난_시각());
@@ -135,7 +134,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("발송이 실패하면 그 자리와 사유와 시각을 남긴다")
+    @DisplayName("발송 실패 시 대상 엔드포인트, 실패 사유, 발생 시각을 기록한다")
     void 발송이_실패하면_기록을_남긴다() throws Exception {
         Cookie session = 가입한다();
         String endpoint = "https://push.example.com/failed-" + UUID.randomUUID();
@@ -154,7 +153,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("자리가 사라졌다고 답하면 스스로 거두고 그 사실을 남긴다")
+    @DisplayName("엔드포인트 만료 응답 수신 시 구독을 해제하고 실패 이력을 기록한다")
     void 자리가_사라지면_거두고_남긴다() throws Exception {
         Cookie session = 가입한다();
         String endpoint = "https://push.example.com/gone-record-" + UUID.randomUUID();
@@ -177,7 +176,7 @@ class ReminderDispatchTest {
     }
 
     @Test
-    @DisplayName("아직 시각이 오지 않은 미리 알림은 보내지 않는다")
+    @DisplayName("예약 시각이 도래하지 않은 미리 알림은 발송하지 않는다")
     void 아직_시각이_오지_않으면_보내지_않는다() throws Exception {
         Cookie session = 가입한다();
         구독한다(session, "https://push.example.com/" + UUID.randomUUID());
@@ -190,7 +189,7 @@ class ReminderDispatchTest {
 
     // --- 보조 --------------------------------------------------------------------------------------------------------
 
-    /** 이 회차가 남긴 기록을 endpoint 로 집어낸다. 다른 시험의 기록이 함께 있으므로 걸러 낸다. */
+    /** 대상 endpoint와 일치하는 실패 기록을 조회한다. */
     private PushDeliveryFailure 기록을_찾는다(String endpoint) {
         return pushFailureQuery.search(true, 200, 0).stream()
                 .filter(failure -> failure.endpoint().equals(endpoint))

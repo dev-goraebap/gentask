@@ -51,7 +51,7 @@ describe('AppShell 의 aside 슬롯', () => {
     expect(aside?.textContent).toContain('패널 내용');
   });
 
-  it('슬롯을 거두면 aside 를 걷어낸다', () => {
+  it('슬롯을 해제하면 aside를 제거한다', () => {
     const fixture = TestBed.createComponent(Host);
     fixture.detectChanges();
 

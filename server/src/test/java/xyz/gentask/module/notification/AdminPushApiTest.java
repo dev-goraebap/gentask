@@ -34,10 +34,9 @@ import xyz.gentask.module.notification.domain.subscription.PushSubscription;
 import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 
 /**
- * 관리자가 알림 문제를 보고 정리하는 경로.
+ * 관리자의 푸시 알림 발송 실패 내역 조회 및 처리 API를 검증한다.
  *
- * <p>실패를 만들어야 목록이 서므로 발송 포트를 가짜로 바꾼다. 트랜잭션을 두지 않는 것은 스케줄러가 그렇게
- * 도는 것과 같은 조건에서 보기 위해서다.
+ * 발송 실패 상황을 재현하기 위해 발송 포트를 모의 구현체로 대체하며, 스케줄러 실행 환경과 동일하게 비트랜잭션 환경에서 검증한다.
  */
 @SpringBootTest(properties = "app.admin.email=" + AdminPushApiTest.ADMIN_EMAIL)
 @AutoConfigureMockMvc
@@ -69,7 +68,7 @@ class AdminPushApiTest {
     private Clock clock;
 
     @Test
-    @DisplayName("관리자가 알림 문제를 열면 실패한 자리가 최근 것부터 온다")
+    @DisplayName("관리자가 푸시 발송 실패 목록을 조회하면 최근 실패 내역부터 반환한다")
     void 실패한_자리가_최근_것부터_온다() throws Exception {
         Cookie admin = 관리자로_가입한다();
         String endpoint = 실패를_하나_만든다();
@@ -80,13 +79,13 @@ class AdminPushApiTest {
                         jsonPath("$.items[?(@.endpoint == '" + endpoint + "')]").exists())
                 .andExpect(jsonPath("$.items[?(@.endpoint == '" + endpoint + "')].reason")
                         .value(org.hamcrest.Matchers.hasItem("FAILED")))
-                // 사용자를 이름으로 보여 주는 것은 user 모듈의 창구를 지난다
+                // 사용자 이메일은 user 모듈 인터페이스를 통해 조회한다.
                 .andExpect(jsonPath("$.items[?(@.endpoint == '" + endpoint + "')].email")
                         .isNotEmpty());
     }
 
     @Test
-    @DisplayName("자리를 거두면 그 기기는 더 이상 보낼 대상이 아니다")
+    @DisplayName("실패 엔드포인트를 구독 해제하면 해당 기기는 이후 발송 대상에서 제외한다")
     void 자리를_거두면_보낼_대상이_아니다() throws Exception {
         Cookie admin = 관리자로_가입한다();
         String endpoint = 실패를_하나_만든다();
@@ -102,7 +101,7 @@ class AdminPushApiTest {
     }
 
     @Test
-    @DisplayName("처리했다고 표시하면 그 항목이 처리됨으로 갈린다")
+    @DisplayName("실패 내역을 처리 완료 상태로 변경하면 기본 미처리 목록에서 제외된다")
     void 처리하면_처리됨으로_갈린다() throws Exception {
         Cookie admin = 관리자로_가입한다();
         String endpoint = 실패를_하나_만든다();
@@ -112,7 +111,7 @@ class AdminPushApiTest {
                         .cookie(admin))
                 .andExpect(status().isNoContent());
 
-        // 기본 목록은 처리 안 된 것만 보여 준다
+        // 기본 목록은 미처리 실패 내역만 반환한다.
         mockMvc.perform(get("/api/v1/admin/push/failures").cookie(admin).param("size", "100"))
                 .andExpect(
                         jsonPath("$.items[?(@.endpoint == '" + endpoint + "')]").doesNotExist());
@@ -131,7 +130,7 @@ class AdminPushApiTest {
         return AuthTestSupport.가입하거나_로그인한다(mockMvc, mail, ADMIN_EMAIL);
     }
 
-    /** 미리 알림 하나를 시각이 지난 채로 두고 회차를 돌려 실패 기록을 만든다. */
+    /** 만료된 미리 알림을 발송 처리하여 의도적으로 실패 이력을 생성한다. */
     private String 실패를_하나_만든다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "failing-" + UUID.randomUUID() + "@example.com");
         String endpoint = "https://push.example.com/admin-" + UUID.randomUUID();
@@ -153,7 +152,7 @@ class AdminPushApiTest {
         int at = body.indexOf(endpoint);
         assertThat(at).as("실패 기록이 목록에 없습니다").isNotNegative();
 
-        // 그 항목의 id 는 endpoint 보다 앞에 있다. 마지막으로 나오는 것이 같은 객체의 것이다
+        // JSON 응답에서 endpoint 직전에 위치한 id 속성값을 추출한다.
         String head = body.substring(0, at);
         int idAt = head.lastIndexOf("\"id\":\"") + "\"id\":\"".length();
         return head.substring(idAt, head.indexOf('"', idAt));

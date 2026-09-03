@@ -18,8 +18,7 @@ class JooqVerificationCodeRepository implements VerificationCodeRepository {
     private final DSLContext dslContext;
 
     /**
-     * (이메일, 자리)가 유일하므로 다시 요청하는 것이 곧 그 행을 갈아 끼우는 것이다. 새 행을 더하지
-     * 않으므로 한 주소가 만드는 행이 자리마다 하나로 묶인다.
+     * (이메일, 발급목적) 고유 제약에 따라 재발급 시 기존 레코드를 갱신한다.
      */
     @Override
     public void save(VerificationCode code) {

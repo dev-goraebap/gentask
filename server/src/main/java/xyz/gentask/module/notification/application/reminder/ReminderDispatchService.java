@@ -21,10 +21,7 @@ import xyz.gentask.module.notification.domain.subscription.PushSubscription;
 import xyz.gentask.module.notification.domain.subscription.PushSubscriptionRepository;
 
 /**
- * 정한 시각이 지난 미리 알림을 켜 둔 기기로 보낸다.
- *
- * <p>사용자가 시작하는 흐름이 아니라 시각이 트리거다. 주 액터가 없으므로 서술서를 갖지 않고 Story
- * GT-34 가 인수 조건을 갖는다.
+ * 지정 시각이 도래한 작업 미리 알림을 등록된 기기로 발송하는 서비스다(GT-34).
  */
 @Service
 @RequiredArgsConstructor
@@ -32,7 +29,7 @@ public class ReminderDispatchService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReminderDispatchService.class);
 
-    /** 한 회차에 다룰 최대 개수. 밀린 것이 많아도 한 회차가 길어지지 않게 한다. */
+    /** 1회 배치 처리 시 조회할 최대 알림 건수(100건)다. */
     static final int BATCH_SIZE = 100;
 
     private final DueReminderQuery dueReminderQuery;
@@ -44,20 +41,16 @@ public class ReminderDispatchService {
     private final Clock clock;
 
     /**
-     * 한 회차를 돈다.
+     * 알림 발송 배치를 1회 실행한다. 외부 푸시 전송 지연으로 인한 커넥션 점유를 방지하기 위해 비트랜잭션으로 동작한다.
      *
-     * <p>트랜잭션을 열지 않는다고 선언한다. 발송은 바깥 서비스를 부르는 일이라 시간이 걸리고, 그 사이
-     * 트랜잭션을 열어 두면 연결이 묶인다. 각 쓰기는 자기 자리에서 auto-commit 으로 끝난다.
-     *
-     * @return 보낸 미리 알림의 수
+     * @return 발송된 미리 알림 건수
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public int dispatchDue() {
         if (!vapid.isConfigured()) {
             return 0;
         }
-        // 시간대 없는 값이라 서버의 시간대로 해석한다. Clock 이 Asia/Seoul 로 고정되어 있으며
-        // 사용자마다 다른 시간대를 갖는 요구가 생기면 그때 사용자 값을 받는다.
+        // remindAt은 시간대 정보가 없는 LocalDateTime이므로 시스템 기본 시간대(Asia/Seoul)를 기준으로 변환한다.
         LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), clock.getZone());
         List<DueReminder> due = dueReminderQuery.findDue(now, BATCH_SIZE);
 
@@ -74,10 +67,7 @@ public class ReminderDispatchService {
     }
 
     /**
-     * 하나를 보낸다.
-     *
-     * <p>켜 둔 기기가 없어도 보냈다고 표시한다. 그러지 않으면 그 작업이 회차마다 다시 조회되어 시각이
-     * 지난 채 목록에 남는다. 알림을 켜지 않은 사용자는 그 시각을 놓치는 것이 정상 동작이다.
+     * 단일 미리 알림을 해당 사용자의 등록된 모든 기기로 발송한다. 구독 기기가 없더라도 재발송 방지를 위해 발송 완료로 기록한다.
      */
     private boolean dispatch(DueReminder reminder) {
         List<PushSubscription> subscriptions = subscriptionRepository.findByUserId(reminder.userId());
@@ -91,11 +81,10 @@ public class ReminderDispatchService {
                 anySent = true;
                 continue;
             }
-            // 닿지 않은 회차를 남긴다. 로그로만 두면 관리자가 서버에 들어가야 보고, 어느 사용자가
-            // 몇 번 놓쳤는지 세지 못한다. GT-37 다
+            // 발송 실패 이력을 저장하여 관리자 모니터링을 지원한다(GT-37).
             record(subscription, reminder, outcome, now);
             if (outcome.result() == PushSender.Result.GONE) {
-                // 브라우저 데이터를 지우거나 오래 쓰지 않으면 자리가 만료된다. NTF-001 의 A4 다
+                // 만료된 구독 엔드포인트(GONE)는 저장소에서 즉시 삭제한다(NTF-001 A4).
                 subscriptionRepository.deleteById(subscription.id());
             }
         }
@@ -117,13 +106,13 @@ public class ReminderDispatchService {
                 now));
     }
 
-    /** 서비스 워커가 읽는 형식. 필드 이름이 `sw.js` 의 것과 맞아야 한다. */
+    /** 서비스 워커 푸시 페이로드 규격에 맞춰 JSON 문자열을 생성한다. */
     private static String payloadOf(DueReminder reminder) {
         return "{\"title\":\"" + escape(reminder.title()) + "\",\"body\":\"미리 알림\",\"tag\":\"task-" + reminder.taskId()
                 + "\",\"url\":\"/\"}";
     }
 
-    /** 제목은 사용자가 적은 문자열이라 따옴표와 역슬래시가 들어올 수 있다. */
+    /** JSON 페이로드 이스케이프 유틸리티다. */
     private static String escape(String raw) {
         StringBuilder out = new StringBuilder(raw.length() + 8);
         for (char letter : raw.toCharArray()) {

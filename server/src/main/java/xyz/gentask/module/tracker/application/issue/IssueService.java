@@ -43,7 +43,7 @@ public class IssueService {
     /**
      * 번호 하나를 낸다.
      *
-     * <p>번호는 프로젝트 안에서만 유일하다. 지금 프로젝트에 그 번호가 없으면 다른 프로젝트에 있더라도
+     * 번호는 프로젝트 안에서만 유일하다. 지금 프로젝트에 그 번호가 없으면 다른 프로젝트에 있더라도
      * 없는 것이다(ITM-002 A5).
      */
     @Transactional(readOnly = true)
@@ -78,7 +78,7 @@ public class IssueService {
     /**
      * 제목 · 유형 · 본문을 고친다.
      *
-     * <p>번호는 손대지 않는다. 유형을 바꿔도 옮길 표가 없으므로 번호가 따라 바뀔 이유가 없다
+     * 번호는 손대지 않는다. 유형을 바꿔도 옮길 표가 없으므로 번호가 따라 바뀔 이유가 없다
      * (ITM-004 A3).
      */
     @Transactional
@@ -97,10 +97,7 @@ public class IssueService {
     }
 
     /**
-     * 부모의 이름을 그 식별자로 옮긴다.
-     *
-     * <p>스스로를 부모로 두는 것은 표의 check 가 막지만, 여기서 먼저 걸러 그 자리가 500 이 아니라
-     * 사람이 읽는 말로 나가게 한다.
+     * 상위 작업 항목 키로부터 해당 작업의 고유 식별자(UUID)를 조회한다.
      */
     private UUID parentOf(Project project, String parentKey) {
         if (parentKey == null || parentKey.isBlank()) {
@@ -113,7 +110,7 @@ public class IssueService {
                 .orElseThrow(TrackerErrorCode.ISSUE_NOT_FOUND::raise);
     }
 
-    /** 사람이 부르는 이름에서 번호를 읽는다. 붙이는 규칙은 이 서버가 갖는다. */
+    /** 작업 항목 키(예: GT-43)에서 일련번호를 파싱한다. */
     private static int numberOf(String key) {
         try {
             return Integer.parseInt(key.substring(key.lastIndexOf('-') + 1));
@@ -123,13 +120,8 @@ public class IssueService {
     }
 
     /**
-     * 작업 아이템을 지운다.
-     *
-     * <p>자식은 함께 지우지 않는다. 부모를 잃은 것은 최상위로 올라오며 그 자리는 표의 외래키가 맡는다
-     * (V9 의 {@code on delete set null}). 계층이 끊길 뿐 항목이 사라질 이유가 없다(ITM-005 A2).
-     *
-     * <p>번호는 프로젝트에 되돌려주지 않는다. 다음에 내줄 번호를 프로젝트가 따로 들고 있어, 지운
-     * 자리의 번호가 다음 항목에 다시 나가지 않는다(GT-43 #5).
+     * 작업 항목을 삭제한다. 하위 작업은 삭제되지 않고 최상위 계층으로 승격된다(ITM-005 A2).
+     * 발급된 일련번호는 재사용되지 않는다(GT-43 #5).
      */
     @Transactional
     public void remove(UUID userId, String projectId, int number) {

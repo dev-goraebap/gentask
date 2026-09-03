@@ -47,7 +47,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("계정을 만들면 기본 프로젝트가 함께 선다")
+    @DisplayName("신규 계정 생성 시 기본 프로젝트가 함께 생성된다")
     void 계정을_만들면_기본_프로젝트가_함께_선다() throws Exception {
         mockMvc.perform(get("/api/v1/projects").cookie(session))
                 .andExpect(status().isOk())
@@ -56,11 +56,11 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("이름과 접두어를 적어 세우면 사람이 정하지 않은 식별자로 닿게 한다")
+    @DisplayName("프로젝트 이름과 접두어로 생성 시 시스템 고유 식별자를 발급한다")
     void 세우면_식별자로_닿는다() throws Exception {
         String projectId = 프로젝트를_세운다("Gentask Tracker", "GT");
 
-        // 사람이 고른 것이 아니다. 이름과도 접두어와도 이어지지 않는다.
+        // 식별자는 사용자가 지정하지 않으며 이름 및 접두어와 무관한 난수형 식별자로 생성한다.
         assertThat(projectId).hasSize(ProjectPublicId.LENGTH).isNotEqualToIgnoringCase("GT");
 
         mockMvc.perform(get("/api/v1/projects/{projectId}", projectId).cookie(session))
@@ -71,7 +71,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("접두어가 비어 있거나 모양에 맞지 않으면 알린다")
+    @DisplayName("접두어가 비어 있거나 형식에 맞지 않으면 예외를 반환한다")
     void 접두어가_모양에_맞지_않으면_알린다() throws Exception {
         세우기를_거절한다("{\"name\":\"빈 접두어\",\"key\":\"   \"}");
         세우기를_거절한다("{\"name\":\"한글 접두어\",\"key\":\"프로젝트\"}");
@@ -79,11 +79,10 @@ class ProjectApiTest {
     }
 
     /*
-     * 접두어는 이슈 이름에만 쓰이고 해석은 주소의 식별자가 한다. 겹쳐도 서버가 헷갈릴 자리가 없으므로
-     * 겹치지 않는 것을 뽑아 주던 자리(`GE2` · `GE3`)를 걷었다.
+     * 접두어는 작업 항목 표시 명칭에만 사용하며, 고유 식별은 프로젝트 ID가 담당하므로 접두어 중복을 허용한다.
      */
     @Test
-    @DisplayName("접두어가 겹쳐도 그대로 세운다")
+    @DisplayName("접두어가 중복되어도 정상적으로 프로젝트를 생성한다")
     void 접두어가_겹쳐도_그대로_세운다() throws Exception {
         String first = 프로젝트를_세운다("첫째", "GT");
         String second = 프로젝트를_세운다("둘째", "GT");
@@ -96,7 +95,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("접두어를 바꾸면 이미 매겨진 번호는 그대로 둔다")
+    @DisplayName("프로젝트 접두어를 변경해도 기존 작업 항목의 일련번호는 유지된다")
     void 접두어를_바꿔도_번호는_그대로다() throws Exception {
         String projectId = 프로젝트를_세운다("옛 접두어", "TG");
         작업_아이템을_세운다(projectId);
@@ -114,7 +113,7 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("주소의 식별자가 모양에 맞지 않으면 없는 것으로 낸다")
+    @DisplayName("요청 경로의 프로젝트 식별자 형식이 올바르지 않으면 404를 반환한다")
     void 모양이_아닌_식별자는_없는_것으로_낸다() throws Exception {
         mockMvc.perform(get("/api/v1/projects/{projectId}", "쓸 수 없는 글자").cookie(session))
                 .andExpect(status().isNotFound())
@@ -122,38 +121,38 @@ class ProjectApiTest {
     }
 
     @Test
-    @DisplayName("이름이 비어 있으면 이름이 필요함을 알린다")
+    @DisplayName("프로젝트 이름이 공백이면 유효성 검증 오류를 반환한다")
     void 이름이_비어_있으면_알린다() throws Exception {
         세우기를_거절한다("{\"name\":\"   \",\"key\":\"GT\"}");
     }
 
     @Test
-    @DisplayName("목록을 열면 그 사용자의 프로젝트만 온다")
+    @DisplayName("프로젝트 목록 조회 시 해당 사용자의 프로젝트만 반환한다")
     void 목록은_그_사용자의_프로젝트만_낸다() throws Exception {
         프로젝트를_세운다("Mine", "MN");
 
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
-        // 기본 프로젝트 하나에 방금 세운 것을 더해 둘이다. 남의 것은 세지 않는다.
+        // 기본 프로젝트와 신규 생성 프로젝트를 합산해 2개이며, 타 사용자의 프로젝트는 제외한다.
         mockMvc.perform(get("/api/v1/projects").cookie(session)).andExpect(jsonPath("$", hasSize(2)));
         mockMvc.perform(get("/api/v1/projects").cookie(other)).andExpect(jsonPath("$", hasSize(1)));
     }
 
     @Test
-    @DisplayName("사용자의 것이 아닌 프로젝트는 없는 것으로 낸다")
+    @DisplayName("타 사용자의 프로젝트에 접근 시 404를 반환한다")
     void 남의_프로젝트는_없는_것으로_낸다() throws Exception {
         String mine = 프로젝트를_세운다("Mine", "MN");
 
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
-        // 식별자가 전역으로 유일하므로 그것만으로 하나가 가려지나, 남의 것은 없는 것으로 낸다.
+        // 식별자가 유일하더라도 소유자가 다른 프로젝트는 404 Not Found로 응답한다.
         mockMvc.perform(get("/api/v1/projects/{projectId}", mine).cookie(other))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
     }
 
     @Test
-    @DisplayName("로그인 없이 프로젝트에 닿을 수 없다")
+    @DisplayName("인증되지 않은 사용자의 프로젝트 조회를 거부한다")
     void 로그인_없이_프로젝트에_닿을_수_없다() throws Exception {
         mockMvc.perform(get("/api/v1/projects"))
                 .andExpect(status().isUnauthorized())
@@ -161,7 +160,7 @@ class ProjectApiTest {
     }
 
     // --- 준비 --------------------------------------------------------------------------------------------------------
-    /** Location 의 마지막 마디가 주소의 식별자다. */
+    /** Location 헤더의 마지막 세그먼트에서 프로젝트 식별자를 추출한다. */
     private String 프로젝트를_세운다(String name, String key) throws Exception {
         String location = requireNonNull(mockMvc.perform(post("/api/v1/projects")
                         .cookie(session)

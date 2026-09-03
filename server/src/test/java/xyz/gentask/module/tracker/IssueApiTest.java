@@ -54,7 +54,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("제목을 적어 세우면 지금 프로젝트의 다음 번호를 받는다")
+    @DisplayName("작업 항목 생성 시 해당 프로젝트의 다음 일련번호를 부여한다")
     void 세우면_다음_번호를_받는다() throws Exception {
         작업_아이템을_세운다("{\"title\":\"첫 것\"}");
         작업_아이템을_세운다("{\"title\":\"둘째 것\"}");
@@ -69,7 +69,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("유형을 고르지 않고 세우면 TASK 다")
+    @DisplayName("유형을 지정하지 않고 생성하면 기본값으로 TASK 유형이 지정된다")
     void 유형을_고르지_않으면_TASK_다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"유형 없이\"}");
 
@@ -77,7 +77,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("고른 유형이 있으면 그것으로 선다")
+    @DisplayName("지정한 작업 항목 유형으로 정상 생성된다")
     void 고른_유형으로_선다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"버그\",\"kind\":\"BUG\"}");
 
@@ -85,7 +85,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("본문을 적어 세우면 그 본문을 그대로 담는다")
+    @DisplayName("본문을 입력하여 생성하면 해당 본문을 그대로 저장한다")
     void 본문을_그대로_담는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"본문 있는 것\",\"body\":\"첫 줄\\n\\n둘째 줄\"}");
 
@@ -93,12 +93,10 @@ class IssueApiTest {
     }
 
     /*
-     * 화면의 편집기(ProseMirror 계열)는 마크다운을 문서 모델로 바꿨다가 되돌리며 HTML 주석을 담을
-     * 자리를 갖지 않아 통째로 버린다. 예전 마커에 기대면 저장하는 순간 인수 조건이 사라진다.
-     * 실제로 tiptap-markdown 으로 왕복시켜 확인한 것이며, 체크 항목 자체는 온전히 살아남는다.
+     * 에디터(tiptap-markdown) 변환 과정에서 HTML 주석 마커가 유실되므로, 마커 유무와 무관하게 체크박스 항목 자체를 파싱하여 인수 조건으로 인식한다.
      */
     @Test
-    @DisplayName("마커가 없어도 번호가 붙은 체크 항목을 인수 조건으로 읽는다")
+    @DisplayName("주석 마커가 없어도 번호가 부여된 체크 항목을 인수 조건으로 파싱한다")
     void 마커가_없어도_인수_조건을_읽는다() throws Exception {
         String body = "설명\\n\\n## 인수 조건\\n\\n" + "- [x] #1 첫 조건\\n" + "- [ ] #2 둘째 조건\\n" + "- [ ] #3 (결번)";
         int number = 작업_아이템을_세운다("{\"title\":\"마커 없음\",\"body\":\"%s\"}".formatted(body));
@@ -110,7 +108,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("인수 조건은 표가 아니라 본문에서 읽는다")
+    @DisplayName("본문 내 체크 항목으로부터 인수 조건 목록과 검증 상태를 파싱한다")
     void 인수_조건을_본문에서_읽는다() throws Exception {
         String body = "설명\\n\\n<!-- AC:BEGIN -->\\n"
                 + "- [x] #1 첫 조건\\n"
@@ -119,7 +117,7 @@ class IssueApiTest {
                 + "<!-- AC:END -->";
         int number = 작업_아이템을_세운다("{\"title\":\"인수 조건\",\"body\":\"%s\"}".formatted(body));
 
-        // 결번은 세지 않는다. 번호를 비워 두기 위한 자리이며 검증 대상이 아니다.
+        // 결번 처리된 항목은 검증 대상 인수 조건 개수 집계에서 제외한다.
         상세(number)
                 .andExpect(jsonPath("$.summary.criteriaCount").value(2))
                 .andExpect(jsonPath("$.summary.unverifiedCount").value(1))
@@ -129,7 +127,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("제목이 비어 있으면 제목이 필요함을 알린다")
+    @DisplayName("제목이 공백이면 유효성 검증 오류를 반환한다")
     void 제목이_비어_있으면_알린다() throws Exception {
         mockMvc.perform(post("/api/v1/projects/{projectId}/issues", projectId)
                         .cookie(session)
@@ -139,7 +137,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("목록을 열면 지금 프로젝트의 작업 아이템만 온다")
+    @DisplayName("목록 조회 시 현재 프로젝트의 작업 항목만 반환한다")
     void 목록은_지금_프로젝트의_것만_낸다() throws Exception {
         작업_아이템을_세운다("{\"title\":\"이 프로젝트의 것\"}");
 
@@ -152,7 +150,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("하나를 열면 본문과 부모를 함께 낸다")
+    @DisplayName("상세 조회 시 본문과 부모 작업 항목 정보를 함께 반환한다")
     void 상세는_본문과_부모를_함께_낸다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"부모 없는 것\",\"body\":\"본문\"}");
 
@@ -160,18 +158,18 @@ class IssueApiTest {
                 .andExpect(jsonPath("$.body").value("본문"))
                 .andExpect(jsonPath("$.summary.parentKey", nullValue()))
                 .andExpect(jsonPath("$.summary.childCount").value(0))
-                // 세운 사람은 별명으로 낸다. 상세 한 줄이 그것을 쓴다.
+                // 작성자는 닉네임으로 응답에 포함한다.
                 .andExpect(jsonPath("$.authorName").isNotEmpty());
     }
 
     @Test
-    @DisplayName("지금 프로젝트에 없는 번호는 없는 것으로 낸다")
+    @DisplayName("현재 프로젝트에 속하지 않는 작업 번호 조회 시 404를 반환한다")
     void 없는_번호는_없는_것으로_낸다() throws Exception {
         작업_아이템을_세운다("{\"title\":\"하나뿐\"}");
 
         String other = 프로젝트를_세운다(session, "Other", "OT");
 
-        // 다른 프로젝트에 같은 번호가 있어도 여기에는 없다. 번호는 프로젝트 안에서만 유일하다.
+        // 작업 번호는 프로젝트 단위로 독립 채번되므로 타 프로젝트의 번호는 조회할 수 없다.
         mockMvc.perform(get("/api/v1/projects/{projectId}/issues/{number}", other, 1)
                         .cookie(session))
                 .andExpect(status().isNotFound())
@@ -179,7 +177,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("제목과 본문을 고쳐 담으면 고친 것이 남는다")
+    @DisplayName("제목과 본문을 수정하면 변경 내용이 반영된다")
     void 고친_것이_남는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"처음 제목\",\"body\":\"처음 본문\"}");
 
@@ -191,7 +189,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("본문의 체크 항목을 고치면 바뀐 인수 조건을 그대로 읽는다")
+    @DisplayName("본문의 체크 항목 수정 시 변경된 인수 조건 상태를 반영한다")
     void 본문을_고치면_인수_조건도_바뀐다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"인수 조건\",\"body\":\"- [ ] #1 첫 조건\"}");
 
@@ -208,7 +206,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("제목이 비어 있으면 알리고 고치기 전의 것을 그대로 둔다")
+    @DisplayName("수정 요청의 제목이 공백이면 400 오류를 반환하고 기존 내용을 유지한다")
     void 제목이_비면_고치지_않는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"그대로 둘 것\"}");
 
@@ -222,7 +220,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("유형을 바꿔도 번호는 그대로다")
+    @DisplayName("작업 항목 유형을 변경해도 고유 번호는 유지된다")
     void 유형을_바꿔도_번호는_그대로다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"유형 바꿀 것\",\"kind\":\"TASK\"}");
 
@@ -234,7 +232,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
+    @DisplayName("타 사용자의 프로젝트 내 작업 항목 수정 요청 시 404를 반환한다")
     void 남의_것은_고치지_못한다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"내 것\"}");
 
@@ -249,11 +247,10 @@ class IssueApiTest {
     }
 
     /*
-     * 계층을 번호가 갖지 않으므로(결정-0007) 부모를 잇는 길이 따로 있어야 한다. 이것이 없으면
-     * 명령줄로 Epic 아래 Story 를 세울 수 없어 백로그를 CLI 로 다루지 못한다.
+     * 작업 번호와 무관하게 계층 구조를 형성할 수 있도록 생성 및 수정 시 부모 작업(parentKey)을 지정할 수 있다.
      */
     @Test
-    @DisplayName("세울 때와 고칠 때 부모를 이을 수 있다")
+    @DisplayName("생성 및 수정 시 부모 작업 항목을 연결할 수 있다")
     void 부모를_이을_수_있다() throws Exception {
         int epic = 작업_아이템을_세운다("{\"title\":\"묶는 것\",\"kind\":\"EPIC\"}");
         String epicKey = "%s-%d".formatted(접두어, epic);
@@ -264,13 +261,13 @@ class IssueApiTest {
         상세(child).andExpect(jsonPath("$.summary.parentKey").value(epicKey));
         상세(epic).andExpect(jsonPath("$.summary.childCount").value(1));
 
-        // 비우면 최상위로 돌아간다.
+        // parentKey를 null로 설정하면 상위 계층 연결을 해제한다.
         고친다(child, "{\"title\":\"아래 것\",\"kind\":\"STORY\",\"body\":\"\",\"parentKey\":null}");
         상세(child).andExpect(jsonPath("$.summary.parentKey").doesNotExist());
     }
 
     @Test
-    @DisplayName("상태를 옮기면 그 상태가 항목에 남는다")
+    @DisplayName("작업 상태를 변경하면 변경된 상태가 유지된다")
     void 상태를_옮기면_남는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"옮길 것\"}");
 
@@ -282,7 +279,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("완료나 취소로 옮기면 그 순간이 닫힌 때로 남는다")
+    @DisplayName("완료(COMPLETED) 또는 취소(CANCELED) 상태로 변경 시 종료 시각을 기록한다")
     void 닫으면_닫힌_때가_남는다() throws Exception {
         int completed = 작업_아이템을_세운다("{\"title\":\"끝낸 것\"}");
         int canceled = 작업_아이템을_세운다("{\"title\":\"거둔 것\"}");
@@ -295,7 +292,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("닫힌 것을 되돌리면 닫힌 때를 지운다")
+    @DisplayName("종료 상태에서 진행 상태로 복귀 시 종료 시각을 초기화한다")
     void 되돌리면_닫힌_때를_지운다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"되돌릴 것\"}");
 
@@ -306,7 +303,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("이미 그 상태이면 아무것도 바꾸지 않는다")
+    @DisplayName("동일한 상태로 변경 요청 시 상태와 종료 시각을 변경하지 않는다")
     void 같은_상태로_옮기면_바뀌지_않는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"그대로 둘 것\"}");
 
@@ -316,12 +313,12 @@ class IssueApiTest {
 
         상태를_옮긴다(number, "COMPLETED");
 
-        // 다시 찍으면 처음 닫은 순간을 잃는다.
+        // 중복 변경 요청 시 최초 종료 시각이 갱신되지 않아야 한다.
         상세(number).andExpect(jsonPath("$.summary.closedAt").value(closedAt));
     }
 
     @Test
-    @DisplayName("사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
+    @DisplayName("타 사용자의 프로젝트 내 작업 항목 수정 요청 시 404를 반환한다")
     void 남의_프로젝트의_항목은_없는_것으로_낸다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"내 것\"}");
 
@@ -336,7 +333,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("지우면 그 자리가 사라진다")
+    @DisplayName("작업 항목을 삭제하면 조회되지 않는다")
     void 지우면_그_자리가_사라진다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"걷을 것\"}");
 
@@ -349,14 +346,14 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("지운 뒤 새로 세우면 지운 것의 번호를 다시 쓰지 않는다")
+    @DisplayName("작업 항목 삭제 후 신규 생성 시 삭제된 번호를 재사용하지 않는다")
     void 지운_것의_번호를_다시_쓰지_않는다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"지울 것\"}");
 
         지운다(number);
         작업_아이템을_세운다("{\"title\":\"뒤에 세울 것\"}");
 
-        // 최댓값이 아니라 프로젝트가 든 다음 번호에서 나온다. 최댓값이면 지운 자리를 다시 내준다.
+        // 번호는 기존 번호의 최댓값이 아닌 프로젝트 시퀀스로부터 발급하여 결번 재사용을 방지한다.
         mockMvc.perform(get("/api/v1/projects/{projectId}/issues", projectId).cookie(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -364,7 +361,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("자식이 딸려 있으면 그 자식을 지우지 않고 최상위로 올린다")
+    @DisplayName("부모 작업 삭제 시 하위 작업은 삭제하지 않고 최상위 계층으로 전환한다")
     void 지운_것의_자식은_최상위로_올라간다() throws Exception {
         int parent = 작업_아이템을_세운다("{\"title\":\"덮는 에픽\",\"kind\":\"EPIC\"}");
         int child = 작업_아이템을_세운다("{\"title\":\"딸린 것\",\"parentKey\":\"%s-%d\"}".formatted(접두어, parent));
@@ -375,7 +372,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("사용자의 프로젝트에 속하지 않으면 없는 것으로 낸다")
+    @DisplayName("타 사용자의 프로젝트 내 작업 항목 수정 요청 시 404를 반환한다")
     void 남의_프로젝트의_항목은_지우지_못한다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"내 것\"}");
 
@@ -388,7 +385,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("이미 지워진 번호를 지우면 없는 것으로 낸다")
+    @DisplayName("이미 삭제된 작업 번호 삭제 요청 시 404를 반환한다")
     void 이미_지워진_번호는_없는_것으로_낸다() throws Exception {
         int number = 작업_아이템을_세운다("{\"title\":\"두 번 지울 것\"}");
         지운다(number);
@@ -400,7 +397,7 @@ class IssueApiTest {
     }
 
     @Test
-    @DisplayName("로그인 없이 작업 아이템에 닿을 수 없다")
+    @DisplayName("인증되지 않은 사용자의 작업 항목 조회를 거부한다")
     void 로그인_없이_작업_아이템에_닿을_수_없다() throws Exception {
         mockMvc.perform(get("/api/v1/projects/{projectId}/issues", projectId))
                 .andExpect(status().isUnauthorized())

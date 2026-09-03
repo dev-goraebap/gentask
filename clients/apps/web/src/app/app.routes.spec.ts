@@ -5,12 +5,12 @@ import { ROUTES } from '@/shared/config';
 import { routes } from './app.routes';
 import { BOTTOM_NAV } from './layout/nav-items';
 
-describe('app.routes 의 첫 자리', () => {
+describe('app.routes 기본 라우팅', () => {
   /*
    * 처음 여는 사람이 오늘 할 것부터 본다. 자리를 고르는 화면을 첫머리에 두면 아무것도 하지 않은
    * 채로 한 단계를 지나게 된다.
    */
-  it('첫 자리가 나의 하루다', () => {
+  it('루트 접속 시 나의 하루 페이지로 이동한다', () => {
     const first = shellChildren().find((child) => child.path === '');
 
     expect(first?.redirectTo).toBe('todo/my-day');
@@ -21,7 +21,7 @@ describe('app.routes 의 첫 자리', () => {
    * 프로젝트는 모드가 아니라 계정에 매인다. 어느 프로젝트에도 들어가지 않은 상태에서 닿아야 하므로
    * 트래커 자리가 아니라 투두의 메뉴 안에 선다.
    */
-  it('프로젝트들이 트래커 자리 밖에 선다', () => {
+  it('프로젝트 목록 경로는 트래커 외부에 독립 배치된다', () => {
     const paths = shellChildren().map((child) => child.path);
 
     expect(paths).toContain('projects');
@@ -32,7 +32,7 @@ describe('app.routes 의 첫 자리', () => {
    * 모드를 고르는 자리를 화면으로 두지 않는다. 좁은 화면에서는 바닥의 띠가, 넓은 화면에서는
    * 사이드바가 그 일을 하므로, 화면으로 한 번 더 두면 같은 것을 두 곳에서 고르게 된다.
    */
-  it('그릇에 닿으면 첫 칸으로 보낸다', () => {
+  it('상위 경로 진입 시 기본 하위 경로로 리다이렉트된다', () => {
     // 투두의 라우트는 늦게 싣는 자리가 갖는다. 첫 칸으로 보내는 규칙도 그쪽에 있다.
     expect(taskListRoutes.find((route) => route.path === '')?.redirectTo).toBe('my-day');
     expect(childOf(routes, 'projects/:projectId', '')?.redirectTo).toBe('issues');
@@ -43,14 +43,14 @@ describe('app.routes 의 첫 자리', () => {
    * 순간 고르개와 달력 묶음이 첫 묶음에 실린다. 세어 보니 185 kB 였다. 터지지 않는 회귀라 검사가
    * 없으면 되돌려도 아무도 모른다.
    */
-  it('투두의 자리를 늦게 싣는다', () => {
+  it('투두 라우트는 지연 로딩된다', () => {
     const todo = shellChildren().find((route) => route.path === 'todo');
 
     expect(todo?.loadChildren).toBeDefined();
     expect(todo?.providers).toBeUndefined();
   });
 
-  it('모드에 매이지 않는 자리는 그릇 밖에 선다', () => {
+  it('글로벌 페이지는 셸 외부 독립 경로로 구성된다', () => {
     const paths = shellChildren().map((child) => child.path);
 
     expect(paths).toContain('pets');
@@ -65,7 +65,7 @@ describe('app.routes 의 첫 자리', () => {
    * 잡고 자식인 `projects` 에서 실패해 라우터의 되짚기에 기대게 된다. 되짚기가 도는 동안은 터지지
    * 않으므로, 검사가 없으면 순서를 되돌려도 아무도 모른다.
    */
-  it('프로젝트 하나의 자리가 껍데기보다 먼저 선다', () => {
+  it('프로젝트 개별 경로는 공통 셸 라우트보다 우선 평가된다', () => {
     const one = routes.findIndex((route) => route.path === 'projects/:projectId');
     const shell = routes.findIndex(
       (route) => route.path === '' && route.children !== undefined,
@@ -80,7 +80,7 @@ describe('app.routes 의 첫 자리', () => {
    * 바닥의 띠는 자리마다 담기는 것이 다르므로 라우트가 내려 준다. 내려 주지 않으면 그 자리가
    * 투두의 것을 그대로 쓰게 되는데, 터지지 않으므로 눈으로만 드러난다.
    */
-  it('자리마다 바닥의 띠를 내려 준다', () => {
+  it('경로별로 적절한 하단 탭 바 항목이 제공된다', () => {
     expect(provides(routes, 'projects/:projectId', BOTTOM_NAV)).toBe(true);
     expect(provides(routes, 'admin', BOTTOM_NAV)).toBe(true);
   });

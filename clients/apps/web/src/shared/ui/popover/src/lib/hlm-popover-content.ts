@@ -23,8 +23,7 @@ export class HlmPopoverContent {
       this._renderer.setAttribute(this._element.nativeElement, 'data-state', this.state());
     });
 
-    // 판이 뜨는 자리가 화면 폭에 따라 갈리므로 그 모양도 함께 갈린다. 트리거 옆에 붙은 것은 제 폭을
-    // 갖고 사방이 둥글고, 아래에 붙은 것은 화면을 채우고 위쪽만 둥글다.
+    // 뷰포트 너비에 따라 데스크톱은 팝오버로, 모바일은 하단 시트로 렌더링한다.
     classes(() => [
       SURFACE_BASE,
       this._presentation.compact() ? HLM_POPOVER_SURFACE_COMPACT : HLM_POPOVER_SURFACE_WIDE,

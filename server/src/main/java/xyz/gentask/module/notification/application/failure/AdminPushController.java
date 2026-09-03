@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.gentask.module.notification.application.failure.AdminPushViews.PushFailurePageView;
 
-/** 관리자 전용. 이 경로의 접근 판정은 AdminInterceptor 가 갖는다. */
+/** 관리자 전용 웹 푸시 발송 실패 관리 컨트롤러다. */
 @RestController
 @RequestMapping("/api/v1/admin/push/failures")
 @RequiredArgsConstructor

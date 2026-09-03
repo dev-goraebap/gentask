@@ -32,7 +32,7 @@ function toKeys(subscription: PushSubscription): PushSubscriptionKeys {
   return { endpoint: subscription.endpoint, p256dh: keys['p256dh'] ?? '', auth: keys['auth'] ?? '' };
 }
 
-/** 서비스 워커를 세운다. 푸시는 이 자리로만 오므로 구독보다 먼저 있어야 한다. */
+/** 푸시 알림 수신을 위한 서비스 워커를 등록한다. */
 export async function ensureServiceWorker(): Promise<ServiceWorkerRegistration> {
   return navigator.serviceWorker.register('/sw.js', { scope: '/' });
 }
@@ -51,10 +51,7 @@ export type SubscribeResult =
   | { readonly status: 'denied' };
 
 /**
- * 권한을 얻고 이 기기의 받을 자리를 만든다.
- *
- * <p>권한 요청은 사용자의 조작에서 곧바로 이어져야 한다. 화면이 뜨자마자 부르면 브라우저가 무시하거나
- * 사용자가 맥락 없이 거절한다.
+ * 사용자 권한을 요청하고 브라우저 푸시 엔드포인트를 구독한다.
  */
 export async function subscribe(publicKey: string): Promise<SubscribeResult> {
   const permission = await Notification.requestPermission();
@@ -76,9 +73,7 @@ export async function subscribe(publicKey: string): Promise<SubscribeResult> {
 }
 
 /**
- * 이 기기의 받을 자리를 거둔다. 브라우저 권한은 그대로 두므로 다시 켤 때 묻지 않는다.
- *
- * @returns 거둔 자리의 endpoint. 구독이 없었으면 아무것도 내지 않는다
+ * 웹 푸시 구독을 해제하고 구독 해제된 엔드포인트를 반환한다.
  */
 export async function unsubscribe(): Promise<string | null> {
   const registration = await navigator.serviceWorker.getRegistration('/');

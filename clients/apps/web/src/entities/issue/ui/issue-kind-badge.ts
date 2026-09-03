@@ -10,7 +10,7 @@ import {
 /**
  * 작업 아이템 유형의 표식.
  *
- * <p>색만으로 유형을 전하지 않는다. 유형마다 그림이 다르고 스크린리더에는 이름이 간다.
+ * 색만으로 유형을 전하지 않는다. 유형마다 그림이 다르고 스크린리더에는 이름이 간다.
  */
 const KIND_CLASS: Readonly<Record<IssueKind, string>> = {
   [ISSUE_KINDS.epic]: 'bg-kind-epic text-kind-epic-foreground',

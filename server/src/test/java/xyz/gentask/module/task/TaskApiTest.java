@@ -51,7 +51,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("로그인 없이 작업에 닿을 수 없다")
+    @DisplayName("인증되지 않은 사용자의 작업 조회를 거부한다")
     void 로그인_없이_작업에_닿을_수_없다() throws Exception {
         mockMvc.perform(get("/api/v1/tasks"))
                 .andExpect(status().isUnauthorized())
@@ -59,7 +59,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("다른 계정의 작업은 목록에도 상세에도 없다")
+    @DisplayName("타 계정의 작업은 목록 및 상세 조회 대상에서 제외한다")
     void 다른_계정의_작업은_목록에도_상세에도_없다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"내 것\"}");
 
@@ -71,7 +71,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("지난 날짜도 기한으로 받는다")
+    @DisplayName("과거 날짜도 마감 기한으로 등록 가능하다")
     void 지난_날짜도_기한으로_받는다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"미룬 일\",\"dueDate\":\"2020-01-01\"}");
 
@@ -79,7 +79,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("이미 완료된 것을 다시 완료해도 완료된 작업으로 남는다")
+    @DisplayName("이미 완료된 작업을 다시 완료 처리해도 완료 상태와 완료 시각을 유지한다")
     void 이미_완료된_것을_다시_완료해도_완료된_작업으로_남는다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
         완료를_바꾼다(taskId, true);
@@ -91,7 +91,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("널을 보내면 기한과 미리 알림이 떨어진다")
+    @DisplayName("null을 전달하면 기한과 미리 알림 설정이 해제된다")
     void 널을_보내면_기한과_미리_알림이_떨어진다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\",\"dueDate\":\"2026-09-01\"}");
 
@@ -103,7 +103,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("제목을 비우면 400 과 사유를 내고 값을 바꾸지 않는다")
+    @DisplayName("작업 제목이 공백이면 400 오류를 반환하고 기존 값을 유지한다")
     void 제목을_비우면_고치지_않는다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
@@ -118,7 +118,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("삭제하면 204 를 내고 다시 조회하면 404 다")
+    @DisplayName("작업을 삭제하면 204를 반환하고 이후 조회 시 404를 반환한다")
     void 삭제하면_목록에_없다() throws Exception {
         String taskId = 작업을_만든다("{\"title\":\"장 보기\"}");
 
@@ -129,7 +129,7 @@ class TaskApiTest {
     }
 
     @Test
-    @DisplayName("없는 작업은 완료하지 못한다")
+    @DisplayName("존재하지 않는 작업의 완료 상태 변경을 요청하면 404를 반환한다")
     void 없는_작업은_고치지_못한다() throws Exception {
         mockMvc.perform(patch("/api/v1/tasks/{id}/completion", "00000000-0000-0000-0000-000000000000")
                         .cookie(session)

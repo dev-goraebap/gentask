@@ -116,7 +116,7 @@ const ENV = {
 } as NodeJS.ProcessEnv;
 
 describe('gentask doc', () => {
-  it('목록은 지금 프로젝트 아래를 부른다', async () => {
+  it('현재 프로젝트의 문서 목록을 조회한다', async () => {
     const { calls, fetchFn } = spy([{ body: [summary()] }]);
 
     const outcome = await run(['doc', 'list'], () => client(fetchFn), ENV);
@@ -126,7 +126,7 @@ describe('gentask doc', () => {
     expect(outcome.out).toContain('2026-09-03 10:30');
   });
 
-  it('문서가 없으면 그 사실을 말한다', async () => {
+  it('문서가 없으면 빈 목록 안내를 출력한다', async () => {
     const { fetchFn } = spy([{ body: [] }]);
 
     const outcome = await run(['doc', 'list'], () => client(fetchFn), ENV);
@@ -138,7 +138,7 @@ describe('gentask doc', () => {
    * 에이전트가 받는 것은 그린 결과가 아니라 원문이다(DOC-002 A5). 표제와 표와 코드 담이 적힌 그대로
    * 나와야 하며, 감싸거나 들여쓰면 받는 쪽이 다시 원문을 만들어야 한다.
    */
-  it('본문을 마크다운 원문 그대로 낸다', async () => {
+  it('문서 상세 조회 시 원본 마크다운 본문을 출력한다', async () => {
     const 원문 = '# 제목\n\n- 하나\n- 둘\n\n```ts\nconst a = 1;\n```';
     const { calls, fetchFn } = spy([{ body: doc({ body: 원문 }) }]);
 
@@ -148,7 +148,7 @@ describe('gentask doc', () => {
     expect(outcome.out).toContain(원문);
   });
 
-  it('식별자는 앞 몇 자만 적어도 된다', async () => {
+  it('문서 식별자의 접두부 단축 입력을 허용한다', async () => {
     const { calls, fetchFn } = spy([{ body: [summary()] }, { body: doc() }]);
 
     await run(['doc', 'show', 'aaaaaaaa'], () => client(fetchFn), ENV);
@@ -157,7 +157,7 @@ describe('gentask doc', () => {
     expect(calls[1]?.url).toBe(`https://api.example/api/v1/projects/TG/documents/${ID}`);
   });
 
-  it('앞이 맞는 것이 둘 이상이면 고르지 않고 후보를 보인다', async () => {
+  it('단축 식별자와 일치하는 후보가 둘 이상이면 일치 목록을 출력한다', async () => {
     const { calls, fetchFn } = spy([
       {
         body: [
@@ -173,7 +173,7 @@ describe('gentask doc', () => {
     expect(calls).toHaveLength(1);
   });
 
-  it('세우면 제목과 본문을 보내고 식별자를 낸다', async () => {
+  it('문서 생성 시 제목과 본문을 전송하고 발급된 식별자를 출력한다', async () => {
     const { calls, fetchFn } = spy([
       { status: 201, location: `/api/v1/projects/TG/documents/${ID}` },
     ]);
@@ -193,7 +193,7 @@ describe('gentask doc', () => {
    * 서버의 편집은 부분 갱신이 아니라 제목과 본문을 그대로 받는다. 넘기지 않은 것을 되돌려 주지
    * 않으면 제목만 고쳐도 본문이 통째로 지워진 개정이 쌓인다.
    */
-  it('제목만 고쳐도 본문은 그대로 간다', async () => {
+  it('제목만 수정할 경우 기존 본문을 유지하여 전송한다', async () => {
     const { calls, fetchFn } = spy([{ body: doc({ body: '지켜야 할 본문' }) }, { status: 204 }]);
 
     const outcome = await run(
@@ -207,7 +207,7 @@ describe('gentask doc', () => {
     expect(outcome.out).toBe(`고쳤습니다: ${ID}`);
   });
 
-  it('왜 고쳤는지를 함께 보낸다', async () => {
+  it('문서 수정 시 개정 사유를 함께 전송한다', async () => {
     const { calls, fetchFn } = spy([{ body: doc() }, { status: 204 }]);
 
     await run(
@@ -224,7 +224,7 @@ describe('gentask doc', () => {
   });
 
   /* 사유만 넘기면 서버가 같은 것으로 보고 아무것도 담지 않는다(DOC-003 A2). 그 전에 멈춘다. */
-  it('사유만 넘기면 바꿀 것이 없음을 알리고 부르지 않는다', async () => {
+  it('수정 내용 없이 사유만 전달된 경우 수정을 중단하고 안내를 출력한다', async () => {
     const { calls, fetchFn } = spy([{ body: doc() }]);
 
     await expect(
@@ -233,7 +233,7 @@ describe('gentask doc', () => {
     expect(calls).toHaveLength(0);
   });
 
-  it('프로젝트를 정하지 않으면 스스로 실행할 명령을 알린다', async () => {
+  it('프로젝트가 지정되지 않은 경우 설정 명령어 가이드를 출력한다', async () => {
     const { fetchFn } = spy([{ body: [] }]);
 
     await expect(
@@ -244,7 +244,7 @@ describe('gentask doc', () => {
     ).rejects.toThrow(/gentask project use/);
   });
 
-  it('하위 명령이 아니면 그 사실을 알린다', async () => {
+  it('지원하지 않는 하위 명령 입력 시 오류를 안내한다', async () => {
     const { fetchFn } = spy([{ body: [] }]);
 
     await expect(run(['doc', 'rm', ID], () => client(fetchFn), ENV)).rejects.toThrow(
@@ -254,7 +254,7 @@ describe('gentask doc', () => {
 });
 
 describe('gentask doc history', () => {
-  it('개정을 최근 것부터 한 줄씩 낸다', async () => {
+  it('문서 개정 이력을 최신 순으로 출력한다', async () => {
     const { calls, fetchFn } = spy([{ body: revisionPage() }]);
 
     const outcome = await run(['doc', 'history', ID], () => client(fetchFn), ENV);
@@ -268,7 +268,7 @@ describe('gentask doc history', () => {
   });
 
   /* 쪽을 감추지 않는다. 남은 것이 있으면 다음을 어떻게 부르는지가 함께 나온다(DOC-004 A3). */
-  it('한 쪽에 담기지 않으면 다음 쪽을 부르는 법을 알린다', async () => {
+  it('다음 페이지가 존재하면 다음 페이지 조회 명령어를 안내한다', async () => {
     const { fetchFn } = spy([{ body: revisionPage({ total: 30, page: 0, size: 2 }) }]);
 
     const outcome = await run(['doc', 'history', ID], () => client(fetchFn), ENV);
@@ -277,7 +277,7 @@ describe('gentask doc history', () => {
     expect(outcome.out).toContain('--page 1');
   });
 
-  it('다 보이면 남은 쪽을 말하지 않는다', async () => {
+  it('마지막 페이지에서는 추가 페이지 안내를 출력하지 않는다', async () => {
     const { fetchFn } = spy([{ body: revisionPage() }]);
 
     const outcome = await run(['doc', 'history', ID], () => client(fetchFn), ENV);
@@ -285,7 +285,7 @@ describe('gentask doc history', () => {
     expect(outcome.out).not.toContain('--page');
   });
 
-  it('쪽과 개수를 그대로 실어 보낸다', async () => {
+  it('페이지 번호와 크기 인자를 API 요청 파라미터로 전달한다', async () => {
     const { calls, fetchFn } = spy([{ body: revisionPage({ page: 2, size: 5, total: 30 }) }]);
 
     await run(['doc', 'history', ID, '--page', '2', '--size', '5'], () => client(fetchFn), ENV);
@@ -295,7 +295,7 @@ describe('gentask doc history', () => {
     );
   });
 
-  it('쪽이 정수가 아니면 부르지 않는다', async () => {
+  it('페이지 번호가 정수가 아니면 요청을 중단하고 오류를 안내한다', async () => {
     const { calls, fetchFn } = spy([{ body: revisionPage() }]);
 
     await expect(
@@ -304,7 +304,7 @@ describe('gentask doc history', () => {
     expect(calls).toHaveLength(0);
   });
 
-  it('--json 은 서버가 준 쪽 정보를 그대로 낸다', async () => {
+  it('--json 옵션 지정 시 서버 응답 원본을 JSON 형태로 출력한다', async () => {
     const { fetchFn } = spy([{ body: revisionPage({ total: 30, page: 1, size: 2 }) }]);
 
     const outcome = await run(['doc', 'history', ID, '--json'], () => client(fetchFn), ENV);
@@ -312,7 +312,7 @@ describe('gentask doc history', () => {
     expect(JSON.parse(outcome.out)).toMatchObject({ total: 30, page: 1, size: 2 });
   });
 
-  it('식별자는 여기서도 앞 몇 자만 적어도 된다', async () => {
+  it('개정 이력 조회 시에도 문서 식별자의 단축 입력을 허용한다', async () => {
     const { calls, fetchFn } = spy([{ body: [summary()] }, { body: revisionPage() }]);
 
     await run(['doc', 'history', 'aaaaaaaa'], () => client(fetchFn), ENV);
@@ -325,7 +325,7 @@ describe('gentask doc history', () => {
 
 describe('gentask doc show --rev', () => {
   /* 지금 참인 본문과 마찬가지로 그때의 본문도 원문 그대로다(DOC-002 A5). */
-  it('그때의 본문을 마크다운 원문 그대로 낸다', async () => {
+  it('지정한 개정 시점의 원본 마크다운 본문을 출력한다', async () => {
     const 원문 = '# 제목\n\n- 하나\n\n```ts\nconst a = 1;\n```';
     const { calls, fetchFn } = spy([{ body: revision({ body: 원문 }) }]);
 
@@ -338,7 +338,7 @@ describe('gentask doc show --rev', () => {
     expect(outcome.out).toContain('개정     3');
   });
 
-  it('--rev 가 없으면 지금 참인 개정을 부른다', async () => {
+  it('--rev 미지정 시 최신 유효 개정의 본문을 출력한다', async () => {
     const { calls, fetchFn } = spy([{ body: doc() }]);
 
     await run(['doc', 'show', ID], () => client(fetchFn), ENV);
@@ -361,7 +361,7 @@ describe('gentask doc revert', () => {
    * 되묻는 자리를 지운 것과 같은 모양으로 지난다(DOC-005 A6). 보이는 것은 되돌릴 수 없다는 경고가
    * 아니라 어느 시점으로 가는지다 — 사이의 개정이 남으므로 잃는 것이 없다.
    */
-  it('--yes 없이는 어느 시점으로 가는지만 보이고 담지 않는다', async () => {
+  it('--yes 옵션이 없으면 롤백 대상 개정 정보만 미리 표시하고 롤백하지 않는다', async () => {
     const { calls, fetchFn } = spy([{ body: revision() }]);
 
     const outcome = await run(['doc', 'revert', ID, '3'], () => client(fetchFn), ENV);
@@ -373,7 +373,7 @@ describe('gentask doc revert', () => {
     expect(outcome.out).toContain('--yes');
   });
 
-  it('--yes 를 넘기면 담고 지금 개정이 몇 번인지 말한다', async () => {
+  it('--yes 옵션 지정 시 해당 개정으로 롤백하고 최신 개정 번호를 출력한다', async () => {
     const { calls, fetchFn } = spy([{ status: 204 }, { body: doc({ revisionNo: 4 }) }]);
 
     const outcome = await run(['doc', 'revert', ID, '2', '--yes'], () => client(fetchFn), ENV);
@@ -388,7 +388,7 @@ describe('gentask doc revert', () => {
   });
 
   /* 서버가 사유를 스스로 적는다(DOC-005 A3). 명령줄이 그 문구를 흉내 내 보내지 않는다. */
-  it('사유를 적지 않으면 아무 문구도 보내지 않는다', async () => {
+  it('롤백 사유 미입력 시 요청 본문에서 사유 필드를 제외한다', async () => {
     const { calls, fetchFn } = spy([{ status: 204 }, { body: doc({ revisionNo: 4 }) }]);
 
     await run(['doc', 'revert', ID, '2', '--yes'], () => client(fetchFn), ENV);
@@ -396,7 +396,7 @@ describe('gentask doc revert', () => {
     expect(calls[0]?.body).toEqual({});
   });
 
-  it('사유를 적으면 그대로 보낸다', async () => {
+  it('롤백 사유 입력 시 해당 사유를 요청 본문에 포함하여 전송한다', async () => {
     const { calls, fetchFn } = spy([{ status: 204 }, { body: doc({ revisionNo: 4 }) }]);
 
     await run(
@@ -507,7 +507,7 @@ describe('gentask doc folder', () => {
     expect(JSON.parse(outcome.out)).toEqual({ id: FOLDER });
   });
 
-  it('--parent 를 넘기면 그 아래에 세운다', async () => {
+  it('--parent 옵션 지정 시 해당 상위 폴더 하위에 폴더를 생성한다', async () => {
     const { calls, fetchFn } = spy([
       { body: [folder()] },
       { status: 201, location: '/api/v1/projects/TG/document-folders/x' },
@@ -519,7 +519,7 @@ describe('gentask doc folder', () => {
   });
 
   /* 이름이 겹쳐도 막지 않는다(DOC-008 A2). 가리키는 것은 이름이 아니라 식별자다. */
-  it('같은 이름이 이미 있어도 그대로 세운다', async () => {
+  it('동일 이름의 폴더가 존재해도 중복 생성을 허용한다', async () => {
     const { calls, fetchFn } = spy([
       { body: [folder()] },
       { status: 201, location: '/api/v1/projects/TG/document-folders/x' },
@@ -534,7 +534,7 @@ describe('gentask doc folder', () => {
     expect(calls[1]?.body).toEqual({ name: '아키텍처', parentId: FOLDER });
   });
 
-  it('식별자는 폴더에서도 앞 몇 자만 적어도 된다', async () => {
+  it('폴더 식별자도 접두부 단축 입력을 허용한다', async () => {
     const { calls, fetchFn } = spy([{ body: [folder()] }, { status: 204 }]);
 
     await run(['doc', 'folder', 'rename', 'ffff', '새', '이름'], () => client(fetchFn), ENV);
@@ -544,7 +544,7 @@ describe('gentask doc folder', () => {
     expect(calls[1]?.body).toEqual({ name: '새 이름' });
   });
 
-  it('앞이 맞는 폴더가 둘 이상이면 고르지 않고 후보를 보인다', async () => {
+  it('단축 식별자와 일치하는 폴더 후보가 둘 이상이면 일치 목록을 출력한다', async () => {
     const { calls, fetchFn } = spy([
       {
         body: [
@@ -560,7 +560,7 @@ describe('gentask doc folder', () => {
     expect(calls).toHaveLength(1);
   });
 
-  it('옮기면 담긴 것이 함께 간다는 것을 말한다', async () => {
+  it('폴더 이동 시 하위 문서 및 폴더의 동반 이동을 안내한다', async () => {
     const { calls, fetchFn } = spy([
       { body: [folder(), folder({ id: 'cccccccc-0000-0000-0000-000000000000', name: '위' })] },
       { status: 204 },
@@ -580,7 +580,7 @@ describe('gentask doc folder', () => {
     expect(outcome.out).toContain('함께 갔습니다');
   });
 
-  it('--parent 를 비우면 최상위로 옮긴다', async () => {
+  it('--parent 미지정 시 폴더를 최상위 루트로 이동한다', async () => {
     const { calls, fetchFn } = spy([{ body: [folder()] }, { status: 204 }]);
 
     const outcome = await run(['doc', 'folder', 'mv', 'ffffffff'], () => client(fetchFn), ENV);
@@ -590,7 +590,7 @@ describe('gentask doc folder', () => {
   });
 
   /* 자기 자손 아래로 가는 것은 서버가 가린다(DOC-008 A6). 사유를 여기서 다시 짓지 않는다. */
-  it('자기 자손 아래로 옮기면 서버가 낸 사유를 그대로 옮긴다', async () => {
+  it('자신의 하위 자손 폴더로 이동 시 서버 오류 메시지를 그대로 출력한다', async () => {
     const { fetchFn } = spy([
       { body: [folder()] },
       {
@@ -611,7 +611,7 @@ describe('gentask doc folder', () => {
    * 되묻는 자리를 반드시 지난다(DOC-008 A7). 보이는 것이 지워지는 수가 아니라 올라오는 수라는 것이
    * 말에 담겨야 한다 — 삭제로 읽히면 사람이 지우지 않을 것을 지운다.
    */
-  it('--yes 없이는 담긴 것이 몇인지 보이고 지우지 않는다', async () => {
+  it('--yes 옵션이 없으면 소속 하위 항목 수를 표시하고 삭제하지 않는다', async () => {
     const { calls, fetchFn } = spy([{ body: [folder({ documentCount: 3, folderCount: 2 })] }]);
 
     const outcome = await run(['doc', 'folder', 'rm', 'ffffffff'], () => client(fetchFn), ENV);
@@ -624,7 +624,7 @@ describe('gentask doc folder', () => {
     expect(outcome.out).toContain('--yes');
   });
 
-  it('--yes 를 넘기면 지우고 무엇이 올라갔는지 말한다', async () => {
+  it('--yes 옵션 지정 시 폴더를 삭제하고 상위 승격된 항목 수를 출력한다', async () => {
     const { calls, fetchFn } = spy([
       { body: [folder({ documentCount: 3, folderCount: 2 })] },
       { status: 204 },
@@ -642,7 +642,7 @@ describe('gentask doc folder', () => {
     expect(outcome.out).toContain('한 단계 위로 올라갔습니다');
   });
 
-  it('비어 있으면 올라갈 것을 말하지 않는다', async () => {
+  it('소속 항목이 없는 빈 폴더 삭제 시 승격 안내 문구를 생략한다', async () => {
     const { fetchFn } = spy([{ body: [folder()] }]);
 
     const outcome = await run(['doc', 'folder', 'rm', 'ffffffff'], () => client(fetchFn), ENV);
@@ -651,7 +651,7 @@ describe('gentask doc folder', () => {
     expect(outcome.out).not.toContain('올라갑니다');
   });
 
-  it('하위 명령이 아니면 그 사실을 알린다', async () => {
+  it('지원하지 않는 하위 명령 입력 시 오류를 안내한다', async () => {
     const { fetchFn } = spy([{ body: [] }]);
 
     await expect(run(['doc', 'folder', 'move'], () => client(fetchFn), ENV)).rejects.toThrow(
@@ -661,7 +661,7 @@ describe('gentask doc folder', () => {
 });
 
 describe('gentask doc 와 폴더', () => {
-  it('세울 때 담을 자리를 함께 보낸다', async () => {
+  it('문서 생성 시 대상 폴더 식별자를 함께 전송한다', async () => {
     const { calls, fetchFn } = spy([
       { body: [folder()] },
       { status: 201, location: `/api/v1/projects/TG/documents/${ID}` },
@@ -673,7 +673,7 @@ describe('gentask doc 와 폴더', () => {
   });
 
   /* 옮기는 것은 개정이 아니다(DOC-006). 본문도 제목도 보내지 않는다. */
-  it('옮기기는 담긴 자리만 보낸다', async () => {
+  it('문서 이동 요청 시 대상 폴더 식별자만 전송한다', async () => {
     const { calls, fetchFn } = spy([{ body: [folder()] }, { status: 204 }]);
 
     const outcome = await run(
@@ -688,7 +688,7 @@ describe('gentask doc 와 폴더', () => {
     expect(outcome.out).toContain('아키텍처');
   });
 
-  it('--folder 를 비우면 최상위로 옮긴다', async () => {
+  it('--folder 미지정 시 문서를 최상위 루트로 이동한다', async () => {
     const { calls, fetchFn } = spy([{ status: 204 }]);
 
     const outcome = await run(['doc', 'mv', ID], () => client(fetchFn), ENV);
@@ -697,7 +697,7 @@ describe('gentask doc 와 폴더', () => {
     expect(outcome.out).toContain('최상위로');
   });
 
-  it('목록을 그 자리의 것만으로 좁힌다', async () => {
+  it('지정한 폴더 하위의 문서만 필터링하여 목록에 출력한다', async () => {
     const { fetchFn } = spy([
       {
         body: [
@@ -715,9 +715,9 @@ describe('gentask doc 와 폴더', () => {
   });
 });
 
-describe('gentask doc 본문을 파일과 표준입력에서 받기', () => {
+describe('파일 및 표준 입력을 통한 문서 본문 입력', () => {
   /* 마크다운 한 편을 --body 로 넘기면 셸의 인자 길이 한계에 걸린다. 옮기기가 이 길로 간다. */
-  it('--body-file 이 파일의 내용을 본문으로 보낸다', async () => {
+  it('--body-file 옵션으로 지정한 파일의 내용을 본문으로 전송한다', async () => {
     const 경로 = join(mkdtempSync(join(tmpdir(), 'gentask-body-')), 'body.md');
     writeFileSync(경로, '# 제목\n\n본문이 길다', 'utf8');
     const { calls, fetchFn } = spy([
@@ -729,7 +729,7 @@ describe('gentask doc 본문을 파일과 표준입력에서 받기', () => {
     expect(calls[0]?.body).toEqual({ title: '개요', body: '# 제목\n\n본문이 길다' });
   });
 
-  it('--body-file - 은 표준입력에서 받는다', async () => {
+  it('--body-file - 지정 시 표준 입력 스트림을 본문으로 수신하여 전송한다', async () => {
     const { calls, fetchFn } = spy([
       { status: 201, location: `/api/v1/projects/TG/documents/${ID}` },
     ]);
@@ -744,7 +744,7 @@ describe('gentask doc 본문을 파일과 표준입력에서 받기', () => {
     expect(calls[0]?.body).toEqual({ title: '개요', body: '파이프로 들어온 본문' });
   });
 
-  it('고칠 때도 파일에서 본문을 받는다', async () => {
+  it('문서 수정 시에도 파일로부터 본문을 읽어 전송한다', async () => {
     const 경로 = join(mkdtempSync(join(tmpdir(), 'gentask-body-')), 'body.md');
     writeFileSync(경로, '고쳐 담을 본문', 'utf8');
     const { calls, fetchFn } = spy([{ body: doc() }, { status: 204 }]);
@@ -755,7 +755,7 @@ describe('gentask doc 본문을 파일과 표준입력에서 받기', () => {
   });
 
   /* 어느 쪽이 이겼는지 부르는 쪽이 알 수 없다. 파이프로 이어 붙인 본문이 조용히 버려지면 안 된다. */
-  it('--body 와 --body-file 을 함께 넘기면 부르지 않는다', async () => {
+  it('--body와 --body-file 옵션의 동시 지정을 금지한다', async () => {
     const { calls, fetchFn } = spy([{ body: [] }]);
 
     await expect(
@@ -764,7 +764,7 @@ describe('gentask doc 본문을 파일과 표준입력에서 받기', () => {
     expect(calls).toHaveLength(0);
   });
 
-  it('읽을 파일이 없으면 그 사실을 알리고 부르지 않는다', async () => {
+  it('지정한 본문 파일이 존재하지 않으면 오류를 출력하고 요청을 중단한다', async () => {
     const { calls, fetchFn } = spy([{ body: [] }]);
 
     await expect(
@@ -773,7 +773,7 @@ describe('gentask doc 본문을 파일과 표준입력에서 받기', () => {
     expect(calls).toHaveLength(0);
   });
 
-  it('사유만 넘기는 것은 --body-file 이 생겨도 받지 않는다', async () => {
+  it('본문 변경 없는 사유 단독 입력은 여전히 거부한다', async () => {
     const { calls, fetchFn } = spy([{ body: doc() }]);
 
     await expect(

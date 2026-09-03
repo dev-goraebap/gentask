@@ -18,7 +18,7 @@ public enum FileErrorCode implements ErrorCode {
 
     FILE_NOT_UPLOADED(HttpStatus.BAD_REQUEST, "보관소에 올라간 파일이 없습니다"),
 
-    // 첨부를 붙이려는 자리가 어느 도메인에도 등록되지 않았다. 배선 결함이며 요청의 잘못이 아니다
+    // 미등록 첨부 대상 위치에 대한 요청인 경우 내부 설정 오류로 처리한다.
     FILE_OWNER_NOT_SUPPORTED(HttpStatus.INTERNAL_SERVER_ERROR, "첨부를 다룰 수 없는 자리입니다");
 
     private final HttpStatus status;

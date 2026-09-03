@@ -55,7 +55,7 @@ describe('HlmPopover', () => {
    * 새로고침 없이 화면 폭을 바꾸는 경우다. 뒤를 덮는 판의 **존재**를 폭에 맡기면 그 값이 한 번만
    * 읽혀 여기서 어긋난다 — 넓은 화면인데 뒤가 덮이거나, 좁은 화면인데 덮이지 않는다.
    */
-  it('화면 폭이 바뀌면 새로 세우지 않아도 따라옵니다', async () => {
+  it('화면 너비가 변경되면 동적으로 레이아웃이 전환된다', async () => {
     const host = stand({ wide: true });
     await open(host);
     await close(host);
@@ -107,8 +107,7 @@ function breakpointState(matches: boolean) {
 }
 
 /**
- * 판 안에서 찾습니다. `document.body` 로 찾으면 내용이 화면 안에 남아 판이 비어도 통과합니다 —
- * FE-STY-185 가 그 자리를 갖습니다.
+ * 팝오버 패널 내부 요소를 탐색한다.
  */
 async function open(host: Host): Promise<HTMLElement> {
   const trigger = host.fixture.nativeElement.querySelector('button') as HTMLButtonElement;

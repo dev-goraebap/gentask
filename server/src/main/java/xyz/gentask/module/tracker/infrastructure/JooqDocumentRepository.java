@@ -63,8 +63,7 @@ class JooqDocumentRepository implements DocumentRepository {
     }
 
     /*
-     * 지워진 문서도 함께 낸다. 논리 삭제라 표에 줄이 남아 폴더를 가리키므로, 걸러 내면 그 폴더가
-     * 지워지지 않는다(DOC-008 A7).
+     * 폴더 이동 시 논리 삭제된 문서도 참조 정합성을 위해 함께 이동 대상에 포함한다(DOC-008 A7).
      */
     @Override
     public List<Document> findAllInFolder(UUID folderId) {

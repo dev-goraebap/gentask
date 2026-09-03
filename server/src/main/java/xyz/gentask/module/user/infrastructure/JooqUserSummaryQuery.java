@@ -59,10 +59,7 @@ class JooqUserSummaryQuery implements UserSummaryQuery {
     }
 
     /**
-     * 이메일과 별명을 함께 본다.
-     *
-     * <p>정규화 값이 아니라 적은 그대로의 이메일에 거는 것은 관리자가 화면에서 보는 값이 그것이기
-     * 때문이다. 대소문자를 무시하도록 양쪽을 내려 맞춘다.
+     * 관리자 검색을 위해 원본 이메일 및 닉네임에 대한 대소문자 무시 부분 일치 조건을 구성한다.
      */
     private static Condition matches(String keyword) {
         if (keyword == null || keyword.isBlank()) {

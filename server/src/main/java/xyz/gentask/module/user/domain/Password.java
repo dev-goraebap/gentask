@@ -6,14 +6,9 @@ import xyz.gentask.shared.domain.ValueObject;
 import xyz.gentask.shared.error.DomainRuleViolation;
 
 /**
- * 아직 해싱되지 않은 비밀번호. 규칙은 결정-0012 가 갖는다.
+ * 미해싱 평문 비밀번호 값 객체다(결정-0012).
  *
- * <p>상한 72 는 bcrypt 가 그 뒤를 무시하는 데서 온다. 자르지 않고 거절하는 것은, 잘라 두면 73자를
- * 넣은 사람과 그 앞 72자를 넣은 사람이 같은 비밀번호를 갖게 되기 때문이다.
- *
- * <p>구성 규칙에는 반대 근거가 있다. NIST SP 800-63B 는 문자 종류의 조합을 요구하지 말 것을
- * 명시하며, 규칙을 걸면 그것을 최소 비용으로 충족하는 예측 가능한 형태로 몰린다고 본다. 그 대안인
- * 유출 목록 대조를 이 저장소가 아직 갖지 못해 규칙을 두는 쪽을 택했다.
+ * bcrypt 알고리즘의 유효 자릿수 한계(72자)를 고려하여 8자 이상 72자 이하로 길이를 제한한다.
  */
 public record Password(String value) implements ValueObject {
 
@@ -27,7 +22,7 @@ public record Password(String value) implements ValueObject {
         if (rawPassword == null || rawPassword.isEmpty()) {
             throw new DomainRuleViolation(REQUIRED);
         }
-        // 앞뒤를 자르지 않는다. 자르면 사용자가 입력한 것과 저장된 것이 달라진다.
+        // 사용자 입력을 보존하기 위해 앞뒤 공백을 임의로 제거하지 않는다.
         if (rawPassword.length() < MIN || rawPassword.length() > MAX) {
             throw new DomainRuleViolation(LENGTH);
         }
@@ -42,7 +37,7 @@ public record Password(String value) implements ValueObject {
         if (!contains(rawPassword, character -> !Character.isLetterOrDigit(character))) {
             missing.add("특수문자");
         }
-        // 충족하지 못한 것을 모아 한 번에 낸다. 하나씩 알리면 고칠 때마다 다시 제출하게 된다.
+        // 정책 미충족 항목들을 모두 수집하여 일괄 반환한다.
         if (!missing.isEmpty()) {
             throw new DomainRuleViolation("비밀번호에 " + String.join(" · ", missing) + "를 각각 하나 이상 넣어 주세요");
         }
@@ -53,7 +48,7 @@ public record Password(String value) implements ValueObject {
         return value.chars().anyMatch(codePoint -> predicate.test((char) codePoint));
     }
 
-    /** 로그와 오류 메시지에 값이 실리지 않게 한다. */
+    /** 로그 및 오류 메시지에서 평문이 노출되지 않도록 마스킹 처리한다. */
     @Override
     public String toString() {
         return "Password(****)";

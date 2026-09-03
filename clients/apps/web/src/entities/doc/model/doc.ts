@@ -26,7 +26,7 @@ export interface DocSummary {
 /**
  * 문서에 붙는 파일. 본문에 들어가는 그림과 달리 문서 자체에 붙는다.
  *
- * <p><b>아직 목이다.</b> 서버에 자리가 없어(GT-71) 언제나 비어 있다.
+ * 아직 목이다. 서버에 자리가 없어(GT-71) 언제나 비어 있다.
  */
 export interface DocAttachment {
   readonly name: string;
@@ -36,7 +36,7 @@ export interface DocAttachment {
 /**
  * 이 문서를 거는 작업 아이템.
  *
- * <p><b>아직 목이다.</b> 서버에 자리가 없어(GT-72) 언제나 비어 있다.
+ * 아직 목이다. 서버에 자리가 없어(GT-72) 언제나 비어 있다.
  */
 export interface DocLinkedIssue {
   readonly id: string;
@@ -45,9 +45,9 @@ export interface DocLinkedIssue {
 
 export interface Doc extends DocSummary {
   /**
-   * 지금 참인 개정의 본문. <b>마크다운 원문</b>이다.
+   * 지금 참인 개정의 본문. 마크다운 원문이다.
    *
-   * <p>덩이로 나눠 받지 않는다. 받은 문자열을 그대로 심으면 다른 사람이 적은 것이 스크립트로
+   * 덩이로 나눠 받지 않는다. 받은 문자열을 그대로 심으면 다른 사람이 적은 것이 스크립트로
    * 실행되므로, 그리는 자리(`markdown-view`)가 그 경로를 닫는다 — 원문 자체는 위험하지 않고
    * 위험은 그리는 자리에 있다(DOC-002 A5).
    */

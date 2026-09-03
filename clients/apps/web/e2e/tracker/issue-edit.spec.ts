@@ -52,7 +52,7 @@ test.describe('작업 아이템을 고친다', () => {
       body: '- [ ] #1 고치기 전 조건',
     });
 
-    // 본문의 체크 항목이 읽는 자리에도 그대로 그려진다. 세어 낸 쪽만 본다.
+    // 상세 뷰에 렌더링된 인수 조건 체크리스트를 검증한다.
     const 인수조건 = page.getByRole('list', { name: '인수 조건' });
 
     await page.goto(`/projects/${프로젝트}/issues/${항목}`);
@@ -112,7 +112,7 @@ test.describe('작업 아이템을 고친다', () => {
     await page.getByRole('button', { name: '담기' }).click();
 
     await expect(page.locator('aside').getByText('버그')).toBeVisible();
-    // 넷이 한 표에 있어 옮길 자리가 없다. 번호가 따라 바뀔 이유가 없다(ITM-004 A3).
+    // 유형을 변경해도 작업 항목 번호는 유지된다(ITM-004 A3).
     await expect(page.getByText(항목, { exact: true })).toBeVisible();
     await expect(page).toHaveURL(`/projects/${프로젝트}/issues/${항목}`);
   });

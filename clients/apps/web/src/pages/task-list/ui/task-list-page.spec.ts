@@ -348,7 +348,7 @@ describe('TaskListPage', () => {
     ).toBeNull();
   });
 
-  it('열린 항목이 사라지면 슬롯을 거둔다', () => {
+  it('열린 작업 항목이 삭제되면 슬롯을 해제한다', () => {
     const fixture = TestBed.createComponent(TaskListPage);
     fixture.componentRef.setInput('task', 'seed-1');
     fixture.detectChanges();

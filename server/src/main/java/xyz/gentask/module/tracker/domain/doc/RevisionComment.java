@@ -4,10 +4,7 @@ import xyz.gentask.shared.domain.ValueObject;
 import xyz.gentask.shared.error.DomainRuleViolation;
 
 /**
- * 왜 고쳤는지. 적지 않아도 된다.
- *
- * <p>비어 있는 것과 적지 않은 것을 가르지 않는다. 둘을 가르면 표에 빈 문자열과 널이 함께 쌓이고,
- * 사유가 있는지를 묻는 자리마다 두 가지를 다 보아야 한다(DOC-003 A3).
+ * 문서 개정 사유 값 객체다(최대 200자).
  */
 public record RevisionComment(String value) implements ValueObject {
 
@@ -31,9 +28,7 @@ public record RevisionComment(String value) implements ValueObject {
     }
 
     /**
-     * 되돌리면서 이유를 적지 않았을 때 시스템이 스스로 적는 사유(DOC-005 A3).
-     *
-     * <p>이력에서 되돌린 자리를 알아볼 수 있어야 하므로 몇 번째 개정으로 되돌렸는지를 담는다.
+     * 사유를 입력하지 않고 롤백을 수행한 경우 시스템이 자동 생성하는 기본 사유를 생성한다(DOC-005 A3).
      */
     public static RevisionComment revertedTo(int revisionNo) {
         return new RevisionComment(revisionNo + "번 개정으로 되돌림");

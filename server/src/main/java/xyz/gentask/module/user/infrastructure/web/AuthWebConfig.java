@@ -14,8 +14,7 @@ class AuthWebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 자격을 아직 갖지 못한 자리만 연다. 재설정은 비밀번호를 모르는 채 지나므로 세션을 요구할 수
-        // 없고, 대신 일회용 코드가 그 자리에서 신원을 판정한다. 근거는 결정-0005.
+        // 비인증 상태에서 호출 가능한 회원 가입 및 비밀번호 재설정 경로를 인터셉터 예외로 등록한다(결정-0005).
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(
@@ -27,7 +26,7 @@ class AuthWebConfig implements WebMvcConfigurer {
                         "/api/v1/auth/password-reset/confirm",
                         "/api/v1/auth/password-reset/resend");
 
-        // 신원이 선 뒤에 역할을 본다. 등록 순서가 곧 실행 순서다.
+        // 인증 인터셉터 통과 후 관리자 인가 인터셉터를 순차 실행한다.
         registry.addInterceptor(adminInterceptor).addPathPatterns("/api/v1/admin/**");
     }
 }

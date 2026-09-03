@@ -1,17 +1,15 @@
 import type { Task } from './gentask-client.js';
 
 /**
- * 사람이 읽는 출구.
- *
- * <p>기계가 읽는 것은 `--json` 이 낸다. 둘을 한 명령이 갖되 섞지 않는 것은 결정-0013 의 규격이다.
+ * 작업 항목 터미널 콘솔 출력 서식 모듈이다.
  */
 
-/** 식별자는 앞 여덟 자만 보인다. 목록에서 고르는 데는 그것으로 충분하고 전문은 줄을 다 먹는다. */
+/** 식별자를 8자리 단축 문자열로 포맷팅한다. */
 export function shortId(id: string): string {
   return id.slice(0, 8);
 }
 
-/** 완료 · 중요 · 나의 하루를 한 칸에 담는다. 켜진 것만 글자를 갖는다. */
+/** 완료, 중요, 나의 하루 플래그를 요약 표기 문자로 변환한다. */
 function marks(task: Task): string {
   return [
     task.completedAt ? 'x' : ' ',
@@ -20,7 +18,7 @@ function marks(task: Task): string {
   ].join('');
 }
 
-/** 기한과 미리 알림. 둘 다 없으면 빈 칸이다. */
+/** 마감 기한과 미리 알림 정보를 요약 표기한다. */
 function when(task: Task): string {
   const parts: string[] = [];
   if (task.dueDate) {
@@ -60,12 +58,12 @@ export function displayWidth(text: string): number {
   return width;
 }
 
-/** 표의 세로줄을 맞춘다. 글자 수가 아니라 칸 수로 센다. */
+/** 전각 문자 너비를 반영하여 텍스트 패딩을 계산한다. */
 export function padTo(text: string, target: number): string {
   return text + ' '.repeat(Math.max(0, target - displayWidth(text)));
 }
 
-/** 목록을 표로 그린다. 비었으면 그 사실을 한 줄로 말한다. */
+/** 작업 목록을 콘솔 표 형식으로 출력한다. 목록이 비어 있으면 안내 메시지를 출력한다. */
 export function formatList(tasks: readonly Task[]): string {
   if (tasks.length === 0) {
     return '작업이 없습니다.';
@@ -84,7 +82,7 @@ export function formatList(tasks: readonly Task[]): string {
     .join('\n');
 }
 
-/** 하나를 펼친다. 값이 없는 줄은 내지 않는다. */
+/** 단일 작업의 상세 정보를 키-값 콘솔 형식으로 출력한다. */
 export function formatTask(task: Task): string {
   const lines = [`${task.title}`, `  식별자   ${task.id}`];
 

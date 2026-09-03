@@ -18,7 +18,7 @@ class JooqSentReminderRepository implements SentReminderRepository {
 
     @Override
     public void markSent(UUID taskId, LocalDateTime remindAt, Instant sentAt) {
-        // 같은 작업의 시각이 바뀌어 다시 보낸 경우 앞의 기록을 덮는다
+        // 알림 시각이 변경되어 재발송된 경우 기존 기록을 갱신한다.
         dslContext
                 .insertInto(SENT_REMINDERS)
                 .set(SENT_REMINDERS.TASK_ID, taskId)

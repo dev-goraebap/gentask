@@ -11,54 +11,27 @@ import lombok.NonNull;
 /**
  * 작업 아이템.
  *
- * <p>번호는 프로젝트 안에서 평평하다. 부모의 번호를 앞에 달지 않는 것은, 소속을 번호로 읽으면 부모를
+ * 번호는 프로젝트 안에서 평평하다. 부모의 번호를 앞에 달지 않는 것은, 소속을 번호로 읽으면 부모를
  * 바꿀 때 번호가 함께 바뀌어야 하는데 그 번호를 이미 커밋과 테스트가 가리키고 있기 때문이다. 계층은
- * {@code parentId} 가 갖는다(결정-0007).
+ * parentId 가 갖는다(결정-0007).
  */
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Issue {
 
-    // 식별자
     @NonNull private final UUID id;
-
-    // 담긴 프로젝트. 번호는 이 안에서만 유일하다
     @NonNull private final UUID projectId;
-
-    // 프로젝트 안의 번호. 부여 뒤 바뀌지 않는다
     private final int number;
-
-    // 유형
     @NonNull private IssueKind kind;
-
-    // 상태
     @NonNull private IssueState state;
-
-    // 제목
     @NonNull private IssueTitle title;
-
-    // 본문. 인수 조건이 이 안에 있다
     @NonNull private IssueBody body;
-
-    // 부모. 계층을 이것이 갖는다
     private UUID parentId;
-
-    // 손으로 고친 목록의 순서
     private int ordinal;
-
-    // 세운 사람
     @NonNull private final UUID authorId;
-
-    // 기한
     private LocalDate dueDate;
-
-    // 더 손대지 않는 자리로 옮긴 순간
     private Instant closedAt;
-
-    // 만든 시각
     @NonNull private final Instant createdAt;
-
-    // 고친 시각
     @NonNull private Instant updatedAt;
 
     public static Issue create(
@@ -113,12 +86,8 @@ public final class Issue {
     }
 
     /**
-     * 상태를 옮긴다.
-     *
-     * <p>닫힌 때가 상태를 따라간다. 닫힌 것을 되돌리면서 그 값을 남겨 두면 목록의 닫힘 판정과 상세의
-     * 날짜가 서로 다른 것을 가리킨다(ITM-003 A2).
-     *
-     * <p>이미 그 상태이면 아무것도 바꾸지 않는다. 닫힌 때를 다시 찍으면 처음 닫은 순간을 잃는다.
+     * 작업 항목 상태를 변경한다.
+     * 종료 상태(완료 또는 취소) 전환 시 종료 시각을 기록하며, 미종료 상태로 복원 시 종료 시각을 null로 초기화한다(ITM-003 A2).
      */
     public void changeState(@NonNull IssueState state, Instant now) {
         if (this.state == state) {
@@ -144,7 +113,7 @@ public final class Issue {
         this.updatedAt = now;
     }
 
-    /** 부모를 잇는다. 번호는 따라 바뀌지 않는다. */
+    /** 상위 작업 항목을 변경하거나 최상위 작업으로 전환한다. */
     public void changeParent(UUID parentId, Instant now) {
         this.parentId = parentId;
         this.updatedAt = now;

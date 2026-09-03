@@ -13,16 +13,10 @@ import {
 import type { DocFolder, DocSummary, GentaskClient } from './gentask-client.js';
 
 /**
- * 문서를 명령줄에서 다루는 자리.
+ * CLI 문서 관리 명령어 처리 모듈.
  *
- * <p>사람은 화면으로 읽고 에이전트는 여기로 읽는다. 화면이 그린 결과를 내는 것과 달리 이쪽이 내는
- * 것은 마크다운 원문이며, 그것이 이 명령이 서 있는 이유다(DOC-002 A5).
- *
- * <p>문서를 지우는 자리는 아직 없다. 서버에 그것이 서면 여기에 붙는다. 폴더를 지우는 자리는 있으나
- * 그것은 담긴 문서를 지우지 않는다(DOC-008 A7).
- *
- * <p>본문은 인자로도 파일로도 받는다. 이 저장소의 `docs/` 를 트래커로 옮기는 일이 이 명령으로
- * 이루어지며, 마크다운 한 편을 `--body` 에 실으면 셸의 인자 길이 한계에 걸린다.
+ * show 명령은 파이프라인 연계 및 에이전트 처리를 위해 가공되지 않은 마크다운 원본 텍스트를 출력한다.
+ * 본문은 명령행 인자(--body)뿐만 아니라 파일(--file) 및 표준 입력(-)을 통해서도 전달받는다.
  */
 
 export interface Outcome {
@@ -60,7 +54,7 @@ export const DOC_HELP = `문서
   doc folder rm <식별자> [--yes]  지웁니다. 담긴 것은 한 단계 위로 올라갑니다
                                  --yes 없이는 무엇이 올라오는지만 보입니다`;
 
-/** 사람이 적어 넣은 개정 번호를 읽는다. 있는 번호인지는 서버가 가린다. */
+/** 입력된 개정 번호를 파싱한다. */
 function asRevisionNo(raw: string | undefined, usage: string): number {
   const given = raw?.trim();
   if (!given) {
@@ -74,7 +68,7 @@ function asRevisionNo(raw: string | undefined, usage: string): number {
   return no;
 }
 
-/** 쪽과 한 쪽에 담을 수. 넘기지 않은 것은 서버의 기본을 그대로 쓴다. */
+/** 페이지 번호 및 페이지 크기를 파싱한다. */
 function asCount(raw: string | undefined, name: string, least: number): number | undefined {
   if (raw === undefined) {
     return undefined;
@@ -88,10 +82,7 @@ function asCount(raw: string | undefined, name: string, least: number): number |
 }
 
 /**
- * 적어 넣은 것으로 문서 하나를 가린다.
- *
- * <p>전문이면 그대로 부르고, 짧게 적었으면 목록에서 앞이 맞는 것을 찾는다. 둘 이상이면 고르지 않고
- * 그 사실을 알린다 — 되돌릴 자리가 생겼어도 엉뚱한 문서에 개정을 쌓아 놓는 것이 공짜는 아니다.
+ * 입력된 식별자로 단일 문서를 조회한다. 전문 식별자 또는 접두부 단축 식별자를 지원하며, 다수 일치 시 모호성 오류를 던진다.
  */
 async function resolveDoc(
   client: GentaskClient,
@@ -124,11 +115,7 @@ async function resolveDoc(
 }
 
 /**
- * 적어 넣은 것으로 폴더 하나를 가린다.
- *
- * <p>문서와 같은 규약이다 — 전문이면 그대로, 짧게 적었으면 앞이 맞는 것을 찾고 둘 이상이면 고르지
- * 않는다. 다만 전문을 적어도 목록을 부르는데, 폴더 하나를 따로 읽는 자리가 서버에 없고 이름을
- * 알아야 무엇을 옮기고 무엇을 지우는지 말할 수 있기 때문이다.
+ * 입력된 식별자로 단일 폴더를 조회한다.
  */
 async function resolveFolder(
   client: GentaskClient,
@@ -139,10 +126,7 @@ async function resolveFolder(
 }
 
 /**
- * 이미 받아 둔 목록에서 폴더 하나를 가린다.
- *
- * <p>옮기기는 옮길 것과 옮길 자리를 함께 가리므로, 부르는 자리를 나누어 두지 않으면 같은 목록을
- * 두 번 받아 온다.
+ * 기조회된 폴더 목록에서 대상 폴더를 조회한다.
  */
 function pickFolder(folders: readonly DocFolder[], given: string | undefined): DocFolder {
   const needle = given?.trim();
@@ -167,13 +151,7 @@ function pickFolder(folders: readonly DocFolder[], given: string | undefined): D
 }
 
 /**
- * 본문이 오는 자리를 정한다.
- *
- * <p>인자로 받는 길만 두면 마크다운 한 편이 셸의 인자 길이 한계에 걸린다. 파일과 표준입력을 함께
- * 두는 것은 이 명령이 옮기기의 손이 되기 때문이며, `-` 는 표준입력을 가리키는 관례를 따른다.
- *
- * <p>두 길을 함께 넘기는 것은 받지 않는다. 어느 쪽이 이겼는지 부르는 쪽이 알 수 없고, 파이프로
- * 이어 붙인 본문이 조용히 버려지면 그 사실이 어디에도 드러나지 않는다.
+ * 명령행 인자, 파일 경로, 표준 입력 중 지정된 소스로부터 문서 본문 문자열을 획득한다.
  */
 async function readBody(
   values: { body?: string | undefined; 'body-file'?: string | undefined },
@@ -213,8 +191,7 @@ export async function runDoc(
 
   switch (sub) {
     /*
-     * 자리로 좁히는 것은 여기서 한다. 서버의 목록은 프로젝트 아래 전부를 내고 폴더로 거르는 질의를
-     * 받지 않으므로, 걸러 낸 뒤 낸다. 줄마다 `folderId` 가 실려 오므로 다시 물을 것은 없다.
+     * 폴더별 필터링은 클라이언트에서 수행한다.
      */
     case 'list': {
       const { values } = parseArgs({
@@ -237,11 +214,7 @@ export async function runDoc(
     }
 
     /*
-     * 시점을 옵션으로 받는다.
-     *
-     * <p>내는 것이 같은 종류이기 때문이다 — 어느 개정이든 나오는 것은 그 문서의 마크다운 원문이고
-     * 다른 것은 언제의 것인가뿐이다. 명령을 따로 세우면 본문을 얻는 이름이 둘이 되고, 부르는 쪽은
-     * 지금 것을 원하는지 지난 것을 원하는지에 따라 다른 이름을 기억해야 한다.
+     * 특정 개정 버전 조회를 지원하기 위해 --rev 옵션을 처리한다.
      */
     case 'show': {
       const { values, positionals } = parseArgs({
@@ -272,11 +245,7 @@ export async function runDoc(
     }
 
     /*
-     * 쪽을 감추지 않는다.
-     *
-     * <p>서버가 쪽을 계약으로 냈고(`{items, total, page, size}`), 명령줄이 그것을 대신 돌며 전부를
-     * 실어 오면 한 번의 부름이 여러 왕복이 되는 것이 부르는 쪽에 보이지 않는다. 한 쪽에 담기지 않은
-     * 것은 마지막 줄이 말하고, `--json` 은 서버가 준 쪽 정보를 그대로 낸다(DOC-004 A3).
+     * 서버의 페이징 응답 계약을 준수하여 목록 및 다음 페이지 안내를 출력한다.
      */
     case 'history': {
       const { values, positionals } = parseArgs({
@@ -304,11 +273,7 @@ export async function runDoc(
     }
 
     /*
-     * 되묻는 자리를 지운 것과 같은 모양으로 둔다(DOC-005 A6).
-     *
-     * <p>명령줄에는 되물을 사람이 없으므로 어느 시점으로 가는지를 보이고 멈춘다. 다만 지우기만큼
-     * 무겁지 않은데, 되돌리기는 사이의 개정을 지우지 않아 잃는 것이 없기 때문이다. 그래서 보이는
-     * 것은 되돌릴 수 없다는 경고가 아니라 고른 개정이 언제 누구의 것인가다.
+     * 비대화형 환경에서 의도치 않은 롤백을 방지하기 위해 --yes 플래그 없이 실행 시 롤백 대상 개정 정보만 미리 표시한다.
      */
     case 'revert': {
       const { values, positionals } = parseArgs({
@@ -334,12 +299,11 @@ export async function runDoc(
         };
       }
 
-      /* --comment 를 적지 않으면 서버가 몇 번으로 되돌렸는지를 스스로 적는다. 그 문구를 흉내 내지 않는다. */
+      /* 사유 미입력 시 서버에서 기본 사유를 자동 생성하도록 위임한다. */
       await client.revertDoc(project, documentId, revisionNo, values.comment);
 
       /*
-       * 담긴 것이 무엇인지는 서버에 물어 말한다. 고른 개정이 이미 지금 참인 것이면 서버는 아무것도
-       * 담지 않고 성공으로 답하므로(DOC-005 A2), 물어보지 않으면 쌓지 않은 개정을 쌓았다고 말하게 된다.
+       * 롤백 완료 후 최신 개정 상태를 재조회하여 확인한다.
        */
       const now = await client.doc(project, documentId);
       return {
@@ -392,8 +356,7 @@ export async function runDoc(
         allowPositionals: true,
       });
       /*
-       * 사유만 넘기는 것은 받지 않는다. 서버는 앞의 개정과 같은 것이 오면 아무것도 담지 않고 성공으로
-       * 답하므로(DOC-003 A2), 그대로 통과시키면 사유를 적었는데 아무 데도 남지 않는다.
+       * 내용 변경 없이 사유만 전달된 경우 불필요한 개정 생성을 방지하기 위해 처리를 중단한다.
        */
       const 바꿀것없음 =
         values.title === undefined &&
@@ -407,7 +370,7 @@ export async function runDoc(
 
       const body = await readBody(values, stdin);
 
-      // 서버의 편집은 부분 갱신이 아니라 제목과 본문을 그대로 받는다. 넘기지 않은 것은 지금 값을 되돌려 준다.
+      // 전체 필드 갱신 규약에 따라 미수정 필드는 기존 값을 유지하여 전송한다.
       const project = currentProject(env);
       const documentId = await resolveDoc(client, project, positionals[0]);
       const now = await client.doc(project, documentId);
@@ -421,8 +384,7 @@ export async function runDoc(
     }
 
     /*
-     * 옮기는 것은 개정이 아니다(DOC-006). 담긴 자리가 바뀌어도 문서가 말하는 바는 그대로이므로
-     * 이력에 줄이 서지 않으며, 그래서 편집과 한 명령에 담지 않는다.
+     * 폴더 이동은 문서 내용 변경이 아니므로 개정 이력을 추가하지 않는다.
      */
     case 'mv': {
       const { values, positionals } = parseArgs({
@@ -453,10 +415,7 @@ export async function runDoc(
 }
 
 /**
- * 문서를 담는 자리를 다룬다(DOC-008).
- *
- * <p>세우기와 이름 바꾸기와 옮기기와 지우기가 한 자리에 있다. 폴더는 그 자체로 읽을 것을 담지 않고
- * 문서를 어디에 둘지만 정하므로, 넷이 목표 하나를 나눠 갖는다.
+ * 문서 폴더 관리 명령어(목록, 생성, 이름 변경, 이동, 삭제)를 처리한다.
  */
 async function runDocFolder(
   argv: readonly string[],
@@ -467,8 +426,7 @@ async function runDocFolder(
 
   switch (sub) {
     /*
-     * 계층은 여기서 세운다. 서버가 내는 것은 `parentId` 를 실은 평평한 목록이며, 깊이를 제한하지
-     * 않으므로 조립한 모양이 한 화면에 담긴다는 보장이 없다. `--json` 은 서버가 준 것을 그대로 낸다.
+     * 서버의 평탄화된 폴더 목록을 계층 트리 형태로 가공하여 출력한다.
      */
     case 'list': {
       const { values } = parseArgs({ args: [...rest], options: { json: { type: 'boolean' } } });
@@ -496,7 +454,7 @@ async function runDocFolder(
           ? null
           : await resolveFolder(client, project, values.parent);
 
-      /* 같은 이름이 이미 있어도 막지 않는다(DOC-008 A2). 폴더를 가리키는 것은 이름이 아니라 식별자다. */
+      /* 동일 이름의 폴더가 존재해도 폴더 ID로 고유 식별하므로 중복 생성을 허용한다. */
       const id = await client.addFolder(project, {
         name,
         ...(parent === null ? {} : { parentId: parent.id }),
@@ -504,7 +462,7 @@ async function runDocFolder(
       return { out: values.json ? JSON.stringify({ id }) : `세웠습니다: ${id}`, code: 0 };
     }
 
-    /* 이름을 바꿔도 그 폴더를 가리키던 길은 끊기지 않는다. 가리키는 것이 식별자이기 때문이다(A4). */
+    /* 폴더명을 변경해도 폴더 ID 기반 식별 경로는 유지된다. */
     case 'rename': {
       const { positionals } = parseArgs({ args: [...rest], allowPositionals: true });
       const name = positionals.slice(1).join(' ').trim();
@@ -519,8 +477,7 @@ async function runDocFolder(
     }
 
     /*
-     * 담긴 것을 따로 옮기지 않는다(A5). 자기 자신이나 자기 자손 아래로 가는 것은 서버가 거절하며(A6),
-     * 그 사유를 여기서 다시 짓지 않는다 — 판정에 필요한 트리 전체를 가진 쪽이 서버다.
+     * 폴더 이동 시 하위 폴더와 소속 문서가 함께 이동하며, 순환 참조 여부는 서버에서 검증한다.
      */
     case 'mv': {
       const { values, positionals } = parseArgs({
@@ -529,7 +486,7 @@ async function runDocFolder(
         allowPositionals: true,
       });
       const project = currentProject(env);
-      // 옮길 것과 옮길 자리를 한 목록에서 가린다. 두 번 부르면 그 사이에 바뀐 것을 섞어 읽는다.
+      // 원자적 상태 조회를 위해 단일 목록에서 이동 대상 및 목적지 폴더를 동시에 검증한다.
       const folders = await client.folders(project);
       const folder = pickFolder(folders, positionals[0]);
       const parent =
@@ -549,11 +506,7 @@ async function runDocFolder(
     }
 
     /*
-     * 되묻는 자리를 반드시 지난다(A7). 명령줄에는 되물을 사람이 없으므로 무엇이 걸려 있는지를
-     * 보이고 멈춘다.
-     *
-     * <p>보이는 것이 <b>지워지는 수</b>가 아니라 <b>올라오는 수</b>라는 것을 말에 담는다. 담긴 문서는
-     * 함께 지워지지 않고 한 단계 위로 올라가며, 그것을 삭제로 읽으면 사람이 지우지 않을 것을 지운다.
+     * 비대화형 환경에서 삭제 영향도를 사전 인지할 수 있도록 --yes 플래그 없이 실행 시 상위로 승격될 하위 항목 개수를 표시하고 중단한다.
      */
     case 'rm': {
       const { values, positionals } = parseArgs({

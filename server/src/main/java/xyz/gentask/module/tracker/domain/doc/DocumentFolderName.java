@@ -4,10 +4,9 @@ import xyz.gentask.shared.domain.ValueObject;
 import xyz.gentask.shared.error.DomainRuleViolation;
 
 /**
- * 폴더의 이름.
+ * 문서 폴더 이름 값 객체다(최대 200자).
  *
- * <p>같은 부모 아래에 같은 이름이 있어도 막지 않는다. 폴더를 가리키는 것은 이름이 아니라 식별자이며,
- * 겹치는 것은 정리하면 될 일이지 세우는 자리에서 멈출 일이 아니다(DOC-008 A2).
+ * 동일 상위 폴더 하위에 동일한 이름의 폴더가 존재해도 허용한다(DOC-008 A2).
  */
 public record DocumentFolderName(String value) implements ValueObject {
 

@@ -26,10 +26,9 @@ import xyz.gentask.TestcontainersConfiguration;
 import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 
 /**
- * 코드의 수명이 지난 뒤의 자리.
+ * 인증 코드 유효 기간 만료 정책을 검증한다.
  *
- * <p>수명을 0으로 두면 가입 자체가 지나지 못해 재설정을 볼 계정도 만들 수 없다. 그래서 설정 대신
- * 시계를 민다.
+ * 코드 만료 상황을 정확히 재현하면서 계정 가입 및 재설정 흐름을 단계별로 검증하기 위해 모의 시계(Clock)의 오프셋을 조정하는 방식을 사용한다.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -53,7 +52,7 @@ class CredentialExpiryApiTest {
     private MovableClock clock;
 
     @Test
-    @DisplayName("가입 코드의 수명이 지나면 만료를 알린다")
+    @DisplayName("회원가입 인증 코드 유효 기간 만료 시 만료 오류를 반환한다")
     void 가입_코드가_만료된다() throws Exception {
         String email = "signup-expiry-" + UUID.randomUUID() + "@example.com";
         mockMvc.perform(post("/api/v1/auth/signup")
@@ -71,7 +70,7 @@ class CredentialExpiryApiTest {
     }
 
     @Test
-    @DisplayName("재설정 코드의 수명이 지나면 만료를 알린다")
+    @DisplayName("비밀번호 재설정 코드 유효 기간 만료 시 만료 오류를 반환한다")
     void 재설정_코드가_만료된다() throws Exception {
         String email = "reset-expiry-" + UUID.randomUUID() + "@example.com";
         AuthTestSupport.가입한다(mockMvc, mail, email);
@@ -91,7 +90,7 @@ class CredentialExpiryApiTest {
                 .andExpect(status().isGone());
     }
 
-    /** 밀 수 있는 시계. 민 만큼만 앞서고 그 밖에는 실제 시각을 따른다. */
+    /** 시간 경과 시뮬레이션을 위해 오프셋을 조정할 수 있는 모의 시계 구현체다. */
     public static final class MovableClock extends Clock {
 
         private final ZoneId zone;

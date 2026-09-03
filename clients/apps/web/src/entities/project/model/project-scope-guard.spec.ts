@@ -39,7 +39,7 @@ describe('projectScopeGuard', () => {
     httpTesting.expectOne({ url: ENDPOINTS.projects, method: 'GET' }).flush(PROJECTS);
   }
 
-  it('주소가 가리키는 프로젝트를 지금 프로젝트로 삼는다', async () => {
+  it('URL 경로의 프로젝트를 활성 프로젝트로 설정한다', async () => {
     const done = run('dHi6B-myT7pQ');
     flushList();
 

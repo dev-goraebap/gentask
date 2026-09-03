@@ -23,10 +23,7 @@ import xyz.gentask.module.tracker.application.project.ProjectViews.ProjectView;
 class JooqProjectQuery implements ProjectQuery {
 
     /**
-     * 작업 아이템 수는 저장하지 않고 셀 때마다 센다.
-     *
-     * <p>저장해 두면 두 자리가 어긋났을 때 어느 쪽이 참인지 판정할 근거가 없다. 프로젝트 목록은 사람이
-     * 가진 몇 개뿐이라 이 집계가 문제가 되는 자리가 아니다.
+     * 프로젝트별 작업 항목 수를 실시간으로 집계한다.
      */
     private static final Field<Integer> ISSUE_COUNT =
             field(select(count()).from(ISSUES).where(ISSUES.PROJECT_ID.eq(PROJECTS.ID)));
@@ -46,7 +43,7 @@ class JooqProjectQuery implements ProjectQuery {
 
     private List<ProjectView> fetch(Condition condition) {
         return dslContext
-                // 내는 식별자는 내부의 UUID 가 아니라 주소가 담는 값이다.
+                // 클라이언트에 노출하는 식별자는 URL용 공개 식별자(publicId)다.
                 .select(PROJECTS.PUBLIC_ID, PROJECTS.NAME, PROJECTS.KEY, ISSUE_COUNT)
                 .from(PROJECTS)
                 .where(condition)

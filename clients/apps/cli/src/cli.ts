@@ -14,17 +14,14 @@ import { formatList, formatTask } from './format.js';
 import { ISSUE_HELP, runIssue, runProject } from './issue-commands.js';
 
 /**
- * 명령의 결과.
- *
- * <p>표준출력에 낼 것과 종료 코드를 갖는다. 여기서 직접 쓰지 않는 것은 시험이 출력을 읽기
- * 위해서다 — 명령이 무엇을 냈는지 문자열로 받아 본다.
+ * CLI 명령 실행 결과 모델이다. 표준 출력 문자열과 종료 코드를 포함한다.
  */
 export interface Outcome {
   readonly out: string;
   readonly code: number;
 }
 
-/** 클라이언트를 만드는 자리. 시험이 가짜를 끼운다. */
+/** 테스트용 모의 클라이언트 팩토리 타입이다. */
 export type ClientFactory = () => GentaskClient;
 
 const HELP = `gentask — 작업을 명령줄에서 다룹니다
@@ -55,9 +52,7 @@ ${DOC_HELP}
 식별자는 앞 몇 자만 적어도 됩니다. 그것으로 하나가 가려지지 않으면 그 사실을 알립니다.`;
 
 /**
- * 명령 하나를 실행한다.
- *
- * <p>실패는 던진다. 무엇을 어떻게 알릴지는 진입점이 정한다.
+ * 명령어를 실행하고 결과를 반환한다.
  */
 export async function run(
   argv: readonly string[],
@@ -102,7 +97,7 @@ async function runAuth(
   if (sub === 'login') {
     parseArgs({ args: [...rest], allowPositionals: false });
 
-    // 터미널이면 무엇을 붙여 넣어야 하는지 여기서 말한다. 표준입력을 읽는 자리가 이것 하나가 아니다.
+    // 대화형 TTY 환경인 경우 입력 안내 문구를 stderr에 출력한다.
     const tty = process.stdin.isTTY === true;
     if (tty) {
       process.stderr.write('토큰을 붙여 넣고 Enter 를 누르세요: ');
@@ -114,7 +109,7 @@ async function runAuth(
     if (!token) {
       throw new Error('토큰이 비어 있습니다.');
     }
-    // 토큰과 함께 그 토큰이 통하는 서버도 남긴다. 주소를 매번 넘기게 두면 잊는 순간 운영을 부른다.
+    // API 서버 주소를 설정 파일에 함께 저장하여 일관된 접속 환경을 유지한다.
     const baseUrl = (env['GENTASK_BASE_URL']?.trim() || DEFAULT_BASE_URL).replace(/\/+$/, '');
     const path = storeToken(token, baseUrl, env);
     return { out: `${baseUrl} 의 토큰을 ${path} 에 저장했습니다.`, code: 0 };
@@ -140,14 +135,7 @@ async function runAuth(
 }
 
 /**
- * 표준입력을 읽는다.
- *
- * <p>터미널이면 한 줄만 받고, 파이프로 들어오면 끝까지 읽는다. 터미널에서 끝까지 기다리면 Enter 로는
- * 입력이 끝나지 않아 멈춘 것처럼 보인다.
- *
- * <p>토큰이 이 자리로 오는 것은 명령줄에 남지 않게 하기 위해서이고(결정-0013), 문서의 본문이 이
- * 자리로 오는 것은 마크다운 한 편이 셸의 인자 길이 한계에 걸리기 때문이다. 읽는 방식이 같으므로
- * 한 자리가 둘을 받고, 무엇을 받는 중인지는 부르는 쪽이 말한다.
+ * 표준 입력을 읽어 문자열로 반환한다. 터미널 환경에서는 1행을, 파이프 입력에서는 스트림 전체를 읽는다.
  */
 async function readStdin(): Promise<string> {
   if (process.stdin.isTTY) {
@@ -230,7 +218,7 @@ async function runTask(
         allowPositionals: true,
       });
       const task = await resolve(client, positionals[0]);
-      // 서버의 편집은 부분 갱신이 아니라 넷을 그대로 받는다. 넘기지 않은 것은 지금 값을 다시 보낸다.
+      // 전체 필드 갱신 규약에 따라 미수정 필드는 기존 값을 유지하여 전송한다.
       await client.edit(task.id, {
         title: values.title ?? task.title,
         note: values.note ?? task.note ?? '',
@@ -290,10 +278,7 @@ function blankToNull(value: string): string | null {
 }
 
 /**
- * 적어 넣은 것으로 작업 하나를 가린다.
- *
- * <p>전문이면 그대로 부르고, 짧게 적었으면 목록에서 앞이 맞는 것을 찾는다. 둘 이상이면 고르지
- * 않고 그 사실을 알린다 — 아무거나 골라 지우면 되돌릴 수 없다.
+ * 전달받은 식별자로 단일 작업을 조회한다. 접두부 단축 식별자인 경우 고유 일치 항목을 탐색하며, 다수 일치 시 모호성 오류를 던진다.
  */
 async function resolve(client: GentaskClient, given: string | undefined): Promise<Task> {
   const needle = given?.trim();

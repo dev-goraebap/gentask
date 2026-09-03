@@ -55,7 +55,7 @@ class JooqSessionRepository implements SessionRepository {
 
     @Override
     public void deleteByUserIdExcept(UUID userId, UUID keepSessionId) {
-        // 남길 자리가 없으면 모두 거둔다. Bearer 토큰으로 부른 경우가 그것이다.
+        // Bearer 토큰 요청 시에는 세션 쿠키를 발급하거나 연장하지 않는다.
         var condition = SESSIONS.USER_ID.eq(userId);
         dslContext
                 .deleteFrom(SESSIONS)

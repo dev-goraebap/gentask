@@ -1,6 +1,6 @@
 import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 
-// 프로필 보기와 계정 자리
+// 프로필 및 계정 관리
 //
 // AC4 · AC5 · AC9 는 결번이다. 화면 폭에 따른 배치 분기였고 결정-0008 이 그것을
 // 인수 조건에서 뺐다. 좁은 화면의 하단 탭과 드로어는 작업자가 화면 조작으로 확인한다.
@@ -12,14 +12,14 @@ async function 별명을_고친다(page: import('@playwright/test').Page, 별명
   await 입력.press('Enter');
 }
 
-test.describe('프로필 보기와 계정 자리', () => {
-  test('계정 화면은 프로필 자리에 아바타를 둔다', async ({ page }) => {
+test.describe('프로필 및 계정 관리', () => {
+  test('계정 화면의 프로필 영역에 아바타가 표시된다', async ({ page }) => {
     await page.goto('/me');
 
     await expect(page.getByRole('main').locator('app-user-avatar')).toBeVisible();
   });
 
-  test('올린 이미지가 없으면 아바타 자리에 별명의 첫 글자가 온다', async ({ page }) => {
+  test('업로드된 이미지가 없으면 아바타 영역에 닉네임 첫 글자가 표시된다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
 
     await page.goto('/me');

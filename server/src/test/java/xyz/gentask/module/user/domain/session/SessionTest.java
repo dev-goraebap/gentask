@@ -17,7 +17,7 @@ class SessionTest {
     private final Instant origin = Instant.parse("2026-08-24T00:00:00Z");
 
     @Test
-    @DisplayName("touch 간격 안의 사용은 만료를 밀지 않는다")
+    @DisplayName("touch 최소 간격 내의 세션 접근은 만료 시각을 연장하지 않는다")
     void touch_간격_안의_사용은_만료를_밀지_않는다() {
         Session session = issue();
 
@@ -28,7 +28,7 @@ class SessionTest {
     }
 
     @Test
-    @DisplayName("간격을 지나 쓰면 그 시점부터 TTL 만큼 늘어난다")
+    @DisplayName("touch 최소 간격을 초과하여 접근 시 해당 시점부터 TTL만큼 세션 만료 시각을 연장한다")
     void 간격을_지나_쓰면_그_시점부터_TTL_만큼_늘어난다() {
         Session session = issue();
         Instant later = origin.plus(Duration.ofDays(10));
@@ -40,7 +40,7 @@ class SessionTest {
     }
 
     @Test
-    @DisplayName("절대 상한을 넘겨 늘어나지 않는다")
+    @DisplayName("세션 연장 시에도 세션 절대 최대 유효 기간을 초과할 수 없다")
     void 절대_상한을_넘겨_늘어나지_않는다() {
         Session session = issue();
 
@@ -52,7 +52,7 @@ class SessionTest {
     }
 
     @Test
-    @DisplayName("만료된 세션은 되살아나지 않는다")
+    @DisplayName("이미 만료된 세션은 연장되지 않는다")
     void 만료된_세션은_되살아나지_않는다() {
         Session session = issue();
         Instant afterExpiry = origin.plus(TTL).plus(Duration.ofDays(1));

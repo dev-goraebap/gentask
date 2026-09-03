@@ -24,11 +24,7 @@ import xyz.gentask.module.tracker.domain.issue.IssueKind;
 import xyz.gentask.module.tracker.domain.issue.IssueState;
 
 /**
- * 목록과 상세를 낸다.
- *
- * <p>파생값을 저장하지 않으므로 여기서 만든다. 자식 수는 한 프로젝트의 항목을 다 실어 와 세고, 인수
- * 조건 수는 본문을 세어 낸다. 목록 질의가 본문을 싣는 것이 그 대가이며, 항목이 수천이 되면 그때 다시
- * 본다.
+ * 작업 항목 목록 및 상세 조회를 담당하는 jOOQ 쿼리 구현체다.
  */
 @Repository
 @RequiredArgsConstructor
@@ -89,7 +85,7 @@ class JooqIssueQuery implements IssueQuery {
     private IssueView toView(IssuesRecord issuesRecord, UUID projectId) {
         List<AcceptanceCriterion> criteria = AcceptanceCriterion.readFrom(IssueBody.of(issuesRecord.getBody()));
 
-        // 상세는 하나만 내므로 부모의 번호와 자식 수를 그 자리에서 따로 센다.
+        // 상세 조회를 위해 상위 작업 일련번호 및 하위 작업 수를 집계한다.
         Map<UUID, Integer> numbers = new HashMap<>();
         if (issuesRecord.getParentId() != null) {
             dslContext
@@ -109,7 +105,7 @@ class JooqIssueQuery implements IssueQuery {
                 issuesRecord.getCreatedAt());
     }
 
-    /** 세운 사람의 별명. 상세 한 줄이 쓰므로 목록에서는 싣지 않는다. */
+    /** 작업 작성자 닉네임을 조회한다. */
     private String nicknameOf(UUID authorId) {
         return dslContext
                 .select(USERS.NICKNAME)
@@ -153,10 +149,7 @@ class JooqIssueQuery implements IssueQuery {
     }
 
     /**
-     * 사람이 부르는 이름.
-     *
-     * <p>자릿수를 채우지 않는다. `GT-043` 은 999 에서 천장이 있는 것처럼 보이는데 그런 한계가 없고,
-     * 채워서 얻는 것도 없다.
+     * 작업 항목 표시 키(예: GT-43)를 생성한다.
      */
     private static String keyOf(String projectKey, int number) {
         return "%s-%d".formatted(projectKey, number);

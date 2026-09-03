@@ -46,13 +46,10 @@ public class FileService implements Attachments {
     private final ObjectStorage objectStorage;
     private final Clock clock;
 
-    // --- 자리 발급 ----------------------------------------------------------------------------------------------------
+    // --- Presigned URL 발급 -------------------------------------------------------------------------------------------
 
     /**
-     * 보관소에 자리를 잡고 올릴 주소를 낸다. 어느 레코드에 붙을지는 여기서 정하지 않으므로 소유 판정도 하지
-     * 않는다. 로그인한 사람이면 자리를 받을 수 있고, 그것을 실제로 매는 시점에 소유 모듈이 판정한다.
-     *
-     * <p>개수 제한을 여기서 보지 못하는 것은 붙을 레코드를 모르기 때문이며, 그 강제는 붙이는 자리가 갖는다.
+     * 스토리지 업로드용 Presigned URL을 발급한다. 엔터티 소유권 및 첨부 개수 제한 검증은 실제 첨부 시점에 각 도메인 모듈이 수행한다.
      */
     @Transactional
     public PresignedUpload presign(AttachmentSlot slot, UUID actorId, String fileName, String contentType, long size) {
@@ -101,7 +98,7 @@ public class FileService implements Attachments {
     @Override
     @Transactional
     public AttachmentView attach(AttachmentSlot slot, UUID ownerId, UUID actorId, String storageKey) {
-        // 발급받지 않은 키로는 붙일 수 없다. 남이 발급받은 것도 마찬가지다
+        // 미발급 키나 타인의 발급 키는 첨부를 거부한다.
         PendingUpload pending = pendingUploadRepository
                 .findByStorageKey(storageKey)
                 .filter(found -> found.isIssued(slot.name(), actorId))
@@ -112,7 +109,7 @@ public class FileService implements Attachments {
             throw FileErrorCode.FILE_LIMIT_EXCEEDED.raise();
         }
 
-        // 알린 크기가 아니라 보관소의 실측으로 판정한다. 발급과 업로드 사이에 바뀔 수 있다
+        // 발급과 업로드 사이의 페이로드 변조를 방지하기 위해 스토리지 실측 크기로 검증한다.
         long byteSize = objectStorage.sizeOf(storageKey).orElseThrow(FileErrorCode.FILE_NOT_UPLOADED::raise);
         if (byteSize > slot.maxBytes()) {
             discard(pending);
@@ -158,7 +155,7 @@ public class FileService implements Attachments {
         return attachmentRepository.countBySlot(slot.ownerType(), ownerId, slot.attachmentName());
     }
 
-    /** 거절한 업로드는 보관소와 목록 양쪽에서 걷는다. 남겨 두면 청소가 다시 와야 한다. */
+    /** 검증 실패한 업로드 파일은 스토리지와 대기 목록 양쪽에서 즉시 삭제한다. */
     private void discard(PendingUpload pending) {
         objectStorage.delete(pending.storageKey());
         pendingUploadRepository.deleteById(pending.id());

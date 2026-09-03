@@ -65,7 +65,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("붙이면 목록 응답에 이름과 크기와 받을 주소가 실린다")
+    @DisplayName("파일 첨부 완료 시 파일명, 크기, 다운로드 URL을 응답에 포함한다")
     void 붙이면_목록에_이름과_크기와_받을_주소가_있다() throws Exception {
         String objectKey = 파일을_붙인다("자료.pdf", "application/pdf", 2048);
 
@@ -80,13 +80,13 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("여섯 번째 파일은 붙지 못한다")
+    @DisplayName("최대 첨부 가능 개수(5개)를 초과하면 첨부를 거부한다")
     void 여섯_번째_파일은_붙지_못한다() throws Exception {
         for (int index = 0; index < 5; index++) {
             파일을_붙인다("파일" + index + ".txt", "text/plain", 10);
         }
 
-        // 자리 발급은 붙을 작업을 모르므로 개수를 세지 못한다. 강제는 붙이는 자리가 갖는다
+        // 사전 URL 발급 시점에는 대상 작업이 지정되지 않으므로, 첨부 개수 제한 검증은 첨부 확정 시점에 수행한다.
         String objectKey = 자리를_받는다("여섯.txt", "text/plain", 10);
         fakeStorage.put(objectKey, 10);
 
@@ -100,7 +100,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("10MB 를 넘는 파일은 자리를 받지 못한다")
+    @DisplayName("10MB를 초과하는 파일은 사전 업로드 URL 발급을 거부한다")
     void 십MB_를_넘는_파일은_자리를_받지_못한다() throws Exception {
         mockMvc.perform(post("/api/v1/attachments/presign")
                         .cookie(session)
@@ -112,7 +112,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("말한 크기가 아니라 보관소의 실측이 강제한다")
+    @DisplayName("클라이언트 전달 크기가 아닌 스토리지 실측 크기로 최대 용량을 검증한다")
     void 말한_크기가_아니라_보관소의_실측이_강제한다() throws Exception {
         String objectKey = 자리를_받는다("속임.zip", "application/zip", 1024);
         fakeStorage.put(objectKey, TEN_MEGABYTES + 1);
@@ -129,7 +129,7 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("올리지 않은 키는 확정되지 않는다")
+    @DisplayName("스토리지에 실제 업로드되지 않은 객체 키는 첨부 확정을 거부한다")
     void 올리지_않은_키는_확정되지_않는다() throws Exception {
         String objectKey = 자리를_받는다("유령.txt", "text/plain", 10);
 
@@ -143,11 +143,11 @@ class TaskFileApiTest {
     }
 
     @Test
-    @DisplayName("남의 작업에는 파일을 붙일 수 없다")
+    @DisplayName("타 사용자의 작업에는 파일 첨부를 거부한다")
     void 남의_작업에는_파일을_붙일_수_없다() throws Exception {
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
-        // 자리 발급은 누구나 받는다. 막는 것은 그 자리를 남의 작업에 매려는 순간이다
+        // 사전 URL 발급은 로그인 사용자 누구나 가능하지만, 타인의 작업에 첨부 확정하는 시점에 권한을 검증한다.
         String objectKey = 자리를_받는다(other, "침입.txt", "text/plain", 10);
         fakeStorage.put(objectKey, 10);
 

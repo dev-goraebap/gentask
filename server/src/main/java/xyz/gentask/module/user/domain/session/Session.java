@@ -12,22 +12,16 @@ import lombok.NonNull;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Session {
 
-    // 식별자
     @NonNull private final UUID id;
 
-    // 소유자
     @NonNull private final UUID userId;
 
-    // 토큰의 HMAC-SHA256 hex
     @NonNull private final String tokenHash;
 
-    // 만료 시각
     @NonNull private Instant expiresAt;
 
-    // 마지막으로 쓴 시각
     @NonNull private Instant lastUsedAt;
 
-    // 만든 시각
     @NonNull private final Instant createdAt;
 
     public static Session issue(UUID id, UUID userId, String tokenHash, Instant now, Duration ttl) {

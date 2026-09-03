@@ -1,9 +1,9 @@
 import type { IconName } from '@/shared/ui/icon';
 
 /**
- * 작업 아이템의 유형. Jira 와 Plane 의 유형 체계를 기준점으로 삼는다(PRD 1.3).
+ * 작업 항목 유형(Epic, Story, Task, Bug) 열거형 정의다(PRD 1.3).
  *
- * <p>`TASK` 는 투두 모드의 할 일과 다른 것이다. 그쪽은 개인의 할 일이고 이쪽은 프로젝트에 속한
+ * `TASK` 는 투두 모드의 할 일과 다른 것이다. 그쪽은 개인의 할 일이고 이쪽은 프로젝트에 속한
  * 작업 아이템의 한 유형이다.
  */
 export const ISSUE_KINDS = {
@@ -18,12 +18,12 @@ export type IssueKind = (typeof ISSUE_KINDS)[keyof typeof ISSUE_KINDS];
 /**
  * 작업 아이템의 상태 다섯.
  *
- * <p>이름은 Plane 과 Linear 의 상태 묶음에서 가져왔다. 가르는 축이 착수 여부가 아니라 **하기로
+ * 이름은 Plane 과 Linear 의 상태 묶음에서 가져왔다. 가르는 축이 착수 여부가 아니라 **하기로
  * 정했는가**다 — 백로그와 예정은 둘 다 시작하지 않은 것이며, 백로그는 아직 정하지 않은 것이고
- * 예정은 정했으나 아직 손대지 않은 것이다.
+ * 착수 예정 상태다.
  *
- * <p>`COMPLETED` 는 인수 조건이 참임을 확인한 것을 뜻한다(결정-0007). `CANCELED` 는 근거를 잃어
- * 더 이상 유효하지 않은 것이며, 끝난 것과 다르므로 자리를 따로 갖는다.
+ * `COMPLETED` 는 인수 조건이 참임을 확인한 것을 뜻한다(결정-0007). `CANCELED` 는 근거를 잃어
+ * COMPLETED는 작업 완료 상태이며, CANCELED는 작업 취소 상태다.
  */
 export const ISSUE_STATES = {
   backlog: 'BACKLOG',
@@ -35,7 +35,7 @@ export const ISSUE_STATES = {
 
 export type IssueState = (typeof ISSUE_STATES)[keyof typeof ISSUE_STATES];
 
-/** 인수 조건 하나. 번호는 부여 뒤 바뀌지 않으며 지운 자리는 결번으로 남는다. */
+/** 단일 인수 조건 모델이다. 번호는 불변이며 삭제된 항목은 (결번)으로 유지된다. */
 export interface AcceptanceCriterion {
   readonly number: number;
   readonly sentence: string;
@@ -44,7 +44,7 @@ export interface AcceptanceCriterion {
   readonly retired: boolean;
 }
 
-/** 이어진 커밋. 저장소를 이어 두면 커밋 메시지가 가리킨 작업 아이템에 붙는다. */
+/** 연계 커밋 정보 모델이다. */
 export interface IssueCommit {
   readonly sha: string;
   readonly subject: string;
@@ -117,7 +117,7 @@ const LIVE_STATES: readonly IssueState[] = [
 /**
  * 이름에서 번호를 읽는다.
  *
- * <p>붙이는 규칙은 서버가 갖는다. 여기는 읽기만 하므로 접두어의 모양이 바뀌어도 따라 고칠 것이 없다.
+ * 붙이는 규칙은 서버가 갖는다. 여기는 읽기만 하므로 접두어의 모양이 바뀌어도 따라 고칠 것이 없다.
  */
 export function issueNumberOf(id: string): number {
   return Number(id.slice(id.lastIndexOf('-') + 1));
@@ -143,7 +143,7 @@ export function isSettled(issue: IssueSummary): boolean {
 /**
  * 주소가 들고 온 상태 거르개를 읽는다.
  *
- * <p>비어 있으면 끝난 것과 접은 것을 감춘다. 목록을 열었을 때 눈에 먼저 들어와야 하는 것은 남은
+ * 비어 있으면 끝난 것과 접은 것을 감춘다. 목록을 열었을 때 눈에 먼저 들어와야 하는 것은 남은
  * 일이다.
  */
 export function toStateFilter(raw: string | undefined): readonly IssueState[] {
@@ -187,9 +187,9 @@ export function toggleFilter<T extends string>(
 }
 
 /**
- * 부모 아래에 자식이 붙도록 줄을 세운다.
+ * 계층 구조에 따라 상위 작업 하위에 하위 작업을 정렬한다.
  *
- * <p>부모가 걸러져 사라져도 자식은 남는다. 자식이 제 부모를 잃으면 뿌리로 올라와 제 자리에 선다.
+ * 부모가 걸러져 사라져도 자식은 남는다. 자식이 제 부모를 잃으면 뿌리로 올라와 제 자리에 선다.
  */
 export function orderByHierarchy(issues: readonly IssueSummary[]): readonly IssueSummary[] {
   const present = new Set(issues.map((issue) => issue.id));

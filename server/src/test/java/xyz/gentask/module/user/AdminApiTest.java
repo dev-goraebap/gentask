@@ -21,9 +21,9 @@ import xyz.gentask.TestcontainersConfiguration;
 import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 
 /**
- * 관리자 경로의 접근과 사용자 목록.
+ * 관리자 API 접근 제어 및 사용자 목록 조회를 검증한다.
  *
- * <p>첫 관리자를 설정값으로 정하므로 그 이메일을 시험이 고정하고 그것으로 가입해 관리자를 얻는다.
+ * 초기 관리자 계정 설정을 테스트용 이메일로 지정하고 해당 계정으로 가입하여 관리자 권한을 획득한다.
  */
 @SpringBootTest(properties = "app.admin.email=" + AdminApiTest.ADMIN_EMAIL)
 @AutoConfigureMockMvc
@@ -40,7 +40,7 @@ class AdminApiTest {
     private RecordingMailSender mail;
 
     @Test
-    @DisplayName("관리자가 목록을 열면 가입한 사용자가 최근 가입 순으로 온다")
+    @DisplayName("관리자 사용자 목록 조회 시 가입일 내림차순으로 반환한다")
     void 관리자가_목록을_열면_최근_가입_순으로_온다() throws Exception {
         Cookie admin = 관리자로_가입한다();
         가입한다("older");
@@ -50,12 +50,12 @@ class AdminApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.total").isNumber())
-                // 관리자 자신이 가장 먼저 가입했으므로 목록의 끝쪽에 있다
+                // 초기 관리자 계정은 최초 가입자이므로 목록 마지막에 위치한다.
                 .andExpect(jsonPath("$.items[0].email").value(org.hamcrest.Matchers.containsString("newer")));
     }
 
     @Test
-    @DisplayName("검색어를 넣으면 이메일과 별명에서 찾아 추린다")
+    @DisplayName("검색어 입력 시 이메일 또는 닉네임과 일치하는 사용자를 필터링한다")
     void 검색어를_넣으면_추린다() throws Exception {
         Cookie admin = 관리자로_가입한다();
         String unique = "needle" + UUID.randomUUID().toString().substring(0, 8);
@@ -69,7 +69,7 @@ class AdminApiTest {
     }
 
     @Test
-    @DisplayName("관리자가 아니면 관리 경로를 거절한다")
+    @DisplayName("관리자 권한이 없는 사용자의 관리자 API 접근을 거부한다")
     void 관리자가_아니면_거절한다() throws Exception {
         Cookie member = 가입한다("outsider");
 

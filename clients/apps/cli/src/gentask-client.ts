@@ -2,51 +2,44 @@ import type { Config } from './config.js';
 import type { components } from 'api-types';
 
 /**
- * 작업 하나.
- *
- * <p>손으로 적지 않고 API 명세가 만든 것을 쓴다(결정-0003). 계약이 바뀌면 이 자리가 컴파일 오류로
- * 드러나며, 다시 적어 두면 그 변화가 조용히 지나간다.
+ * 작업 항목 인터페이스 모델이다.
  */
 export type Task = components['schemas']['TaskView'];
 
-/** 프로젝트 하나. `id` 가 주소에 담기고 `key` 는 작업 아이템 이름의 접두어다. */
+/** 프로젝트 요약 정보. */
 export type Project = components['schemas']['ProjectView'];
 
-/** 목록의 작업 아이템 한 줄. */
+/** 작업 항목 목록용 요약 모델. */
 export type IssueSummary = components['schemas']['IssueSummary'];
 
-/** 본문과 인수 조건까지 담은 작업 아이템. */
+/** 작업 항목 상세 모델. */
 export type Issue = components['schemas']['IssueView'];
 
 export type IssueKind = NonNullable<components['schemas']['CreateIssue']['kind']>;
 export type IssueState = components['schemas']['ChangeState']['state'];
 
-/** 목록의 문서 한 줄. */
+/** 문서 목록용 요약 모델. */
 export type DocSummary = components['schemas']['DocumentSummary'];
 
-/** 지금 참인 개정의 본문까지 담은 문서. */
+/** 문서 최신 개정 상세 모델. */
 export type Doc = components['schemas']['DocumentView'];
 
-/** 개정 이력의 한 줄. 본문은 담지 않는다. */
+/** 개정 이력 목록용 요약 모델. */
 export type DocRevisionSummary = components['schemas']['RevisionSummary'];
 
-/** 이력의 한 쪽. 전체 수를 함께 주므로 더 볼 것이 남았는지 부르는 쪽이 안다. */
+/** 개정 이력 페이징 응답 모델. */
 export type DocRevisionPage = components['schemas']['RevisionPageView'];
 
-/** 그때의 제목과 본문까지 담은 개정 하나. */
+/** 특정 시점의 개정 상세 모델. */
 export type DocRevision = components['schemas']['RevisionView'];
 
 /**
- * 문서를 담는 자리 하나.
- *
- * <p>목록은 평평하게 오고 계층은 `parentId` 가 갖는다. 조립은 부르는 쪽이 한다(DOC-008).
+ * 문서 폴더 요약 모델이다.
  */
 export type DocFolder = components['schemas']['DocumentFolderSummary'];
 
 /**
- * 서버가 거절했다.
- *
- * <p>사유를 그대로 옮긴다. 다시 시도할지 사용자에게 물을지는 이 서버가 정하지 않고 에이전트가 정한다.
+ * 서버 API 오류 예외 클래스다.
  */
 export class GentaskError extends Error {
   constructor(
@@ -59,14 +52,12 @@ export class GentaskError extends Error {
   }
 }
 
-/** 자격이 서지 않았다. 토큰을 다시 발급해야 하는 자리이며 AGT-001 의 A2 다. */
+/** 인증 실패 예외. 유효하지 않거나 만료된 토큰인 경우 발생한다. */
 export const UNAUTHENTICATED =
   '토큰이 받아들여지지 않았습니다. gentask 의 계정 화면에서 에이전트 토큰을 다시 발급해 설정에 두세요.';
 
 /**
- * 작업 API 를 부르는 자리.
- *
- * <p>판정하거나 저장하는 것이 없다. 규칙은 모두 서버가 가지며 여기는 옮기기만 한다.
+ * 작업 및 백로그 API 클라이언트.
  */
 export class GentaskClient {
   constructor(
@@ -82,14 +73,14 @@ export class GentaskClient {
     return this.send<Task>('GET', `/api/v1/tasks/${encodeURIComponent(taskId)}`);
   }
 
-  /** 만든 작업의 식별자는 Location 헤더가 낸다. */
+  /** 작업 생성 요청을 전송하고 Location 헤더에서 작업 식별자를 반환한다. */
   async add(title: string, dueDate: string | null): Promise<string> {
     const response = await this.raw('POST', '/api/v1/tasks', { title, dueDate });
     const location = response.headers.get('location') ?? '';
     return location.split('/').pop() ?? '';
   }
 
-  /** 네 값을 함께 보낸다. 서버의 편집은 부분 갱신이 아니라 그 넷을 그대로 받는다. */
+  /** 작업 속성 전체를 전송하여 수정을 반영한다. */
   async edit(
     taskId: string,
     fields: {
@@ -136,7 +127,7 @@ export class GentaskClient {
     return this.send<Issue>('GET', `${issuesPath(projectId)}/${number}`);
   }
 
-  /** 세운 것의 번호는 Location 헤더가 낸다. 번호는 서버가 매긴다. */
+  /** 작업 항목 생성 요청을 전송하고 Location 헤더에서 발급된 일련번호를 반환한다. */
   async addIssue(
     projectId: string,
     fields: { title: string; kind?: IssueKind; body?: string; parentKey?: string | null },
@@ -146,7 +137,7 @@ export class GentaskClient {
     return Number(location.split('/').pop());
   }
 
-  /** 셋을 함께 보낸다. 서버의 편집은 부분 갱신이 아니라 그 셋을 그대로 받는다. */
+  /** 작업 항목 속성 전체를 전송하여 수정을 반영한다. */
   async editIssue(
     projectId: string,
     number: number,
@@ -159,7 +150,7 @@ export class GentaskClient {
     await this.raw('PATCH', `${issuesPath(projectId)}/${number}/state`, { state });
   }
 
-  /** 되살릴 자리가 없다. 되묻는 것은 이 자리가 아니라 부르는 쪽이 한다(ITM-005). */
+  /** 작업 항목을 삭제한다. */
   async removeIssue(projectId: string, number: number): Promise<void> {
     await this.raw('DELETE', `${issuesPath(projectId)}/${number}`);
   }
@@ -169,12 +160,12 @@ export class GentaskClient {
     return this.send<readonly DocSummary[]>('GET', docsPath(projectId));
   }
 
-  /** 본문은 여기에만 있다. 목록의 줄은 제목과 때만 갖는다. */
+  /** 문서 상세 정보를 조회한다. */
   doc(projectId: string, documentId: string): Promise<Doc> {
     return this.send<Doc>('GET', `${docsPath(projectId)}/${encodeURIComponent(documentId)}`);
   }
 
-  /** 세운 것의 식별자는 Location 헤더가 낸다. 문서는 번호를 매기지 않는다. */
+  /** 문서 생성 요청을 전송하고 Location 헤더에서 발급된 문서 식별자를 반환한다. */
   async addDoc(
     projectId: string,
     fields: { title: string; body?: string; folderId?: string | null },
@@ -184,7 +175,7 @@ export class GentaskClient {
     return location.split('/').pop() ?? '';
   }
 
-  /** 제목과 본문을 함께 보낸다. 서버의 편집은 부분 갱신이 아니라 그 둘을 그대로 받는다. */
+  /** 문서 내용 수정을 전송하고 신규 개정을 등록한다. */
   async editDoc(
     projectId: string,
     documentId: string,
@@ -194,9 +185,7 @@ export class GentaskClient {
   }
 
   /**
-   * 문서가 담긴 자리를 바꾼다.
-   *
-   * <p>본문도 제목도 건드리지 않으므로 개정이 쌓이지 않는다(DOC-006). 값을 비우면 뿌리로 간다.
+   * 문서의 소속 폴더를 변경한다. 문서 이동은 내용 변경이 아니므로 개정 이력을 추가하지 않는다.
    */
   async moveDoc(projectId: string, documentId: string, folderId: string | null): Promise<void> {
     await this.raw('PUT', `${docsPath(projectId)}/${encodeURIComponent(documentId)}/folder`, {
@@ -205,10 +194,7 @@ export class GentaskClient {
   }
 
   /**
-   * 개정 이력의 한 쪽을 읽는다.
-   *
-   * <p>최근 것부터 오는 것은 서버가 정한다. 여기서 다시 세우지 않는 것은 두 자리가 어긋날 때 어느
-   * 쪽이 참인지 판정할 근거가 없기 때문이다.
+   * 문서 개정 이력을 페이징 조회한다.
    */
   revisions(
     projectId: string,
@@ -226,7 +212,7 @@ export class GentaskClient {
     return this.send<DocRevisionPage>('GET', `${revisionsPath(projectId, documentId)}${suffix}`);
   }
 
-  /** 그때의 본문은 여기에만 있다. 이력의 줄은 번호와 때와 사유만 갖는다. */
+  /** 특정 개정 버전의 상세 본문을 조회한다. */
   revision(projectId: string, documentId: string, revisionNo: number): Promise<DocRevision> {
     return this.send<DocRevision>(
       'GET',
@@ -235,10 +221,7 @@ export class GentaskClient {
   }
 
   /**
-   * 그 개정의 본문을 담은 새 개정을 남긴다.
-   *
-   * <p>사이의 개정을 지우지 않으므로 되돌리기도 앞으로 가는 것이다(DOC-005). 사유를 넘기지 않으면
-   * 서버가 몇 번으로 되돌렸는지를 스스로 적으므로 여기서 그 문구를 만들지 않는다.
+   * 문서를 과거 개정 시점으로 롤백한다. 과거 본문을 담은 신규 개정을 등록하는 방식으로 처리한다.
    */
   async revertDoc(
     projectId: string,
@@ -254,12 +237,12 @@ export class GentaskClient {
   }
 
   // --- 문서 폴더 ----------------------------------------------------------------------------------
-  /** 프로젝트의 폴더 전부가 평평하게 온다. 트리로 세우는 것은 부르는 쪽의 일이다. */
+  /** 프로젝트의 전체 폴더 목록을 평탄화된 목록으로 조회한다. */
   folders(projectId: string): Promise<readonly DocFolder[]> {
     return this.send<readonly DocFolder[]>('GET', foldersPath(projectId));
   }
 
-  /** 세운 것의 식별자는 Location 헤더가 낸다. 같은 이름이 이미 있어도 서버가 막지 않는다(DOC-008 A2). */
+  /** 폴더 생성 요청을 전송하고 Location 헤더에서 발급된 폴더 식별자를 반환한다. */
   async addFolder(
     projectId: string,
     fields: { name: string; parentId?: string | null },
@@ -269,16 +252,13 @@ export class GentaskClient {
     return location.split('/').pop() ?? '';
   }
 
-  /** 이름만 바꾼다. 그 폴더를 가리키던 길은 식별자로 서 있으므로 끊기지 않는다(DOC-008 A4). */
+  /** 폴더명을 수정한다. */
   async renameFolder(projectId: string, folderId: string, name: string): Promise<void> {
     await this.raw('PATCH', `${foldersPath(projectId)}/${encodeURIComponent(folderId)}`, { name });
   }
 
   /**
-   * 폴더를 다른 자리로 옮긴다. 담긴 문서와 하위 폴더가 함께 간다(DOC-008 A5).
-   *
-   * <p>자기 자신이나 자기 자손 아래로 옮기려 하면 서버가 거절한다(A6). 여기서 미리 세어 두지
-   * 않는 것은 판정에 필요한 트리 전체를 서버가 갖기 때문이다.
+   * 폴더를 대상 상위 폴더로 이동한다. 하위 문서와 자식 폴더가 함께 이동한다.
    */
   async moveFolder(projectId: string, folderId: string, parentId: string | null): Promise<void> {
     await this.raw('PUT', `${foldersPath(projectId)}/${encodeURIComponent(folderId)}/parent`, {
@@ -286,7 +266,7 @@ export class GentaskClient {
     });
   }
 
-  /** 담긴 문서와 하위 폴더는 함께 지워지지 않고 한 단계 위로 올라간다(DOC-008 A7). */
+  /** 폴더를 삭제한다. 소속 문서 및 하위 폴더는 상위 계층으로 승격된다. */
   async removeFolder(projectId: string, folderId: string): Promise<void> {
     await this.raw('DELETE', `${foldersPath(projectId)}/${encodeURIComponent(folderId)}`);
   }
@@ -332,10 +312,7 @@ function revisionsPath(projectId: string, documentId: string): string {
 }
 
 /**
- * 실패 응답을 옮긴다.
- *
- * <p>서버는 RFC 9457 로 답하며 `code` 가 분기의 계약이다(결정-0004). 자격이 서지 않은 것만 여기서
- * 말을 바꾸는데, 그 자리는 토큰을 다시 발급해야 한다는 것이 사용자가 알아야 할 전부이기 때문이다.
+ * RFC 9457 오류 응답을 파싱하여 클라이언트 예외로 변환한다.
  */
 async function toError(response: Response): Promise<GentaskError> {
   if (response.status === 401) {
@@ -349,7 +326,7 @@ async function toError(response: Response): Promise<GentaskError> {
     code = problem.code ?? null;
     detail = problem.detail ?? detail;
   } catch {
-    // 본문이 없거나 JSON 이 아니면 상태 코드만 남긴다
+    // 응답 본문이 없거나 JSON 파싱 실패 시 HTTP 상태 코드 기반 기본 메시지를 설정한다.
   }
   return new GentaskError(response.status, code, detail);
 }

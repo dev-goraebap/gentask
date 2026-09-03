@@ -5,15 +5,15 @@ import markedAlert from 'marked-alert';
 /**
  * 마크다운을 HTML 로 옮기는 자리.
  *
- * <p>파일을 갈라 둔 것은 <b>늦게 싣기 위해서다.</b> 보는 쪽이 이것을 동적으로 부르므로 파서와
+ * 파일을 갈라 둔 것은 늦게 싣기 위해서다. 보는 쪽이 이것을 동적으로 부르므로 파서와
  * 색칠개와 그림개가 첫 묶음에서 빠진다.
  *
- * <p>이 결과는 소독을 지나야 한다. marked 는 본문에 섞인 raw HTML 을 막지 않고 그대로 흘려보내며
+ * 이 결과는 소독을 지나야 한다. marked 는 본문에 섞인 raw HTML 을 막지 않고 그대로 흘려보내며
  * `sanitize` 옵션은 v5 에서 사라졌다. 본문은 사람과 에이전트가 적는 것이라 스크립트가 섞여 들어올
  * 수 있고, 그것을 걷는 것은 [markdown-view]가 `[innerHTML]` 로 심을 때 도는 Angular 의 소독기다.
  * 아래 확인 칸이 input 이 아니라 span 인 것이 그 소독기가 실제로 돌고 있다는 증거다.
  *
- * <p>그래서 이 결과를 `bypassSecurityTrustHtml` 로 심으면 안 된다. 그 순간 경로가 열린다.
+ * 그래서 이 결과를 `bypassSecurityTrustHtml` 로 심으면 안 된다. 그 순간 경로가 열린다.
  */
 
 /** 옛 규약이 남긴 주석. 보이면 글이 아니라 표시가 읽히므로 그리기 전에 걷는다. */
@@ -40,7 +40,7 @@ export function hasMermaid(markdown: string): boolean {
 /**
  * 마크다운을 HTML 로 낸다.
  *
- * <p>색칠개를 받지 않으면 코드 판을 날것으로 둔다. 코드가 없는 글이 대부분이라 부르는 쪽이 필요할
+ * 색칠개를 받지 않으면 코드 판을 날것으로 둔다. 코드가 없는 글이 대부분이라 부르는 쪽이 필요할
  * 때만 세워 넘긴다.
  */
 export function render(markdown: string, highlight?: Highlight): string {
@@ -51,7 +51,7 @@ export function render(markdown: string, highlight?: Highlight): string {
        *
        * Angular 의 [innerHTML] 소독기가 form 요소를 지우므로 input 으로 내면 화면에서 칸이 통째로
        * 사라진다. 소독을 끄는 길도 있으나 본문은 사람과 에이전트가 적는 것이라 켜 두는 편이 낫다.
-       * 여기서 다루는 것은 읽는 자리이며 누를 수 있는 칸이 아니므로 잃는 것도 없다.
+       * 읽기 전용 뷰이므로 인터랙티브 동작 없이 정적 렌더링한다.
        */
       checkbox({ checked }) {
         // 상태를 data 속성이 아니라 클래스로 담는다. 소독기가 data-* 도 지운다.
@@ -76,10 +76,8 @@ export function render(markdown: string, highlight?: Highlight): string {
 }
 
 /**
- * 색칠할 언어. 여기 없는 것은 색 없이 낸다.
- *
- * <p>목록을 두는 것은 Shiki 를 통째로 부르면 <b>쓰지도 않는 문법 수백 개</b>가 산출물에 구워지기
- * 때문이다(emacs-lisp · wolfram · vue-vine …). 글에 실제로 나온 언어만 그때 실어 온다.
+ * 구문 강조 대상 언어 모듈 매핑이다.
+ * 번들 크기 최적화를 위해 사용 언어 문법만 선별하여 동적 로드한다.
  */
 type LangModule = { default: LanguageRegistration[] };
 
@@ -111,11 +109,11 @@ const ALIAS: Record<string, string> = {
 /**
  * Shiki 를 세워 색칠개를 낸다.
  *
- * <p>두 테마의 색을 함께 심는다(`defaultColor: false`). 그러면 각 span 이 `--shiki-light` 와
+ * 두 테마의 색을 함께 심는다(`defaultColor: false`). 그러면 각 span 이 `--shiki-light` 와
  * `--shiki-dark` 를 갖고, 고르는 일은 CSS 의 `light-dark()` 가 한다 — 색상 모드를 자바스크립트가
  * 다시 판정하지 않아도 된다.
  *
- * <p>정규식 엔진을 자바스크립트 것으로 고른다. 기본값인 Oniguruma 는 600 kB 가 넘는 wasm 을 함께
+ * 정규식 엔진을 자바스크립트 것으로 고른다. 기본값인 Oniguruma 는 600 kB 가 넘는 wasm 을 함께
  * 실어 오는데, 우리가 담는 언어에는 그만한 것이 필요하지 않다.
  */
 export async function createHighlight(langs: readonly string[]): Promise<Highlight | undefined> {
@@ -142,7 +140,7 @@ export async function createHighlight(langs: readonly string[]): Promise<Highlig
 
   return (code, lang) =>
     highlighter.codeToHtml(code, {
-      // 담지 않은 언어는 색 없이 낸다. 세우지 못한 것을 넘기면 Shiki 가 던진다.
+      // 미지원 언어는 구문 강조 없이 일반 텍스트로 렌더링한다.
       lang: known.has(ALIAS[lang] ?? lang) ? (ALIAS[lang] ?? lang) : 'text',
       themes: { light: 'github-light', dark: 'github-dark' },
       defaultColor: false,
@@ -152,7 +150,7 @@ export async function createHighlight(langs: readonly string[]): Promise<Highlig
 /**
  * 머메이드 판을 그림으로 바꾼다.
  *
- * <p>글에 판이 없으면 아무것도 싣지 않는다. 이 저장소에서 가장 무거운 묶음이라, 판을 담은 글을 여는
+ * 글에 판이 없으면 아무것도 싣지 않는다. 이 저장소에서 가장 무거운 묶음이라, 판을 담은 글을 여는
  * 사람만 그 값을 치르게 한다.
  */
 export async function drawDiagrams(root: HTMLElement, dark: boolean): Promise<void> {

@@ -8,18 +8,15 @@ import type {
 } from './gentask-client.js';
 
 /**
- * 문서를 글자로 그린다.
- *
- * <p>화면은 본문을 글자로만 그리지만(DOC-002) 여기가 내는 것은 <b>마크다운 원문</b>이다. 에이전트가
- * 받는 것은 그린 결과가 아니며, 위험은 그리는 자리에 있지 원문 자체에 있지 않다(DOC-002 A5).
+ * 문서 관련 콘솔 출력 서식 변환 모듈이다. 상세 조회 시 원본 마크다운 텍스트를 그대로 출력한다.
  */
 
-/** 시각을 분까지만 보인다. 초는 목록에서 고르는 데 쓰이지 않고 줄만 먹는다. */
+/** 일시 문자열을 분 단위(YYYY-MM-DD HH:mm)까지만 포맷팅한다. */
 function when(instant: string): string {
   return instant.replace('T', ' ').slice(0, 16);
 }
 
-/** 목록을 표로 그린다. 비었으면 그 사실을 한 줄로 말한다. */
+/** 문서 목록을 콘솔 표 형식으로 출력한다. 비어 있는 경우 빈 목록 메시지를 출력한다. */
 export function formatDocs(docs: readonly DocSummary[]): string {
   if (docs.length === 0) {
     return '문서가 없습니다.';
@@ -59,13 +56,7 @@ export function formatDoc(doc: Doc): string {
 }
 
 /**
- * 개정 이력을 표로 그린다.
- *
- * <p>최근 것부터 오는 것은 서버가 정한 순서이며 여기서 다시 세우지 않는다. 한 쪽에 담기지 않으면
- * 무엇이 남았는지와 다음 쪽을 어떻게 부르는지를 마지막 줄이 말한다(DOC-004 A3).
- *
- * <p>비어 있다고 말하는 줄은 없다. 세우는 것이 곧 첫 개정이므로 이력이 없는 문서는 없고(DOC-004 A2),
- * 줄이 하나도 오지 않는 것은 없는 쪽을 부른 경우뿐이다.
+ * 개정 이력을 콘솔 표 형식으로 출력한다.
  */
 export function formatRevisions(page: DocRevisionPage): string {
   const first = page.page * page.size + 1;
@@ -100,7 +91,7 @@ export function formatRevisions(page: DocRevisionPage): string {
   ].join('\n');
 }
 
-/** 개정 하나를 한 줄로 짚는다. 되돌리기가 어느 시점으로 가는지를 보이는 자리가 이것이다. */
+/** 개정 1건의 요약 정보(버전, 시각, 작성자, 사유)를 한 줄로 포맷팅한다. */
 export function revisionHeadline(revision: DocRevision): string {
   const s = revision.summary;
   const comment = s.comment === null || s.comment === '' ? '' : `  ${s.comment}`;
@@ -132,19 +123,13 @@ export function formatRevision(revision: DocRevision): string {
   return lines.join('\n');
 }
 
-/** 폴더가 바로 아래에 담은 것. 지우기가 무엇을 위로 올리는지 세는 자리도 이것이다(DOC-008 A7). */
+/** 폴더 삭제 시 상위로 승격될 하위 항목 개수를 반환한다. */
 export function folderHolds(folder: DocFolder): string {
   return `문서 ${folder.documentCount} · 폴더 ${folder.folderCount}`;
 }
 
 /**
- * 폴더를 계층이 보이게 그린다.
- *
- * <p>서버는 평평한 목록에 `parentId` 를 실어 주고 트리를 세우지 않는다. 깊이를 제한하지 않으므로
- * 조립한 모양이 한 화면에 담긴다는 보장이 없고, 어디까지 펼칠지는 보는 쪽이 안다(DOC-008).
- *
- * <p>담긴 자리가 목록에 없는 폴더는 뿌리에 둔다. 그런 줄은 서지 않아야 하지만, 서면 어느 가지에도
- * 걸리지 않아 목록에서 통째로 사라진다. 보이지 않는 것보다 뿌리에 서는 편이 낫다.
+ * 계층형 폴더 트리를 콘솔에 출력한다.
  */
 export function formatFolders(folders: readonly DocFolder[]): string {
   if (folders.length === 0) {
@@ -177,7 +162,7 @@ export function formatFolders(folders: readonly DocFolder[]): string {
   };
   walk('', 0);
 
-  // 어느 가지에도 걸리지 않은 것. 서버가 고리를 막으므로 서지 않을 줄이지만, 서면 뿌리에 세운다.
+  // 순환 참조 등으로 트리에 편입되지 못한 고아 노드는 루트 계층에 배치한다.
   for (const folder of folders) {
     if (!drawn.has(folder.id)) {
       draw(folder, 0);

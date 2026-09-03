@@ -1,12 +1,12 @@
 import { 빈_계정으로_바꾼다, expect, test } from '../fixtures';
 import { 기본_프로젝트, 작업_아이템을_만든다, 프로젝트를_만든다 } from './tracker-support';
 
-// 프로젝트를 세우는 자리.
+// 프로젝트 생성
 //
 // 이름과 접두어를 함께 받는다. 접두어를 이름에서 뽑던 규칙은 걷었다 — 한글로만 지은 이름에서 남는
 // 것이 없어 뜻 없는 값이 나왔다. 주소가 담는 식별자는 사람이 정하지 않고 시스템이 만든다.
 
-/** 세우는 덮개를 열고 이름과 접두어를 적는다. */
+/** 프로젝트 생성 다이얼로그를 열고 이름과 접두어를 입력한다. */
 async function 적는다(
   page: import('@playwright/test').Page,
   이름: string,
@@ -19,8 +19,8 @@ async function 적는다(
   await page.locator('#project-create-key').fill(접두어);
 }
 
-test.describe('프로젝트를 세우고 고른다', () => {
-  test('이름과 접두어를 적어 세우면 사람이 정하지 않은 식별자로 닿게 한다', async ({
+test.describe('프로젝트 생성 및 선택', () => {
+  test('이름과 접두어를 입력하여 생성하면 시스템이 부여한 공개 식별자 URL로 이동한다', async ({
     page,
   }) => {
     await 빈_계정으로_바꾼다(page);
@@ -28,7 +28,7 @@ test.describe('프로젝트를 세우고 고른다', () => {
     await 적는다(page, 'Gentask Web', 'GW');
     await page.getByRole('button', { name: '세우기' }).click();
 
-    // 세운 자리로 곧장 들어간다. 주소가 담는 것은 접두어가 아니라 시스템이 만든 식별자다.
+    // 생성 완료 시 해당 프로젝트의 공개 식별자 URL로 자동 이동한다.
     await expect(page).toHaveURL(/^http:\/\/localhost:4200\/projects\/[\w-]{12}\/issues$/);
 
     await page.goto('/projects');
@@ -44,15 +44,14 @@ test.describe('프로젝트를 세우고 고른다', () => {
   });
 
   /*
-   * 접두어는 이슈 이름에만 쓰이고 해석은 주소의 식별자가 한다. 겹치지 않는 것을 뽑아 주던 자리를
-   * 걷었으므로, 같은 접두어를 두 번 적어도 그대로 선다.
+   * 접두어는 작업 항목 키에만 사용되며 고유 식별은 공개 식별자(URL)가 담당하므로 동일 접두어의 프로젝트 생성을 허용한다.
    */
-  test('접두어가 겹쳐도 그대로 세운다', async ({ page }) => {
+  test('접두어가 중복되어도 정상적으로 생성된다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
 
     await 적는다(page, '첫째', 'DUP');
     await page.getByRole('button', { name: '세우기' }).click();
-    // 옮겨 간 뒤에 잡는다. 누른 직후에는 아직 덮개의 주소가 남아 있다.
+    // 생성 완료 후 프로젝트 이슈 목록 URL로 이동한 상태를 검증한다.
     await expect(page).toHaveURL(/\/issues$/);
     const 첫째 = page.url();
 
@@ -77,7 +76,7 @@ test.describe('프로젝트를 세우고 고른다', () => {
     page,
     request,
   }) => {
-    // 워커 계정의 것이다. 이어서 바꾸는 계정에는 이것이 보이지 않아야 한다.
+    // 다른 사용자 계정의 프로젝트는 프로젝트 목록에 표시되지 않는다.
     await 프로젝트를_만든다(request, 'Other Place', 'OP');
 
     await 빈_계정으로_바꾼다(page);

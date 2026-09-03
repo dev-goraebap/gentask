@@ -107,7 +107,7 @@ public class TaskService {
     @Transactional
     public void remove(UUID userId, UUID taskId) {
         find(taskId, userId);
-        // 첨부는 다형 연결이라 외래 키가 없다. 작업을 지울 때 함께 걷지 않으면 보관소에 남는다
+        // 다형 첨부 구조에 따라 작업 삭제 시 연관된 첨부 파일도 함께 삭제한다.
         attachments.detachAll(AttachmentSlot.TASK_FILES, taskId);
         taskRepository.deleteById(taskId);
     }

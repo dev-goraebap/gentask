@@ -12,12 +12,7 @@ import xyz.gentask.module.notification.domain.reminder.DueReminder;
 import xyz.gentask.module.notification.domain.reminder.DueReminderQuery;
 
 /**
- * 보낼 때가 된 미리 알림을 찾는다.
- *
- * <p>같은 것을 두 번 보내지 않기 위해 sent_reminders 와 견준다. 보낸 기록이 없거나, 있더라도 그때의
- * 시각과 지금 작업의 시각이 다르면 보낼 대상이다 — 사용자가 시각을 바꾸면 다시 알려야 한다.
- *
- * <p>완료한 작업은 제외한다. 끝낸 일을 알리지 않는다.
+ * 발송 시점이 도래한 미완료 작업의 미리 알림을 조회한다. 이미 발송 완료된 알림은 제외한다.
  */
 @Repository
 @RequiredArgsConstructor

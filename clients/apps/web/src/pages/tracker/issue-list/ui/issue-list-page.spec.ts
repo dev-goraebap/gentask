@@ -26,7 +26,7 @@ const routes: Routes = [
  * 프로젝트를 세우는 덮개와 같은 규약을 잰다. 같은 규약을 쓰는 자리가 둘이므로 둘 다 지킨다 —
  * 하나만 지키면 다른 하나가 조용히 어긋난다.
  */
-describe('IssueListPage 의 세우는 덮개', () => {
+describe('IssueListPage 작업 항목 생성 다이얼로그', () => {
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
@@ -60,7 +60,7 @@ describe('IssueListPage 의 세우는 덮개', () => {
   /**
    * 실려 있는 요청을 비운다. 프로젝트가 실려야 작업 아이템의 주소가 만들어지므로 두 번 이상 돈다.
    *
-   * <p>비우지 않으면 `whenStable()` 이 끝나지 않는다. Angular 가 실려 있는 HTTP 를 할 일로 세기
+   * 비우지 않으면 `whenStable()` 이 끝나지 않는다. Angular 가 실려 있는 HTTP 를 할 일로 세기
    * 때문이며, 검사에서는 아무도 그것을 끝내 주지 않는다.
    */
   async function drain(): Promise<void> {
@@ -114,7 +114,7 @@ describe('IssueListPage 의 세우는 덮개', () => {
     expect(pane()).toBeNull();
   });
 
-  it('세우면 세운 것으로 들어간다', async () => {
+  it('생성 완료 시 생성된 작업 항목 상세 페이지로 이동한다', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl(`/projects/${PROJECT}/issues?new=1`);
     await drain();
@@ -183,7 +183,7 @@ function press(label: string): void {
 /**
  * 약속이 한 마디 나아가게 두고 다시 그린다.
  *
- * <p>`whenStable()` 을 부르지 않는다. 실려 있는 HTTP 가 있으면 그것이 끝나지 않는데, 여기서는 아직
+ * `whenStable()` 을 부르지 않는다. 실려 있는 HTTP 가 있으면 그것이 끝나지 않는데, 여기서는 아직
  * 비우지 않은 요청을 사이에 두고 나아가야 하기 때문이다.
  */
 async function settle(harness: RouterTestingHarness): Promise<void> {

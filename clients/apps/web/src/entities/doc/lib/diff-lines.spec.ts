@@ -58,7 +58,7 @@ describe('diffLines', () => {
     ]);
   });
 
-  it('빈 본문에서 세운 글은 전부 더한 줄이다', () => {
+  it('빈 본문에서 새로 작성한 문서는 전체가 추가된 라인이다', () => {
     const result = diffLines('', '가\n나');
 
     expect(shape(result.lines)).toEqual(['+가', '+나']);

@@ -54,7 +54,7 @@ export class DocDetailPage {
   /**
    * 지나온 것을 보고 있는가.
    *
-   * <p>주소가 갖는다. 신호에 두면 새로 고치거나 뒤로 갈 때 사라지고, 어디를 보고 있는지를 건넬 수도
+   * 주소가 갖는다. 신호에 두면 새로 고치거나 뒤로 갈 때 사라지고, 어디를 보고 있는지를 건넬 수도
    * 없다. 경로가 아니라 쿼리에 두는 것은 이 화면이 그대로 서 있어야 하기 때문이다.
    */
   readonly revisions = input(false, { transform: toFlag });
@@ -77,7 +77,7 @@ export class DocDetailPage {
   /**
    * 고치는 중인가.
    *
-   * <p>적던 것은 이 자리에만 있고 그만두면 사라진다. 되살릴 자리를 두려면 어디에 얼마나 남길지가
+   * 적던 것은 이 자리에만 있고 그만두면 사라진다. 되살릴 자리를 두려면 어디에 얼마나 남길지가
    * 먼저 정해져야 한다(DOC-003 A4).
    */
   protected readonly editing = signal(false);
@@ -130,7 +130,7 @@ export class DocDetailPage {
   /**
    * 견주는 두 개정.
    *
-   * <p>지난 것을 앞에 둔다. 고른 차례가 아니라 시간이 순서를 정해야 무엇이 무엇으로 바뀌었는지가
+   * 지난 것을 앞에 둔다. 고른 차례가 아니라 시간이 순서를 정해야 무엇이 무엇으로 바뀌었는지가
    * 뒤집히지 않는다.
    */
   protected readonly comparison = computed(() => {
@@ -192,7 +192,7 @@ export class DocDetailPage {
   /**
    * 담는다.
    *
-   * <p>앞의 개정과 같으면 개정을 만들지 않는다(DOC-003 A2). 그 판정은 서버가 가지므로 여기서는
+   * 앞의 개정과 같으면 개정을 만들지 않는다(DOC-003 A2). 그 판정은 서버가 가지므로 여기서는
    * 담을 것이 없었다고 알리지 않고 읽는 자리로 되돌린다.
    */
   protected async save(): Promise<void> {
@@ -209,10 +209,10 @@ export class DocDetailPage {
   /**
    * 고른 개정으로 되돌린다.
    *
-   * <p>되묻는 자리를 지나야만 닿는다(DOC-005 기본 흐름 3). 그만두면 이 자리에 오지 않으므로 아무것도
+   * 되묻는 자리를 지나야만 닿는다(DOC-005 기본 흐름 3). 그만두면 이 자리에 오지 않으므로 아무것도
    * 담지 않는다(DOC-005 A1).
    *
-   * <p>담고 나면 읽는 자리로 되돌아간다. 상세와 이력이 다른 리소스라 둘 다 다시 싣지 않으면 방금
+   * 담고 나면 읽는 자리로 되돌아간다. 상세와 이력이 다른 리소스라 둘 다 다시 싣지 않으면 방금
    * 담은 개정이 화면에 서지 않는다.
    */
   protected async revert(): Promise<void> {
@@ -224,7 +224,7 @@ export class DocDetailPage {
     try {
       await this.docService.revert(this.id(), revisionNo, comment === '' ? null : comment);
     } catch (error) {
-      // 남의 것에 닿으면 서버가 404 를 낸다. 있으나 권한이 없다고 알리지 않는다(DOC-005 A5).
+      // 타 프로젝트 문서이거나 삭제된 문서인 경우 404 응답을 반환한다(DOC-005 A5).
       toast.error(problemDetail(error, '그 개정을 찾지 못했습니다.'));
       return;
     } finally {

@@ -10,7 +10,7 @@ import lombok.NonNull;
 /**
  * 알림이 닿지 않은 회차 하나.
  *
- * <p>구독의 식별자가 아니라 endpoint 를 그대로 담는다. 자리가 사라져 구독 행이 지워진 뒤에도 무엇이
+ * 구독의 식별자가 아니라 endpoint 를 그대로 담는다. 자리가 사라져 구독 행이 지워진 뒤에도 무엇이
  * 실패했는지 남아야 하기 때문이다.
  */
 @Getter
@@ -25,7 +25,6 @@ public final class PushDeliveryFailure {
         GONE
     }
 
-    // 식별자
     @NonNull private final UUID id;
 
     // 이 자리를 가진 사용자
@@ -37,16 +36,12 @@ public final class PushDeliveryFailure {
     // 어느 작업의 미리 알림이었는가. 작업이 지워지면 끊긴다
     private final UUID taskId;
 
-    // 사유
     @NonNull private final Reason reason;
 
-    // 사람이 읽을 짧은 설명
     private final String detail;
 
-    // 일어난 시각
     @NonNull private final Instant occurredAt;
 
-    // 관리자가 처리했다고 표시한 시각
     private Instant resolvedAt;
 
     public static PushDeliveryFailure occur(
@@ -66,7 +61,7 @@ public final class PushDeliveryFailure {
         return new PushDeliveryFailure(id, userId, endpoint, taskId, reason, detail, occurredAt, resolvedAt);
     }
 
-    /** 이미 처리된 것을 다시 표시해도 처음의 시각을 지킨다. 처리 시점이 뒤로 밀리면 이력이 어긋난다. */
+    /** 이미 처리 완료된 이력은 최초 처리 완료 시각을 유지한다. */
     public void resolve(Instant now) {
         if (resolvedAt == null) {
             resolvedAt = now;

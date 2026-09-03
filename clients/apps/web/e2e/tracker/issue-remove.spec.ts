@@ -3,10 +3,9 @@ import { 작업_아이템을_만든다, 프로젝트를_만든다 } from './trac
 
 // 작업 아이템을 지운다
 //
-// 취소(CANCELED)와 다르다. 그쪽은 근거를 잃었으나 있었던 일로 남기는 것이고 이쪽은 자리까지
-// 걷는 것이다(ITM-005). 되살릴 자리를 두지 않았으므로 되묻는 자리를 반드시 지난다.
+// 취소(CANCELED)와 달리 삭제는 항목을 영구 제거한다(ITM-005). 복구 기능이 없으므로 확인 다이얼로그를 거친다.
 
-/** 되묻는 자리를 연다. 여는 단추와 확인하는 단추가 이름을 달리 갖는다. */
+/** 삭제 확인 다이얼로그를 연다. */
 async function 지우기를_연다(page: import('@playwright/test').Page): Promise<void> {
   await page.getByRole('button', { name: '작업 아이템 지우기' }).click();
 }
@@ -36,7 +35,7 @@ test.describe('작업 아이템을 지운다', () => {
     await expect(page.getByRole('link', { name: '걷을 것' })).toHaveCount(0);
   });
 
-  test('되묻는 자리를 그만두면 아무것도 지우지 않는다', async ({ page, request }) => {
+  test('삭제 확인 다이얼로그에서 취소하면 항목이 삭제되지 않는다', async ({ page, request }) => {
     const 프로젝트 = await 프로젝트를_만든다(request, 'Kept After All');
     const 항목 = await 작업_아이템을_만든다(request, 프로젝트, '남아 있을 것');
 

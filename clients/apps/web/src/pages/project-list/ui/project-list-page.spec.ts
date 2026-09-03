@@ -21,10 +21,10 @@ const routes: Routes = [
  * 덮개의 여닫는 규약을 재는 검사다. 눈으로 보면 통과하는데 틀려 있는 종류라 검사가 필요하다 —
  * 주소가 열림의 진실이어야 새로고침과 뒤로가기와 주소 건네기가 성립한다(FE-STY-180~183).
  *
- * <p>덮개를 오버레이 판 안에서 찾는다. 문서 전체에서 찾으면 내용이 화면 안에 남아 판이 비는 어긋남을
+ * 덮개를 오버레이 판 안에서 찾는다. 문서 전체에서 찾으면 내용이 화면 안에 남아 판이 비는 어긋남을
  * 놓친다(FE-STY-185).
  */
-describe('ProjectListPage 의 세우는 덮개', () => {
+describe('ProjectListPage 프로젝트 생성 다이얼로그', () => {
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
@@ -49,7 +49,7 @@ describe('ProjectListPage 의 세우는 덮개', () => {
   /**
    * 실려 있는 요청을 비운다.
    *
-   * <p>비우지 않으면 `whenStable()` 이 끝나지 않는다. Angular 가 실려 있는 HTTP 를 할 일로 세기
+   * 비우지 않으면 `whenStable()` 이 끝나지 않는다. Angular 가 실려 있는 HTTP 를 할 일로 세기
    * 때문이며, 검사에서는 아무도 그것을 끝내 주지 않는다.
    */
   async function drain(): Promise<void> {
@@ -64,7 +64,7 @@ describe('ProjectListPage 의 세우는 덮개', () => {
     }
   }
 
-  it('주소가 덮개를 가리키면 열린다', async () => {
+  it('URL 쿼리 파라미터에 따라 다이얼로그가 열린다', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/projects?new=1');
     await drain();
@@ -72,7 +72,7 @@ describe('ProjectListPage 의 세우는 덮개', () => {
     expect(paneText()).toContain('새 프로젝트');
   });
 
-  it('주소에서 빠지면 걷힌다', async () => {
+  it('URL 쿼리 파라미터가 제거되면 다이얼로그가 닫힌다', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/projects?new=1');
     await drain();
@@ -84,7 +84,7 @@ describe('ProjectListPage 의 세우는 덮개', () => {
     expect(pane()).toBeNull();
   });
 
-  it('그만두면 주소에서 덮개가 빠진다', async () => {
+  it('취소 버튼 클릭 시 다이얼로그가 닫히고 URL 쿼리가 제거된다', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/projects?new=1');
     await drain();
@@ -95,7 +95,7 @@ describe('ProjectListPage 의 세우는 덮개', () => {
     expect(pane()).toBeNull();
   });
 
-  it('세우면 세운 것으로 들어간다', async () => {
+  it('생성 완료 시 생성된 프로젝트 이슈 목록 페이지로 이동한다', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/projects?new=1');
     await drain();
@@ -138,7 +138,7 @@ function press(label: string): void {
 /**
  * 약속이 한 마디 나아가게 두고 다시 그린다.
  *
- * <p>`whenStable()` 을 부르지 않는다. 실려 있는 HTTP 가 있으면 그것이 끝나지 않는데, 여기서는 아직
+ * `whenStable()` 을 부르지 않는다. 실려 있는 HTTP 가 있으면 그것이 끝나지 않는데, 여기서는 아직
  * 비우지 않은 요청을 사이에 두고 나아가야 하기 때문이다.
  */
 async function settle(harness: RouterTestingHarness): Promise<void> {

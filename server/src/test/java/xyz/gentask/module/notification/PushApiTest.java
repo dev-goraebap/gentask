@@ -24,8 +24,7 @@ import xyz.gentask.TestcontainersConfiguration;
 import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 
 /**
- * 구독의 등록과 해제. 브라우저 권한과 서비스 워커는 이 경로가 닿지 못하므로 종단 테스트가 아니라 여기가
- * 서버 강제를 지킨다.
+ * 푸시 알림 구독 등록 및 해제 API 명세를 검증한다.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -40,7 +39,7 @@ class PushApiTest {
     private RecordingMailSender mail;
 
     @Test
-    @DisplayName("구독을 보내면 이 기기가 받을 자리로 등록된다")
+    @DisplayName("푸시 구독 정보를 등록하면 해당 기기의 구독 상태가 활성화된다")
     void 구독을_보내면_받을_자리로_등록된다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "push-" + UUID.randomUUID() + "@example.com");
         String endpoint = "https://push.example.com/" + UUID.randomUUID();
@@ -53,7 +52,7 @@ class PushApiTest {
     }
 
     @Test
-    @DisplayName("구독을 지우면 그 자리가 사라진다")
+    @DisplayName("푸시 구독을 삭제하면 해당 기기의 구독 상태가 비활성화된다")
     void 구독을_지우면_그_자리가_사라진다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "push-" + UUID.randomUUID() + "@example.com");
         String endpoint = "https://push.example.com/" + UUID.randomUUID();
@@ -71,7 +70,7 @@ class PushApiTest {
     }
 
     @Test
-    @DisplayName("다른 기기에서 켜면 앞의 기기와 나란히 등록된다")
+    @DisplayName("동일 계정의 다른 기기에서 구독을 등록하면 기존 기기와 함께 다중 등록된다")
     void 다른_기기에서_켜면_나란히_등록된다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "push-" + UUID.randomUUID() + "@example.com");
         String first = "https://push.example.com/" + UUID.randomUUID();
@@ -88,7 +87,7 @@ class PushApiTest {
     }
 
     @Test
-    @DisplayName("같은 구독을 두 번 보내도 자리는 하나로 남는다")
+    @DisplayName("동일한 엔드포인트로 중복 등록 요청 시 기존 구독을 유지한다")
     void 같은_구독을_두_번_보내도_하나로_남는다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "push-" + UUID.randomUUID() + "@example.com");
         String endpoint = "https://push.example.com/" + UUID.randomUUID();
@@ -102,7 +101,7 @@ class PushApiTest {
     }
 
     @Test
-    @DisplayName("남의 자리는 내 것으로 조회되지 않는다")
+    @DisplayName("타 사용자의 푸시 구독 엔드포인트는 조회되지 않는다")
     void 남의_자리는_내_것으로_조회되지_않는다() throws Exception {
         Cookie mine = AuthTestSupport.가입한다(mockMvc, mail, "push-" + UUID.randomUUID() + "@example.com");
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "push-" + UUID.randomUUID() + "@example.com");
@@ -115,7 +114,7 @@ class PushApiTest {
     }
 
     @Test
-    @DisplayName("공개 키를 내주고 개인 키는 내주지 않는다")
+    @DisplayName("VAPID 설정 조회 시 공개 키만 반환하고 개인 키는 노출하지 않는다")
     void 공개_키를_내주고_개인_키는_내주지_않는다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "push-" + UUID.randomUUID() + "@example.com");
 

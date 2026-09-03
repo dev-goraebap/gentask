@@ -11,9 +11,9 @@ import {
 } from '../model/project';
 
 /**
- * 이어 둔 저장소는 아직 목이다.
+ * 연계 저장소 연동 기능은 현재 목업 상태다.
  *
- * <p>잇는 규격(무엇을 받아 어떻게 확인하는가)이 정해지지 않아 서버에 자리가 없다. 화면이 그 자리를
+ * 저장소 연동 명세가 확정될 때까지 클라이언트 목 데이터를 제공한다.
  * 이미 갖고 있으므로 여기서만 목으로 남긴다.
  */
 const LINKS: readonly RepositoryLink[] = [
@@ -35,7 +35,7 @@ const LINKS: readonly RepositoryLink[] = [
   },
 ];
 
-/** 서버가 내는 모양. 문서 수는 아직 서버에 자리가 없다. */
+/** 프로젝트 응답 DTO 인터페이스다. */
 interface ProjectResponse {
   /** 주소가 담는 값. 내부의 UUID 가 아니다. */
   readonly id: string;
@@ -47,7 +47,7 @@ interface ProjectResponse {
 /**
  * 프로젝트.
  *
- * <p>리소스(`httpResource`)를 쓰지 않는다. 길잡이가 주소의 접두어를 판정하려면 목록을 **기다려야**
+ * 리소스(`httpResource`)를 쓰지 않는다. 길잡이가 주소의 접두어를 판정하려면 목록을 **기다려야**
  * 하는데 리소스는 신호이지 약속이 아니다. 실어 오는 약속을 하나만 두고 그것을 함께 기다린다 —
  * 리소스와 기다림을 함께 두면 처음 드는 순간에 같은 것을 두 번 부른다.
  */
@@ -74,7 +74,7 @@ export class ProjectService {
   /**
    * 지금 프로젝트.
    *
-   * <p>아직 하나도 실리지 않았을 수 있다. 그때는 비어 있는 것을 내며, 화면은 목록이 빈 동안을 그
+   * 아직 하나도 실리지 않았을 수 있다. 그때는 비어 있는 것을 내며, 화면은 목록이 빈 동안을 그
    * 자리의 빈 화면으로 가린다.
    */
   readonly current = computed<Project | undefined>(() => {
@@ -97,9 +97,9 @@ export class ProjectService {
   }
 
   /**
-   * 프로젝트를 세우고 주소가 담을 식별자를 낸다.
+   * 프로젝트를 생성하고 공개 식별자를 반환한다.
    *
-   * <p>접두어는 사람이 정한다. 이름에서 뽑던 규칙을 걷었으므로 세울 때 함께 보낸다.
+   * 접두어는 사람이 정한다. 이름에서 뽑던 규칙을 걷었으므로 세울 때 함께 보낸다.
    */
   async create(name: string, key: string): Promise<string> {
     const created = await firstValueFrom(

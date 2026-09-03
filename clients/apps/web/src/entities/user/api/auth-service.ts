@@ -48,7 +48,7 @@ export class AuthService {
     await firstValueFrom(this.httpClient.post<void>(ENDPOINTS.passwordResetResend, { email }));
   }
 
-  /** 지금 쓰는 자리는 남고 다른 자리의 로그인은 끊긴다. */
+  /** 현재 세션을 제외한 다른 모든 활성 세션을 만료 처리한다. */
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
     await firstValueFrom(
       this.httpClient.put<void>(ENDPOINTS.password, { currentPassword, newPassword }),

@@ -4,7 +4,7 @@ import { ISSUE_STATES, issueStateLabel, type IssueState } from '../model/issue';
 /**
  * 상태는 테두리와 글자가 함께 가른다.
  *
- * <p>더 손댈 것이 없는 둘만 면을 채워 목록에서 뒤로 물러난다. 백로그는 아직 정하지 않은 것이므로
+ * 더 손댈 것이 없는 둘만 면을 채워 목록에서 뒤로 물러난다. 백로그는 아직 정하지 않은 것이므로
  * 예정보다 흐리게 두어, 같은 미착수라도 어느 쪽이 잡힌 일인지가 눈에 먼저 들어오게 한다.
  */
 const STATE_CLASS: Readonly<Record<IssueState, string>> = {

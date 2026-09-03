@@ -70,15 +70,9 @@ public class MeService {
     }
 
     /**
-     * 비밀번호를 갈아 끼우고 지금 쓰는 자리를 뺀 나머지 세션을 거둔다.
+     * 비밀번호를 변경하고 현재 세션을 제외한 다른 모든 세션을 만료 처리한다.
      *
-     * <p>현재 비밀번호를 다시 받는 것은, 로그인 상태만으로 바꾸게 하면 자리를 비운 사이 남이 그
-     * 화면을 열어 주인을 밀어낼 수 있기 때문이다.
-     *
-     * <p>API 토큰은 남긴다. 그것을 거두는 자리는 비밀번호 재설정이며, 비밀번호를 모르는 채 지나는
-     * 그 경로만이 앞선 자리들을 의심할 근거를 갖는다.
-     *
-     * @param currentSessionId 남길 자리. Bearer 토큰으로 부르면 없으며 그때는 모두 거둔다
+     * @param currentSessionId 유지할 현재 세션 식별자. Bearer 토큰 요청 시 null이며 이때는 모든 세션을 만료 처리한다
      */
     @Transactional
     public void changePassword(UUID userId, UUID currentSessionId, String rawCurrent, String rawNew) {
@@ -114,7 +108,7 @@ public class MeService {
     @Transactional
     public void confirmProfileImage(UUID userId, String objectKey) {
         find(userId);
-        // 자리 하나뿐인 slot 이라 붙이는 것이 곧 앞의 것을 밀어내는 것이다
+        // 단일 슬롯이므로 새 이미지를 첨부하면 기존 프로필 이미지가 자동으로 대체된다.
         attachments.attach(SLOT, userId, userId, objectKey);
     }
 

@@ -17,7 +17,7 @@ import { DocMoveDialog } from './doc-move-dialog';
 /** 무엇을 세우는 중인가. 둘이 같은 적는 자리를 쓰고 이름표만 갈린다. */
 type Creating = 'doc' | 'folder';
 
-/** 남의 것에 닿거나 이미 지워진 것에 닿으면 서버가 404 를 낸다. 있으나 권한이 없다고 말하지 않는다. */
+/** 접근 권한이 없거나 삭제된 문서인 경우 404 응답을 반환한다. */
 const GONE = '그 자리가 없습니다.';
 
 @Component({
@@ -63,7 +63,7 @@ export class DocListPage {
   /**
    * 이름을 적으라고 이미 말했는가.
    *
-   * <p>여는 순간부터 비어 있다고 말하면 적기도 전에 틀린 것이 된다. 담으려 했거나 자리를 벗어난
+   * 여는 순간부터 비어 있다고 말하면 적기도 전에 틀린 것이 된다. 담으려 했거나 자리를 벗어난
    * 뒤에 말한다(DOC-008 A1).
    */
   protected readonly nameAsked = signal(false);
@@ -86,7 +86,7 @@ export class DocListPage {
   /**
    * 이 자리의 폴더와 그 각각이 갈 수 있는 자리.
    *
-   * <p>갈 수 있는 자리를 줄마다 미리 세운다. 템플릿에서 셈하면 변경 감지마다 다시 돈다.
+   * 이동 가능한 대상 폴더 목록을 계산하여 캐싱한다.
    */
   protected readonly folderRows = computed(() => {
     const folders = this.docService.folders();
@@ -99,7 +99,7 @@ export class DocListPage {
 
   protected readonly childDocs = computed(() => docsIn(this.docService.list(), this.folderId()));
 
-  /** 이 자리의 문서는 모두 같은 곳에 담겨 있으므로 갈 수 있는 자리도 하나로 셈한다. */
+  /** 동일 폴더 소속 문서들의 이동 가능 폴더 목록을 계산한다. */
   protected readonly docTargets = computed(() =>
     moveTargets(this.docService.folders(), this.folderId(), null),
   );
@@ -112,7 +112,7 @@ export class DocListPage {
 
   protected readonly renamable = computed(() => this.renameDraft().trim().length > 0);
 
-  /** 싣지 못한 것을 빈 자리로 그리지 않는다. 없는 것과 모르는 것이 같은 화면이 된다. */
+  /** 로딩 실패 시 빈 화면 대신 오류 상태를 표시한다. */
   protected readonly failed = computed(
     () => this.docService.status() === 'error' || this.docService.folderStatus() === 'error',
   );
@@ -144,9 +144,9 @@ export class DocListPage {
   }
 
   /**
-   * 세운다.
+   * 신규 문서를 생성한다.
    *
-   * <p>폴더는 지금 열어 둔 자리 아래에 서고(DOC-008 기본 흐름 6), 문서도 지금 열어 둔 자리에 담긴다.
+   * 하위 폴더 및 문서는 현재 열려 있는 폴더 하위에 생성된다(DOC-008 기본 흐름 6).
    * 이름이 겹쳐도 막지 않는다 — 가리키는 것이 이름이 아니라 식별자다(DOC-008 A2).
    */
   protected async create(): Promise<void> {
@@ -167,7 +167,7 @@ export class DocListPage {
       return;
     }
 
-    // 본문은 비워 둔 채 세운다. 제목만 정해 두고 나중에 채우는 것이 흔한 이유다(DOC-001).
+    // 본문은 빈 문자열로 초기 문서를 생성한다(DOC-001).
     const id = await this.docService.add(name, '', this.folderId());
     this.cancelCreating();
     if (id === undefined) return;
@@ -227,12 +227,12 @@ export class DocListPage {
     try {
       await this.docService.moveFolder(id, parentId);
     } catch (error) {
-      // 자기 자신이나 자손 아래로 가면 서버가 그 자리로는 옮길 수 없다고 답한다(DOC-008 A6).
+      // 자기 자신이나 하위 자손 폴더로는 이동할 수 없다(DOC-008 A6).
       toast.error(problemDetail(error, GONE));
     }
   }
 
-  /** 자리를 비우면 최상위로 간다(DOC-006 A1). */
+  /** 대상 폴더 미지정 시 루트 폴더로 이동한다(DOC-006 A1). */
   protected async moveDoc(id: string, folderId: string | null): Promise<void> {
     try {
       await this.docService.moveDoc(id, folderId);
@@ -244,7 +244,7 @@ export class DocListPage {
   /**
    * 폴더를 지운다(DOC-008 A7).
    *
-   * <p>되묻는 자리를 지나야만 닿는다. 담긴 문서와 하위 폴더는 함께 지워지지 않고 한 단계 위로
+   * 되묻는 자리를 지나야만 닿는다. 담긴 문서와 하위 폴더는 함께 지워지지 않고 한 단계 위로
    * 올라온다.
    */
   protected async remove(folder: DocFolder, dialog: HlmAlertDialog): Promise<void> {

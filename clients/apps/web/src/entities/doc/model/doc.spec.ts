@@ -43,7 +43,7 @@ describe('buildCrumbs', () => {
 });
 
 describe('foldersIn', () => {
-  it('그 자리의 자식 폴더만 냅니다', () => {
+  it('해당 폴더의 직속 자식 폴더만 반환한다', () => {
     expect(foldersIn(FOLDERS, null).map((folder) => folder.id)).toEqual(['arch']);
     expect(foldersIn(FOLDERS, 'arch').map((folder) => folder.id)).toEqual(['adr']);
   });

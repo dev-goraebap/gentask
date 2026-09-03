@@ -13,7 +13,7 @@ export type InstallState =
 /**
  * 홈 화면에서 열렸는지 판정한다.
  *
- * <p>표준은 `display-mode: standalone` 미디어 질의이나 iOS Safari 는 그것을 갖지 않는 판이 있어
+ * 표준은 `display-mode: standalone` 미디어 질의이나 iOS Safari 는 그것을 갖지 않는 판이 있어
  * 비표준 `navigator.standalone` 을 함께 본다.
  */
 function isStandalone(): boolean {
@@ -30,7 +30,7 @@ function isIos(): boolean {
 
 export function resolveInstallState(): InstallState {
   if (!('serviceWorker' in navigator) || !('PushManager' in globalThis)) {
-    // iOS 는 홈 화면에 설치되기 전까지 PushManager 를 내주지 않는다. 지원하지 않는 것과
+    // iOS Safari는 홈 화면에 설치되기 전까지 PushManager API를 지원하지 않는다.
     // 설치하면 되는 것을 가르지 않으면, 설치하면 되는 사용자에게 안 된다고 알리게 된다.
     return isIos() && !isStandalone() ? 'needs-install' : 'unsupported';
   }

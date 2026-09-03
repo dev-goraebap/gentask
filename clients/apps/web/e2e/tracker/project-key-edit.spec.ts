@@ -1,9 +1,9 @@
 import { expect, test } from '../fixtures';
 import { 작업_아이템을_만든다, 프로젝트를_만든다 } from './tracker-support';
 
-// 이미 선 프로젝트의 접두어를 고치는 자리.
+// 기존 프로젝트의 접두어 변경
 //
-// 세우면서 정하는 흐름은 project-create 가 지난다.
+// 생성 시 접두어 설정 흐름은 project-create.spec.ts에서 검증한다.
 
 test.describe('접두어를 고친다', () => {
   test('접두어를 바꾸면 이미 매겨진 번호를 그대로 둔다', async ({ page, request }) => {

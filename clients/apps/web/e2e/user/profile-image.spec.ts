@@ -59,7 +59,7 @@ function 아바타(page: import('@playwright/test').Page) {
 }
 
 test.describe('프로필 이미지 올리기', () => {
-  test('이미지를 올리면 아바타 자리에 그 이미지가 온다', async ({ page }) => {
+  test('이미지를 업로드하면 아바타 영역에 해당 이미지가 표시된다', async ({ page }) => {
     await 빈_계정으로_바꾼다(page);
     await page.goto('/me');
 
@@ -81,7 +81,7 @@ test.describe('프로필 이미지 올리기', () => {
   });
 
   for (const { 사유, 파일, 문구 } of 거절될_파일) {
-    test(`${사유} 아바타 자리가 그대로 남는다`, async ({ page }) => {
+    test(`${사유} 기존 아바타가 그대로 유지된다`, async ({ page }) => {
       await 빈_계정으로_바꾼다(page);
       await page.goto('/me');
 

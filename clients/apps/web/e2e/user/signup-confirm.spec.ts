@@ -24,11 +24,11 @@ test.describe('이메일을 확인하고 가입하기', () => {
     await page.locator('#signup-password').fill('onlyletters');
     await page.getByRole('button', { name: '코드 받기' }).click();
 
-    // 규칙 안내문에도 같은 낱말이 있어 오류 자리로 좁힌다
+    // 오류 메시지 영역을 명시적으로 탐색한다
     await expect(
       page.locator('hlm-field-error').filter({ hasText: '숫자 · 특수문자' }),
     ).toBeVisible();
-    // 규칙에 걸렸으므로 코드를 받는 자리로 넘어가지 않는다
+    // 유효성 검증 실패 시 인증 코드 입력 단계로 진행하지 않는다
     await expect(page.locator('#signup-code')).toBeHidden();
   });
 
@@ -40,7 +40,7 @@ test.describe('이메일을 확인하고 가입하기', () => {
     await page.locator('#signup-confirm').click();
 
     await expect(page.getByRole('alert')).toContainText('코드');
-    // 계정이 생기지 않았으므로 자리에 그대로 머문다
+    // 인증 실패 시 계정이 생성되지 않고 현재 화면에 머무른다
     await expect(page).toHaveURL(/\/signup/);
   });
 

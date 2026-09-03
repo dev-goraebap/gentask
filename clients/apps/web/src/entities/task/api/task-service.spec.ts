@@ -80,7 +80,7 @@ describe('TaskService', () => {
     expectNoList();
   });
 
-  it('완료 표시는 그 하위 자원으로 나가고 뒤이어 목록을 다시 받는다', async () => {
+  it('완료 요청 후 작업 목록을 재조회한다', async () => {
     const done = taskService.setCompleted('seed-1', true);
 
     const request = httpTesting.expectOne(ENDPOINTS.taskCompletion('seed-1'));
@@ -103,7 +103,7 @@ describe('TaskService', () => {
     expectNoList();
   });
 
-  it('지우기는 그 항목 하나만 부르고 뒤이어 목록을 다시 받는다', async () => {
+  it('삭제 요청 후 작업 목록을 재조회한다', async () => {
     const done = taskService.remove('seed-1');
 
     const request = httpTesting.expectOne(ENDPOINTS.task('seed-1'));

@@ -13,10 +13,7 @@ import {
 export type { NavGroup, NavItem };
 
 /**
- * 껍데기가 그리는 메뉴.
- *
- * <p>시그널인 이유는 트래커의 메뉴가 지금 프로젝트를 담기 때문입니다. 상수로 두면 프로젝트를 바꾼
- * 뒤에도 메뉴가 앞 프로젝트를 가리킵니다.
+ * 네비게이션 사이드바 및 탭 바에 바인딩되는 반응형 메뉴 시그널이다.
  */
 export const NAV_GROUPS = new InjectionToken<Signal<readonly NavGroup[]>>('NAV_GROUPS', {
   factory: () =>
@@ -39,22 +36,14 @@ export const NAV_GROUPS = new InjectionToken<Signal<readonly NavGroup[]>>('NAV_G
 });
 
 /**
- * 좁은 화면 바닥의 띠에 담기는 것.
- *
- * <p>메뉴와 따로 두는 것은 담기는 것이 다르기 때문이다. 사이드바는 그 자리의 모든 것을 늘어놓지만
- * 띠는 넷을 넘기지 못한다.
- *
- * <p>`null` 이면 띠가 서지 않는다. 좁은 화면을 아직 다루지 않는 자리가 그것을 쓴다.
+ * 모바일 하단 탭 바에 표시할 네비게이션 아이템 목록이다.
  */
 export const BOTTOM_NAV = new InjectionToken<Signal<readonly NavItem[] | null>>('BOTTOM_NAV', {
   factory: () => signal(TODO_BOTTOM_NAV),
 });
 
 /**
- * 껍데기가 어느 자리를 그리고 있는가.
- *
- * <p>레이아웃은 하나이고 그 안의 메뉴 구성만 다르다. 껍데기가 경로를 직접 읽지 않는 것은 라우팅의
- * 모양이 바뀔 때마다 레이아웃을 고치게 되기 때문이며, 라우트가 자기 자리를 선언해 내려 준다.
+ * 현재 활성화된 네비게이션 컨텍스트를 식별한다.
  */
 export type ShellArea = 'tasks' | 'admin' | 'tracker';
 
@@ -63,16 +52,13 @@ export const SHELL_AREA = new InjectionToken<ShellArea>('SHELL_AREA', {
 });
 
 /**
- * 메뉴 위에 서는 컴포넌트. 없으면 메뉴가 바로 온다.
- *
- * <p>트래커 자리의 프로젝트 고르개가 이 자리를 쓴다. 껍데기가 그것을 직접 임포트하면 자리마다
- * 무엇이 서는지를 껍데기가 알게 되고, 자리가 늘 때마다 껍데기를 고치게 된다.
+ * 네비게이션 사이드바 상단에 배치되는 컴포넌트 타입이다.
  */
 export const SIDEBAR_LEAD = new InjectionToken<Type<unknown> | null>('SIDEBAR_LEAD', {
   factory: () => null,
 });
 
-/** 관리 자리의 메뉴. 사용자 자리의 것과 겹치지 않아 갈래가 하나뿐이며 라벨을 두지 않는다. */
+/** 관리자 화면 전용 네비게이션 메뉴 목록이다. */
 const ADMIN_GROUPS: readonly NavGroup[] = [
   {
     items: [
@@ -84,7 +70,7 @@ const ADMIN_GROUPS: readonly NavGroup[] = [
 
 export const ADMIN_NAV_GROUPS: Signal<readonly NavGroup[]> = signal(ADMIN_GROUPS);
 
-/** `computed` 로 감싸므로 프로젝트를 바꾸면 메뉴의 링크가 함께 따라온다. */
+/** 활성 프로젝트 ID 변경에 반응하는 트래커 네비게이션 메뉴 연산 시그널이다. */
 export function trackerNavGroupsSignal(projectId: Signal<string>): Signal<readonly NavGroup[]> {
   return computed(() => trackerNavGroups(projectId()));
 }

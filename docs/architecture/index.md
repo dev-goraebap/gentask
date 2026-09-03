@@ -1,6 +1,6 @@
 # 참조 아키텍처
 
-본 문서는 [arc42](https://arc42.org/) 아키텍처 템플릿 구조를 따르는 투두젠(gentask)의 참조 아키텍처(Reference Architecture) 최상위 문서입니다. 전체 시스템의 목표, 핵심 품질 속성, 이해관계자 요구사항, 비즈니스 및 기술 컨텍스트를 정의하며, 세부 영역별 아키텍처 설계와 결정 사항은 하위 참조 문서 및 아키텍처 결정 기록(ADR)을 통해 관리합니다.
+본 문서는 [arc42](https://arc42.org/) 아키텍처 템플릿 구조를 따르는 투두젠(gentask)의 참조 아키텍처(Reference Architecture) 최상위 문서이다. 전체 시스템의 목표, 핵심 품질 속성, 이해관계자 요구사항, 비즈니스 및 기술 컨텍스트를 정의하며, 세부 영역별 아키텍처 설계와 결정 사항은 하위 참조 문서 및 아키텍처 결정 기록(ADR)을 통해 관리한다.
 
 ## 목차
 
@@ -15,4 +15,4 @@
 9. [아키텍처 결정 (Architecture Decisions)](./09-architecture-decisions.md)
 10. [품질 요구사항 (Quality Requirements)](./10-quality-requirements.md)
 11. [위험과 기술 부채 (Risks and Technical Debt)](./11-risks-and-technical-debt.md)
-12. 용어집: 본 문서는 아키텍처 상세문서에 각각 용어가 정의되어 있습니다.
+12. 용어집: 용어 정의는 각 아키텍처 상세 문서에 기술한다.

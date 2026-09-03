@@ -16,20 +16,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 종단 테스트가 코드를 읽을 수 있게 하는 자리.
+ * E2E 테스트 환경에서 발송된 인증 코드를 조회하기 위한 테스트 전용 지원 컴포넌트다.
  *
- * <p>브라우저는 메일함을 열지 못하므로 코드를 알 방법이 없고, 그것 없이는 가입과 재설정의 어느
- * 인수 조건도 화면에서 지날 수 없다. 실제로 보내는 대신 메모리에 담고 그것을 꺼내는 경로를 둔다.
- *
- * <p>{@code e2e} 프로파일에서만 선다. 배포는 프로파일을 지정하지 않으므로 운영에는 이 빈도 경로도
- * 없다. 경로를 {@code /api} 밖에 두어 인증 인터셉터의 예외 목록을 건드리지 않는다 — 그 목록은
- * 운영 규격이고, 거기에 시험용 자리를 더하면 운영에서 열린 자리가 하나 늘어난다.
+ * e2e 프로파일 활성화 시에만 등록되며, 실제 메일 발송 대신 메모리에 코드를 보관하고 조회 엔드포인트를 제공한다.
  */
 @Profile("e2e")
 @Configuration(proxyBeanMethods = false)
 public class E2eMailSupport {
 
-    /** 마지막으로 보낸 것을 주소마다 하나씩 든다. 다시 요청하면 앞의 것이 갈린다. */
+    /** 수신 주소별로 가장 최근 발송된 인증 코드를 보관한다. */
     public static class RecordingMailSender implements MailSender {
 
         private static final Pattern CODE = Pattern.compile("\\b(\\d{4,10})\\b");
@@ -58,8 +53,7 @@ public class E2eMailSupport {
     }
 
     /**
-     * 중첩 클래스는 바깥의 {@code @Profile} 을 물려받지 않고 따로 스캔된다. 여기 직접 달지 않으면
-     * 운영에서도 이 자리가 서고, 그러면 남의 코드를 꺼내는 경로가 열린다.
+     * 중첩 클래스는 상위 클래스의 @Profile을 상속하지 않으므로 e2e 프로파일을 명시적으로 선언한다.
      */
     @Profile("e2e")
     @RestController

@@ -51,7 +51,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("이름을 적어 세우면 폴더가 목록에 온다")
+    @DisplayName("폴더 이름을 입력하여 생성하면 목록에 반영된다")
     void 세우면_목록에_온다() throws Exception {
         폴더를_세운다("{\"name\":\"결정 기록\"}");
 
@@ -61,7 +61,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("폴더를 연 자리에서 세우면 그 아래에 선다")
+    @DisplayName("상위 폴더를 지정하여 생성하면 해당 폴더의 하위 계층에 생성된다")
     void 폴더_아래에_세운다() throws Exception {
         String parentId = 폴더를_세운다("{\"name\":\"위\"}");
 
@@ -76,7 +76,7 @@ class DocumentFolderApiTest {
      * 쪽이 한다.
      */
     @Test
-    @DisplayName("여러 단계로 담아도 목록은 평평하게 오고 각 줄이 담긴 자리를 싣는다")
+    @DisplayName("다단계 계층 폴더도 평탄화된 단일 목록으로 조회되며 각 항목은 부모 폴더 ID를 포함한다")
     void 목록은_평평하게_온다() throws Exception {
         String first = 폴더를_세운다("{\"name\":\"하나\"}");
         String second = 폴더를_세운다("{\"name\":\"둘\",\"parentId\":\"%s\"}".formatted(first));
@@ -88,7 +88,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("같은 부모 아래에 같은 이름이 이미 있어도 막지 않고 그대로 세운다")
+    @DisplayName("동일 상위 폴더 내에 동일 이름의 폴더가 있어도 중복 생성을 허용한다")
     void 같은_이름을_막지_않는다() throws Exception {
         폴더를_세운다("{\"name\":\"겹치는 이름\"}");
         폴더를_세운다("{\"name\":\"겹치는 이름\"}");
@@ -97,7 +97,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("이름이 비어 있으면 이름이 필요함을 알리고 세우지 않는다")
+    @DisplayName("폴더 이름이 공백이면 400 오류를 반환하고 생성을 거부한다")
     void 이름이_비어_있으면_세우지_않는다() throws Exception {
         mockMvc.perform(post("/api/v1/projects/{projectId}/document-folders", projectId)
                         .cookie(session)
@@ -109,7 +109,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("새 이름을 적으면 이름을 바꾸고 목록에 보인다")
+    @DisplayName("새 폴더 이름을 지정하여 수정하면 변경된 이름이 반영된다")
     void 이름을_바꾼다() throws Exception {
         String folderId = 폴더를_세운다("{\"name\":\"옛 이름\"}");
 
@@ -120,7 +120,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("바꾸려는 이름이 비어 있으면 알리고 이름을 그대로 둔다")
+    @DisplayName("수정할 폴더 이름이 공백이면 400 오류를 반환하고 기존 이름을 유지한다")
     void 빈_이름으로는_바꾸지_못한다() throws Exception {
         String folderId = 폴더를_세운다("{\"name\":\"그대로 둘 이름\"}");
 
@@ -134,7 +134,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("폴더를 다른 자리로 옮기면 담긴 문서와 하위 폴더가 함께 간다")
+    @DisplayName("폴더를 이동하면 소속 하위 문서 및 자식 폴더가 함께 이동한다")
     void 옮기면_담긴_것이_함께_간다() throws Exception {
         String moving = 폴더를_세운다("{\"name\":\"옮길 것\"}");
         폴더를_세운다("{\"name\":\"하위\",\"parentId\":\"%s\"}".formatted(moving));
@@ -149,7 +149,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("옮길 자리를 비우면 최상위로 올라간다")
+    @DisplayName("부모 폴더 ID를 null로 지정하면 최상위 루트로 이동한다")
     void 최상위로_옮긴다() throws Exception {
         String parentId = 폴더를_세운다("{\"name\":\"위\"}");
         String folderId = 폴더를_세운다("{\"name\":\"아래\",\"parentId\":\"%s\"}".formatted(parentId));
@@ -160,7 +160,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("자기 자신 아래로는 옮길 수 없음을 알린다")
+    @DisplayName("자기 자신 하위로 폴더 이동 시 400 오류를 반환한다")
     void 자기_자신_아래로는_옮기지_못한다() throws Exception {
         String folderId = 폴더를_세운다("{\"name\":\"혼자\"}");
 
@@ -175,7 +175,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("자기 자손 아래로는 옮길 수 없음을 알린다")
+    @DisplayName("자신의 하위 자손 폴더로 폴더 이동 시 400 오류를 반환한다")
     void 자손_아래로는_옮기지_못한다() throws Exception {
         String grandparent = 폴더를_세운다("{\"name\":\"할아버지\"}");
         String parent = 폴더를_세운다("{\"name\":\"아버지\",\"parentId\":\"%s\"}".formatted(grandparent));
@@ -192,7 +192,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("지우면 담긴 문서와 하위 폴더가 한 단계 위로 올라간다")
+    @DisplayName("폴더 삭제 시 소속 문서와 하위 폴더는 상위 계층으로 승격된다")
     void 지우면_담긴_것이_한_단계_위로_올라간다() throws Exception {
         String grandparent = 폴더를_세운다("{\"name\":\"위\"}");
         String folderId = 폴더를_세운다("{\"name\":\"지울 것\",\"parentId\":\"%s\"}".formatted(grandparent));
@@ -207,7 +207,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("최상위 폴더를 지우면 담긴 것이 뿌리로 올라간다")
+    @DisplayName("최상위 폴더 삭제 시 소속 항목들은 루트 계층으로 이동한다")
     void 최상위를_지우면_뿌리로_올라간다() throws Exception {
         String folderId = 폴더를_세운다("{\"name\":\"지울 것\"}");
         String documentId = 문서를_세운다("{\"title\":\"담긴 문서\",\"folderId\":\"%s\"}".formatted(folderId));
@@ -223,7 +223,7 @@ class DocumentFolderApiTest {
      * 서버는 셀 수 있게 한다.
      */
     @Test
-    @DisplayName("목록의 한 줄이 바로 아래에 담긴 문서와 폴더의 수를 싣는다")
+    @DisplayName("폴더 목록 조회 시 직속 하위 문서 수와 폴더 수를 포함한다")
     void 담긴_것의_수를_센다() throws Exception {
         String folderId = 폴더를_세운다("{\"name\":\"담은 것이 있는 자리\"}");
         폴더를_세운다("{\"name\":\"하위\",\"parentId\":\"%s\"}".formatted(folderId));
@@ -236,7 +236,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("목록을 열면 지금 프로젝트의 폴더만 온다")
+    @DisplayName("폴더 목록 조회 시 현재 프로젝트의 폴더만 반환한다")
     void 목록은_지금_프로젝트의_것만_낸다() throws Exception {
         폴더를_세운다("{\"name\":\"이 프로젝트의 것\"}");
 
@@ -248,7 +248,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("사용자의 프로젝트에 속하지 않으면 폴더가 없는 것으로 낸다")
+    @DisplayName("타 사용자의 프로젝트 폴더 조회 시 404를 반환한다")
     void 남의_폴더에는_닿지_못한다() throws Exception {
         String folderId = 폴더를_세운다("{\"name\":\"내 것\"}");
 
@@ -263,7 +263,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("이미 지워진 폴더를 옮기거나 지우면 그 자리가 없는 것으로 낸다")
+    @DisplayName("이미 삭제된 폴더의 이동 또는 삭제 요청 시 404를 반환한다")
     void 이미_지워진_폴더는_없는_것으로_낸다() throws Exception {
         String folderId = 폴더를_세운다("{\"name\":\"지울 것\"}");
         지운다(folderId);
@@ -282,7 +282,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("주소의 식별자가 폴더의 것이 아니면 없는 것으로 낸다")
+    @DisplayName("유효하지 않은 형식의 폴더 식별자 접근 시 404를 반환한다")
     void 모양이_아닌_식별자는_없는_것으로_낸다() throws Exception {
         mockMvc.perform(delete("/api/v1/projects/{projectId}/document-folders/{folderId}", projectId, "폴더-아님")
                         .cookie(session))
@@ -291,7 +291,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("남의 프로젝트에는 폴더를 세우지 못하고 그 자리가 없는 것으로 낸다")
+    @DisplayName("타 사용자의 프로젝트에 폴더 생성 요청 시 404를 반환한다")
     void 남의_프로젝트에는_세우지_못한다() throws Exception {
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
@@ -304,7 +304,7 @@ class DocumentFolderApiTest {
     }
 
     @Test
-    @DisplayName("로그인 없이 폴더에 닿을 수 없다")
+    @DisplayName("인증되지 않은 사용자의 폴더 접근을 거부한다")
     void 로그인_없이_폴더에_닿을_수_없다() throws Exception {
         mockMvc.perform(get("/api/v1/projects/{projectId}/document-folders", projectId))
                 .andExpect(status().isUnauthorized())

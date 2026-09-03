@@ -20,7 +20,7 @@ import xyz.gentask.module.tracker.domain.project.Project;
 /**
  * 폴더를 세우고 이름을 바꾸고 옮기고 지운다(DOC-008).
  *
- * <p>넷이 목표 하나를 나눠 갖는다. 폴더는 그 자체로 읽을 것을 담지 않고 문서를 어디에 둘지만 정하므로
+ * 넷이 목표 하나를 나눠 갖는다. 폴더는 그 자체로 읽을 것을 담지 않고 문서를 어디에 둘지만 정하므로
  * 한 자리에 둔다.
  */
 @Service
@@ -38,7 +38,7 @@ public class DocumentFolderService {
     /**
      * 프로젝트의 폴더 전부를 평평하게 낸다.
      *
-     * <p>트리로 조립하지 않는다. 깊이를 제한하지 않으므로(DOC-008) 조립한 모양이 한 화면에 담기지
+     * 트리로 조립하지 않는다. 깊이를 제한하지 않으므로(DOC-008) 조립한 모양이 한 화면에 담기지
      * 않고, 어느 자리를 펼쳐 둘지는 보는 쪽이 안다.
      */
     @Transactional(readOnly = true)
@@ -71,10 +71,8 @@ public class DocumentFolderService {
     }
 
     /**
-     * 폴더를 다른 자리로 옮긴다. 담긴 문서와 하위 폴더는 이 폴더를 가리키고 있으므로 함께 간다
-     * (DOC-008 A5).
-     *
-     * <p>자기 자신이나 자기 자손 아래로는 옮기지 못한다(DOC-008 A6).
+     * 폴더를 대상 상위 폴더 하위로 이동한다. 하위 문서 및 자식 폴더가 함께 이동한다(DOC-008 A5).
+     * 자기 자신이나 하위 자손 폴더로는 이동할 수 없다(DOC-008 A6).
      */
     @Transactional
     public void move(UUID userId, String projectId, String folderId, String parentId) {
@@ -89,13 +87,7 @@ public class DocumentFolderService {
     }
 
     /**
-     * 폴더를 지운다.
-     *
-     * <p>담긴 문서와 하위 폴더를 함께 지우지 않고 한 단계 위로 올린다. 폴더는 묶는 자리일 뿐이고 그
-     * 안의 문서가 사라질 이유가 없다(DOC-008 A7).
-     *
-     * <p>몇이 올라오는지 되묻는 자리는 목록이 낸 수로 부르는 쪽이 짓는다. 여기까지 온 요청은 이미
-     * 확인을 지난 것이다.
+     * 폴더를 삭제한다. 소속 문서 및 하위 폴더는 1단계 상위 계층으로 승격된다(DOC-008 A7).
      */
     @Transactional
     public void remove(UUID userId, String projectId, String folderId) {
@@ -121,7 +113,7 @@ public class DocumentFolderService {
                 .orElseThrow(TrackerErrorCode.FOLDER_NOT_FOUND::raise);
     }
 
-    /** 담길 자리. 적지 않은 것과 비운 것을 가르지 않으며 둘 다 뿌리다(DOC-006 A1). */
+    /** 상위 폴더 식별자를 조회한다. 미지정 시 null(최상위 루트)을 반환한다(DOC-006 A1). */
     private UUID findParent(UUID projectId, String parentId) {
         if (parentId == null || parentId.isBlank()) {
             return null;
@@ -132,7 +124,7 @@ public class DocumentFolderService {
     /**
      * 옮길 자리가 그 폴더 자신이거나 그 아래가 아님을 본다.
      *
-     * <p>고른 자리에서 위로 걸어 올라가며 자신을 만나는지 본다. 트리에 고리가 없으므로 걸음은 뿌리에서
+     * 고른 자리에서 위로 걸어 올라가며 자신을 만나는지 본다. 트리에 고리가 없으므로 걸음은 뿌리에서
      * 끝난다.
      */
     private void ensureNotItselfOrDescendant(UUID projectId, UUID folderId, UUID targetId) {
@@ -151,7 +143,7 @@ public class DocumentFolderService {
     /**
      * 주소나 본문에서 받은 식별자를 읽는다.
      *
-     * <p>모양이 맞지 않는 것을 잘못된 요청이 아니라 없는 자리로 낸다. 사람이 손으로 고치거나 옛 링크를
+     * 모양이 맞지 않는 것을 잘못된 요청이 아니라 없는 자리로 낸다. 사람이 손으로 고치거나 옛 링크를
      * 따라온 것이다.
      */
     private static UUID readId(String rawId) {

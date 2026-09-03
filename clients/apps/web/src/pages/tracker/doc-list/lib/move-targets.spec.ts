@@ -23,7 +23,7 @@ describe('moveTargets', () => {
     expect(ids).toContain('회의록');
   });
 
-  it('폴더를 옮길 때 자기 자신과 자손을 고를 수 없다', () => {
+  it('폴더 이동 시 자기 자신과 하위 자손 폴더는 이동 대상에서 제외한다', () => {
     const ids = moveTargets(FOLDERS, null, '아키텍처').map((target) => target.id);
 
     expect(ids).toEqual(['회의록']);

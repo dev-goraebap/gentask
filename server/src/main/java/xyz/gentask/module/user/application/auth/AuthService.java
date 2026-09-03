@@ -30,14 +30,11 @@ public class AuthService {
 
     public record IssuedSession(String token, Instant expiresAt) {}
 
-    /** 계정을 만들 때 함께 세우는 프로젝트의 이름. 사용자가 뒤에 바꿀 수 있다. */
+    /** 회원 가입 시 자동 생성되는 기본 프로젝트 이름이다. */
     private static final String DEFAULT_PROJECT_NAME = "내 프로젝트";
 
     /**
-     * 그 프로젝트의 작업 아이템 접두어.
-     *
-     * <p>접두어는 사람이 정하는 것이나 이 경로에는 고를 자리가 없다. 이름에서 뽑지 않는 것은 한글로
-     * 지은 이름에서 남는 것이 없어 뜻 없는 값이 커밋에 박히기 때문이다.
+     * 기본 프로젝트의 작업 항목 키 접두어다.
      */
     private static final String DEFAULT_PROJECT_KEY = "MY";
 
@@ -90,15 +87,12 @@ public class AuthService {
     // --- 가입 --------------------------------------------------------------------------------------------------------
 
     /**
-     * 가입을 시작하고 그 주소로 코드를 보낸다. 계정은 아직 만들지 않는다.
-     *
-     * <p>메일 발송이 이 트랜잭션 안에 있어 보내지 못하면 코드도 남지 않는다. 저장해 두고 메일만
-     * 실패한 상태를 만들면 사용자는 오지 않을 코드를 기다리게 된다.
+     * 회원 가입을 요청하고 해당 이메일로 인증 코드를 발송한다.
      */
     @Transactional
     public void requestSignup(String rawEmail, String rawPassword, String rawNickname) {
         Email email = Email.of(rawEmail);
-        // 규칙 검증을 먼저 한다. 코드를 보낸 뒤에 거절하면 그 메일이 헛것이 된다.
+        // 비밀번호 정책 검증을 먼저 수행한다.
         Password password = Password.of(rawPassword);
         if (userRepository.existsByEmailNormalized(email.normalized())) {
             throw UserErrorCode.EMAIL_ALREADY_USED.raise();
@@ -109,13 +103,13 @@ public class AuthService {
         verificationCodes.issueForSignup(email, passwordHasher.hash(password.value()), nickname);
     }
 
-    /** 코드를 확인하고 계정을 만든다. 이 자리가 계정이 처음 생기는 곳이다. */
+    /** 인증 코드를 검증하고 계정과 기본 프로젝트를 생성한다. */
     @Transactional
     public IssuedSession confirmSignup(String rawEmail, String rawCode) {
         Email email = Email.of(rawEmail);
         VerificationCode stored = consumeOrFail(VerificationPurpose.SIGNUP, email, rawCode);
 
-        // 요청과 이 시점 사이에 그 이메일이 쓰이게 되었을 수 있다. 두 검사가 떨어져 있어 그 사이가 비어 있다.
+        // 코드 검증 시점과 계정 생성 시점 사이의 이메일 중복을 재검증한다.
         if (userRepository.existsByEmailNormalized(email.normalized())) {
             verificationCodes.consume(stored);
             throw UserErrorCode.EMAIL_ALREADY_USED.raise();
@@ -125,7 +119,7 @@ public class AuthService {
         Nickname nickname =
                 stored.signupNickname() == null ? Nickname.fromEmail(email) : Nickname.of(stored.signupNickname());
         User user = User.create(UUID.randomUUID(), email, nickname, now);
-        // 설정이 가리키는 계정이 뒤늦게 가입할 수 있다. 기동 시의 승격만 두면 그 계정이 일반 사용자로 남는다.
+        // 관리자 환경 설정에 지정된 이메일인 경우 관리자 권한을 부여한다.
         if (adminProperties.designates(email.normalized())) {
             user.changeRole(Role.ADMIN, now);
         }
@@ -134,14 +128,13 @@ public class AuthService {
                 Account.createCredential(UUID.randomUUID(), user.id(), email, stored.signupPasswordHash(), now));
         verificationCodes.consume(stored);
 
-        // 프로젝트가 하나도 없는 계정은 트래커의 어느 자리에도 들어가지 못한다. 처음 여는 사람이 빈
-        // 화면을 먼저 지나지 않게 여기서 하나를 세운다 (PRJ-001 A3).
+        // 신규 사용자가 즉시 작업 관리를 시작할 수 있도록 기본 프로젝트를 생성한다(PRJ-001 A3).
         projects.create(user.id(), DEFAULT_PROJECT_NAME, DEFAULT_PROJECT_KEY);
 
         return issueSession(user.id(), now);
     }
 
-    /** 코드를 다시 보낸다. 앞서 보낸 것은 갈린다. */
+    /** 가입 인증 코드를 재발송한다. 기존 인증 코드는 대체된다. */
     @Transactional
     public void resendSignupCode(String rawEmail) {
         Email email = Email.of(rawEmail);
@@ -180,10 +173,7 @@ public class AuthService {
     // --- 비밀번호 재설정 -------------------------------------------------------------------------------------------------
 
     /**
-     * 재설정 코드를 보낸다.
-     *
-     * <p>등록되지 않은 이메일이면 아무것도 하지 않고 같은 응답으로 끝낸다. 구분해 알리면 그 차이가
-     * 곧 가입 여부를 알려 주는 신호가 된다.
+     * 비밀번호 재설정 인증 코드를 발송한다. 미등록 이메일인 경우에도 동일한 성공 응답을 반환하여 이메일 존재 여부 노출을 방지한다.
      */
     @Transactional
     public void requestPasswordReset(String rawEmail) {
@@ -193,11 +183,11 @@ public class AuthService {
         }
     }
 
-    /** 코드를 확인하고 비밀번호를 갈아 끼운 뒤 그 계정의 세션과 API 토큰을 모두 거둔다. */
+    /** 인증 코드를 검증하고 비밀번호를 변경한 후 기존 세션 및 API 토큰을 모두 만료 처리한다. */
     @Transactional
     public void confirmPasswordReset(String rawEmail, String rawCode, String rawNewPassword) {
         Email email = Email.of(rawEmail);
-        // 규칙을 먼저 본다. 그래야 규칙에 걸렸을 때 코드가 그대로 남아 다시 제출할 수 있다.
+        // 새 비밀번호의 정책 검증을 먼저 수행하여 실패 시 기존 인증 코드가 소모되지 않도록 한다.
         Password newPassword = Password.of(rawNewPassword);
         VerificationCode stored = consumeOrFail(VerificationPurpose.PASSWORD_RESET, email, rawCode);
 
@@ -207,7 +197,7 @@ public class AuthService {
         account.changePassword(passwordHasher.hash(newPassword.value()), clock.instant());
         accountRepository.save(account);
 
-        // 비밀번호를 모르는 채 지나는 경로다. 앞서 열린 자리들이 정당하다고 볼 근거가 남지 않는다.
+        // 보안을 위해 비밀번호 재설정 완료 시 기존 세션 및 API 토큰을 전부 만료 처리한다.
         sessionRepository.deleteByUserId(account.userId());
         apiTokenRepository.deleteByUserId(account.userId());
         verificationCodes.consume(stored);
@@ -221,10 +211,7 @@ public class AuthService {
     // --- 보조 --------------------------------------------------------------------------------------------------------
 
     /**
-     * 코드를 찾아 대조한다. 통과하면 그 행을 내고, 거두는 것은 부르는 쪽이 한다.
-     *
-     * <p>없는 코드와 만료된 코드와 한도를 채운 코드가 같은 응답을 낸다. 나누면 몇 번 남았는지와 그
-     * 주소로 요청이 있었는지가 밖으로 드러난다.
+     * 인증 코드를 조회하여 검증한다. 코드 미존재, 만료, 실패 횟수 초과 시 동일하게 만료 예외를 반환한다.
      */
     private VerificationCode consumeOrFail(VerificationPurpose purpose, Email email, String rawCode) {
         VerificationCode stored =
