@@ -8,10 +8,10 @@ import { displayWidth, formatList } from './format.js';
 import { GentaskClient, type Task } from './gentask-client.js';
 
 /**
- * 명령이 API 를 바르게 부르는지를 본다.
+ * 각 명령이 API 를 올바르게 호출하는지 검증한다.
  *
- * <p>다른 프로세스가 이 명령을 띄우고 출력을 읽는 대목은 여기가 덮지 못한다. 결정-0008 이 그
- * 자리를 작업자의 확인으로 남겨 두었다.
+ * 다른 프로세스가 이 명령을 실행하고 출력을 읽는 경로는 여기서 검증하지 않는다. 결정-0008 이
+ * 해당 범위를 작업자의 확인으로 규정한다.
  */
 
 function task(over: Partial<Task> = {}): Task {

@@ -17,10 +17,10 @@ export async function 푸시를_지원하지_않게_한다(page: Page): Promise<
 }
 
 /**
- * 홈 화면에서 열린 것으로 만든다. `display-mode: standalone` 이 그 신호다.
+ * 홈 화면에서 실행된 상태로 만든다. `display-mode: standalone` 이 그 조건이다.
  *
- * <p>Playwright 의 `emulateMedia` 는 이 질의를 다루지 않아 `matchMedia` 를 갈아 끼운다.
- * 다른 질의는 원본에 그대로 넘긴다. 화면의 반응형 판정이 같은 함수를 쓰기 때문이다.
+ * Playwright 의 `emulateMedia` 가 이 미디어 질의를 지원하지 않으므로 `matchMedia` 를 교체한다.
+ * 다른 질의는 원본 함수에 위임한다. 화면의 반응형 판정이 같은 함수를 사용하기 때문이다.
  */
 export async function 홈_화면에서_열린_것으로_한다(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -43,8 +43,8 @@ export async function 홈_화면에서_열린_것으로_한다(page: Page): Prom
 /**
  * 이 기기의 알림 권한과, 사용자가 권한 요청에 어떻게 답하는지를 정한다.
  *
- * <p>헤드리스 Chromium 은 알림 권한을 늘 거절로 답하며 `grantPermissions` 로도 바뀌지 않는다.
- * 화면이 `Notification.permission` 하나로 갈리므로 그 값을 직접 정한다.
+ * 헤드리스 Chromium 은 알림 권한을 항상 거부로 응답하며 `grantPermissions` 로도 변경되지 않는다.
+ * 화면이 `Notification.permission` 값 하나로 분기하므로 그 값을 직접 지정한다.
  *
  * @param 지금 화면이 뜰 때의 권한
  * @param 답 사용자가 권한 요청에 주는 답. 생략하면 `지금` 과 같아 요청이 상태를 바꾸지 않는다
@@ -68,10 +68,10 @@ export async function 권한을_정한다(
 }
 
 /**
- * 푸시 서비스에 닿지 않고 구독이 만들어진 것으로 한다.
+ * 푸시 서비스에 접속하지 않고 구독이 생성된 상태로 만든다.
  *
- * <p>실제 구독은 브라우저 제조사의 푸시 서비스로 나가며 헤드리스에서 성립하지 않는다. 서버까지의
- * 왕복은 그대로 두고 브라우저가 자리를 발급하는 대목만 가짜로 바꾼다.
+ * 실제 구독은 브라우저 제조사의 푸시 서비스로 요청이 나가며 헤드리스 환경에서 성립하지 않는다.
+ * 서버까지의 왕복은 유지하고 브라우저가 엔드포인트를 발급하는 부분만 대체한다.
  */
 export async function 가짜_구독을_만들게_한다(page: Page, endpoint: string): Promise<void> {
   await page.addInitScript((자리: string) => {
@@ -86,10 +86,10 @@ export async function 가짜_구독을_만들게_한다(page: Page, endpoint: st
 }
 
 /**
- * 브라우저에는 받을 자리가 남아 있으나 서버는 그것을 모르는 상태로 만든다.
+ * 브라우저에는 구독이 남아 있으나 서버는 그것을 모르는 상태로 만든다.
  *
- * <p>구독은 기기에 남고 계정에 묶이지 않는다. 서버가 자리를 걷거나 다른 계정으로 들어오면 이 어긋남이
- * 생기며, 화면이 브라우저만 보고 그리면 받지 못하는 상태를 받는다고 알리게 된다.
+ * 구독은 기기에 저장되며 계정에 귀속되지 않는다. 서버가 구독을 삭제하거나 다른 계정으로 로그인하면
+ * 이 불일치가 발생한다. 화면이 브라우저 상태만 참조하면 수신하지 못하는 상태를 수신 가능으로 표시한다.
  */
 export async function 브라우저에만_구독이_남게_한다(page: Page, endpoint: string): Promise<void> {
   await page.addInitScript((자리: string) => {

@@ -33,10 +33,10 @@ export function formatDocs(docs: readonly DocSummary[]): string {
 }
 
 /**
- * 하나를 펼친다.
+ * 문서 하나를 출력 형식으로 변환한다.
  *
- * <p>머리에 붙는 줄은 문서에 <i>대한</i> 것이고 본문은 그 아래에 원문 그대로 간다. 들여쓰거나
- * 감싸지 않는다 — 손대는 순간 받은 쪽이 다시 원문을 만들어야 한다.
+ * 머리말은 문서의 메타데이터이고 본문은 그 아래에 마크다운 원문 그대로 출력한다. 들여쓰기나
+ * 감싸는 문자를 넣지 않는다. 가공하면 받는 쪽이 원문을 복원해야 한다.
  */
 export function formatDoc(doc: Doc): string {
   const s = doc.summary;
@@ -99,10 +99,10 @@ export function revisionHeadline(revision: DocRevision): string {
 }
 
 /**
- * 그때의 문서를 펼친다.
+ * 특정 개정 시점의 문서를 출력 형식으로 변환한다.
  *
- * <p>지금 참인 것을 펼치는 자리와 같은 모양으로 낸다. 다른 것은 시점뿐이므로 받는 쪽이 두 가지
- * 모양을 알아야 할 이유가 없다. 본문은 여기서도 원문 그대로 간다.
+ * 현재 개정을 출력할 때와 같은 형식을 사용한다. 차이가 시점뿐이므로 받는 쪽이 두 가지 형식을
+ * 구분할 필요가 없다. 본문은 여기서도 마크다운 원문 그대로 출력한다.
  */
 export function formatRevision(revision: DocRevision): string {
   const s = revision.summary;

@@ -31,10 +31,10 @@ function when(task: Task): string {
 }
 
 /**
- * 화면에서 차지하는 칸 수.
+ * 터미널에서 차지하는 칸 수를 계산한다.
  *
- * <p>한글과 한자와 가나는 한 글자가 두 칸이다. 글자 수로 세면 표의 세로줄이 어긋난다. 범위는
- * 유니코드의 East Asian Width 가 W 와 F 로 정한 자리를 따른다.
+ * 한글과 한자와 가나는 한 글자가 두 칸이므로 글자 수로 세면 표의 세로 정렬이 어긋난다. 범위는
+ * 유니코드 East Asian Width 의 W 와 F 구간을 따른다.
  */
 export function displayWidth(text: string): number {
   let width = 0;
