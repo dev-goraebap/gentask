@@ -10,7 +10,7 @@ flowchart LR
     r2[("Cloudflare R2")]
 
     subgraph host["개인 서버"]
-        release["WEB_ROOT/releases/타임스탬프<br/>정적 산출물"]
+        release["WEB_ROOT/releases/태그<br/>정적 산출물"]
         current["current<br/>심볼릭 링크"]
         staging["APP_DIR<br/>app.jar · .env"]
         nginx["nginx<br/>TLS 종단 · 정적 제공 · 리버스 프록시"]
@@ -23,9 +23,9 @@ flowchart LR
     current -. "ln -sfn" .-> release
     staging -- "docker compose build" --> api
     browser -- "HTTPS · gentask.xyz" --> nginx
-    agent -- "HTTPS · api.gentask.xyz" --> nginx
+    agent -- "HTTPS · gentask.xyz" --> nginx
     nginx -- "정적 파일" --> current
-    nginx -- "/api/ · api.gentask.xyz" --> api
+    nginx -- "/api/" --> api
     api -- "JDBC" --> db
     api -- "S3 API · presigned URL 발급" --> r2
     browser <-- "HTTPS · 파일 바이트" --> r2
@@ -36,11 +36,12 @@ flowchart LR
 시스템을 구성하는 주요 요소의 호스트 내 배치 경로 및 역할은 다음과 같다.
 
 - **API 컨테이너** — `$APP_DIR` 하위의 `api/`(JAR + Dockerfile), `docker-compose.yml`, `.env`
-- **프론트엔드 정적 자산** — `$WEB_ROOT` 하위의 릴리스별 디렉터리 `releases/<타임스탬프>/` 및 활성 버전을 가리키는 심볼릭 링크 `current`. nginx 컨테이너에 해당 디렉터리를 `/srv/gentask/web` 경로로 읽기 전용 마운트한다. 호스트와 컨테이너 양쪽에서 정상 참조되도록 `current`는 **상대 경로 심볼릭 링크**로 생성한다.
-- **리버스 프록시** — `~/nginx/nginx.conf`의 `gentask.xyz`, `api.gentask.xyz` 서버 블록. 정적 자산 서빙과 API 리버스 프록시를 수행하며, API 요청은 Docker 내부 네트워크(`my-network`)의 컨테이너 식별자로 전달한다.
-- **SSL/TLS 인증서** — Certbot standalone 방식으로 발급하여 `~/nginx/certs/gentask-app-*.pem`으로 복사한다. 갱신은 `~/nginx/renew-certs.sh` 스크립트를 통해 관리한다.
+- **프론트엔드 정적 자산** — `$WEB_ROOT` 하위의 릴리스별 디렉터리 `releases/<태그>/` 및 활성 버전을 가리키는 심볼릭 링크 `current`. nginx 컨테이너에 해당 디렉터리를 `/srv/gentask/web` 경로로 읽기 전용 마운트한다. 호스트와 컨테이너 양쪽에서 정상 참조되도록 `current`는 **상대 경로 심볼릭 링크**로 생성한다.
+- **리버스 프록시** — `~/nginx/nginx.conf`의 `gentask.xyz`, `qa.gentask.xyz` 서버 블록. 정적 자산 서빙과 API 리버스 프록시를 수행하며, API 요청은 Docker 내부 네트워크(`my-network`)의 컨테이너 식별자로 전달한다.
+- **SSL/TLS 인증서** — Certbot standalone 방식으로 발급하여 `~/nginx/certs/gentask-xyz-*.pem`으로 복사한다. 갱신은 `~/nginx/renew-certs.sh` 스크립트를 통해 관리한다.
 - **데이터베이스** — 호스트 서버 공용 `my-postgres` 인스턴스의 `gentask` 데이터베이스 (전용 사용자 롤 `gentask`).
 - **파일 스토리지** — Cloudflare R2 버킷 `gentask`. 접속 자격 증명은 서버 호스트의 `.env` 파일에만 정의한다.
+- **QA 환경** — 같은 호스트의 `~/apps/gentask-qa/`. 컨테이너 `gentask-api-qa`, 데이터베이스 `gentask_qa`, 스토리지는 같은 R2 버킷의 `qa/` 접두어를 사용한다.
 
 프론트엔드는 서버 실행 프로세스를 두지 않는다. 서버 사이드 렌더링(SSR) 대상 경로가 없으므로 요청 시점에 동적 HTML을 생성하는 Node.js 프로세스가 불필요하다.
 
@@ -51,7 +52,7 @@ flowchart LR
 인바운드 트래픽은 nginx를 통해 도메인 및 경로 단위로 분기한다.
 
 - **`gentask.xyz`**: `/api/` 경로 요청은 `gentask-api:8080`(API 컨테이너)으로 전달하고, 나머지 요청은 정적 자산으로 응답한다. 화면과 API가 동일한 출처(Same-Origin)를 공유하므로 세션 쿠키 기반 인증이 유지된다(로컬 개발 프록시와 동일한 구조).
-- **`api.gentask.xyz`**: 외부 클라이언트(로컬 에이전트 등)의 요청을 `gentask-api:8080`으로 직접 라우팅한다. 브라우저 외부 환경에서 Bearer 토큰을 통한 인증 요청을 처리한다.
+- **`qa.gentask.xyz`**: 품질 검증 환경이며 `gentask-api-qa:8080`으로 라우팅한다. 집과 회사의 공인 IP만 허용한다. 컨테이너 이름을 변수로 두어 요청 시점에 해석하므로, QA 컨테이너가 없어도 nginx는 기동한다.
 
 정적 리소스 응답은 2단계 진입점을 사용한다. 프리렌더링된 경로는 고유 `index.html`을 서빙하고, `RenderMode.Client`로 지정된 나머지 경로는 **`index.csr.html`**로 폴백 라우팅된다. 프리렌더링된 `index.html`은 애플리케이션 셸이 아닌 `<meta http-equiv="refresh">` 리다이렉트 문서이므로, 일반적인 `try_files $uri /index.html` 규칙을 적용하면 모든 경로에서 무한 리다이렉트 루프가 발생한다.
 
@@ -59,7 +60,7 @@ flowchart LR
     # gentask.xyz - HTTP to HTTPS redirect
     server {
         listen 80;
-        server_name gentask.xyz api.gentask.xyz;
+        server_name gentask.xyz qa.gentask.xyz;
         return 301 https://$host$request_uri;
     }
 
@@ -69,8 +70,8 @@ flowchart LR
         listen 443 ssl;
         server_name gentask.xyz;
 
-        ssl_certificate /etc/nginx/certs/gentask-app-fullchain.pem;
-        ssl_certificate_key /etc/nginx/certs/gentask-app-privkey.pem;
+        ssl_certificate /etc/nginx/certs/gentask-xyz-fullchain.pem;
+        ssl_certificate_key /etc/nginx/certs/gentask-xyz-privkey.pem;
 
         # Must match before the static fallback. No trailing slash on proxy_pass:
         # controllers own the /api/v1 prefix.
@@ -110,7 +111,7 @@ flowchart LR
 
 프론트엔드와 백엔드 API는 서로 다른 배포 갱신 방식을 적용한다. 프론트엔드는 신규 릴리스 디렉터리를 업로드한 후 `current` 심볼릭 링크를 원자적으로 교체하며, API는 Docker 이미지를 재빌드하여 컨테이너를 재생성한다.
 
-접속 대상과 서버 내 경로는 하드코딩하지 않고 변수로 추상화한다. 실제 접속 정보는 버전 관리에서 제외되는 `.deploy.env` 파일에 정의하며, 배포 스크립트는 이 설정을 로드하여 실행한다.
+접속 대상과 서버 내 경로는 하드코딩하지 않고 변수로 추상화한다. 실제 접속 정보는 버전 관리에서 제외되는 `.deploy.<대상>.env` 파일에 대상별로 정의하며, 배포 스크립트는 인자로 받은 대상의 설정을 로드하여 실행한다.
 
 | 변수 | 역할 |
 | :--- | :--- |
@@ -119,15 +120,16 @@ flowchart LR
 | `APP_DIR` | API 컨테이너 배포 경로 (홈 디렉터리 기준 상대 경로) |
 
 ```bash
-./scripts/deploy.sh            # 프론트엔드 및 백엔드 동시 배포
-./scripts/deploy-web.sh        # 프론트엔드 단독 배포
-./scripts/deploy-api.sh        # 백엔드 API 단독 배포
-./scripts/rollback-web.sh      # 인자 없이 실행 시 서버 릴리스 목록 출력
+git switch --detach v0.3.0-rc.1              # 배포할 태그로 옮긴다
+bash scripts/deploy.sh qa v0.3.0-rc.1        # 두 축을 QA에 배포
+bash scripts/deploy-web.sh prod v0.3.0       # 프론트엔드 단독 배포
+bash scripts/deploy-api.sh prod v0.3.0       # 백엔드 API 단독 배포
+bash scripts/rollback-web.sh prod            # 대상의 릴리스 목록 출력
 ```
 
 스크립트는 산출물을 전송하기 전에 배포 사전 조건을 검증하며, 단 하나라도 불충족할 경우 작업을 즉시 중단한다. 검증 항목 및 기준은 [결정-0002](./decisions/0002-shared-contributing.md)에 기술되어 있다.
 
-배포된 커밋 해시는 릴리스 디렉터리의 `RELEASE_SHA` 파일에 기록되어, 배포 아티팩트의 소스 커밋 추적 경로를 제공한다.
+배포된 커밋 해시와 태그는 `RELEASE_SHA` 및 `RELEASE_TAG` 파일에 기록되어, 배포 아티팩트의 소스 커밋 추적 경로를 제공한다.
 
 프론트엔드 롤백은 `current` 심볼릭 링크를 직전 릴리스 디렉터리로 재지정하여 즉시 완료되며, nginx 재기동은 불필요하다. 반면 백엔드 API는 컨테이너 교체 방식이므로 이전 커밋 산출물을 재배포하여 롤백을 수행한다.
 

@@ -168,7 +168,7 @@ describe('인증 토큰 저장소', () => {
     const path = configPath(env);
     expect(JSON.parse(readFileSync(path, 'utf8'))).toEqual({
       token: 'T-1',
-      baseUrl: 'https://api.gentask.xyz',
+      baseUrl: 'https://gentask.xyz',
     });
     // Windows 환경은 POSIX 파일 권한을 지원하지 않으므로 검증에서 제외한다.
     if (process.platform !== 'win32') {

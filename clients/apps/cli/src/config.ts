@@ -12,7 +12,7 @@ export interface Config {
   readonly projectId: string | null;
 }
 
-export const DEFAULT_BASE_URL = 'https://api.gentask.xyz';
+export const DEFAULT_BASE_URL = 'https://gentask.xyz';
 
 /** 인증 토큰 미설정 시 출력할 가이드 메시지다. */
 export const MISSING_TOKEN = [
