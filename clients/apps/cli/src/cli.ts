@@ -80,7 +80,7 @@ export async function run(
   }
 
   if (command === 'doc') {
-    return await runDoc(rest, makeClient(), env);
+    return await runDoc(rest, makeClient(), env, stdin);
   }
 
   if (command === 'project') {
@@ -102,7 +102,15 @@ async function runAuth(
   if (sub === 'login') {
     parseArgs({ args: [...rest], allowPositionals: false });
 
+    // 터미널이면 무엇을 붙여 넣어야 하는지 여기서 말한다. 표준입력을 읽는 자리가 이것 하나가 아니다.
+    const tty = process.stdin.isTTY === true;
+    if (tty) {
+      process.stderr.write('토큰을 붙여 넣고 Enter 를 누르세요: ');
+    }
     const token = (await stdin()).trim();
+    if (tty) {
+      process.stderr.write('\n');
+    }
     if (!token) {
       throw new Error('토큰이 비어 있습니다.');
     }
@@ -132,14 +140,17 @@ async function runAuth(
 }
 
 /**
- * 토큰을 받는다.
+ * 표준입력을 읽는다.
  *
- * <p>터미널이면 한 줄만 받고, 파이프로 들어오면 끝까지 읽는다. 어느 쪽이든 표준입력이라 명령줄에
- * 남지 않는다 — 결정-0013 이 토큰을 인자로 받지 않기로 한 자리다.
+ * <p>터미널이면 한 줄만 받고, 파이프로 들어오면 끝까지 읽는다. 터미널에서 끝까지 기다리면 Enter 로는
+ * 입력이 끝나지 않아 멈춘 것처럼 보인다.
+ *
+ * <p>토큰이 이 자리로 오는 것은 명령줄에 남지 않게 하기 위해서이고(결정-0013), 문서의 본문이 이
+ * 자리로 오는 것은 마크다운 한 편이 셸의 인자 길이 한계에 걸리기 때문이다. 읽는 방식이 같으므로
+ * 한 자리가 둘을 받고, 무엇을 받는 중인지는 부르는 쪽이 말한다.
  */
 async function readStdin(): Promise<string> {
   if (process.stdin.isTTY) {
-    process.stderr.write('토큰을 붙여 넣고 Enter 를 누르세요: ');
     const rl = createInterface({ input: process.stdin });
     try {
       for await (const line of rl) {
@@ -148,7 +159,6 @@ async function readStdin(): Promise<string> {
       return '';
     } finally {
       rl.close();
-      process.stderr.write('\n');
     }
   }
 

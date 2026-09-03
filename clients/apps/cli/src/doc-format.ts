@@ -1,5 +1,11 @@
 import { displayWidth, padTo, shortId } from './format.js';
-import type { Doc, DocRevision, DocRevisionPage, DocSummary } from './gentask-client.js';
+import type {
+  Doc,
+  DocFolder,
+  DocRevision,
+  DocRevisionPage,
+  DocSummary,
+} from './gentask-client.js';
 
 /**
  * 문서를 글자로 그린다.
@@ -124,4 +130,60 @@ export function formatRevision(revision: DocRevision): string {
   }
 
   return lines.join('\n');
+}
+
+/** 폴더가 바로 아래에 담은 것. 지우기가 무엇을 위로 올리는지 세는 자리도 이것이다(DOC-008 A7). */
+export function folderHolds(folder: DocFolder): string {
+  return `문서 ${folder.documentCount} · 폴더 ${folder.folderCount}`;
+}
+
+/**
+ * 폴더를 계층이 보이게 그린다.
+ *
+ * <p>서버는 평평한 목록에 `parentId` 를 실어 주고 트리를 세우지 않는다. 깊이를 제한하지 않으므로
+ * 조립한 모양이 한 화면에 담긴다는 보장이 없고, 어디까지 펼칠지는 보는 쪽이 안다(DOC-008).
+ *
+ * <p>담긴 자리가 목록에 없는 폴더는 뿌리에 둔다. 그런 줄은 서지 않아야 하지만, 서면 어느 가지에도
+ * 걸리지 않아 목록에서 통째로 사라진다. 보이지 않는 것보다 뿌리에 서는 편이 낫다.
+ */
+export function formatFolders(folders: readonly DocFolder[]): string {
+  if (folders.length === 0) {
+    return '폴더가 없습니다.';
+  }
+
+  const known = new Set(folders.map((folder) => folder.id));
+  const children = new Map<string, DocFolder[]>();
+  for (const folder of folders) {
+    const parent = folder.parentId !== null && known.has(folder.parentId) ? folder.parentId : '';
+    children.set(parent, [...(children.get(parent) ?? []), folder]);
+  }
+
+  const rows: Array<{ id: string; label: string; holds: string }> = [];
+  const drawn = new Set<string>();
+  const draw = (folder: DocFolder, depth: number): void => {
+    drawn.add(folder.id);
+    rows.push({
+      id: shortId(folder.id),
+      label: `${'  '.repeat(depth)}${folder.name}`,
+      holds: folderHolds(folder),
+    });
+  };
+  const walk = (parent: string, depth: number): void => {
+    const here = [...(children.get(parent) ?? [])].sort((a, b) => a.name.localeCompare(b.name));
+    for (const folder of here) {
+      draw(folder, depth);
+      walk(folder.id, depth + 1);
+    }
+  };
+  walk('', 0);
+
+  // 어느 가지에도 걸리지 않은 것. 서버가 고리를 막으므로 서지 않을 줄이지만, 서면 뿌리에 세운다.
+  for (const folder of folders) {
+    if (!drawn.has(folder.id)) {
+      draw(folder, 0);
+    }
+  }
+
+  const labelWidth = Math.max(...rows.map((r) => displayWidth(r.label)), 5);
+  return rows.map((r) => `${r.id}  ${padTo(r.label, labelWidth)}  ${r.holds}`).join('\n');
 }

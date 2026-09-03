@@ -37,6 +37,13 @@ export type DocRevisionPage = components['schemas']['RevisionPageView'];
 export type DocRevision = components['schemas']['RevisionView'];
 
 /**
+ * 문서를 담는 자리 하나.
+ *
+ * <p>목록은 평평하게 오고 계층은 `parentId` 가 갖는다. 조립은 부르는 쪽이 한다(DOC-008).
+ */
+export type DocFolder = components['schemas']['DocumentFolderSummary'];
+
+/**
  * 서버가 거절했다.
  *
  * <p>사유를 그대로 옮긴다. 다시 시도할지 사용자에게 물을지는 이 서버가 정하지 않고 에이전트가 정한다.
@@ -168,7 +175,10 @@ export class GentaskClient {
   }
 
   /** 세운 것의 식별자는 Location 헤더가 낸다. 문서는 번호를 매기지 않는다. */
-  async addDoc(projectId: string, fields: { title: string; body?: string }): Promise<string> {
+  async addDoc(
+    projectId: string,
+    fields: { title: string; body?: string; folderId?: string | null },
+  ): Promise<string> {
     const response = await this.raw('POST', docsPath(projectId), fields);
     const location = response.headers.get('location') ?? '';
     return location.split('/').pop() ?? '';
@@ -181,6 +191,17 @@ export class GentaskClient {
     fields: { title: string; body: string; comment?: string | null },
   ): Promise<void> {
     await this.raw('PATCH', `${docsPath(projectId)}/${encodeURIComponent(documentId)}`, fields);
+  }
+
+  /**
+   * 문서가 담긴 자리를 바꾼다.
+   *
+   * <p>본문도 제목도 건드리지 않으므로 개정이 쌓이지 않는다(DOC-006). 값을 비우면 뿌리로 간다.
+   */
+  async moveDoc(projectId: string, documentId: string, folderId: string | null): Promise<void> {
+    await this.raw('PUT', `${docsPath(projectId)}/${encodeURIComponent(documentId)}/folder`, {
+      folderId,
+    });
   }
 
   /**
@@ -232,6 +253,44 @@ export class GentaskClient {
     );
   }
 
+  // --- 문서 폴더 ----------------------------------------------------------------------------------
+  /** 프로젝트의 폴더 전부가 평평하게 온다. 트리로 세우는 것은 부르는 쪽의 일이다. */
+  folders(projectId: string): Promise<readonly DocFolder[]> {
+    return this.send<readonly DocFolder[]>('GET', foldersPath(projectId));
+  }
+
+  /** 세운 것의 식별자는 Location 헤더가 낸다. 같은 이름이 이미 있어도 서버가 막지 않는다(DOC-008 A2). */
+  async addFolder(
+    projectId: string,
+    fields: { name: string; parentId?: string | null },
+  ): Promise<string> {
+    const response = await this.raw('POST', foldersPath(projectId), fields);
+    const location = response.headers.get('location') ?? '';
+    return location.split('/').pop() ?? '';
+  }
+
+  /** 이름만 바꾼다. 그 폴더를 가리키던 길은 식별자로 서 있으므로 끊기지 않는다(DOC-008 A4). */
+  async renameFolder(projectId: string, folderId: string, name: string): Promise<void> {
+    await this.raw('PATCH', `${foldersPath(projectId)}/${encodeURIComponent(folderId)}`, { name });
+  }
+
+  /**
+   * 폴더를 다른 자리로 옮긴다. 담긴 문서와 하위 폴더가 함께 간다(DOC-008 A5).
+   *
+   * <p>자기 자신이나 자기 자손 아래로 옮기려 하면 서버가 거절한다(A6). 여기서 미리 세어 두지
+   * 않는 것은 판정에 필요한 트리 전체를 서버가 갖기 때문이다.
+   */
+  async moveFolder(projectId: string, folderId: string, parentId: string | null): Promise<void> {
+    await this.raw('PUT', `${foldersPath(projectId)}/${encodeURIComponent(folderId)}/parent`, {
+      parentId,
+    });
+  }
+
+  /** 담긴 문서와 하위 폴더는 함께 지워지지 않고 한 단계 위로 올라간다(DOC-008 A7). */
+  async removeFolder(projectId: string, folderId: string): Promise<void> {
+    await this.raw('DELETE', `${foldersPath(projectId)}/${encodeURIComponent(folderId)}`);
+  }
+
   // --- 보조 ---------------------------------------------------------------------------------------
 
   private async send<T>(method: string, path: string): Promise<T> {
@@ -262,6 +321,10 @@ function issuesPath(projectId: string): string {
 
 function docsPath(projectId: string): string {
   return `/api/v1/projects/${encodeURIComponent(projectId)}/documents`;
+}
+
+function foldersPath(projectId: string): string {
+  return `/api/v1/projects/${encodeURIComponent(projectId)}/document-folders`;
 }
 
 function revisionsPath(projectId: string, documentId: string): string {

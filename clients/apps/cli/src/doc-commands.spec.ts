@@ -1,4 +1,4 @@
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -6,6 +6,7 @@ import { run } from './cli.js';
 import {
   GentaskClient,
   type Doc,
+  type DocFolder,
   type DocRevision,
   type DocRevisionPage,
   type DocRevisionSummary,
@@ -20,15 +21,30 @@ import {
  */
 
 const ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+const FOLDER = 'ffffffff-1111-2222-3333-444444444444';
 
 function summary(over: Partial<DocSummary> = {}): DocSummary {
   return {
     id: ID,
     title: '아키텍처 개요',
+    folderId: null,
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-03T10:30:00Z',
     ...over,
   } as DocSummary;
+}
+
+function folder(over: Partial<DocFolder> = {}): DocFolder {
+  return {
+    id: FOLDER,
+    name: '아키텍처',
+    parentId: null,
+    documentCount: 0,
+    folderCount: 0,
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-03T10:30:00Z',
+    ...over,
+  } as DocFolder;
 }
 
 function doc(over: Partial<Doc> = {}, summaryOver: Partial<DocSummary> = {}): Doc {
@@ -420,5 +436,349 @@ describe('gentask doc revert', () => {
     await expect(run(['doc', 'revert', ID, '99'], () => client(fetchFn), ENV)).rejects.toThrow(
       /그 개정이 없습니다/,
     );
+  });
+});
+
+describe('gentask doc folder', () => {
+  /* 서버는 평평한 목록에 parentId 를 실어 준다. 계층을 세우는 것은 여기다(DOC-008). */
+  it('목록을 계층이 보이게 낸다', async () => {
+    const { calls, fetchFn } = spy([
+      {
+        body: [
+          folder({ id: 'cccccccc-0000-0000-0000-000000000000', name: '아래', parentId: FOLDER }),
+          folder({ documentCount: 3, folderCount: 1 }),
+        ],
+      },
+    ]);
+
+    const outcome = await run(['doc', 'folder', 'list'], () => client(fetchFn), ENV);
+
+    expect(calls[0]?.url).toBe('https://api.example/api/v1/projects/TG/document-folders');
+    const [첫줄, 둘째줄] = outcome.out.split('\n');
+    expect(첫줄).toContain('아키텍처');
+    expect(첫줄).toContain('문서 3 · 폴더 1');
+    expect(둘째줄).toMatch(/^cccccccc {4}아래/);
+  });
+
+  it('폴더가 없으면 그 사실을 말한다', async () => {
+    const { fetchFn } = spy([{ body: [] }]);
+
+    const outcome = await run(['doc', 'folder', 'list'], () => client(fetchFn), ENV);
+
+    expect(outcome.out).toBe('폴더가 없습니다.');
+  });
+
+  it('--json 은 서버가 준 평평한 목록을 그대로 낸다', async () => {
+    const { fetchFn } = spy([{ body: [folder()] }]);
+
+    const outcome = await run(['doc', 'folder', 'list', '--json'], () => client(fetchFn), ENV);
+
+    expect(JSON.parse(outcome.out)[0]).toMatchObject({ id: FOLDER, parentId: null });
+  });
+
+  it('세우면 이름을 보내고 세운 것의 식별자를 낸다', async () => {
+    const { calls, fetchFn } = spy([
+      { status: 201, location: `/api/v1/projects/TG/document-folders/${FOLDER}` },
+    ]);
+
+    const outcome = await run(
+      ['doc', 'folder', 'add', '아키텍처', '문서'],
+      () => client(fetchFn),
+      ENV,
+    );
+
+    expect(calls[0]?.method).toBe('POST');
+    expect(calls[0]?.body).toEqual({ name: '아키텍처 문서' });
+    expect(outcome.out).toBe(`세웠습니다: ${FOLDER}`);
+  });
+
+  /* 이어 쓰는 쪽이 식별자만 집어 갈 수 있어야 한다. 옮기기가 이 명령을 줄줄이 부른다. */
+  it('--json 은 세운 것의 식별자만 낸다', async () => {
+    const { fetchFn } = spy([
+      { status: 201, location: `/api/v1/projects/TG/document-folders/${FOLDER}` },
+    ]);
+
+    const outcome = await run(
+      ['doc', 'folder', 'add', '아키텍처', '--json'],
+      () => client(fetchFn),
+      ENV,
+    );
+
+    expect(JSON.parse(outcome.out)).toEqual({ id: FOLDER });
+  });
+
+  it('--parent 를 넘기면 그 아래에 세운다', async () => {
+    const { calls, fetchFn } = spy([
+      { body: [folder()] },
+      { status: 201, location: '/api/v1/projects/TG/document-folders/x' },
+    ]);
+
+    await run(['doc', 'folder', 'add', '아래', '--parent', 'ffffffff'], () => client(fetchFn), ENV);
+
+    expect(calls[1]?.body).toEqual({ name: '아래', parentId: FOLDER });
+  });
+
+  /* 이름이 겹쳐도 막지 않는다(DOC-008 A2). 가리키는 것은 이름이 아니라 식별자다. */
+  it('같은 이름이 이미 있어도 그대로 세운다', async () => {
+    const { calls, fetchFn } = spy([
+      { body: [folder()] },
+      { status: 201, location: '/api/v1/projects/TG/document-folders/x' },
+    ]);
+
+    await run(
+      ['doc', 'folder', 'add', '아키텍처', '--parent', 'ffffffff'],
+      () => client(fetchFn),
+      ENV,
+    );
+
+    expect(calls[1]?.body).toEqual({ name: '아키텍처', parentId: FOLDER });
+  });
+
+  it('식별자는 폴더에서도 앞 몇 자만 적어도 된다', async () => {
+    const { calls, fetchFn } = spy([{ body: [folder()] }, { status: 204 }]);
+
+    await run(['doc', 'folder', 'rename', 'ffff', '새', '이름'], () => client(fetchFn), ENV);
+
+    expect(calls[1]?.method).toBe('PATCH');
+    expect(calls[1]?.url).toBe(`https://api.example/api/v1/projects/TG/document-folders/${FOLDER}`);
+    expect(calls[1]?.body).toEqual({ name: '새 이름' });
+  });
+
+  it('앞이 맞는 폴더가 둘 이상이면 고르지 않고 후보를 보인다', async () => {
+    const { calls, fetchFn } = spy([
+      {
+        body: [
+          folder({ id: 'ffffffff-1111-0000-0000-000000000000' }),
+          folder({ id: 'ffffffff-2222-0000-0000-000000000000', name: '다른 것' }),
+        ],
+      },
+    ]);
+
+    await expect(run(['doc', 'folder', 'rm', 'ffff'], () => client(fetchFn), ENV)).rejects.toThrow(
+      /2 개입니다/,
+    );
+    expect(calls).toHaveLength(1);
+  });
+
+  it('옮기면 담긴 것이 함께 간다는 것을 말한다', async () => {
+    const { calls, fetchFn } = spy([
+      { body: [folder(), folder({ id: 'cccccccc-0000-0000-0000-000000000000', name: '위' })] },
+      { status: 204 },
+    ]);
+
+    const outcome = await run(
+      ['doc', 'folder', 'mv', 'ffffffff', '--parent', 'cccccccc'],
+      () => client(fetchFn),
+      ENV,
+    );
+
+    expect(calls[1]?.method).toBe('PUT');
+    expect(calls[1]?.url).toBe(
+      `https://api.example/api/v1/projects/TG/document-folders/${FOLDER}/parent`,
+    );
+    expect(calls[1]?.body).toEqual({ parentId: 'cccccccc-0000-0000-0000-000000000000' });
+    expect(outcome.out).toContain('함께 갔습니다');
+  });
+
+  it('--parent 를 비우면 최상위로 옮긴다', async () => {
+    const { calls, fetchFn } = spy([{ body: [folder()] }, { status: 204 }]);
+
+    const outcome = await run(['doc', 'folder', 'mv', 'ffffffff'], () => client(fetchFn), ENV);
+
+    expect(calls[1]?.body).toEqual({ parentId: null });
+    expect(outcome.out).toContain('최상위로');
+  });
+
+  /* 자기 자손 아래로 가는 것은 서버가 가린다(DOC-008 A6). 사유를 여기서 다시 짓지 않는다. */
+  it('자기 자손 아래로 옮기면 서버가 낸 사유를 그대로 옮긴다', async () => {
+    const { fetchFn } = spy([
+      { body: [folder()] },
+      {
+        status: 409,
+        body: {
+          code: 'FOLDER_MOVE_INTO_DESCENDANT',
+          detail: '자기 자신이나 자기 아래로는 옮길 수 없습니다.',
+        },
+      },
+    ]);
+
+    await expect(
+      run(['doc', 'folder', 'mv', 'ffffffff', '--parent', 'ffffffff'], () => client(fetchFn), ENV),
+    ).rejects.toThrow(/자기 아래로는 옮길 수 없습니다/);
+  });
+
+  /*
+   * 되묻는 자리를 반드시 지난다(DOC-008 A7). 보이는 것이 지워지는 수가 아니라 올라오는 수라는 것이
+   * 말에 담겨야 한다 — 삭제로 읽히면 사람이 지우지 않을 것을 지운다.
+   */
+  it('--yes 없이는 담긴 것이 몇인지 보이고 지우지 않는다', async () => {
+    const { calls, fetchFn } = spy([{ body: [folder({ documentCount: 3, folderCount: 2 })] }]);
+
+    const outcome = await run(['doc', 'folder', 'rm', 'ffffffff'], () => client(fetchFn), ENV);
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.method).toBe('GET');
+    expect(outcome.code).toBe(1);
+    expect(outcome.out).toContain('문서 3 · 폴더 2');
+    expect(outcome.out).toContain('한 단계 위로 올라갑니다');
+    expect(outcome.out).toContain('--yes');
+  });
+
+  it('--yes 를 넘기면 지우고 무엇이 올라갔는지 말한다', async () => {
+    const { calls, fetchFn } = spy([
+      { body: [folder({ documentCount: 3, folderCount: 2 })] },
+      { status: 204 },
+    ]);
+
+    const outcome = await run(
+      ['doc', 'folder', 'rm', 'ffffffff', '--yes'],
+      () => client(fetchFn),
+      ENV,
+    );
+
+    expect(calls[1]?.method).toBe('DELETE');
+    expect(calls[1]?.url).toBe(`https://api.example/api/v1/projects/TG/document-folders/${FOLDER}`);
+    expect(outcome.code).toBe(0);
+    expect(outcome.out).toContain('한 단계 위로 올라갔습니다');
+  });
+
+  it('비어 있으면 올라갈 것을 말하지 않는다', async () => {
+    const { fetchFn } = spy([{ body: [folder()] }]);
+
+    const outcome = await run(['doc', 'folder', 'rm', 'ffffffff'], () => client(fetchFn), ENV);
+
+    expect(outcome.out).toContain('문서 0 · 폴더 0');
+    expect(outcome.out).not.toContain('올라갑니다');
+  });
+
+  it('하위 명령이 아니면 그 사실을 알린다', async () => {
+    const { fetchFn } = spy([{ body: [] }]);
+
+    await expect(run(['doc', 'folder', 'move'], () => client(fetchFn), ENV)).rejects.toThrow(
+      /doc folder 의 하위 명령이 아닙니다/,
+    );
+  });
+});
+
+describe('gentask doc 와 폴더', () => {
+  it('세울 때 담을 자리를 함께 보낸다', async () => {
+    const { calls, fetchFn } = spy([
+      { body: [folder()] },
+      { status: 201, location: `/api/v1/projects/TG/documents/${ID}` },
+    ]);
+
+    await run(['doc', 'add', '개요', '--folder', 'ffffffff'], () => client(fetchFn), ENV);
+
+    expect(calls[1]?.body).toEqual({ title: '개요', folderId: FOLDER });
+  });
+
+  /* 옮기는 것은 개정이 아니다(DOC-006). 본문도 제목도 보내지 않는다. */
+  it('옮기기는 담긴 자리만 보낸다', async () => {
+    const { calls, fetchFn } = spy([{ body: [folder()] }, { status: 204 }]);
+
+    const outcome = await run(
+      ['doc', 'mv', ID, '--folder', 'ffffffff'],
+      () => client(fetchFn),
+      ENV,
+    );
+
+    expect(calls[1]?.method).toBe('PUT');
+    expect(calls[1]?.url).toBe(`https://api.example/api/v1/projects/TG/documents/${ID}/folder`);
+    expect(calls[1]?.body).toEqual({ folderId: FOLDER });
+    expect(outcome.out).toContain('아키텍처');
+  });
+
+  it('--folder 를 비우면 최상위로 옮긴다', async () => {
+    const { calls, fetchFn } = spy([{ status: 204 }]);
+
+    const outcome = await run(['doc', 'mv', ID], () => client(fetchFn), ENV);
+
+    expect(calls[0]?.body).toEqual({ folderId: null });
+    expect(outcome.out).toContain('최상위로');
+  });
+
+  it('목록을 그 자리의 것만으로 좁힌다', async () => {
+    const { fetchFn } = spy([
+      {
+        body: [
+          summary({ folderId: FOLDER }),
+          summary({ id: 'bbbb0000-0000-0000-0000-000000000000', title: '밖의 것' }),
+        ],
+      },
+      { body: [folder()] },
+    ]);
+
+    const outcome = await run(['doc', 'list', '--folder', 'ffffffff'], () => client(fetchFn), ENV);
+
+    expect(outcome.out).toContain('아키텍처 개요');
+    expect(outcome.out).not.toContain('밖의 것');
+  });
+});
+
+describe('gentask doc 본문을 파일과 표준입력에서 받기', () => {
+  /* 마크다운 한 편을 --body 로 넘기면 셸의 인자 길이 한계에 걸린다. 옮기기가 이 길로 간다. */
+  it('--body-file 이 파일의 내용을 본문으로 보낸다', async () => {
+    const 경로 = join(mkdtempSync(join(tmpdir(), 'gentask-body-')), 'body.md');
+    writeFileSync(경로, '# 제목\n\n본문이 길다', 'utf8');
+    const { calls, fetchFn } = spy([
+      { status: 201, location: `/api/v1/projects/TG/documents/${ID}` },
+    ]);
+
+    await run(['doc', 'add', '개요', '--body-file', 경로], () => client(fetchFn), ENV);
+
+    expect(calls[0]?.body).toEqual({ title: '개요', body: '# 제목\n\n본문이 길다' });
+  });
+
+  it('--body-file - 은 표준입력에서 받는다', async () => {
+    const { calls, fetchFn } = spy([
+      { status: 201, location: `/api/v1/projects/TG/documents/${ID}` },
+    ]);
+
+    await run(
+      ['doc', 'add', '개요', '--body-file', '-'],
+      () => client(fetchFn),
+      ENV,
+      async () => '파이프로 들어온 본문',
+    );
+
+    expect(calls[0]?.body).toEqual({ title: '개요', body: '파이프로 들어온 본문' });
+  });
+
+  it('고칠 때도 파일에서 본문을 받는다', async () => {
+    const 경로 = join(mkdtempSync(join(tmpdir(), 'gentask-body-')), 'body.md');
+    writeFileSync(경로, '고쳐 담을 본문', 'utf8');
+    const { calls, fetchFn } = spy([{ body: doc() }, { status: 204 }]);
+
+    await run(['doc', 'edit', ID, '--body-file', 경로], () => client(fetchFn), ENV);
+
+    expect(calls[1]?.body).toEqual({ title: '아키텍처 개요', body: '고쳐 담을 본문' });
+  });
+
+  /* 어느 쪽이 이겼는지 부르는 쪽이 알 수 없다. 파이프로 이어 붙인 본문이 조용히 버려지면 안 된다. */
+  it('--body 와 --body-file 을 함께 넘기면 부르지 않는다', async () => {
+    const { calls, fetchFn } = spy([{ body: [] }]);
+
+    await expect(
+      run(['doc', 'add', '개요', '--body', 'x', '--body-file', '-'], () => client(fetchFn), ENV),
+    ).rejects.toThrow(/함께 넘길 수 없습니다/);
+    expect(calls).toHaveLength(0);
+  });
+
+  it('읽을 파일이 없으면 그 사실을 알리고 부르지 않는다', async () => {
+    const { calls, fetchFn } = spy([{ body: [] }]);
+
+    await expect(
+      run(['doc', 'add', '개요', '--body-file', '없는-파일.md'], () => client(fetchFn), ENV),
+    ).rejects.toThrow(/본문으로 읽을 파일이 없습니다/);
+    expect(calls).toHaveLength(0);
+  });
+
+  it('사유만 넘기는 것은 --body-file 이 생겨도 받지 않는다', async () => {
+    const { calls, fetchFn } = spy([{ body: doc() }]);
+
+    await expect(
+      run(['doc', 'edit', ID, '--comment', '왜'], () => client(fetchFn), ENV),
+    ).rejects.toThrow(/--body-file/);
+    expect(calls).toHaveLength(0);
   });
 });
