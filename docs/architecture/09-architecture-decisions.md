@@ -61,7 +61,7 @@
 | [0011](./decisions/0011-backend-outbound-email.md) | backend | 메일을 Gmail SMTP 로 보내고 발송을 포트 뒤에 둔다 | 유효 | 아웃바운드 메일 발송 포트를 정의하고 단일 서버 환경에 맞추어 Gmail SMTP를 연동한다 |
 | [0012](./decisions/0012-shared-credential-policy.md) | shared | 비밀번호에 구성 규칙을 걸고 이메일 소유를 일회용 코드로 확인한다 | 유효 | 비밀번호 복잡도 규칙 및 6자리 일회용 코드로 계정 신원을 검증한다 |
 | [0013](./decisions/0013-agent-cli.md) | cli | 에이전트가 붙는 자리를 명령줄 도구로 두고 자격을 파일과 환경에서 받는다 | 유효 | 로컬 CLI 도구 형태로 에이전트 연동 인터페이스를 제공하고 표준 출력을 분리한다 |
-| [0014](./decisions/0014-backend-development-backing-services.md) | backend | 개발용 데이터베이스와 파일 보관소를 홈서버에 두고 아는 자리에서만 연다 | 유효 | 개발용 데이터베이스와 MinIO를 홈서버에 통합하고 인가된 IP로 접근을 제어한다 |
+| [0014](./decisions/0014-backend-development-backing-services.md) | backend | 개발용 데이터베이스와 파일 보관소를 작업자별 로컬 컨테이너로 구동한다 | 유효 | 개발용 PostgreSQL과 MinIO를 `compose.yaml`로 로컬에서 구동하고 작업자마다 격리한다 |
 
 ## 발행 예정
 
