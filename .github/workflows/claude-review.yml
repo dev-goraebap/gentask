@@ -21,6 +21,8 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
+  # 액션이 GitHub 토큰을 OIDC 로 교환한다. 없으면 시작조차 하지 못한다.
+  id-token: write
 
 jobs:
   review:
