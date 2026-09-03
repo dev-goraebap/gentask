@@ -6,10 +6,10 @@ import org.springframework.context.annotation.Primary;
 import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 
 /**
- * 실제로 나가는 SMTP 를 덮는다.
+ * 실제 SMTP 발송을 대체한다.
  *
- * <p>종단 테스트가 쓰는 것과 같은 구현을 쓴다. 보낸 것을 담아 두는 일이 두 자리에서 같으므로 두 벌을
- * 두지 않는다.
+ * 종단 테스트와 같은 구현을 사용한다. 발송 내역을 보관하는 동작이 두 곳에서 동일하므로 구현을
+ * 이중으로 두지 않는다.
  */
 @TestConfiguration(proxyBeanMethods = false)
 public class FakeMailConfiguration {
