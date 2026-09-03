@@ -1,0 +1,114 @@
+# 병합 전에 검증한다. main 은 곧 릴리스 후보이므로 깨진 커밋이 들어오면 안 된다.
+#
+# 여기 있는 값은 전부 더미다. 자격 증명을 시크릿으로 올리지 않는다 — 포크 PR 에는 시크릿이
+# 전달되지 않아 검증이 성립하지 않고, 워크플로를 고칠 수 있는 사람이 값을 꺼낼 수 있다.
+# 실제 값은 배포 경로(로컬 .deploy.*.env · 서버 ~/apps/gentask*/.env)에만 둔다.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# 연속으로 push 하면 이전 실행을 취소한다.
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: 백엔드 build
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # application.properties 가 기본값 없이 참조하는 키들이다. 없으면 컨텍스트가 뜨지 않는다.
+    # 데이터베이스는 Testcontainers 가 만들어 @ServiceConnection 으로 덮으므로 여기 값은 자리만 채운다.
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/gentask
+      DB_USERNAME: gentask
+      DB_PASSWORD: gentask
+      AUTH_SECRET: ci-only-dummy-secret-0123456789abcdef0123456789abcdef
+      AUTH_COOKIE_SECURE: "false"
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_REGION: auto
+      STORAGE_ACCESS_KEY: ci
+      STORAGE_SECRET_KEY: ci-dummy-secret
+      STORAGE_BUCKET: gentask-ci
+      STORAGE_CREATE_BUCKET: "false"
+      STORAGE_KEY_PREFIX: ""
+      VAPID_PUBLIC_KEY: BJxKl3xQyPvRZ7hVJ1nQ8mZ4kL2wN6pT9sX0cY5aB3dE7fG1hI2jK4lM6nO8pQ0rS2tU4vW6xY8zA0bC2dE4f
+      VAPID_PRIVATE_KEY: aB3dE7fG1hI2jK4lM6nO8pQ0rS2tU4vW6xY8zA0bC2d
+      VAPID_SUBJECT: mailto:ci@example.com
+      MAIL_FROM: no-reply@localhost
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: build
+        working-directory: server
+        run: ./gradlew build --no-daemon
+
+      - name: 실패한 테스트 보고서를 남긴다
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-test-reports
+          path: server/build/reports/tests/test
+          retention-days: 7
+
+  frontend:
+    name: 프론트 check
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: clients/package-lock.json
+
+      - name: 의존성 설치
+        working-directory: clients
+        run: npm ci
+
+      # web 은 lint · lint:fsd · test · build 를, gentask 는 test · build 를 돈다.
+      - name: web check
+        working-directory: clients
+        run: npm run check -w web
+
+      - name: cli check
+        working-directory: clients
+        run: npm run check -w gentask
+
+  # 필수 상태 검사로 지정할 잡은 이것 하나다. 앞의 두 잡을 직접 지정하면, 초안 PR 처럼
+  # 건너뛴 경우에 "대기 중" 으로 남아 PR 이 병합되지 않는다.
+  gate:
+    name: CI
+    if: always()
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 앞 잡의 결과를 판정한다
+        run: |
+          backend='${{ needs.backend.result }}'
+          frontend='${{ needs.frontend.result }}'
+          echo "backend=$backend frontend=$frontend"
+          for result in "$backend" "$frontend"; do
+            case "$result" in
+              success|skipped) ;;
+              *) exit 1 ;;
+            esac
+          done
