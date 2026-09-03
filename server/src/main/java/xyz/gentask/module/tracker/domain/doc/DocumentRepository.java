@@ -1,5 +1,6 @@
 package xyz.gentask.module.tracker.domain.doc;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,6 +24,14 @@ public interface DocumentRepository {
      * <p>지워진 것은 없는 것으로 낸다(DOC-002 A3).
      */
     Optional<Document> findById(UUID projectId, UUID documentId);
+
+    /**
+     * 한 폴더에 담긴 문서 전부. 폴더를 지울 때 한 단계 위로 올리는 자리가 이것을 쓴다(DOC-008 A7).
+     *
+     * <p>지워진 문서도 함께 낸다. 논리 삭제라 표에 줄이 남아 있고 그것이 폴더를 가리키므로, 걸러 내면
+     * 폴더가 지워지지 않는다.
+     */
+    List<Document> findAllInFolder(UUID folderId);
 
     /** 개정을 남긴다. 앞의 것을 고치거나 지우지 않으므로 담기만 한다. */
     void append(DocumentRevision revision);

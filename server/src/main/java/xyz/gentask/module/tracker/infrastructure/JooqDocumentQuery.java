@@ -1,6 +1,7 @@
 package xyz.gentask.module.tracker.infrastructure;
 
 import static xyz.gentask.jooq.Tables.DOCUMENTS;
+import static xyz.gentask.jooq.Tables.DOCUMENT_FOLDERS;
 import static xyz.gentask.jooq.Tables.DOCUMENT_REVISIONS;
 import static xyz.gentask.jooq.Tables.USERS;
 
@@ -11,12 +12,16 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.Record4;
+import org.jooq.Record5;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
+import xyz.gentask.jooq.tables.DocumentFolders;
 import xyz.gentask.module.tracker.application.doc.DocumentQuery;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentView;
+import xyz.gentask.module.tracker.application.doc.DocumentViews.FolderSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionView;
 
@@ -37,12 +42,51 @@ class JooqDocumentQuery implements DocumentQuery {
     @Override
     public List<DocumentSummary> findAll(UUID projectId) {
         return dslContext
-                .select(DOCUMENTS.ID, DOCUMENTS.TITLE, DOCUMENTS.CREATED_AT, DOCUMENTS.UPDATED_AT)
+                .select(DOCUMENTS.ID, DOCUMENTS.TITLE, DOCUMENTS.FOLDER_ID, DOCUMENTS.CREATED_AT, DOCUMENTS.UPDATED_AT)
                 .from(DOCUMENTS)
                 .where(DOCUMENTS.PROJECT_ID.eq(projectId))
                 .and(DOCUMENTS.DELETED_AT.isNull())
                 .orderBy(DOCUMENTS.UPDATED_AT.desc(), DOCUMENTS.ID.asc())
                 .fetch(JooqDocumentQuery::toSummary);
+    }
+
+    /*
+     * 담긴 것의 수는 폴더마다 따로 센다. 트리를 조립하지 않고 평평하게 내므로 바로 아래의 것만
+     * 세면 되고, 그 수가 되묻는 자리에서 몇이 올라오는지를 말한다(DOC-008 A7).
+     */
+    @Override
+    public List<FolderSummary> findFolders(UUID projectId) {
+        DocumentFolders child = DOCUMENT_FOLDERS.as("child");
+        Field<Integer> documentCount = DSL.selectCount()
+                .from(DOCUMENTS)
+                .where(DOCUMENTS.FOLDER_ID.eq(DOCUMENT_FOLDERS.ID))
+                .and(DOCUMENTS.DELETED_AT.isNull())
+                .asField("document_count");
+        Field<Integer> folderCount = DSL.selectCount()
+                .from(child)
+                .where(child.PARENT_ID.eq(DOCUMENT_FOLDERS.ID))
+                .asField("folder_count");
+
+        return dslContext
+                .select(
+                        DOCUMENT_FOLDERS.ID,
+                        DOCUMENT_FOLDERS.NAME,
+                        DOCUMENT_FOLDERS.PARENT_ID,
+                        documentCount,
+                        folderCount,
+                        DOCUMENT_FOLDERS.CREATED_AT,
+                        DOCUMENT_FOLDERS.UPDATED_AT)
+                .from(DOCUMENT_FOLDERS)
+                .where(DOCUMENT_FOLDERS.PROJECT_ID.eq(projectId))
+                .orderBy(DOCUMENT_FOLDERS.NAME.asc(), DOCUMENT_FOLDERS.ID.asc())
+                .fetch(record -> new FolderSummary(
+                        record.get(DOCUMENT_FOLDERS.ID),
+                        record.get(DOCUMENT_FOLDERS.NAME),
+                        record.get(DOCUMENT_FOLDERS.PARENT_ID),
+                        record.get(documentCount),
+                        record.get(folderCount),
+                        record.get(DOCUMENT_FOLDERS.CREATED_AT),
+                        record.get(DOCUMENT_FOLDERS.UPDATED_AT)));
     }
 
     @Override
@@ -51,6 +95,7 @@ class JooqDocumentQuery implements DocumentQuery {
                 .select(
                         DOCUMENTS.ID,
                         DOCUMENTS.TITLE,
+                        DOCUMENTS.FOLDER_ID,
                         DOCUMENTS.CREATED_AT,
                         DOCUMENTS.UPDATED_AT,
                         DOCUMENT_REVISIONS.BODY,
@@ -69,6 +114,7 @@ class JooqDocumentQuery implements DocumentQuery {
                         new DocumentSummary(
                                 record.get(DOCUMENTS.ID),
                                 record.get(DOCUMENTS.TITLE),
+                                record.get(DOCUMENTS.FOLDER_ID),
                                 record.get(DOCUMENTS.CREATED_AT),
                                 record.get(DOCUMENTS.UPDATED_AT)),
                         record.get(DOCUMENT_REVISIONS.BODY),
@@ -150,10 +196,11 @@ class JooqDocumentQuery implements DocumentQuery {
                 record.get(DOCUMENT_REVISIONS.COMMENT));
     }
 
-    private static DocumentSummary toSummary(Record4<UUID, String, Instant, Instant> record) {
+    private static DocumentSummary toSummary(Record5<UUID, String, UUID, Instant, Instant> record) {
         return new DocumentSummary(
                 record.get(DOCUMENTS.ID),
                 record.get(DOCUMENTS.TITLE),
+                record.get(DOCUMENTS.FOLDER_ID),
                 record.get(DOCUMENTS.CREATED_AT),
                 record.get(DOCUMENTS.UPDATED_AT));
     }

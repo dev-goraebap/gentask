@@ -4,6 +4,38 @@
  */
 
 export interface paths {
+    "/api/v1/projects/{projectId}/documents/{documentId}/folder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["move"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/document-folders/{folderId}/parent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["move_1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/profile-image": {
         parameters: {
             query?: never;
@@ -142,6 +174,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["revert"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/document-folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_5"];
+        put?: never;
+        post: operations["add_3"];
         delete?: never;
         options?: never;
         head?: never;
@@ -468,6 +516,22 @@ export interface paths {
         patch: operations["edit_3"];
         trace?: never;
     };
+    "/api/v1/projects/{projectId}/document-folders/{folderId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["remove_2"];
+        options?: never;
+        head?: never;
+        patch: operations["rename"];
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -539,7 +603,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         post?: never;
         delete?: never;
@@ -555,7 +619,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_6"];
+        get: operations["list_7"];
         put?: never;
         post?: never;
         delete?: never;
@@ -584,6 +648,20 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        MoveDocument: {
+            /**
+             * Format: uuid
+             * @description 담을 폴더. 값이 없으면 뿌리로 옮긴다
+             */
+            folderId?: string | null;
+        };
+        MoveFolder: {
+            /**
+             * Format: uuid
+             * @description 옮길 자리. 값이 없으면 최상위로 옮긴다
+             */
+            parentId?: string | null;
+        };
         ConfirmProfileImage: {
             objectKey: string;
         };
@@ -636,10 +714,23 @@ export interface components {
             title: string;
             /** @description 적지 않으면 빈 본문으로 선다 */
             body?: string;
+            /**
+             * Format: uuid
+             * @description 담을 폴더. 적지 않으면 뿌리에 선다
+             */
+            folderId?: string | null;
         };
         RevertRevision: {
             /** @description 왜 되돌리는지. 적지 않아도 된다 */
             comment?: string | null;
+        };
+        CreateFolder: {
+            name: string;
+            /**
+             * Format: uuid
+             * @description 담을 자리. 적지 않으면 뿌리에 선다
+             */
+            parentId?: string | null;
         };
         IssuedApiToken: {
             token: string;
@@ -723,6 +814,9 @@ export interface components {
             body: string;
             /** @description 왜 고쳤는지. 적지 않아도 된다 */
             comment?: string | null;
+        };
+        RenameFolder: {
+            name: string;
         };
         ChangeNickname: {
             nickname: string;
@@ -813,6 +907,11 @@ export interface components {
             /** Format: uuid */
             id: string;
             title: string;
+            /**
+             * Format: uuid
+             * @description 담긴 폴더. 값이 없으면 뿌리에 선다
+             */
+            folderId: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -867,6 +966,30 @@ export interface components {
             title: string;
             /** @description 그때의 본문. 마크다운 원문이다 */
             body: string;
+        };
+        DocumentFolderSummary: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /**
+             * Format: uuid
+             * @description 담긴 자리. 값이 없으면 뿌리에 선다
+             */
+            parentId: string | null;
+            /**
+             * Format: int32
+             * @description 바로 아래에 담긴 문서 수
+             */
+            documentCount: number;
+            /**
+             * Format: int32
+             * @description 바로 아래에 담긴 폴더 수
+             */
+            folderCount: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
         MeView: {
             /** Format: uuid */
@@ -940,6 +1063,56 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    move: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MoveDocument"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    move_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MoveFolder"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     confirmProfileImage: {
         parameters: {
             query?: never;
@@ -1311,6 +1484,52 @@ export interface operations {
         responses: {
             /** @description No Content */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DocumentFolderSummary"][];
+                };
+            };
+        };
+    };
+    add_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFolder"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1918,6 +2137,52 @@ export interface operations {
             };
         };
     };
+    remove_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    rename: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenameFolder"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     me: {
         parameters: {
             query?: never;
@@ -2030,7 +2295,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_6: {
         parameters: {
             query?: {
                 keyword?: string;
@@ -2054,7 +2319,7 @@ export interface operations {
             };
         };
     };
-    list_6: {
+    list_7: {
         parameters: {
             query?: {
                 includeResolved?: boolean;

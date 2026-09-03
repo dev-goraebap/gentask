@@ -5,12 +5,20 @@ import java.util.Optional;
 import java.util.UUID;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentView;
+import xyz.gentask.module.tracker.application.doc.DocumentViews.FolderSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionView;
 
 public interface DocumentQuery {
 
     List<DocumentSummary> findAll(UUID projectId);
+
+    /**
+     * 프로젝트의 폴더 전부. 평평하게 내고 트리로 세우는 것은 읽는 쪽이 한다(DOC-008).
+     *
+     * <p>바로 아래에 담긴 문서와 폴더의 수를 함께 센다. 지우기 전에 되묻는 자리가 그것을 쓴다.
+     */
+    List<FolderSummary> findFolders(UUID projectId);
 
     Optional<DocumentView> findOne(UUID projectId, UUID documentId);
 

@@ -10,6 +10,43 @@ public final class DocumentViews {
     private DocumentViews() {}
 
     /**
+     * 폴더 목록의 한 줄.
+     *
+     * <p>계층을 서버가 조립하지 않는다. 평평한 목록에 담긴 자리를 실어 내며 트리로 세우는 것은 읽는
+     * 쪽이 한다 — 깊이를 제한하지 않으므로(DOC-008) 조립한 모양은 한 화면에 담기지 않고, 무엇을
+     * 펼쳐 둘지는 보는 자리가 안다.
+     *
+     * <p>담긴 것의 수를 함께 낸다. 지우기 전에 몇이 한 단계 위로 올라가는지 되묻는 자리가 이 값을
+     * 쓴다(DOC-008 A7).
+     */
+    @Schema(name = "DocumentFolderSummary")
+    public record FolderSummary(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            UUID id,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            String name,
+
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    types = {"string", "null"},
+                    format = "uuid",
+                    description = "담긴 자리. 값이 없으면 뿌리에 선다")
+            UUID parentId,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "바로 아래에 담긴 문서 수")
+            int documentCount,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "바로 아래에 담긴 폴더 수")
+            int folderCount,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
+            Instant createdAt,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
+            Instant updatedAt) {}
+
+    /**
      * 목록의 한 줄.
      *
      * <p>본문을 담지 않는다. 제목과 고친 때는 문서가 앞당겨 들고 있으므로 개정을 잇지 않는다.
@@ -21,6 +58,13 @@ public final class DocumentViews {
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             String title,
+
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    types = {"string", "null"},
+                    format = "uuid",
+                    description = "담긴 폴더. 값이 없으면 뿌리에 선다")
+            UUID folderId,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
             Instant createdAt,

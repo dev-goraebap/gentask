@@ -3,6 +3,7 @@ package xyz.gentask.module.tracker.application.doc;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,8 @@ import xyz.gentask.module.tracker.application.doc.DocumentViews.RevisionView;
 import xyz.gentask.module.tracker.application.project.ProjectService;
 import xyz.gentask.module.tracker.domain.doc.Document;
 import xyz.gentask.module.tracker.domain.doc.DocumentBody;
+import xyz.gentask.module.tracker.domain.doc.DocumentFolder;
+import xyz.gentask.module.tracker.domain.doc.DocumentFolderRepository;
 import xyz.gentask.module.tracker.domain.doc.DocumentRepository;
 import xyz.gentask.module.tracker.domain.doc.DocumentRevision;
 import xyz.gentask.module.tracker.domain.doc.DocumentTitle;
@@ -37,6 +40,7 @@ public class DocumentService {
 
     // --- 의존 --------------------------------------------------------------------------------------------------------
     private final DocumentRepository documentRepository;
+    private final DocumentFolderRepository documentFolderRepository;
     private final DocumentQuery documentQuery;
     private final ProjectService projectService;
     private final Clock clock;
@@ -100,11 +104,17 @@ public class DocumentService {
      * 가리키며, 그 사이는 한 트랜잭션 안이다(DOC-001).
      */
     @Transactional
-    public UUID add(UUID userId, String projectId, String title, String body) {
+    public UUID add(UUID userId, String projectId, String title, String body, String folderId) {
         Project project = projectService.find(userId, projectId);
         Instant now = clock.instant();
 
-        Document document = Document.create(UUID.randomUUID(), project.id(), DocumentTitle.of(title), userId, now);
+        Document document = Document.create(
+                UUID.randomUUID(),
+                project.id(),
+                DocumentTitle.of(title),
+                findFolder(project.id(), folderId),
+                userId,
+                now);
         documentRepository.save(document);
 
         DocumentRevision first = DocumentRevision.first(
@@ -187,7 +197,55 @@ public class DocumentService {
         documentRepository.save(document);
     }
 
+    /**
+     * 문서가 담긴 자리를 바꾼다(DOC-006).
+     *
+     * <p>개정을 남기지 않는다. 개정이 갖는 것은 문서가 말하는 바이고 어느 폴더에 있는지는 그것과
+     * 무관하다. 고친 때도 따라가지 않으므로 목록의 순서가 옮김으로 흔들리지 않는다.
+     *
+     * <p>고른 자리가 지금 담긴 자리와 같으면 아무것도 바꾸지 않는다(DOC-006 A5).
+     */
+    @Transactional
+    public void move(UUID userId, String projectId, String documentId, String folderId) {
+        Project project = projectService.find(userId, projectId);
+        Document document = documentRepository
+                .findById(project.id(), readId(documentId))
+                .orElseThrow(TrackerErrorCode.DOCUMENT_NOT_FOUND::raise);
+
+        UUID target = findFolder(project.id(), folderId);
+        if (Objects.equals(document.folderId(), target)) {
+            return;
+        }
+
+        document.moveTo(target);
+        documentRepository.save(document);
+    }
+
     // --- 보조 --------------------------------------------------------------------------------------------------------
+    /**
+     * 담길 자리. 적지 않은 것과 비운 것을 가르지 않으며 둘 다 뿌리다(DOC-006 A1).
+     *
+     * <p>옮길 수 있는 자리는 같은 프로젝트 안의 폴더뿐이다. 남의 것과 이미 지워진 것은 그 자리가 없는
+     * 것으로 답한다(DOC-006 A4 · A6).
+     */
+    private UUID findFolder(UUID projectId, String folderId) {
+        if (folderId == null || folderId.isBlank()) {
+            return null;
+        }
+        return documentFolderRepository
+                .findById(projectId, readFolderId(folderId))
+                .map(DocumentFolder::id)
+                .orElseThrow(TrackerErrorCode.FOLDER_NOT_FOUND::raise);
+    }
+
+    private static UUID readFolderId(String rawId) {
+        try {
+            return UUID.fromString(rawId);
+        } catch (IllegalArgumentException ignored) {
+            throw TrackerErrorCode.FOLDER_NOT_FOUND.raise();
+        }
+    }
+
     /** 되돌린 이유를 적지 않으면 몇 번째 개정으로 되돌렸는지를 시스템이 적는다(DOC-005 A3). */
     private static RevisionComment revertReason(String rawComment, int revisionNo) {
         RevisionComment comment = RevisionComment.of(rawComment);

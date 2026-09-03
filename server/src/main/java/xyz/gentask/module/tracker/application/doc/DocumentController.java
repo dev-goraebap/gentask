@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.gentask.module.tracker.application.doc.DocumentRequests.CreateDocument;
 import xyz.gentask.module.tracker.application.doc.DocumentRequests.EditDocument;
+import xyz.gentask.module.tracker.application.doc.DocumentRequests.MoveDocument;
 import xyz.gentask.module.tracker.application.doc.DocumentRequests.RevertRevision;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentSummary;
 import xyz.gentask.module.tracker.application.doc.DocumentViews.DocumentView;
@@ -43,7 +45,7 @@ public class DocumentController {
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> add(
             @CurrentUser UUID userId, @PathVariable String projectId, @Valid @RequestBody CreateDocument request) {
-        UUID documentId = documentService.add(userId, projectId, request.title(), request.body());
+        UUID documentId = documentService.add(userId, projectId, request.title(), request.body(), request.folderId());
         return ResponseEntity.created(URI.create("/api/v1/projects/" + projectId + "/documents/" + documentId))
                 .build();
     }
@@ -67,6 +69,23 @@ public class DocumentController {
             @PathVariable String documentId,
             @Valid @RequestBody EditDocument request) {
         documentService.edit(userId, projectId, documentId, request.title(), request.body(), request.comment());
+    }
+
+    /**
+     * 문서를 다른 자리로 옮긴다(DOC-006).
+     *
+     * <p>고치는 자리에 얹지 않는다. 그쪽은 제목과 본문을 담아 개정을 남기는 길인데 옮기는 것은 개정이
+     * 아니며, 최상위로 옮기는 것이 값을 비우는 일이라 한 몸에 담으면 "적지 않았다"와 "뿌리로"가 같은
+     * 모양이 된다.
+     */
+    @PutMapping("/{documentId}/folder")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void move(
+            @CurrentUser UUID userId,
+            @PathVariable String projectId,
+            @PathVariable String documentId,
+            @Valid @RequestBody(required = false) MoveDocument request) {
+        documentService.move(userId, projectId, documentId, request == null ? null : request.folderId());
     }
 
     @GetMapping("/{documentId}/revisions")

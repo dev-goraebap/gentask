@@ -3,6 +3,7 @@ package xyz.gentask.module.tracker.infrastructure;
 import static xyz.gentask.jooq.Tables.DOCUMENTS;
 import static xyz.gentask.jooq.Tables.DOCUMENT_REVISIONS;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ class JooqDocumentRepository implements DocumentRepository {
                 .set(DOCUMENTS.PROJECT_ID, document.projectId())
                 .set(DOCUMENTS.TITLE, document.title().value())
                 .set(DOCUMENTS.HEAD_REVISION_ID, document.headRevisionId())
+                .set(DOCUMENTS.FOLDER_ID, document.folderId())
                 .set(DOCUMENTS.DELETED_AT, document.deletedAt())
                 .set(DOCUMENTS.DELETED_BY, document.deletedBy())
                 .set(DOCUMENTS.CREATED_AT, document.createdAt())
@@ -41,6 +43,7 @@ class JooqDocumentRepository implements DocumentRepository {
                 .doUpdate()
                 .set(DOCUMENTS.TITLE, document.title().value())
                 .set(DOCUMENTS.HEAD_REVISION_ID, document.headRevisionId())
+                .set(DOCUMENTS.FOLDER_ID, document.folderId())
                 .set(DOCUMENTS.DELETED_AT, document.deletedAt())
                 .set(DOCUMENTS.DELETED_BY, document.deletedBy())
                 .set(DOCUMENTS.UPDATED_AT, document.updatedAt())
@@ -57,6 +60,18 @@ class JooqDocumentRepository implements DocumentRepository {
                 .and(DOCUMENTS.DELETED_AT.isNull())
                 .fetchOptional()
                 .map(JooqDocumentRepository::toDomain);
+    }
+
+    /*
+     * 지워진 문서도 함께 낸다. 논리 삭제라 표에 줄이 남아 폴더를 가리키므로, 걸러 내면 그 폴더가
+     * 지워지지 않는다(DOC-008 A7).
+     */
+    @Override
+    public List<Document> findAllInFolder(UUID folderId) {
+        return dslContext
+                .selectFrom(DOCUMENTS)
+                .where(DOCUMENTS.FOLDER_ID.eq(folderId))
+                .fetch(JooqDocumentRepository::toDomain);
     }
 
     @Override
@@ -100,6 +115,7 @@ class JooqDocumentRepository implements DocumentRepository {
                 documentsRecord.getProjectId(),
                 DocumentTitle.of(documentsRecord.getTitle()),
                 documentsRecord.getHeadRevisionId(),
+                documentsRecord.getFolderId(),
                 documentsRecord.getDeletedAt(),
                 documentsRecord.getDeletedBy(),
                 documentsRecord.getCreatedAt(),

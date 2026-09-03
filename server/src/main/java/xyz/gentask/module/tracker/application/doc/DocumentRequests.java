@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import xyz.gentask.module.tracker.domain.doc.DocumentBody;
+import xyz.gentask.module.tracker.domain.doc.DocumentFolderName;
 import xyz.gentask.module.tracker.domain.doc.DocumentTitle;
 import xyz.gentask.module.tracker.domain.doc.RevisionComment;
 
@@ -17,7 +18,54 @@ public final class DocumentRequests {
             String title,
 
             @Size(max = DocumentBody.MAX) @Schema(description = "적지 않으면 빈 본문으로 선다")
-            String body) {}
+            String body,
+
+            @Schema(
+                    description = "담을 폴더. 적지 않으면 뿌리에 선다",
+                    types = {"string", "null"},
+                    format = "uuid")
+            String folderId) {}
+
+    /**
+     * 문서를 옮긴다. 담길 자리만 담는다.
+     *
+     * <p>값이 없으면 뿌리다(DOC-006 A1). 자리를 비우는 것과 적지 않은 것을 가르지 않으므로 이 자리에
+     * 널을 그대로 받는다.
+     */
+    public record MoveDocument(
+            @Schema(
+                    description = "담을 폴더. 값이 없으면 뿌리로 옮긴다",
+                    types = {"string", "null"},
+                    format = "uuid")
+            String folderId) {}
+
+    /** 폴더를 세운다. 담길 자리를 적지 않으면 뿌리에 선다. */
+    public record CreateFolder(
+            @NotBlank(message = DocumentFolderName.REQUIRED) @Size(max = DocumentFolderName.MAX) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            String name,
+
+            @Schema(
+                    description = "담을 자리. 적지 않으면 뿌리에 선다",
+                    types = {"string", "null"},
+                    format = "uuid")
+            String parentId) {}
+
+    /** 폴더의 이름을 바꾼다. 이름을 바꿔도 그 폴더를 가리키던 길은 끊기지 않는다(DOC-008 A4). */
+    public record RenameFolder(
+            @NotBlank(message = DocumentFolderName.REQUIRED) @Size(max = DocumentFolderName.MAX) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            String name) {}
+
+    /**
+     * 폴더를 옮긴다. 담긴 문서와 하위 폴더는 이 폴더를 가리키고 있으므로 함께 간다(DOC-008 A5).
+     *
+     * <p>값이 없으면 최상위다.
+     */
+    public record MoveFolder(
+            @Schema(
+                    description = "옮길 자리. 값이 없으면 최상위로 옮긴다",
+                    types = {"string", "null"},
+                    format = "uuid")
+            String parentId) {}
 
     /**
      * 고치는 것은 제목과 본문 둘이며 개정 사유를 함께 받는다.

@@ -3,9 +3,11 @@ package xyz.gentask.module.tracker;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static xyz.gentask.jooq.Tables.DOCUMENT_REVISIONS;
@@ -101,6 +103,139 @@ class DocumentApiTest {
         문서를_세운다("{\"title\":\"겹치는 제목\"}");
 
         목록().andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    @DisplayName("폴더를 적지 않고 세우면 어느 폴더에도 담기지 않는다")
+    void 폴더_없이_세우면_뿌리에_선다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"뿌리의 것\"}");
+
+        상세(documentId).andExpect(jsonPath("$.summary.folderId").value(nullValue()));
+        목록().andExpect(jsonPath("$[0].folderId").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("폴더를 연 자리에서 세우면 그 폴더에 담긴다")
+    void 폴더를_적어_세운다() throws Exception {
+        String folderId = 폴더를_세운다("담을 자리");
+
+        String documentId = 문서를_세운다("{\"title\":\"담긴 것\",\"folderId\":\"%s\"}".formatted(folderId));
+
+        상세(documentId).andExpect(jsonPath("$.summary.folderId").value(folderId));
+        목록().andExpect(jsonPath("$[0].folderId").value(folderId));
+    }
+
+    @Test
+    @DisplayName("없는 폴더에 세우려 하면 그 자리가 없는 것으로 낸다")
+    void 없는_폴더에는_세우지_못한다() throws Exception {
+        mockMvc.perform(post("/api/v1/projects/{projectId}/documents", projectId)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"어디에\",\"folderId\":\"%s\"}".formatted(UUID.randomUUID())))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("FOLDER_NOT_FOUND"));
+
+        목록().andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    @DisplayName("고른 폴더로 옮기면 그 문서가 담긴 자리가 바뀐다")
+    void 문서를_폴더로_옮긴다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"옮길 것\"}");
+        String folderId = 폴더를_세운다("받을 자리");
+
+        옮긴다(documentId, "{\"folderId\":\"%s\"}".formatted(folderId));
+
+        상세(documentId).andExpect(jsonPath("$.summary.folderId").value(folderId));
+    }
+
+    /*
+     * 개정이 갖는 것은 문서가 말하는 바이고 어느 폴더에 있는지는 그것과 무관하다(DOC-006).
+     */
+    @Test
+    @DisplayName("옮겨도 개정 이력에 줄이 생기지 않고 제목과 본문이 그대로다")
+    void 옮기는_것은_개정이_아니다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"옮길 것\",\"body\":\"본문\"}");
+        String folderId = 폴더를_세운다("받을 자리");
+
+        옮긴다(documentId, "{\"folderId\":\"%s\"}".formatted(folderId));
+
+        상세(documentId)
+                .andExpect(jsonPath("$.summary.title").value("옮길 것"))
+                .andExpect(jsonPath("$.body").value("본문"))
+                .andExpect(jsonPath("$.revisionNo").value(1));
+        assertThat(개정들(documentId)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("옮길 자리로 최상위를 고르면 어느 폴더에도 담기지 않은 것으로 둔다")
+    void 문서를_최상위로_옮긴다() throws Exception {
+        String folderId = 폴더를_세운다("담을 자리");
+        String documentId = 문서를_세운다("{\"title\":\"옮길 것\",\"folderId\":\"%s\"}".formatted(folderId));
+
+        옮긴다(documentId, "{\"folderId\":null}");
+
+        상세(documentId).andExpect(jsonPath("$.summary.folderId").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("지금 담긴 자리로 옮기면 아무것도 바꾸지 않는다")
+    void 있던_자리로_옮기면_그대로다() throws Exception {
+        String folderId = 폴더를_세운다("담을 자리");
+        String documentId = 문서를_세운다("{\"title\":\"그대로\",\"folderId\":\"%s\"}".formatted(folderId));
+
+        옮긴다(documentId, "{\"folderId\":\"%s\"}".formatted(folderId));
+
+        상세(documentId)
+                .andExpect(jsonPath("$.summary.folderId").value(folderId))
+                .andExpect(jsonPath("$.revisionNo").value(1));
+        assertThat(개정들(documentId)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("옮길 폴더가 없으면 그 자리가 없는 것으로 내고 있던 자리에 그대로 둔다")
+    void 없는_자리로는_옮기지_못한다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"그대로\"}");
+
+        mockMvc.perform(put("/api/v1/projects/{projectId}/documents/{documentId}/folder", projectId, documentId)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"folderId\":\"%s\"}".formatted(UUID.randomUUID())))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("FOLDER_NOT_FOUND"));
+
+        상세(documentId).andExpect(jsonPath("$.summary.folderId").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("다른 프로젝트의 폴더로는 옮기지 못한다")
+    void 남의_폴더로는_옮기지_못한다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"내 것\"}");
+
+        String other = 프로젝트를_세운다(session, "Other", "OT");
+        String folderId = 폴더를_세운다(other, "남의 자리");
+
+        mockMvc.perform(put("/api/v1/projects/{projectId}/documents/{documentId}/folder", projectId, documentId)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"folderId\":\"%s\"}".formatted(folderId)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("FOLDER_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("사용자의 프로젝트에 속하지 않으면 옮기지 못한다")
+    void 남의_문서는_옮기지_못한다() throws Exception {
+        String documentId = 문서를_세운다("{\"title\":\"내 것\"}");
+
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
+
+        mockMvc.perform(put("/api/v1/projects/{projectId}/documents/{documentId}/folder", projectId, documentId)
+                        .cookie(other)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"folderId\":null}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
     }
 
     @Test
@@ -562,6 +697,31 @@ class DocumentApiTest {
             request.contentType(MediaType.APPLICATION_JSON).content(body);
         }
         mockMvc.perform(request).andExpect(status().isNoContent());
+    }
+
+    private void 옮긴다(String documentId, String body) throws Exception {
+        mockMvc.perform(put("/api/v1/projects/{projectId}/documents/{documentId}/folder", projectId, documentId)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isNoContent());
+    }
+
+    private String 폴더를_세운다(String name) throws Exception {
+        return 폴더를_세운다(projectId, name);
+    }
+
+    private String 폴더를_세운다(String inProjectId, String name) throws Exception {
+        String location =
+                requireNonNull(mockMvc.perform(post("/api/v1/projects/{projectId}/document-folders", inProjectId)
+                                .cookie(session)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"name\":\"%s\"}".formatted(name)))
+                        .andExpect(status().isCreated())
+                        .andReturn()
+                        .getResponse()
+                        .getHeader("Location"));
+        return location.substring(location.lastIndexOf('/') + 1);
     }
 
     private ResultActions 목록() throws Exception {

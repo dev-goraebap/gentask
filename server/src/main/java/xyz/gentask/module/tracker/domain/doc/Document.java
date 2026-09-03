@@ -32,6 +32,9 @@ public final class Document {
     // 지금 참인 개정. 첫 개정을 담기 전의 한순간만 비어 있다
     private UUID headRevisionId;
 
+    // 담긴 폴더. 비어 있으면 뿌리에 선다
+    private UUID folderId;
+
     // 지운 순간. 지운 것을 곧바로 없애지 않는다
     private Instant deletedAt;
 
@@ -50,8 +53,9 @@ public final class Document {
     // 마지막으로 고친 사람
     @NonNull private UUID updatedBy;
 
-    public static Document create(UUID id, UUID projectId, DocumentTitle title, UUID authorId, Instant now) {
-        return new Document(id, projectId, title, null, null, null, now, authorId, now, authorId);
+    public static Document create(
+            UUID id, UUID projectId, DocumentTitle title, UUID folderId, UUID authorId, Instant now) {
+        return new Document(id, projectId, title, null, folderId, null, null, now, authorId, now, authorId);
     }
 
     public static Document restore(
@@ -59,6 +63,7 @@ public final class Document {
             UUID projectId,
             DocumentTitle title,
             UUID headRevisionId,
+            UUID folderId,
             Instant deletedAt,
             UUID deletedBy,
             Instant createdAt,
@@ -66,7 +71,17 @@ public final class Document {
             Instant updatedAt,
             UUID updatedBy) {
         return new Document(
-                id, projectId, title, headRevisionId, deletedAt, deletedBy, createdAt, createdBy, updatedAt, updatedBy);
+                id,
+                projectId,
+                title,
+                headRevisionId,
+                folderId,
+                deletedAt,
+                deletedBy,
+                createdAt,
+                createdBy,
+                updatedAt,
+                updatedBy);
     }
 
     public boolean belongsTo(@NonNull UUID candidateProjectId) {
@@ -88,5 +103,16 @@ public final class Document {
         this.title = title;
         this.updatedAt = now;
         this.updatedBy = editorId;
+    }
+
+    /**
+     * 담긴 자리를 옮긴다. 비어 있는 자리는 뿌리다(DOC-006 A1).
+     *
+     * <p>고친 때와 고친 사람이 따라가지 않는다. 그 둘은 지금 참인 개정을 남긴 자리를 가리키는데
+     * 옮기는 것은 개정이 아니므로(DOC-006), 함께 옮기면 목록의 "고친 때"가 이력의 마지막 줄과 다른
+     * 것을 말하게 된다. 그래서 시각을 받지 않는다.
+     */
+    public void moveTo(UUID folderId) {
+        this.folderId = folderId;
     }
 }
