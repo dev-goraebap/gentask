@@ -93,6 +93,11 @@ jobs:
         working-directory: clients
         run: npm run check -w gentask
 
+      # web2 는 Astryx 를 검증하는 스파이크다. tsc --noEmit 과 정적 빌드를 돌린다.
+      - name: web2 check
+        working-directory: clients
+        run: npm run check -w web2
+
   # 필수 상태 검사로 지정할 잡은 이것 하나다. 앞의 두 잡을 직접 지정하면, 초안 PR 처럼
   # 건너뛴 경우에 "대기 중" 으로 남아 PR 이 병합되지 않는다.
   gate:

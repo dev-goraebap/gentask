@@ -1,0 +1,8 @@
+# 빌드 산출물
+/dist
+/.tanstack
+/.nitro
+/.output
+
+# Vite 캐시
+/node_modules/.vite
