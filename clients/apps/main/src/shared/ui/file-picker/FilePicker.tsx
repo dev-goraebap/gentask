@@ -16,7 +16,7 @@ export function FilePicker({ label, value, onChange, accept, multiple = false, d
     if (!target.current || disabled) return;
     const uppy = new Uppy({ locale: koKR, autoProceed: false, restrictions: { maxNumberOfFiles: multiple ? null : 1, allowedFileTypes: accept ? accept.split(',') : null } });
     instance.current = uppy;
-    uppy.use(Dashboard, { target: target.current, inline: true, width: '100%', height: multiple ? 280 : 200, theme: document.body.getAttribute('data-astryx-media') === 'dark' ? 'dark' : 'light', hideUploadButton: true, proudlyDisplayPoweredByUppy: false, hideProgressDetails: true, note: multiple ? '파일을 끌어놓거나 선택하세요.' : '이미지 한 장을 선택하세요.' });
+    uppy.use(Dashboard, { target: target.current, inline: true, width: '100%', height: multiple ? '17.5rem' : '12.5rem', theme: document.body.getAttribute('data-astryx-media') === 'dark' ? 'dark' : 'light', hideUploadButton: true, proudlyDisplayPoweredByUppy: false, hideProgressDetails: true, note: multiple ? '파일을 끌어놓거나 선택하세요.' : '이미지 한 장을 선택하세요.' });
     const notify = () => { if (!syncing.current) change.current(uppy.getFiles().flatMap(file => file.data instanceof File ? [file.data] : [])); };
     uppy.on('files-added', notify);
     uppy.on('file-removed', notify);

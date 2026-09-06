@@ -10,7 +10,7 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<File>();
-  return <MobileSurface title="프로젝트 만들기" presentation="fullscreen" isOpen onOpenChange={open => { if (!open) onClose(); }} purpose="form" width={520}>
+  return <MobileSurface title="프로젝트 만들기" presentation="fullscreen" isOpen onOpenChange={open => { if (!open) onClose(); }} purpose="form" width="32.5rem">
     <Layout header={<DialogHeader title="프로젝트 만들기" onOpenChange={onClose} />}
       content={<LayoutContent><VStack gap={4}>
         <HStack gap={3} align="center"><ProjectAvatar project={{ name, image }} size="lg" /><Text color="secondary">이미지를 선택하지 않으면 기본 아바타를 사용합니다.</Text></HStack>
@@ -19,7 +19,7 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
         <TextInput label="프로젝트명" value={name} onChange={setName} isRequired hasAutoFocus />
         <TextArea label="간단한 설명 (선택)" value={description} onChange={setDescription} rows={3} />
       </VStack></LayoutContent>}
-      footer={<LayoutFooter hasDivider><HStack gap={2} justify="end" paddingBlock={3}>
+      footer={<LayoutFooter hasDivider><HStack gap={2} justify="end" paddingBlock={3} wrap="wrap">
         <Button label="취소" onClick={onClose} /><Button label="프로젝트 만들기" variant="primary" isDisabled={!name.trim()} onClick={() => {
           const id = createProject(name.trim(), description.trim(), ME, image); onClose(); onCreated(id);
         }} />

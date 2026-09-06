@@ -128,7 +128,7 @@ export function DocumentsPage({ items, onOpen, folderId, onFolderChange, project
                     onChange={setQuery}
                     startIcon={<HgiSearch />}
                     hasClear
-                    width={mobile ? 'min(calc(100vw - 130px), 800px)' : 220}
+                    width={mobile ? 'max(10rem, min(calc(100vw - 8.125rem), 50rem))' : '13.75rem'}
                     size={mobile ? 'lg' : 'sm'}
                   />
 

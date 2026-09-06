@@ -30,7 +30,7 @@ export function DrawerPage() {
         {!mobile ? <VStack paddingInline={mobile ? 3 : 4}><Text color="secondary">생각과 자료를 자유롭게 모아두세요.</Text></VStack> : null}
       </VStack></LayoutHeader>}
       <Toolbar className={mobile ? undefined : "page-filter-toolbar"} label="서랍 검색" size={mobile ? 'lg' : 'sm'} startContent={
-          <TextInput label="서랍 검색" isLabelHidden placeholder="내용이나 파일 이름으로 검색" value={query} onChange={setQuery} startIcon={<HgiSearch />} hasClear width={mobile ? 'calc(100vw - 60px)' : 220} />
+          <TextInput label="서랍 검색" isLabelHidden placeholder="내용이나 파일 이름으로 검색" value={query} onChange={setQuery} startIcon={<HgiSearch />} hasClear width={mobile ? 'max(10rem, calc(100vw - 3.75rem))' : '13.75rem'} />
         } />
     </>} content={<LayoutContent padding={mobile ? 3 : 4} style={{ paddingBottom: 'calc(var(--spacing-10) + var(--spacing-10))' }}>
       <VStack gap={4}>

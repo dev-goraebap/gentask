@@ -149,7 +149,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
         <Toolbar className={mobile ? undefined : "page-filter-toolbar"} label="멤버 필터" size={mobile ? 'lg' : 'sm'} startContent={<>
               <TextInput label="멤버 검색" isLabelHidden placeholder="이름으로 검색" startIcon={<HgiSearch />}
                 size={mobile ? 'lg' : 'sm'}
-                value={query} onChange={setQuery} hasClear width={mobile ? 'min(calc(100vw - 210px), 720px)' : 220} />
+                value={query} onChange={setQuery} hasClear width={mobile ? 'max(10rem, min(calc(100vw - 13.125rem), 45rem))' : '13.75rem'} />
               {mobile ? <Button label={roleFilter !== 'all' ? '필터 · 1' : '필터'} size="lg" onClick={() => { setDraft({ filter: roleFilter, size: listing.size }); setFiltersOpen(true); }} /> : <>
               <Selector label="역할 필터" isLabelHidden value={roleFilter} onChange={setRoleFilter}
                 options={[{ value: 'all', label: '모든 역할' }, ...Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))]} />
@@ -207,9 +207,9 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
         </VStack> : null}
       </LayoutContent>} />
     </MobileSurface>
-    <Dialog isOpen={creating} onOpenChange={setCreating} purpose="form" variant={mobile ? 'fullscreen' : 'standard'} width={560}>
+    <Dialog isOpen={creating} onOpenChange={setCreating} purpose="form" variant={mobile ? 'fullscreen' : 'standard'} width="35rem">
       <Layout header={<DialogHeader title="멤버 초대" onOpenChange={setCreating} />}
-        footer={mobile && inviteTab === 'new' && !created ? <LayoutFooter hasDivider><HStack paddingBlock={3} gap={2}>
+        footer={mobile && inviteTab === 'new' && !created ? <LayoutFooter hasDivider><HStack paddingBlock={3} gap={2} wrap="wrap">
           <Button label="취소" size="lg" onClick={() => setCreating(false)} />
           <Button label="링크 만들기" size="lg" width="100%" variant="primary" isDisabled={!label.trim() || !canManage} onClick={create} />
         </HStack></LayoutFooter> : undefined} content={<LayoutContent>
@@ -285,7 +285,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
       </VStack>
       </LayoutContent>} />
     </Dialog>
-    <Dialog isOpen={Boolean(inviteId)} onOpenChange={(open) => { if (!open) { onPreview(); setGuestName(''); } }} purpose="form" variant={mobile ? 'fullscreen' : 'standard'} width={480}>
+    <Dialog isOpen={Boolean(inviteId)} onOpenChange={(open) => { if (!open) { onPreview(); setGuestName(''); } }} purpose="form" variant={mobile ? 'fullscreen' : 'standard'} width="30rem">
       <Layout header={<DialogHeader title="프로젝트 초대" onOpenChange={() => { onPreview(); setGuestName(''); }} />} content={<LayoutContent>
       <VStack gap={4}>
         {preview && isActive(preview) ? <>

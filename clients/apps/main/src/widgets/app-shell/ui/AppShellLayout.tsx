@@ -34,8 +34,8 @@ export function AppShellLayout() {
   );
   return <>
     <AppShell mobileNav={false} height="fill" variant="section" contentPadding={0}
-      sideNav={mobile ? undefined : <SideNav
-        header={<HStack gap={2} align="center"><img src="/icon-192.png" alt="" width={28} height={28} /><Text className="app-logo" size="lg">Gentask</Text></HStack>}
+      sideNav={mobile ? undefined : <SideNav style={{ width: '16.25rem' }}
+        header={<HStack gap={2} align="center"><img src="/icon-192.png" alt="" width={28} height={28} style={{ width: '1.75rem', height: '1.75rem' }} /><Text className="app-logo" size="lg">Gentask</Text></HStack>}
         topContent={project ? <SideNavItem label="전체 메뉴로" icon={<HgiArrowLeft />} onClick={() => navigate({ to: '/drawer' })} /> : undefined}
         footer={<HStack justify="between" align="center"><Button label="내 정보" icon={<HgiUser />} variant="ghost" onClick={() => navigate({ to: '/me' })} /><ThemeToggle /></HStack>}>
         {project ? <VStack gap={2} paddingBlockStart={4}>

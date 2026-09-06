@@ -13,9 +13,9 @@ export const WIDTH = {
   /** 영역을 채운다. 칸반처럼 가로로 흐르는 화면에만 쓴다. */
   full: undefined,
   /** 목록과 상세의 기본값. */
-  wide: 960,
+  wide: '60rem',
   /** 한 열로 읽는 개인 화면. */
-  narrow: 640,
+  narrow: '40rem',
 } as const;
 
 /**
@@ -26,7 +26,7 @@ export const WIDTH = {
  *
  * 툴바나 탭이 그 아래 붙는 화면은 그만큼 더 높아진다. 통일하는 것은 제목 줄뿐이다.
  */
-export const TITLE_ROW = 48;
+export const TITLE_ROW = '3rem';
 
 /**
  * 제목 줄 위에 두는 여백.
@@ -39,7 +39,7 @@ export const TITLE_PAD_TOP = 4;
 /** 목록과 상세를 나란히 두는 패널의 폭. */
 export const PANEL = {
   /** 목차나 항목 목록. */
-  list: 260,
+  list: '16.25rem',
   /** 메타 정보. */
-  meta: 340,
+  meta: '21.25rem',
 } as const;

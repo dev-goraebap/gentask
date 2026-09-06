@@ -115,7 +115,7 @@ body {
 }
 
 .drawer-rich-content {
-  min-height: 240px;
+  min-height: 15rem;
   padding: var(--spacing-3);
   border: var(--border-width) solid var(--color-border-emphasized);
   border-radius: var(--radius-element);
@@ -163,4 +163,47 @@ body {
   margin-inline: auto;
 }
 
-:root { --mobile-header-height: 60px; }
+:root { --mobile-header-height: 3.75rem; }
+
+html { font-size: 100%; }
+
+@media (min-width: 1920px) {
+  html { font-size: max(100%, min(125%, 20px, calc(100% + 0.625vw - 12px))); }
+}
+
+/* 기본 16px에서 기존 테마 치수를 유지하며 사용자 글자 크기에 비례한다. */
+:root {
+  --spacing-0: 0rem;
+  --spacing-0-5: 0.1875rem;
+  --spacing-1: 0.375rem;
+  --spacing-1-5: 0.5625rem;
+  --spacing-2: 0.75rem;
+  --spacing-3: 1.125rem;
+  --spacing-4: 1.5rem;
+  --spacing-5: 1.875rem;
+  --spacing-6: 2.25rem;
+  --spacing-7: 2.625rem;
+  --spacing-8: 3rem;
+  --spacing-9: 2.25rem;
+  --spacing-10: 2.5rem;
+  --spacing-11: 2.75rem;
+  --spacing-12: 3rem;
+  --size-element-sm: 2rem;
+  --size-element-md: 2.5rem;
+  --size-element-lg: 3rem;
+}
+
+:root { --text-supporting-size: 0.75rem; }
+
+/* 툴바는 확대 시 검색창과 필터를 줄바꿈하여 조작 영역을 유지한다. */
+.astryx-toolbar { flex-wrap: wrap; }
+.astryx-toolbar > div { flex-wrap: wrap; min-width: 0; max-width: 100%; }
+.astryx-toolbar .astryx-text-input { max-width: 100%; }
+.astryx-avatar.sm { width: 1.5rem; height: 1.5rem; }
+.astryx-avatar.md { width: 2.25rem; height: 2.25rem; }
+.astryx-avatar.lg { width: 3rem; height: 3rem; }
+.astryx-avatar-fallback.sm { font-size: 0.6rem; }
+.astryx-avatar-fallback.md { font-size: 0.9rem; }
+.astryx-avatar-fallback.lg { font-size: 1.2rem; }
+
+.astryx-toolbar .astryx-field { max-width: 100%; min-width: 0; }

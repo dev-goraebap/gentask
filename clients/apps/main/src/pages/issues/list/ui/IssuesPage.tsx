@@ -107,8 +107,8 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
           {mobile ? <Toolbar
             label="이슈 필터"
             size="lg"
-            startContent={<HStack gap={2} width="100%">
-              <VStack style={{ flex: 1, minWidth: 0 }}><TextInput label="이슈 검색" isLabelHidden placeholder="제목이나 식별자" value={query} onChange={setQuery} hasClear width="100%" /></VStack>
+            startContent={<HStack gap={2} width="100%" style={{ flexWrap: 'wrap', minWidth: 0 }}>
+              <VStack style={{ flex: '1 1 10rem', minWidth: 0 }}><TextInput label="이슈 검색" isLabelHidden placeholder="제목이나 식별자" value={query} onChange={setQuery} hasClear width="100%" /></VStack>
               <Button label={`필터${state || kind || mineOnly || hideClosed ? ' · 적용' : ''}`} onClick={() => { setDraft({ state, kind, sort, mineOnly, hideClosed, view }); setFiltersOpen(true); }} />
             </HStack>}
           /> : <Toolbar
@@ -125,7 +125,7 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
                   onChange={setQuery}
                   startIcon={<HgiSearch />}
                   hasClear
-                  width={220}
+                  width="13.75rem"
                 />
                 <Selector
                   label="상태"

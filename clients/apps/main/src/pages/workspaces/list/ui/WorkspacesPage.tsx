@@ -31,7 +31,7 @@ export function WorkspacesPage() {
         {!mobile ? <VStack paddingInline={mobile ? 3 : 4}><Text color="secondary">참여 중인 프로젝트를 확인하고 관리합니다.</Text></VStack> : null}
       </VStack></LayoutHeader>}
       <Toolbar className={mobile ? undefined : "page-filter-toolbar"} label="프로젝트 필터" size={mobile ? 'lg' : 'sm'} startContent={
-          <TextInput label="프로젝트 검색" isLabelHidden placeholder="프로젝트 이름으로 검색" value={query} onChange={setQuery} startIcon={<HgiSearch />} hasClear width={mobile ? 'min(calc(100vw - 170px), 740px)' : 220} />
+          <TextInput label="프로젝트 검색" isLabelHidden placeholder="프로젝트 이름으로 검색" value={query} onChange={setQuery} startIcon={<HgiSearch />} hasClear width={mobile ? 'max(10rem, min(calc(100vw - 10.625rem), 46.25rem))' : '13.75rem'} />
         } endContent={
           <Selector label="프로젝트 상태" isLabelHidden value={status} onChange={setStatus} options={[{ value: 'active', label: '진행 중' }, { value: 'archived', label: '보관됨' }, { value: 'all', label: '전체' }]} />
         } />
