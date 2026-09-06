@@ -52,7 +52,7 @@ export function AppShellLayout() {
           archived ? <EmptyState title="보관된 프로젝트입니다" description="프로젝트 설정에서 복원하면 다시 작업할 수 있습니다."
             actions={<Button label="프로젝트 설정" onClick={() => navigate({ to: '/projects/$projectId/settings', params: { projectId: project!.id } })} />} /> : <Outlet />}
         footer={mobile && !mobileDetail ? <LayoutFooter padding={0} hasDivider><HStack as="nav" aria-label={project ? "프로젝트 메뉴" : "기본 메뉴"} gap={0}
-          style={{ paddingBottom: 'env(safe-area-inset-bottom)', height: 'calc(var(--mobile-nav-height) + env(safe-area-inset-bottom))', boxSizing: 'border-box' }}>
+          style={{ paddingInline: 'calc(var(--spacing-2) * 2 / 3)', paddingTop: 'calc(var(--spacing-1) * 2 / 3)', paddingBottom: 'calc(var(--spacing-1) * 2 / 3 + env(safe-area-inset-bottom))', height: 'calc(var(--mobile-nav-height) + env(safe-area-inset-bottom))', boxSizing: 'border-box' }}>
           {(project ? menu : basicMenu).map((m) => <Button key={m.path} label={m.label} size="lg" style={{ flex: '1 1 0', minWidth: 0, height: '100%' }} variant={(project ? selected?.path === m.path : Boolean(matchRoute({ to: m.path, fuzzy: true }))) ? 'secondary' : 'ghost'}
             aria-current={(project ? selected?.path === m.path : Boolean(matchRoute({ to: m.path, fuzzy: true }))) ? 'page' : undefined} onClick={() => navigate({ to: m.path, params: project ? { projectId: project.id } : {}, search: {} })}>
             <VStack align="center" gap={0.5}>{m.icon}<Text type="supporting" style={{ color: 'inherit' }}>{m.label}</Text></VStack>

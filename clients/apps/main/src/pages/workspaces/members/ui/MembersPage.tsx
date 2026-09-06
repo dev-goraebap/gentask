@@ -131,6 +131,19 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
 
   if (!project) return <EmptyState title="프로젝트를 찾을 수 없습니다" />;
 
+  const memberToolbar = <Toolbar className={mobile ? undefined : "page-filter-toolbar"} label="멤버 필터" endContent={mobile ? undefined : <Text type="supporting">참여 중 · {matched.length}명</Text>} size={mobile ? 'lg' : 'sm'} startContent={<>
+              <TextInput label="멤버 검색" isLabelHidden placeholder="이름으로 검색" startIcon={<HgiSearch />}
+                size={mobile ? 'lg' : 'sm'}
+                value={query} onChange={setQuery} hasClear width={mobile ? 'max(10rem, min(calc(100vw - 13.125rem), 45rem))' : '13.75rem'} />
+              {mobile ? <Button label={roleFilter !== 'all' ? '필터 · 1' : '필터'} size="lg" onClick={() => { setDraft({ filter: roleFilter, size: listing.size }); setFiltersOpen(true); }} /> : <>
+              <Selector label="역할 필터" isLabelHidden value={roleFilter} onChange={setRoleFilter}
+                options={[{ value: 'all', label: '모든 역할' }, ...Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))]} />
+              {query || roleFilter !== 'all' ? <Button label="초기화" variant="ghost" onClick={() => { setQuery(''); setRoleFilter('all'); }} /> : null}
+              </>}
+          {mobile ? <Button label="초대" size="lg" variant="primary" isDisabled={!canManage}
+            onClick={() => { setLabel(''); setRole('viewer'); setDays('7'); setCreatedId(undefined); setInviteTab('new'); setRevoking(undefined); setCreating(true); }} /> : null}
+        </>} />;
+
   return <>
     <Layout padding={0} height="fill" contentWidth={WIDTH.wide}
       header={<>{mobile ? null : <LayoutHeader hasDivider padding={mobile ? 0 : undefined}>
@@ -146,18 +159,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
           </VStack>
         </VStack>
       </LayoutHeader>}
-        <Toolbar className={mobile ? undefined : "page-filter-toolbar"} label="멤버 필터" size={mobile ? 'lg' : 'sm'} startContent={<>
-              <TextInput label="멤버 검색" isLabelHidden placeholder="이름으로 검색" startIcon={<HgiSearch />}
-                size={mobile ? 'lg' : 'sm'}
-                value={query} onChange={setQuery} hasClear width={mobile ? 'max(10rem, min(calc(100vw - 13.125rem), 45rem))' : '13.75rem'} />
-              {mobile ? <Button label={roleFilter !== 'all' ? '필터 · 1' : '필터'} size="lg" onClick={() => { setDraft({ filter: roleFilter, size: listing.size }); setFiltersOpen(true); }} /> : <>
-              <Selector label="역할 필터" isLabelHidden value={roleFilter} onChange={setRoleFilter}
-                options={[{ value: 'all', label: '모든 역할' }, ...Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))]} />
-              {query || roleFilter !== 'all' ? <Button label="초기화" variant="ghost" onClick={() => { setQuery(''); setRoleFilter('all'); }} /> : null}
-              </>}
-          {mobile ? <Button label="초대" size="lg" variant="primary" isDisabled={!canManage}
-            onClick={() => { setLabel(''); setRole('viewer'); setDays('7'); setCreatedId(undefined); setInviteTab('new'); setRevoking(undefined); setCreating(true); }} /> : null}
-        </>} />
+        {memberToolbar}
         {mobile && roleFilter !== 'all' ? <HStack paddingInline={mobile ? 3 : 4} paddingBlockEnd={2} gap={2} align="center">
           <Text color="secondary">역할 · {ROLE_LABEL[roleFilter as keyof typeof ROLE_LABEL]}</Text>
           <Button label="해제" variant="ghost" onClick={() => setRoleFilter('all')} />
@@ -168,7 +170,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
       content={<LayoutContent padding={mobile ? 3 : 4} ref={listing.ref} onScroll={listing.onScroll}>
         <VStack gap={6}>
           <VStack gap={3}>
-            <Text weight="semibold">참여 중 · {matched.length}명</Text>
+            {mobile ? <Text weight="semibold">참여 중 · {matched.length}명</Text> : null}
             {mobile ? <List hasDividers style={{ marginInline: 'calc(-1 * var(--spacing-3))' }}>{visibleMembers.map((member) => <Item as="li" key={member.id}
               label={member.name} labelLines={2} description={`${ROLE_LABEL[member.role]}${member.isGuest ? ' · 게스트' : ''}`}
               startContent={<Avatar name={member.name} size="sm" />} density="spacious"
