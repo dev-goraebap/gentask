@@ -1,0 +1,6 @@
+dist/
+.vite/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example

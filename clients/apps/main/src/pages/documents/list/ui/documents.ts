@@ -1,0 +1,16 @@
+import { type WorkItem } from '@/entities/issue';
+
+export type DocSort = 'title' | 'updated';
+
+export const SORT_LABEL: Record<DocSort, string> = {
+  title: '이름 순',
+  updated: '최근 개정 순',
+};
+
+export interface DocsProps {
+  readonly projectId: string;
+  readonly folderId: string | null;
+  readonly onFolderChange: (id: string | null) => void;
+  readonly items: readonly WorkItem[];
+  readonly onOpen: (docId: string) => void;
+}

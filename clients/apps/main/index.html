@@ -1,0 +1,34 @@
+<!doctype html>
+<!--
+  테마 CSS 는 @scope ([data-astryx-theme="y2k"]) 아래에만 적용된다.
+  이 속성이 없으면 패키지를 들여와도 Astryx 기본 모습만 나온다.
+-->
+<html lang="ko" data-astryx-theme="y2k">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>의도 접수대 — 프로토타입</title>
+  </head>
+  <body>
+    <!--
+      명암은 body 에 지정한다. 테마 규칙의 범위가 `to ([data-astryx-theme])` 로 끝나므로
+      그 속성을 가진 html 자신은 범위 밖이다.
+
+      React 가 붙기 전에 정해 두어야 첫 그림이 흔들리지 않는다.
+    -->
+    <script>
+      (function () {
+        var stored = null;
+        try {
+          stored = localStorage.getItem('astryx-media');
+        } catch (error) {
+          stored = null;
+        }
+        var system = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.body.setAttribute('data-astryx-media', stored === 'light' || stored === 'dark' ? stored : system);
+      })();
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/app/entry.tsx"></script>
+  </body>
+</html>
