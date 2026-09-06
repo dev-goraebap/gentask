@@ -1,0 +1,74 @@
+const TASKS = '/api/v1/tasks';
+const ATTACHMENTS = '/api/v1/attachments';
+const PUSH = '/api/v1/push';
+const AUTH = '/api/v1/auth';
+const ME = '/api/v1/me';
+const ADMIN = '/api/v1/admin';
+const PROJECTS = '/api/v1/projects';
+
+export const ENDPOINTS = {
+  // 올릴 자리 발급은 어디에 붙일지와 무관하므로 자리가 하나다. 붙이는 것은 도메인 경로가 받는다.
+  attachmentPresign: `${ATTACHMENTS}/presign`,
+
+  pushConfig: `${PUSH}/config`,
+  pushSubscription: `${PUSH}/subscription`,
+
+  tasks: TASKS,
+  task: (taskId: string) => `${TASKS}/${taskId}`,
+  taskCompletion: (taskId: string) => `${TASKS}/${taskId}/completion`,
+  taskImportance: (taskId: string) => `${TASKS}/${taskId}/importance`,
+  taskMyDay: (taskId: string) => `${TASKS}/${taskId}/my-day`,
+  taskFiles: (taskId: string) => `${TASKS}/${taskId}/files`,
+  taskFile: (taskId: string, fileId: string) => `${TASKS}/${taskId}/files/${fileId}`,
+
+  signup: `${AUTH}/signup`,
+  signupConfirm: `${AUTH}/signup/confirm`,
+  signupResend: `${AUTH}/signup/resend`,
+  login: `${AUTH}/login`,
+  logout: `${AUTH}/logout`,
+  passwordReset: `${AUTH}/password-reset`,
+  passwordResetConfirm: `${AUTH}/password-reset/confirm`,
+  passwordResetResend: `${AUTH}/password-reset/resend`,
+
+  me: ME,
+  password: `${ME}/password`,
+  apiToken: `${ME}/api-token`,
+  profileImage: `${ME}/profile-image`,
+
+  // 주소가 UUID 가 아니라 접두어를 갖는다. 사람이 읽고 공유할 수 있어야 하기 때문이다.
+  projects: PROJECTS,
+  project: (projectKey: string) => `${PROJECTS}/${projectKey}`,
+  issues: (projectKey: string) => `${PROJECTS}/${projectKey}/issues`,
+  issue: (projectKey: string, number: number) => `${PROJECTS}/${projectKey}/issues/${number}`,
+  issueState: (projectKey: string, number: number) =>
+    `${PROJECTS}/${projectKey}/issues/${number}/state`,
+
+  // 문서는 번호를 매기지 않으므로 그 자리에 식별자가 그대로 온다.
+  docs: (projectKey: string) => `${PROJECTS}/${projectKey}/documents`,
+  doc: (projectKey: string, documentId: string) =>
+    `${PROJECTS}/${projectKey}/documents/${documentId}`,
+
+  // 개정은 문서 안에서만 번호를 갖는다. 그래서 문서 아래에 붙고 지우는 자리는 없다(DOC-004).
+  docRevisions: (projectKey: string, documentId: string) =>
+    `${PROJECTS}/${projectKey}/documents/${documentId}/revisions`,
+  docRevision: (projectKey: string, documentId: string, revisionNo: number) =>
+    `${PROJECTS}/${projectKey}/documents/${documentId}/revisions/${revisionNo}`,
+  docRevisionRevert: (projectKey: string, documentId: string, revisionNo: number) =>
+    `${PROJECTS}/${projectKey}/documents/${documentId}/revisions/${revisionNo}/revert`,
+
+  // 폴더는 문서와 나란히 선다. 문서 아래가 아니라 프로젝트 아래에 붙는 것은 폴더가 폴더도 담기 때문이다.
+  docFolders: (projectKey: string) => `${PROJECTS}/${projectKey}/document-folders`,
+  docFolder: (projectKey: string, folderId: string) =>
+    `${PROJECTS}/${projectKey}/document-folders/${folderId}`,
+  docFolderParent: (projectKey: string, folderId: string) =>
+    `${PROJECTS}/${projectKey}/document-folders/${folderId}/parent`,
+
+  // 문서가 담긴 자리. 바뀌는 것이 문서라서 폴더가 아니라 문서 아래에 붙는다(DOC-006).
+  docParent: (projectKey: string, documentId: string) =>
+    `${PROJECTS}/${projectKey}/documents/${documentId}/folder`,
+
+  adminUsers: `${ADMIN}/users`,
+  adminPushFailures: `${ADMIN}/push/failures`,
+  adminPushFailureResolve: (failureId: string) => `${ADMIN}/push/failures/${failureId}/resolve`,
+  adminPushFailureRevoke: (failureId: string) => `${ADMIN}/push/failures/${failureId}/revoke`,
+} as const;

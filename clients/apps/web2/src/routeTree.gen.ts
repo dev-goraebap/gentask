@@ -9,50 +9,515 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as SplatRouteImport } from './routes/$'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PasswordResetRouteImport } from './routes/password-reset'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppMeRouteImport } from './routes/_app/me'
+import { Route as AppPetsRouteImport } from './routes/_app/pets'
+import { Route as AppPomodoroRouteImport } from './routes/_app/pomodoro'
+import { Route as AppProjectsRouteImport } from './routes/_app/projects'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminNotificationsRouteImport } from './routes/admin/notifications'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects_.$projectId'
+import { Route as AppTodoViewRouteImport } from './routes/_app/todo.$view'
+import { Route as ProjectsProjectIdIndexRouteImport } from './routes/projects_.$projectId.index'
+import { Route as ProjectsProjectIdSettingsRouteImport } from './routes/projects_.$projectId.settings'
+import { Route as ProjectsProjectIdDocsIndexRouteImport } from './routes/projects_.$projectId.docs.index'
+import { Route as ProjectsProjectIdDocsIdRouteImport } from './routes/projects_.$projectId.docs.$id'
+import { Route as ProjectsProjectIdIssuesIndexRouteImport } from './routes/projects_.$projectId.issues.index'
+import { Route as ProjectsProjectIdIssuesIdRouteImport } from './routes/projects_.$projectId.issues.$id'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PasswordResetRoute = PasswordResetRouteImport.update({
+  id: '/password-reset',
+  path: '/password-reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMeRoute = AppMeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPetsRoute = AppPetsRouteImport.update({
+  id: '/pets',
+  path: '/pets',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPomodoroRoute = AppPomodoroRouteImport.update({
+  id: '/pomodoro',
+  path: '/pomodoro',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProjectsRoute = AppProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AppRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
+  id: '/projects_/$projectId',
+  path: '/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppTodoViewRoute = AppTodoViewRouteImport.update({
+  id: '/todo/$view',
+  path: '/todo/$view',
+  getParentRoute: () => AppRoute,
+} as any)
+const ProjectsProjectIdIndexRoute = ProjectsProjectIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProjectsProjectIdRoute,
+} as any)
+const ProjectsProjectIdSettingsRoute =
+  ProjectsProjectIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => ProjectsProjectIdRoute,
+  } as any)
+const ProjectsProjectIdDocsIndexRoute =
+  ProjectsProjectIdDocsIndexRouteImport.update({
+    id: '/docs/',
+    path: '/docs/',
+    getParentRoute: () => ProjectsProjectIdRoute,
+  } as any)
+const ProjectsProjectIdDocsIdRoute = ProjectsProjectIdDocsIdRouteImport.update({
+  id: '/docs/$id',
+  path: '/docs/$id',
+  getParentRoute: () => ProjectsProjectIdRoute,
+} as any)
+const ProjectsProjectIdIssuesIndexRoute =
+  ProjectsProjectIdIssuesIndexRouteImport.update({
+    id: '/issues/',
+    path: '/issues/',
+    getParentRoute: () => ProjectsProjectIdRoute,
+  } as any)
+const ProjectsProjectIdIssuesIdRoute =
+  ProjectsProjectIdIssuesIdRouteImport.update({
+    id: '/issues/$id',
+    path: '/issues/$id',
+    getParentRoute: () => ProjectsProjectIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/$': typeof SplatRoute
+  '/': typeof AppIndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/login': typeof LoginRoute
+  '/password-reset': typeof PasswordResetRoute
+  '/signup': typeof SignupRoute
+  '/me': typeof AppMeRoute
+  '/pets': typeof AppPetsRoute
+  '/pomodoro': typeof AppPomodoroRoute
+  '/projects': typeof AppProjectsRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
+  '/todo/$view': typeof AppTodoViewRoute
+  '/projects/$projectId/settings': typeof ProjectsProjectIdSettingsRoute
+  '/projects/$projectId/': typeof ProjectsProjectIdIndexRoute
+  '/projects/$projectId/docs/$id': typeof ProjectsProjectIdDocsIdRoute
+  '/projects/$projectId/issues/$id': typeof ProjectsProjectIdIssuesIdRoute
+  '/projects/$projectId/docs/': typeof ProjectsProjectIdDocsIndexRoute
+  '/projects/$projectId/issues/': typeof ProjectsProjectIdIssuesIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/$': typeof SplatRoute
+  '/login': typeof LoginRoute
+  '/password-reset': typeof PasswordResetRoute
+  '/signup': typeof SignupRoute
+  '/me': typeof AppMeRoute
+  '/pets': typeof AppPetsRoute
+  '/pomodoro': typeof AppPomodoroRoute
+  '/projects': typeof AppProjectsRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/': typeof AppIndexRoute
+  '/admin': typeof AdminIndexRoute
+  '/todo/$view': typeof AppTodoViewRoute
+  '/projects/$projectId/settings': typeof ProjectsProjectIdSettingsRoute
+  '/projects/$projectId': typeof ProjectsProjectIdIndexRoute
+  '/projects/$projectId/docs/$id': typeof ProjectsProjectIdDocsIdRoute
+  '/projects/$projectId/issues/$id': typeof ProjectsProjectIdIssuesIdRoute
+  '/projects/$projectId/docs': typeof ProjectsProjectIdDocsIndexRoute
+  '/projects/$projectId/issues': typeof ProjectsProjectIdIssuesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/$': typeof SplatRoute
+  '/_app': typeof AppRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
+  '/login': typeof LoginRoute
+  '/password-reset': typeof PasswordResetRoute
+  '/signup': typeof SignupRoute
+  '/_app/me': typeof AppMeRoute
+  '/_app/pets': typeof AppPetsRoute
+  '/_app/pomodoro': typeof AppPomodoroRoute
+  '/_app/projects': typeof AppProjectsRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/projects_/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/_app/': typeof AppIndexRoute
+  '/admin/': typeof AdminIndexRoute
+  '/_app/todo/$view': typeof AppTodoViewRoute
+  '/projects_/$projectId/settings': typeof ProjectsProjectIdSettingsRoute
+  '/projects_/$projectId/': typeof ProjectsProjectIdIndexRoute
+  '/projects_/$projectId/docs/$id': typeof ProjectsProjectIdDocsIdRoute
+  '/projects_/$projectId/issues/$id': typeof ProjectsProjectIdIssuesIdRoute
+  '/projects_/$projectId/docs/': typeof ProjectsProjectIdDocsIndexRoute
+  '/projects_/$projectId/issues/': typeof ProjectsProjectIdIssuesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/$'
+    | '/'
+    | '/admin'
+    | '/login'
+    | '/password-reset'
+    | '/signup'
+    | '/me'
+    | '/pets'
+    | '/pomodoro'
+    | '/projects'
+    | '/admin/notifications'
+    | '/admin/users'
+    | '/projects/$projectId'
+    | '/admin/'
+    | '/todo/$view'
+    | '/projects/$projectId/settings'
+    | '/projects/$projectId/'
+    | '/projects/$projectId/docs/$id'
+    | '/projects/$projectId/issues/$id'
+    | '/projects/$projectId/docs/'
+    | '/projects/$projectId/issues/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/$'
+    | '/login'
+    | '/password-reset'
+    | '/signup'
+    | '/me'
+    | '/pets'
+    | '/pomodoro'
+    | '/projects'
+    | '/admin/notifications'
+    | '/admin/users'
+    | '/'
+    | '/admin'
+    | '/todo/$view'
+    | '/projects/$projectId/settings'
+    | '/projects/$projectId'
+    | '/projects/$projectId/docs/$id'
+    | '/projects/$projectId/issues/$id'
+    | '/projects/$projectId/docs'
+    | '/projects/$projectId/issues'
+  id:
+    | '__root__'
+    | '/$'
+    | '/_app'
+    | '/admin'
+    | '/login'
+    | '/password-reset'
+    | '/signup'
+    | '/_app/me'
+    | '/_app/pets'
+    | '/_app/pomodoro'
+    | '/_app/projects'
+    | '/admin/notifications'
+    | '/admin/users'
+    | '/projects_/$projectId'
+    | '/_app/'
+    | '/admin/'
+    | '/_app/todo/$view'
+    | '/projects_/$projectId/settings'
+    | '/projects_/$projectId/'
+    | '/projects_/$projectId/docs/$id'
+    | '/projects_/$projectId/issues/$id'
+    | '/projects_/$projectId/docs/'
+    | '/projects_/$projectId/issues/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  SplatRoute: typeof SplatRoute
+  AppRoute: typeof AppRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  PasswordResetRoute: typeof PasswordResetRoute
+  SignupRoute: typeof SignupRoute
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/password-reset': {
+      id: '/password-reset'
+      path: '/password-reset'
+      fullPath: '/password-reset'
+      preLoaderRoute: typeof PasswordResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/me': {
+      id: '/_app/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof AppMeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/pets': {
+      id: '/_app/pets'
+      path: '/pets'
+      fullPath: '/pets'
+      preLoaderRoute: typeof AppPetsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/pomodoro': {
+      id: '/_app/pomodoro'
+      path: '/pomodoro'
+      fullPath: '/pomodoro'
+      preLoaderRoute: typeof AppPomodoroRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/projects': {
+      id: '/_app/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof AppProjectsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/notifications': {
+      id: '/admin/notifications'
+      path: '/notifications'
+      fullPath: '/admin/notifications'
+      preLoaderRoute: typeof AdminNotificationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/projects_/$projectId': {
+      id: '/projects_/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/todo/$view': {
+      id: '/_app/todo/$view'
+      path: '/todo/$view'
+      fullPath: '/todo/$view'
+      preLoaderRoute: typeof AppTodoViewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/projects_/$projectId/': {
+      id: '/projects_/$projectId/'
+      path: '/'
+      fullPath: '/projects/$projectId/'
+      preLoaderRoute: typeof ProjectsProjectIdIndexRouteImport
+      parentRoute: typeof ProjectsProjectIdRoute
+    }
+    '/projects_/$projectId/settings': {
+      id: '/projects_/$projectId/settings'
+      path: '/settings'
+      fullPath: '/projects/$projectId/settings'
+      preLoaderRoute: typeof ProjectsProjectIdSettingsRouteImport
+      parentRoute: typeof ProjectsProjectIdRoute
+    }
+    '/projects_/$projectId/docs/': {
+      id: '/projects_/$projectId/docs/'
+      path: '/docs'
+      fullPath: '/projects/$projectId/docs/'
+      preLoaderRoute: typeof ProjectsProjectIdDocsIndexRouteImport
+      parentRoute: typeof ProjectsProjectIdRoute
+    }
+    '/projects_/$projectId/docs/$id': {
+      id: '/projects_/$projectId/docs/$id'
+      path: '/docs/$id'
+      fullPath: '/projects/$projectId/docs/$id'
+      preLoaderRoute: typeof ProjectsProjectIdDocsIdRouteImport
+      parentRoute: typeof ProjectsProjectIdRoute
+    }
+    '/projects_/$projectId/issues/': {
+      id: '/projects_/$projectId/issues/'
+      path: '/issues'
+      fullPath: '/projects/$projectId/issues/'
+      preLoaderRoute: typeof ProjectsProjectIdIssuesIndexRouteImport
+      parentRoute: typeof ProjectsProjectIdRoute
+    }
+    '/projects_/$projectId/issues/$id': {
+      id: '/projects_/$projectId/issues/$id'
+      path: '/issues/$id'
+      fullPath: '/projects/$projectId/issues/$id'
+      preLoaderRoute: typeof ProjectsProjectIdIssuesIdRouteImport
+      parentRoute: typeof ProjectsProjectIdRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppMeRoute: typeof AppMeRoute
+  AppPetsRoute: typeof AppPetsRoute
+  AppPomodoroRoute: typeof AppPomodoroRoute
+  AppProjectsRoute: typeof AppProjectsRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppTodoViewRoute: typeof AppTodoViewRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppMeRoute: AppMeRoute,
+  AppPetsRoute: AppPetsRoute,
+  AppPomodoroRoute: AppPomodoroRoute,
+  AppProjectsRoute: AppProjectsRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppTodoViewRoute: AppTodoViewRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface AdminRouteChildren {
+  AdminNotificationsRoute: typeof AdminNotificationsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminNotificationsRoute: AdminNotificationsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface ProjectsProjectIdRouteChildren {
+  ProjectsProjectIdSettingsRoute: typeof ProjectsProjectIdSettingsRoute
+  ProjectsProjectIdIndexRoute: typeof ProjectsProjectIdIndexRoute
+  ProjectsProjectIdDocsIdRoute: typeof ProjectsProjectIdDocsIdRoute
+  ProjectsProjectIdIssuesIdRoute: typeof ProjectsProjectIdIssuesIdRoute
+  ProjectsProjectIdDocsIndexRoute: typeof ProjectsProjectIdDocsIndexRoute
+  ProjectsProjectIdIssuesIndexRoute: typeof ProjectsProjectIdIssuesIndexRoute
+}
+
+const ProjectsProjectIdRouteChildren: ProjectsProjectIdRouteChildren = {
+  ProjectsProjectIdSettingsRoute: ProjectsProjectIdSettingsRoute,
+  ProjectsProjectIdIndexRoute: ProjectsProjectIdIndexRoute,
+  ProjectsProjectIdDocsIdRoute: ProjectsProjectIdDocsIdRoute,
+  ProjectsProjectIdIssuesIdRoute: ProjectsProjectIdIssuesIdRoute,
+  ProjectsProjectIdDocsIndexRoute: ProjectsProjectIdDocsIndexRoute,
+  ProjectsProjectIdIssuesIndexRoute: ProjectsProjectIdIssuesIndexRoute,
+}
+
+const ProjectsProjectIdRouteWithChildren =
+  ProjectsProjectIdRoute._addFileChildren(ProjectsProjectIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  SplatRoute: SplatRoute,
+  AppRoute: AppRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
+  LoginRoute: LoginRoute,
+  PasswordResetRoute: PasswordResetRoute,
+  SignupRoute: SignupRoute,
+  ProjectsProjectIdRoute: ProjectsProjectIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
