@@ -1,8 +1,9 @@
+import { ListingFooter, useListing } from '@/shared/ui/listing';
 import { MobilePageHeader } from '@/shared/ui/mobile';
 import { noteLabel, noteMarkdown, useNoteStore, type Note } from '@/entities/note';
 import { TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
 import { HgiSearch } from '@/shared/ui/icons';
-import { CreateButton, MOBILE_QUERY } from '@/shared/ui/mobile';
+import { CreateButton } from '@/shared/ui/mobile';
 import { AlertDialog, Button, Card, EmptyState, Heading, HStack, Layout, LayoutContent, LayoutHeader, Markdown, Text, TextInput, Toolbar, VStack } from '@astryxdesign/core';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { useRef, useState } from 'react';
@@ -12,14 +13,17 @@ import { NoteEditor } from './NoteEditor';
 
 export function DrawerPage() {
   const { notes, saveNote, moveNote, removeNote } = useNoteStore();
-  const mobile = useMediaQuery(MOBILE_QUERY);
+  const listing = useListing('drawer');
+  const { mobile, query } = listing;
+  const setQuery = (query: string) => listing.change({ query });
   const narrow = useMediaQuery('(max-width: 600px)');
-  const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<Note | 'new' | null>(null);
   const [removing, setRemoving] = useState<Note | null>(null);
   const dragging = useRef<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const filtered = notes.filter((n) => `${noteMarkdown(n)} ${(n.files ?? []).map((f) => f.name).join(' ')}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  const range = listing.range(filtered.length);
+  const visible = filtered.slice(range.start, range.end);
   const move = (id: string, target: string) => { moveNote(id, target); setAnnouncement('서랍의 순서를 변경했습니다.'); };
   return <>
     <Layout padding={0} height="fill" contentWidth={WIDTH.wide} header={<>
@@ -32,11 +36,11 @@ export function DrawerPage() {
       <Toolbar className={mobile ? undefined : "page-filter-toolbar"} label="서랍 검색" size={mobile ? 'lg' : 'sm'} startContent={
           <TextInput label="서랍 검색" isLabelHidden placeholder="내용이나 파일 이름으로 검색" value={query} onChange={setQuery} startIcon={<HgiSearch />} hasClear width={mobile ? 'max(10rem, calc(100vw - 3.75rem))' : '13.75rem'} />
         } />
-    </>} content={<LayoutContent padding={mobile ? 3 : 4} style={{ paddingBottom: 'calc(var(--spacing-10) + var(--spacing-10))' }}>
+    </>} footer={mobile ? undefined : <ListingFooter {...listing.pagination(filtered.length)} />} content={<LayoutContent ref={listing.ref} onScroll={listing.onScroll} padding={mobile ? 3 : 4} style={{ paddingBottom: 'calc(var(--spacing-10) + var(--spacing-10))' }}>
       <VStack gap={4}>
         <Text type="supporting" aria-live="polite">{announcement || (query ? `${filtered.length}개 검색됨` : '카드를 끌어 순서를 바꾸거나 이동 버튼을 사용하세요.')}</Text>
         {filtered.length ? <VStack as="section" aria-label="서랍 내용" style={{ display: 'block', columnCount: narrow ? 1 : mobile ? 2 : 3, columnGap: 'var(--spacing-4)' }}>
-          {filtered.map((note, index) => <Card key={note.id} padding={4} draggable={!mobile && !query} aria-label={noteLabel(note)}
+          {visible.map((note, index) => <Card key={note.id} padding={4} draggable={!mobile && !query} aria-label={noteLabel(note)}
             onDragStart={(e) => { dragging.current = note.id; e.dataTransfer.setData('text/plain', note.id); e.dataTransfer.effectAllowed = 'move'; }}
             onDragEnd={() => { dragging.current = null; }} onDragOver={(e) => { if (dragging.current && !query) e.preventDefault(); }}
             onDrop={(e) => { e.preventDefault(); if (dragging.current && !query) move(dragging.current, note.id); dragging.current = null; }}
@@ -48,13 +52,14 @@ export function DrawerPage() {
               {(note.files ?? []).map((file, i) => <Attachment key={i} file={file} />)}
               <HStack gap={1} wrap="wrap" justify="between">
                 <Button label="열기" aria-label={`${noteLabel(note)} 열기`} size="sm" variant="ghost" onClick={() => setEditing(note)} />
-                <HStack gap={1}><Button label="앞으로" aria-label={`${noteLabel(note)} 앞으로 이동`} size="sm" variant="ghost" isDisabled={Boolean(query) || index === 0} onClick={() => move(note.id, filtered[index - 1].id)} />
-                  <Button label="뒤로" aria-label={`${noteLabel(note)} 뒤로 이동`} size="sm" variant="ghost" isDisabled={Boolean(query) || index === filtered.length - 1} onClick={() => move(note.id, filtered[index + 1].id)} /></HStack>
+                <HStack gap={1}><Button label="앞으로" aria-label={`${noteLabel(note)} 앞으로 이동`} size="sm" variant="ghost" isDisabled={Boolean(query) || index + range.start === 0} onClick={() => move(note.id, filtered[index + range.start - 1].id)} />
+                  <Button label="뒤로" aria-label={`${noteLabel(note)} 뒤로 이동`} size="sm" variant="ghost" isDisabled={Boolean(query) || index + range.start === filtered.length - 1} onClick={() => move(note.id, filtered[index + range.start + 1].id)} /></HStack>
               </HStack>
             </VStack>
           </Card>)}
         </VStack> : <EmptyState title={query ? '검색 결과가 없습니다' : '서랍이 비어 있습니다'} description="짧은 생각을 적거나 파일을 추가해 보세요." />}
       </VStack>
+      {mobile ? <ListingFooter {...listing.pagination(filtered.length)} /> : null}
     </LayoutContent>} />
     {editing ? <NoteEditor key={editing === 'new' ? 'new' : editing.id} note={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)}
       onSave={(body, files) => saveNote(editing === 'new' ? null : editing.id, body, files)}

@@ -69,8 +69,7 @@ export function DocumentsPage({ items, onOpen, folderId, onFolderChange, project
     ...folders.map((folder) => ({ kind: 'folder' as const, folder })),
     ...matched.map((doc) => ({ kind: 'doc' as const, doc })),
   ];
-  const page = Math.min(listing.page, Math.max(1, Math.ceil(entries.length / listing.size)));
-  const visible = entries.slice((page - 1) * listing.size, page * listing.size);
+  const visible = entries.slice(listing.range(entries.length).start, listing.range(entries.length).end);
   const ancestors = [];
   let ancestor = currentFolder;
   while (ancestor) {
@@ -164,8 +163,7 @@ export function DocumentsPage({ items, onOpen, folderId, onFolderChange, project
             />
         </>
       }
-      footer={mobile ? undefined : <ListingFooter total={entries.length} page={page} size={listing.size} mobile={mobile}
-        onPage={(page) => listing.change({ page })} onSize={(size) => listing.change({ size })} />}
+      footer={mobile ? undefined : <ListingFooter {...listing.pagination(entries.length)} />}
     >
       <LayoutContent padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-4))' } : undefined} ref={listing.ref} onScroll={listing.onScroll}>
         <VStack gap={4}>
@@ -194,8 +192,7 @@ export function DocumentsPage({ items, onOpen, folderId, onFolderChange, project
               actions={isFiltered ? <Button label="필터 초기화" onClick={reset} /> : undefined} />}
           </>}
         </VStack>
-        {mobile ? <ListingFooter total={entries.length} page={page} size={listing.size} mobile={mobile}
-        onPage={(page) => listing.change({ page })} onSize={(size) => listing.change({ size })} /> : null}
+        {mobile ? <ListingFooter {...listing.pagination(entries.length)} /> : null}
       </LayoutContent>
     </Layout>
     <MobileSurface title="필터" isOpen={filtersOpen} onOpenChange={setFiltersOpen}>

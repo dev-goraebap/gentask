@@ -57,7 +57,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
   );
   const created = projectInvites.find((i) => i.id === createdId);
   const page = Math.min(listing.page, Math.max(1, Math.ceil(matched.length / listing.size)));
-  const visibleMembers = matched.slice((page - 1) * listing.size, page * listing.size);
+  const visibleMembers = matched.slice(listing.range(matched.length).start, listing.range(matched.length).end);
   const selected = projectMembers.find((m) => m.id === selectedMember);
   useEffect(() => { if (page !== listing.page) listing.change({ page }); }, [page, listing.page]);
   const preview = projectInvites.find((i) => i.id === inviteId);
@@ -165,8 +165,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
           <Button label="해제" variant="ghost" onClick={() => setRoleFilter('all')} />
         </HStack> : null}
       </>}
-      footer={mobile ? undefined : <ListingFooter total={matched.length} page={page} size={listing.size} mobile={mobile}
-        onPage={(page) => listing.change({ page })} onSize={(size) => listing.change({ size })} />}
+      footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} unit="명" />}
       content={<LayoutContent padding={mobile ? 3 : 4} ref={listing.ref} onScroll={listing.onScroll}>
         <VStack gap={6}>
           <VStack gap={3}>
@@ -183,8 +182,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
             <Text color="secondary">게스트는 인수 조건의 완료 판정을 할 수 없습니다.</Text>
           </VStack>
         </VStack>
-        {mobile ? <ListingFooter total={matched.length} page={page} size={listing.size} mobile={mobile}
-        onPage={(page) => listing.change({ page })} onSize={(size) => listing.change({ size })} /> : null}
+        {mobile ? <ListingFooter {...listing.pagination(matched.length)} unit="명" /> : null}
       </LayoutContent>} />
 
     <MobileSurface title="필터" isOpen={filtersOpen} onOpenChange={setFiltersOpen}>

@@ -1,3 +1,4 @@
+import { ListingFooter, useListing } from '@/shared/ui/listing';
 import { ITEM_STATES, useIssueStore } from '@/entities/issue';
 import { ME } from '@/entities/session';
 import { useWorkspaceStore } from '@/entities/workspace';
@@ -10,7 +11,7 @@ import {
     HgiViewList,
     HgiViewTree
 } from '@/shared/ui/icons';
-import { CreateButton, CreateDialog, MOBILE_QUERY, MobileSurface } from '@/shared/ui/mobile';
+import { CreateButton, CreateDialog, MobileSurface } from '@/shared/ui/mobile';
 import {
     Button,
     DialogHeader,
@@ -29,7 +30,6 @@ import {
     Toolbar,
     VStack
 } from '@astryxdesign/core';
-import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { useMemo, useState } from 'react';
 import { BoardView } from './BoardView';
 import { compare, KIND_LABEL, KINDS, SORT_LABEL, type IssuesProps, type IssueView, type SortKey } from './issues';
@@ -37,7 +37,6 @@ import { ListView } from './ListView';
 import { TreeView } from './TreeView';
 
 export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: IssuesProps) {
-  const mobile = useMediaQuery(MOBILE_QUERY);
   const { addItem } = useIssueStore();
   const { projects } = useWorkspaceStore();
   const [creating, setCreating] = useState(false);
@@ -63,6 +62,10 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
     return [...matched].sort(compare(sort));
   }, [items, query, state, kind, sort, mineOnly, hideClosed]);
 
+  const listing = useListing(`issues:${projectId}`, JSON.stringify([query, state, kind, sort, mineOnly, hideClosed, view]));
+  const { mobile } = listing;
+  const visible = filtered.slice(listing.range(filtered.length).start, listing.range(filtered.length).end);
+
   const isFiltered = Boolean(query || state || kind || mineOnly || hideClosed);
 
   const reset = () => {
@@ -78,6 +81,7 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
     <Layout
       padding={0}
       height="fill"
+      footer={!mobile && view === 'list' ? <ListingFooter {...listing.pagination(filtered.length)} /> : undefined}
       contentWidth={view === 'board' ? WIDTH.full : WIDTH.wide}
       header={
         <>
@@ -210,7 +214,7 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
         </>
       }
     >
-      <LayoutContent padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-4))' } : undefined}>
+      <LayoutContent ref={listing.ref} onScroll={listing.onScroll} padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-4))' } : undefined}>
         {filtered.length === 0 ? (
           <EmptyState
             icon={<HgiSearchEmpty />}
@@ -220,7 +224,7 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
           />
         ) : (
           <>
-            {view === 'list' ? <ListView items={filtered} onOpen={onOpen} /> : null}
+            {view === 'list' ? <ListView items={visible} onOpen={onOpen} /> : null}
             {/* 계층 뷰는 부모가 필터에서 빠지면 자식을 찾지 못하므로 전체 목록도 함께 넘긴다. */}
             {view === 'tree' ? (
               <TreeView items={filtered} all={items} onOpen={onOpen} />
@@ -228,6 +232,7 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
             {view === 'board' ? <BoardView items={filtered} onOpen={onOpen} /> : null}
           </>
         )}
+        {mobile && view === 'list' ? <ListingFooter {...listing.pagination(filtered.length)} /> : null}
       </LayoutContent>
     </Layout>
     <MobileSurface title="이슈 필터" isOpen={filtersOpen} onOpenChange={setFiltersOpen}>
