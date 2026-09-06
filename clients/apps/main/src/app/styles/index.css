@@ -195,7 +195,6 @@ html { font-size: 100%; }
 
 :root { --text-supporting-size: 0.75rem; }
 
-/* 툴바는 확대 시 검색창과 필터를 줄바꿈하여 조작 영역을 유지한다. */
 .astryx-toolbar { flex-wrap: wrap; }
 .astryx-toolbar > div { flex-wrap: wrap; min-width: 0; max-width: 100%; }
 .astryx-toolbar .astryx-text-input { max-width: 100%; }
@@ -207,3 +206,21 @@ html { font-size: 100%; }
 .astryx-avatar-fallback.lg { font-size: 1.2rem; }
 
 .astryx-toolbar .astryx-field { max-width: 100%; min-width: 0; }
+
+@media (min-width: 1025px) {
+  .page-filter-toolbar [role="toolbar"] {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    padding-block: var(--spacing-0-5);
+  }
+  .page-filter-toolbar [role="toolbar"] > div {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    max-width: none;
+  }
+  .page-filter-toolbar [role="toolbar"] > div > * {
+    flex-shrink: 0;
+  }
+}
