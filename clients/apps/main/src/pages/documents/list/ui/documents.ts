@@ -4,7 +4,7 @@ export type DocSort = 'title' | 'updated';
 
 export const SORT_LABEL: Record<DocSort, string> = {
   title: '이름 순',
-  updated: '최근 개정 순',
+  updated: '개정일 순',
 };
 
 export interface DocsProps {

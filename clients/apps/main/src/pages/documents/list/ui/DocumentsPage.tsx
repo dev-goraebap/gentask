@@ -1,8 +1,9 @@
+import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
 import { DOC_FOLDERS, DOCS, type Doc } from '@/entities/document';
 import { ME } from '@/entities/session';
 import { TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
 import { HgiCheck, HgiFile, HgiFolder, HgiPlus, HgiSearch, HgiSearchEmpty } from '@/shared/ui/icons';
-import { ListingFooter, PageSize, useListing } from '@/shared/ui/listing';
+import { ListingFooter, PageSize, SortSelector, SortFields, type SortOption, useListing } from '@/shared/ui/listing';
 import { CreateButton, CreateDialog, MobileSurface } from '@/shared/ui/mobile';
 import {
     Badge, BottomSheet,
@@ -29,16 +30,18 @@ import { useMemo, useState } from 'react';
 
 import { SORT_LABEL, type DocSort, type DocsProps } from './documents';
 
+const sortOptions: SortOption[] = Object.entries(SORT_LABEL).map(([value, label]) => ({ value, label, defaultDirection: value === 'updated' ? 'desc' : 'asc' }));
+
 export function DocumentsPage({ items, onOpen, folderId, onFolderChange, projectId }: DocsProps) {
   const listing = useListing(`docs:${projectId}:${folderId ?? ''}`);
   const { query, mobile } = listing;
   const sort = listing.sort as DocSort;
   const linkedOnly = listing.filter === 'linked';
   const setQuery = (query: string) => listing.change({ query });
-  const setSort = (sort: DocSort) => listing.change({ sort });
+  const direction = listing.direction;
   const setLinkedOnly = (value: boolean) => listing.change({ filter: value ? 'linked' : 'all' });
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [draft, setDraft] = useState({ sort, filter: listing.filter, size: listing.size });
+  const [draft, setDraft] = useState({ sort, direction, filter: listing.filter, size: listing.size });
   const [createMenu, setCreateMenu] = useState(false);
   const [creating, setCreating] = useState<'doc' | 'folder' | null>(null);
   const [revision, setRevision] = useState(0);
@@ -55,15 +58,15 @@ export function DocumentsPage({ items, onOpen, folderId, onFolderChange, project
       return true;
     });
     return [...found].sort((a, b) =>
-      sort === 'title' ? a.title.localeCompare(b.title, 'ko') :
-        (b.updatedOn ?? '2026-09-01').localeCompare(a.updatedOn ?? '2026-09-01') || a.id.localeCompare(b.id),
+      (direction === 'asc' ? 1 : -1) * (sort === 'title' ? a.title.localeCompare(b.title, 'ko') :
+        (a.updatedOn ?? '2026-09-01').localeCompare(b.updatedOn ?? '2026-09-01')) || a.id.localeCompare(b.id),
     );
     // derivedCount는 items에서 파생되므로 items를 의존성으로 둔다.
-  }, [items, query, folderId, sort, linkedOnly, revision, projectId]);
+  }, [items, query, folderId, sort, direction, linkedOnly, revision, projectId]);
 
   const folders = DOC_FOLDERS.filter((f) => (f.projectId ?? 'dental') === projectId && f.parentId === folderId &&
     f.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
-    .sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+    .sort((a, b) => (sort === 'title' && direction === 'desc' ? -1 : 1) * a.title.localeCompare(b.title, 'ko'));
   const currentFolder = DOC_FOLDERS.find((f) => f.id === folderId && (f.projectId ?? 'dental') === projectId);
   const entries = [
     ...folders.map((folder) => ({ kind: 'folder' as const, folder })),
@@ -114,9 +117,10 @@ export function DocumentsPage({ items, onOpen, folderId, onFolderChange, project
             </VStack>
           </LayoutHeader>}
 
-          <Toolbar className={mobile ? undefined : "page-filter-toolbar"}
+          {mobile ? <MobileFilterBar label="문서 필터" searchLabel="문서 검색" placeholder="제목이나 식별자" query={query} onQueryChange={setQuery}
+            actions={<MobileFilterButton active={linkedOnly} onClick={() => { setDraft({ sort, direction, filter: listing.filter, size: listing.size }); setFiltersOpen(true); }} />} /> : <Toolbar className="page-filter-toolbar"
               label="문서 필터"
-              size={mobile ? 'lg' : 'sm'}
+              size="sm"
               startContent={
                 <>
                   <TextInput
@@ -127,26 +131,16 @@ export function DocumentsPage({ items, onOpen, folderId, onFolderChange, project
                     onChange={setQuery}
                     startIcon={<HgiSearch />}
                     hasClear
-                    width={mobile ? 'max(10rem, min(calc(100vw - 8.125rem), 50rem))' : '13.75rem'}
-                    size={mobile ? 'lg' : 'sm'}
+                    width="13.75rem"
+                    size="sm"
                   />
 
-                  {mobile ? <Button label={linkedOnly ? '필터 · 1' : '필터'} size="lg" onClick={() => { setDraft({ sort, filter: listing.filter, size: listing.size }); setFiltersOpen(true); }} /> :
-                    isFiltered ? <Button label="초기화" variant="ghost" onClick={reset} /> : null}
+                  {isFiltered ? <Button label="초기화" variant="ghost" onClick={reset} /> : null}
                 </>
               }
-              endContent={mobile ? undefined :
+              endContent={
                 <>
-                  <Selector
-                    label="정렬"
-                    isLabelHidden
-                    value={sort}
-                    onChange={(v) => setSort(v as DocSort)}
-                    options={(Object.keys(SORT_LABEL) as DocSort[]).map((k) => ({
-                      value: k,
-                      label: SORT_LABEL[k],
-                    }))}
-                  />
+                  <SortSelector options={sortOptions} value={{ key: sort, direction }} onChange={value => listing.change({ sort: value.key, direction: value.direction })} />
                   <MoreMenu
                     label="표시 옵션"
                     items={[
@@ -160,7 +154,7 @@ export function DocumentsPage({ items, onOpen, folderId, onFolderChange, project
                   />
                 </>
               }
-            />
+            />}
         </>
       }
       footer={mobile ? undefined : <ListingFooter {...listing.pagination(entries.length)} />}
@@ -197,13 +191,12 @@ export function DocumentsPage({ items, onOpen, folderId, onFolderChange, project
     </Layout>
     <MobileSurface title="필터" isOpen={filtersOpen} onOpenChange={setFiltersOpen}>
       <Layout header={<DialogHeader title="문서 표시 옵션" onOpenChange={setFiltersOpen} />} content={<LayoutContent><VStack gap={4}>
-        <Selector label="정렬" value={draft.sort} onChange={(value) => setDraft({ ...draft, sort: value as DocSort })}
-          options={Object.entries(SORT_LABEL).map(([value, label]) => ({ value, label }))} />
+        <SortFields options={sortOptions} value={{ key: draft.sort, direction: draft.direction }} onChange={value => setDraft({ ...draft, sort: value.key as DocSort, direction: value.direction })} />
         <Selector label="문서 표시" value={draft.filter} onChange={(filter) => setDraft({ ...draft, filter })}
           options={[{ value: 'all', label: '모든 문서' }, { value: 'linked', label: '작업 항목이 연결된 문서' }]} />
         <PageSize value={draft.size} onChange={(size) => setDraft({ ...draft, size })} />
-        <Button label="초기화" onClick={() => setDraft({ sort: 'title', filter: 'all', size: 25 })} />
-        <Button label="결과 보기" variant="primary" size="lg" onClick={() => { listing.change(draft); setFiltersOpen(false); }} />
+        <Button label="초기화" onClick={() => setDraft({ sort: 'title', direction: 'asc', filter: 'all', size: 25 })} />
+        <Button label="적용" variant="primary" size="lg" onClick={() => { listing.change(draft); setFiltersOpen(false); }} />
       </VStack></LayoutContent>} />
     </MobileSurface>
     <BottomSheet label="새로 만들기" isOpen={createMenu} onOpenChange={setCreateMenu} height="hug">

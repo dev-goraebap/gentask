@@ -1,11 +1,12 @@
+import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
 import { ME } from '@/entities/session';
 import { ROLE_LABEL, useWorkspaceStore, type Invitation, type ProjectMember } from '@/entities/workspace';
 import { TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
 import { HgiMembers, HgiPlus, HgiSearch, HgiTrash } from '@/shared/ui/icons';
-import { ListingFooter, PageSize, useListing } from '@/shared/ui/listing';
+import { ListingFooter, PageSize, SortSelector, SortFields, useListing } from '@/shared/ui/listing';
 import { MobileSurface } from '@/shared/ui/mobile';
 import {
-    Avatar, Button, Dialog, DialogHeader, EmptyState,
+    Avatar, Button, CheckboxList, CheckboxListItem, MultiSelector, Dialog, DialogHeader, EmptyState,
     HStack,
     Heading,
     Item,
@@ -22,15 +23,18 @@ import { useEffect, useState } from 'react';
 
 import { ROLE_OPTIONS, type MemberRow, type MembersProps } from './members';
 
+const sortOptions = [{ value: 'title', label: '이름 순' }, { value: 'role', label: '역할 순' }];
+
 export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
   const { projects, members, invitations, setMembers, setInvitations } = useWorkspaceStore();
   const toast = useToast();
   const listing = useListing(`members:${projectId}`);
   const { query, filter: roleFilter, mobile } = listing;
   const setQuery = (query: string) => listing.change({ query });
-  const setRoleFilter = (filter: string) => listing.change({ filter });
+  const roles = roleFilter === 'all' ? [] : roleFilter.split(',');
+  const setRoles = (values: string[]) => listing.change({ filter: values.join(',') || 'all' });
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [draft, setDraft] = useState({ filter: roleFilter, size: listing.size });
+  const [draft, setDraft] = useState({ filter: roleFilter, size: listing.size, sort: listing.sort, direction: listing.direction });
   const [selectedMember, setSelectedMember] = useState<string>();
   const [creating, setCreating] = useState(false);
   const [inviteTab, setInviteTab] = useState('new');
@@ -53,8 +57,8 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
   const canManage = projectMembers.some((m) => m.name === ME && m.role === 'owner');
   const matched = projectMembers.filter((m) =>
     m.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()) &&
-    (roleFilter === 'all' || m.role === roleFilter),
-  );
+    (!roles.length || roles.includes(m.role)),
+  ).sort((a, b) => (listing.direction === 'asc' ? 1 : -1) * (listing.sort === 'role' ? Object.keys(ROLE_LABEL).indexOf(a.role) - Object.keys(ROLE_LABEL).indexOf(b.role) : a.name.localeCompare(b.name, 'ko')) || a.id.localeCompare(b.id));
   const created = projectInvites.find((i) => i.id === createdId);
   const page = Math.min(listing.page, Math.max(1, Math.ceil(matched.length / listing.size)));
   const visibleMembers = matched.slice(listing.range(matched.length).start, listing.range(matched.length).end);
@@ -131,18 +135,15 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
 
   if (!project) return <EmptyState title="프로젝트를 찾을 수 없습니다" />;
 
-  const memberToolbar = <Toolbar className={mobile ? undefined : "page-filter-toolbar"} label="멤버 필터" endContent={mobile ? undefined : <Text type="supporting">참여 중 · {matched.length}명</Text>} size={mobile ? 'lg' : 'sm'} startContent={<>
-              <TextInput label="멤버 검색" isLabelHidden placeholder="이름으로 검색" startIcon={<HgiSearch />}
-                size={mobile ? 'lg' : 'sm'}
-                value={query} onChange={setQuery} hasClear width={mobile ? 'max(10rem, min(calc(100vw - 13.125rem), 45rem))' : '13.75rem'} />
-              {mobile ? <Button label={roleFilter !== 'all' ? '필터 · 1' : '필터'} size="lg" onClick={() => { setDraft({ filter: roleFilter, size: listing.size }); setFiltersOpen(true); }} /> : <>
-              <Selector label="역할 필터" isLabelHidden value={roleFilter} onChange={setRoleFilter}
-                options={[{ value: 'all', label: '모든 역할' }, ...Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))]} />
-              {query || roleFilter !== 'all' ? <Button label="초기화" variant="ghost" onClick={() => { setQuery(''); setRoleFilter('all'); }} /> : null}
-              </>}
-          {mobile ? <Button label="초대" size="lg" variant="primary" isDisabled={!canManage}
-            onClick={() => { setLabel(''); setRole('viewer'); setDays('7'); setCreatedId(undefined); setInviteTab('new'); setRevoking(undefined); setCreating(true); }} /> : null}
-        </>} />;
+  const memberToolbar = mobile ? <MobileFilterBar label="멤버 필터" searchLabel="멤버 검색" placeholder="이름으로 검색" query={query} onQueryChange={setQuery}
+    actions={<>
+      <MobileFilterButton active={roleFilter !== 'all'} onClick={() => { setDraft({ filter: roleFilter, size: listing.size, sort: listing.sort, direction: listing.direction }); setFiltersOpen(true); }} />
+      <Button label="초대" variant="primary" isDisabled={!canManage} onClick={() => { setLabel(''); setRole('viewer'); setDays('7'); setCreatedId(undefined); setInviteTab('new'); setRevoking(undefined); setCreating(true); }} />
+    </>} /> : <Toolbar className="page-filter-toolbar" label="멤버 필터" size="sm" endContent={<HStack gap={2} align="center"><SortSelector options={sortOptions} value={{ key: listing.sort, direction: listing.direction }} onChange={value => listing.change({ sort: value.key, direction: value.direction })} /><Text type="supporting">참여 중 · {matched.length}명</Text></HStack>} startContent={<>
+      <TextInput label="멤버 검색" isLabelHidden placeholder="이름으로 검색" startIcon={<HgiSearch />} value={query} onChange={setQuery} hasClear width="13.75rem" />
+      <MultiSelector label="역할 필터" isLabelHidden placeholder="모든 역할" value={roles} onChange={setRoles} options={Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))} triggerDisplay="count" formatValue={items => `역할 · ${items.length}`} hasSelectAll selectAllLabel="전체 선택" />
+      {query || roleFilter !== 'all' ? <Button label="초기화" variant="ghost" onClick={() => { setQuery(''); setRoles([]); }} /> : null}
+    </>} />;
 
   return <>
     <Layout padding={0} height="fill" contentWidth={WIDTH.wide}
@@ -161,8 +162,8 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
       </LayoutHeader>}
         {memberToolbar}
         {mobile && roleFilter !== 'all' ? <HStack paddingInline={mobile ? 3 : 4} paddingBlockEnd={2} gap={2} align="center">
-          <Text color="secondary">역할 · {ROLE_LABEL[roleFilter as keyof typeof ROLE_LABEL]}</Text>
-          <Button label="해제" variant="ghost" onClick={() => setRoleFilter('all')} />
+          <Text color="secondary">역할 · {roles.map(role => ROLE_LABEL[role as keyof typeof ROLE_LABEL]).join(', ')}</Text>
+          <Button label="해제" variant="ghost" onClick={() => setRoles([])} />
         </HStack> : null}
       </>}
       footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} unit="명" />}
@@ -187,11 +188,13 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
 
     <MobileSurface title="필터" isOpen={filtersOpen} onOpenChange={setFiltersOpen}>
       <Layout header={<DialogHeader title="멤버 필터" onOpenChange={setFiltersOpen} />} content={<LayoutContent><VStack gap={4}>
-        <Selector label="역할" value={draft.filter} onChange={(filter) => setDraft({ ...draft, filter })}
-          options={[{ value: 'all', label: '모든 역할' }, ...Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))]} />
+        <CheckboxList label="역할" description="선택하지 않으면 모든 역할을 표시합니다." value={draft.filter === 'all' ? [] : draft.filter.split(',')} onChange={values => setDraft({ ...draft, filter: values.join(',') || 'all' })}>
+          {Object.entries(ROLE_LABEL).map(([value, label]) => <CheckboxListItem key={value} value={value} label={label} />)}
+        </CheckboxList>
+        <SortFields options={sortOptions} value={{ key: draft.sort, direction: draft.direction }} onChange={value => setDraft({ ...draft, sort: value.key, direction: value.direction })} />
         <PageSize value={draft.size} onChange={(size) => setDraft({ ...draft, size })} />
-        <Button label="초기화" onClick={() => setDraft({ filter: 'all', size: 25 })} />
-        <Button label="결과 보기" variant="primary" size="lg" onClick={() => { listing.change(draft); setFiltersOpen(false); }} />
+        <Button label="초기화" onClick={() => setDraft({ filter: 'all', size: 25, sort: 'title', direction: 'asc' })} />
+        <Button label="적용" variant="primary" size="lg" onClick={() => { listing.change(draft); setFiltersOpen(false); }} />
       </VStack></LayoutContent>} />
     </MobileSurface>
     <MobileSurface title={selected?.name ?? '멤버'} isOpen={Boolean(selected)} onOpenChange={() => setSelectedMember(undefined)}>

@@ -2,6 +2,8 @@ import { doneCount, ITEM_STATES, type ItemKind, type WorkItem } from '@/entities
 
 export type IssueView = 'list' | 'tree' | 'board';
 
+export type SortDirection = 'asc' | 'desc';
+
 export type SortKey = 'id' | 'state' | 'progress';
 
 export const COLUMN_WIDTH = 240;
@@ -29,15 +31,16 @@ export interface IssuesProps {
   readonly onOpen: (id: string) => void;
 }
 
-export function compare(sort: SortKey) {
+export function compare(sort: SortKey, direction: SortDirection = sort === 'progress' ? 'desc' : 'asc') {
+  const sign = direction === 'asc' ? 1 : -1;
   return (a: WorkItem, b: WorkItem) => {
     if (sort === 'id') {
-      return Number(a.id.split('-')[1]) - Number(b.id.split('-')[1]);
+      return sign * (Number(a.id.split('-')[1]) - Number(b.id.split('-')[1]));
     }
     if (sort === 'state') {
-      return ITEM_STATES.indexOf(a.state) - ITEM_STATES.indexOf(b.state);
+      return sign * (ITEM_STATES.indexOf(a.state) - ITEM_STATES.indexOf(b.state));
     }
-    return ratio(b) - ratio(a);
+    return sign * (ratio(a) - ratio(b));
   };
 }
 

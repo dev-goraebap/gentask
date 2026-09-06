@@ -1,3 +1,4 @@
+import { MobileFilterBar } from '@/shared/ui/mobile';
 import { ListingFooter, useListing } from '@/shared/ui/listing';
 import { MobilePageHeader } from '@/shared/ui/mobile';
 import { noteLabel, noteMarkdown, useNoteStore, type Note } from '@/entities/note';
@@ -33,9 +34,8 @@ export function DrawerPage() {
         </HStack>
         {!mobile ? <VStack paddingInline={mobile ? 3 : 4}><Text color="secondary">생각과 자료를 자유롭게 모아두세요.</Text></VStack> : null}
       </VStack></LayoutHeader>}
-      <Toolbar className={mobile ? undefined : "page-filter-toolbar"} label="서랍 검색" size={mobile ? 'lg' : 'sm'} startContent={
-          <TextInput label="서랍 검색" isLabelHidden placeholder="내용이나 파일 이름으로 검색" value={query} onChange={setQuery} startIcon={<HgiSearch />} hasClear width={mobile ? 'max(10rem, calc(100vw - 3.75rem))' : '13.75rem'} />
-        } />
+      {mobile ? <MobileFilterBar label="서랍 검색" searchLabel="서랍 검색" placeholder="내용이나 파일 이름으로 검색" query={query} onQueryChange={setQuery} /> :
+        <Toolbar className="page-filter-toolbar" label="서랍 검색" size="sm" startContent={<TextInput label="서랍 검색" isLabelHidden placeholder="내용이나 파일 이름으로 검색" value={query} onChange={setQuery} startIcon={<HgiSearch />} hasClear width="13.75rem" />} />}
     </>} footer={mobile ? undefined : <ListingFooter {...listing.pagination(filtered.length)} />} content={<LayoutContent ref={listing.ref} onScroll={listing.onScroll} padding={mobile ? 3 : 4} style={{ paddingBottom: 'calc(var(--spacing-10) + var(--spacing-10))' }}>
       <VStack gap={4}>
         <Text type="supporting" aria-live="polite">{announcement || (query ? `${filtered.length}개 검색됨` : '카드를 끌어 순서를 바꾸거나 이동 버튼을 사용하세요.')}</Text>

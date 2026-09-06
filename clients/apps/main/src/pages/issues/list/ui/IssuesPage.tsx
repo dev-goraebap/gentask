@@ -1,3 +1,5 @@
+import { IssueSortFields } from './IssueSortFields';
+import { IssueSortSelector } from './IssueSortSelector';
 import { ListingFooter, useListing } from '@/shared/ui/listing';
 import { ITEM_STATES, useIssueStore } from '@/entities/issue';
 import { ME } from '@/entities/session';
@@ -11,9 +13,9 @@ import {
     HgiViewList,
     HgiViewTree
 } from '@/shared/ui/icons';
-import { CreateButton, CreateDialog, MobileSurface } from '@/shared/ui/mobile';
+import { CreateButton, CreateDialog, MobileFilterBar, MobileFilterButton, MobileSurface } from '@/shared/ui/mobile';
 import {
-    Button,
+    Button, CheckboxList, CheckboxListItem, MultiSelector,
     DialogHeader,
     EmptyState,
     Heading,
@@ -32,7 +34,7 @@ import {
 } from '@astryxdesign/core';
 import { useMemo, useState } from 'react';
 import { BoardView } from './BoardView';
-import { compare, KIND_LABEL, KINDS, SORT_LABEL, type IssuesProps, type IssueView, type SortKey } from './issues';
+import { compare, KIND_LABEL, KINDS, type IssuesProps, type IssueView, type SortDirection, type SortKey } from './issues';
 import { ListView } from './ListView';
 import { TreeView } from './TreeView';
 
@@ -41,10 +43,11 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
   const { projects } = useWorkspaceStore();
   const [creating, setCreating] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [draft, setDraft] = useState({ state: null as string | null, kind: null as string | null, sort: 'id' as SortKey, mineOnly: false, hideClosed: false, view });
+  const [draft, setDraft] = useState({ state: [] as string[], kind: [] as string[], sort: 'id' as SortKey, direction: 'asc' as SortDirection, mineOnly: false, hideClosed: false, view });
   const [query, setQuery] = useState('');
-  const [state, setState] = useState<string | null>(null);
-  const [kind, setKind] = useState<string | null>(null);
+  const [state, setState] = useState<string[]>([]);
+  const [kind, setKind] = useState<string[]>([]);
+  const [direction, setDirection] = useState<SortDirection>('asc');
   const [sort, setSort] = useState<SortKey>('id');
   const [mineOnly, setMineOnly] = useState(false);
   const [hideClosed, setHideClosed] = useState(false);
@@ -53,25 +56,25 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
     const text = query.trim().toLowerCase();
     const matched = items.filter((i) => {
       if (text && !`${i.id} ${i.title}`.toLowerCase().includes(text)) return false;
-      if (state && i.state !== state) return false;
-      if (kind && i.kind !== kind) return false;
+      if (state.length && !state.includes(i.state)) return false;
+      if (kind.length && !kind.includes(i.kind)) return false;
       if (mineOnly && i.assignee !== ME) return false;
       if (hideClosed && (i.state === '완료' || i.state === '취소')) return false;
       return true;
     });
-    return [...matched].sort(compare(sort));
-  }, [items, query, state, kind, sort, mineOnly, hideClosed]);
+    return [...matched].sort(compare(sort, direction));
+  }, [items, query, state, kind, sort, direction, mineOnly, hideClosed]);
 
-  const listing = useListing(`issues:${projectId}`, JSON.stringify([query, state, kind, sort, mineOnly, hideClosed, view]));
+  const listing = useListing(`issues:${projectId}`, JSON.stringify([query, state, kind, sort, direction, mineOnly, hideClosed, view]));
   const { mobile } = listing;
   const visible = filtered.slice(listing.range(filtered.length).start, listing.range(filtered.length).end);
 
-  const isFiltered = Boolean(query || state || kind || mineOnly || hideClosed);
+  const isFiltered = Boolean(query || state.length || kind.length || mineOnly || hideClosed);
 
   const reset = () => {
     setQuery('');
-    setState(null);
-    setKind(null);
+    setState([]);
+    setKind([]);
     setMineOnly(false);
     setHideClosed(false);
   };
@@ -108,14 +111,8 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
             </VStack>
           </LayoutHeader>}
 
-          {mobile ? <Toolbar
-            label="이슈 필터"
-            size="lg"
-            startContent={<HStack gap={2} width="100%" style={{ flexWrap: 'wrap', minWidth: 0 }}>
-              <VStack style={{ flex: '1 1 10rem', minWidth: 0 }}><TextInput label="이슈 검색" isLabelHidden placeholder="제목이나 식별자" value={query} onChange={setQuery} hasClear width="100%" /></VStack>
-              <Button label={`필터${state || kind || mineOnly || hideClosed ? ' · 적용' : ''}`} onClick={() => { setDraft({ state, kind, sort, mineOnly, hideClosed, view }); setFiltersOpen(true); }} />
-            </HStack>}
-          /> : <Toolbar
+          {mobile ? <MobileFilterBar label="이슈 필터" searchLabel="이슈 검색" placeholder="제목이나 식별자" query={query} onQueryChange={setQuery}
+            actions={<MobileFilterButton active={Boolean(state.length || kind.length || mineOnly || hideClosed)} onClick={() => { setDraft({ state, kind, sort, direction, mineOnly, hideClosed, view }); setFiltersOpen(true); }} />} /> : <Toolbar
               label="이슈 필터"
                 className="page-filter-toolbar"
               size="sm"
@@ -131,20 +128,20 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
                   hasClear
                   width="13.75rem"
                 />
-                <Selector
+                <MultiSelector
                   label="상태"
                   isLabelHidden
-                  placeholder="상태"
-                  hasClear
+                  placeholder="모든 상태"
+                  triggerDisplay="count" formatValue={items => `상태 · ${items.length}`} hasSelectAll selectAllLabel="전체 선택"
                   value={state}
                   onChange={setState}
                   options={ITEM_STATES.map((s) => ({ value: s, label: s }))}
                 />
-                <Selector
+                <MultiSelector
                   label="종류"
                   isLabelHidden
-                  placeholder="종류"
-                  hasClear
+                  placeholder="모든 종류"
+                  triggerDisplay="count" formatValue={items => `종류 · ${items.length}`} hasSelectAll selectAllLabel="전체 선택"
                   value={kind}
                   onChange={setKind}
                   options={KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))}
@@ -156,16 +153,7 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
             }
             endContent={
               <>
-                <Selector
-                  label="정렬"
-                  isLabelHidden
-                  value={sort}
-                  onChange={(v) => setSort(v as SortKey)}
-                  options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({
-                    value: k,
-                    label: SORT_LABEL[k],
-                  }))}
-                />
+                <IssueSortSelector value={{ key: sort, direction }} onChange={value => { setSort(value.key); setDirection(value.direction); }} />
                 <SegmentedControl
                   label="보기 방식"
                   size="sm"
@@ -237,14 +225,14 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
     </Layout>
     <MobileSurface title="이슈 필터" isOpen={filtersOpen} onOpenChange={setFiltersOpen}>
       <Layout header={<DialogHeader title="이슈 표시 옵션" onOpenChange={setFiltersOpen} />} content={<LayoutContent><VStack gap={4}>
-        <Selector label="상태" value={draft.state} hasClear placeholder="모든 상태" onChange={(state) => setDraft({ ...draft, state })} options={ITEM_STATES.map((value) => ({ value, label: value }))} />
-        <Selector label="종류" value={draft.kind} hasClear placeholder="모든 종류" onChange={(kind) => setDraft({ ...draft, kind })} options={KINDS.map((value) => ({ value, label: KIND_LABEL[value] }))} />
-        <Selector label="정렬" value={draft.sort} onChange={(sort) => setDraft({ ...draft, sort: sort as SortKey })} options={Object.entries(SORT_LABEL).map(([value, label]) => ({ value, label }))} />
+        <CheckboxList label="상태" description="선택하지 않으면 모든 상태를 표시합니다." value={draft.state} onChange={state => setDraft({ ...draft, state })}>{ITEM_STATES.map(value => <CheckboxListItem key={value} value={value} label={value} />)}</CheckboxList>
+        <CheckboxList label="종류" description="선택하지 않으면 모든 종류를 표시합니다." value={draft.kind} onChange={kind => setDraft({ ...draft, kind })}>{KINDS.map(value => <CheckboxListItem key={value} value={value} label={KIND_LABEL[value]} />)}</CheckboxList>
+        <IssueSortFields value={{ key: draft.sort, direction: draft.direction }} onChange={value => setDraft({ ...draft, sort: value.key, direction: value.direction })} />
         <Selector label="보기 방식" value={draft.view} onChange={(view) => setDraft({ ...draft, view: view as IssueView })} options={[{ value: 'list', label: '목록' }, { value: 'tree', label: '계층' }, { value: 'board', label: '보드' }]} />
         <Selector label="담당자" value={draft.mineOnly ? 'mine' : 'all'} onChange={(v) => setDraft({ ...draft, mineOnly: v === 'mine' })} options={[{ value: 'all', label: '전체' }, { value: 'mine', label: '내 항목만' }]} />
         <Selector label="완료 항목" value={draft.hideClosed ? 'hide' : 'show'} onChange={(v) => setDraft({ ...draft, hideClosed: v === 'hide' })} options={[{ value: 'show', label: '표시' }, { value: 'hide', label: '완료와 취소 숨기기' }]} />
-        <Button label="초기화" onClick={() => setDraft({ state: null, kind: null, sort: 'id', mineOnly: false, hideClosed: false, view: 'list' })} />
-        <Button label="결과 보기" variant="primary" size="lg" onClick={() => { setState(draft.state); setKind(draft.kind); setSort(draft.sort); setMineOnly(draft.mineOnly); setHideClosed(draft.hideClosed); onViewChange(draft.view); setFiltersOpen(false); }} />
+        <Button label="초기화" onClick={() => setDraft({ state: [], kind: [], sort: 'id', direction: 'asc', mineOnly: false, hideClosed: false, view: 'list' })} />
+        <Button label="적용" variant="primary" size="lg" onClick={() => { setState(draft.state); setKind(draft.kind); setSort(draft.sort); setDirection(draft.direction); setMineOnly(draft.mineOnly); setHideClosed(draft.hideClosed); onViewChange(draft.view); setFiltersOpen(false); }} />
       </VStack></LayoutContent>} />
     </MobileSurface>
     {creating ? <CreateDialog title="새 이슈" onClose={() => setCreating(false)} onSave={(title, body) => { addItem(projects.find(p => p.id === projectId)?.prefix ?? 'GT', title, body); reset(); }} /> : null}

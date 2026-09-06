@@ -18,6 +18,7 @@ export { HgiMoon } from './HgiMoon';
 export { HgiNote } from './HgiNote';
 export { HgiPlus } from './HgiPlus';
 export { HgiSearch } from './HgiSearch';
+export { HgiFilter } from './HgiFilter';
 export { HgiSearchEmpty } from './HgiSearchEmpty';
 export { HgiSettings } from './HgiSettings';
 export { HgiStar } from './HgiStar';
