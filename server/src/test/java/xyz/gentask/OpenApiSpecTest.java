@@ -32,6 +32,9 @@ class OpenApiSpecTest {
                 .getContentAsString();
 
         assertThat(spec).contains("/api/v1/tasks");
+        assertThat(spec)
+                .contains("/api/v1/projects/{projectId}/artifacts", "artifact-folders", "artifactId", "artifactCount")
+                .doesNotContain("/documents", "document-folders", "documentId", "documentCount", "Document");
         Files.writeString(SPEC, spec);
     }
 }

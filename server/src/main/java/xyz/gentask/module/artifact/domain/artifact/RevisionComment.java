@@ -4,7 +4,7 @@ import xyz.gentask.shared.domain.ValueObject;
 import xyz.gentask.shared.error.DomainRuleViolation;
 
 /**
- * 문서 개정 사유 값 객체다(최대 200자).
+ * 아티팩트 개정 사유 값 객체다(최대 200자).
  */
 public record RevisionComment(String value) implements ValueObject {
 

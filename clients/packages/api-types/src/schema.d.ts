@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/v1/projects/{projectId}/documents/{documentId}/folder": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/folder": {
         parameters: {
             query?: never;
             header?: never;
@@ -20,7 +20,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/document-folders/{folderId}/parent": {
+    "/api/v1/projects/{projectId}/artifact-folders/{folderId}/parent": {
         parameters: {
             query?: never;
             header?: never;
@@ -148,7 +148,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/documents": {
+    "/api/v1/projects/{projectId}/artifacts": {
         parameters: {
             query?: never;
             header?: never;
@@ -164,7 +164,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/documents/{documentId}/revisions/{revisionNo}/revert": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions/{revisionNo}/revert": {
         parameters: {
             query?: never;
             header?: never;
@@ -180,7 +180,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/document-folders": {
+    "/api/v1/projects/{projectId}/artifact-folders": {
         parameters: {
             query?: never;
             header?: never;
@@ -500,7 +500,7 @@ export interface paths {
         patch: operations["changeState"];
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/documents/{documentId}": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -516,7 +516,7 @@ export interface paths {
         patch: operations["edit_3"];
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/document-folders/{folderId}": {
+    "/api/v1/projects/{projectId}/artifact-folders/{folderId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -564,7 +564,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/documents/{documentId}/revisions": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions": {
         parameters: {
             query?: never;
             header?: never;
@@ -580,7 +580,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/documents/{documentId}/revisions/{revisionNo}": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions/{revisionNo}": {
         parameters: {
             query?: never;
             header?: never;
@@ -648,7 +648,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        MoveDocument: {
+        MoveArtifact: {
             /**
              * Format: uuid
              * @description 담을 폴더. 값이 없으면 뿌리로 옮긴다
@@ -710,7 +710,7 @@ export interface components {
             /** @description 부모의 이름(GT-41). 없으면 최상위다 */
             parentKey?: string | null;
         };
-        CreateDocument: {
+        CreateArtifact: {
             title: string;
             /** @description 적지 않으면 빈 본문으로 선다 */
             body?: string;
@@ -809,7 +809,7 @@ export interface components {
             /** @enum {string} */
             state: "BACKLOG" | "UNSTARTED" | "STARTED" | "COMPLETED" | "CANCELED";
         };
-        EditDocument: {
+        EditArtifact: {
             title: string;
             body: string;
             /** @description 왜 고쳤는지. 적지 않아도 된다 */
@@ -903,7 +903,7 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
-        DocumentSummary: {
+        ArtifactSummary: {
             /** Format: uuid */
             id: string;
             title: string;
@@ -917,8 +917,8 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        DocumentView: {
-            summary: components["schemas"]["DocumentSummary"];
+        ArtifactView: {
+            summary: components["schemas"]["ArtifactSummary"];
             /** @description 지금 참인 개정의 본문. 마크다운 원문이다 */
             body: string;
             /**
@@ -933,7 +933,7 @@ export interface components {
             items: components["schemas"]["RevisionSummary"][];
             /**
              * Format: int64
-             * @description 이 문서의 개정 전체 수
+             * @description 이 아티팩트의 개정 전체 수
              */
             total: number;
             /**
@@ -950,7 +950,7 @@ export interface components {
         RevisionSummary: {
             /**
              * Format: int32
-             * @description 문서 안의 개정 번호. 1부터 매긴다
+             * @description 아티팩트 안의 개정 번호. 1부터 매긴다
              */
             revisionNo: number;
             /** Format: date-time */
@@ -967,7 +967,7 @@ export interface components {
             /** @description 그때의 본문. 마크다운 원문이다 */
             body: string;
         };
-        DocumentFolderSummary: {
+        ArtifactFolderSummary: {
             /** Format: uuid */
             id: string;
             name: string;
@@ -978,9 +978,9 @@ export interface components {
             parentId: string | null;
             /**
              * Format: int32
-             * @description 바로 아래에 담긴 문서 수
+             * @description 바로 아래에 담긴 아티팩트 수
              */
-            documentCount: number;
+            artifactCount: number;
             /**
              * Format: int32
              * @description 바로 아래에 담긴 폴더 수
@@ -1069,13 +1069,13 @@ export interface operations {
             header?: never;
             path: {
                 projectId: string;
-                documentId: string;
+                artifactId: string;
             };
             cookie?: never;
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["MoveDocument"];
+                "application/json": components["schemas"]["MoveArtifact"];
             };
         };
         responses: {
@@ -1436,7 +1436,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["DocumentSummary"][];
+                    "*/*": components["schemas"]["ArtifactSummary"][];
                 };
             };
         };
@@ -1452,7 +1452,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateDocument"];
+                "application/json": components["schemas"]["CreateArtifact"];
             };
         };
         responses: {
@@ -1471,7 +1471,7 @@ export interface operations {
             header?: never;
             path: {
                 projectId: string;
-                documentId: string;
+                artifactId: string;
                 revisionNo: string;
             };
             cookie?: never;
@@ -1508,7 +1508,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["DocumentFolderSummary"][];
+                    "*/*": components["schemas"]["ArtifactFolderSummary"][];
                 };
             };
         };
@@ -2095,7 +2095,7 @@ export interface operations {
             header?: never;
             path: {
                 projectId: string;
-                documentId: string;
+                artifactId: string;
             };
             cookie?: never;
         };
@@ -2107,7 +2107,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["DocumentView"];
+                    "*/*": components["schemas"]["ArtifactView"];
                 };
             };
         };
@@ -2118,13 +2118,13 @@ export interface operations {
             header?: never;
             path: {
                 projectId: string;
-                documentId: string;
+                artifactId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["EditDocument"];
+                "application/json": components["schemas"]["EditArtifact"];
             };
         };
         responses: {
@@ -2254,7 +2254,7 @@ export interface operations {
             header?: never;
             path: {
                 projectId: string;
-                documentId: string;
+                artifactId: string;
             };
             cookie?: never;
         };
@@ -2277,7 +2277,7 @@ export interface operations {
             header?: never;
             path: {
                 projectId: string;
-                documentId: string;
+                artifactId: string;
                 revisionNo: string;
             };
             cookie?: never;

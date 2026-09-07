@@ -18,6 +18,7 @@ class AuthWebConfig implements WebMvcConfigurer {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(
+                        "/api/mcp",
                         "/api/v1/auth/signup",
                         "/api/v1/auth/signup/confirm",
                         "/api/v1/auth/signup/resend",
