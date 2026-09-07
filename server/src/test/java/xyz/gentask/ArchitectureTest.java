@@ -7,11 +7,16 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
+import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.gentask.shared.domain.ValueObject;
@@ -22,6 +27,32 @@ class ArchitectureTest {
     private static final String MODULE = "xyz.gentask.module..";
     private static final String DOMAIN = "xyz.gentask.module.(*).domain..";
     private static final String SHARED = "xyz.gentask.shared..";
+
+    @ArchTest
+    static final ArchRule 모듈은_순환_참조하지_않는다 =
+            slices().matching("xyz.gentask.module.(*)..").should().beFreeOfCycles();
+
+    @ArchTest
+    static final ArchRule 다른_모듈의_내부_패키지를_참조하지_않는다 = classes()
+            .that()
+            .resideInAPackage(MODULE)
+            .should(new ArchCondition<JavaClass>("다른 모듈의 루트 공개 계약만 참조한다") {
+                @Override
+                public void check(JavaClass source, ConditionEvents events) {
+                    String prefix = "xyz.gentask.module.";
+                    String ownModule =
+                            source.getPackageName().substring(prefix.length()).split("\\.")[0];
+                    for (var dependency : source.getDirectDependenciesFromSelf()) {
+                        String targetPackage = dependency.getTargetClass().getPackageName();
+                        if (!targetPackage.startsWith(prefix)) continue;
+                        String[] target =
+                                targetPackage.substring(prefix.length()).split("\\.");
+                        if (!ownModule.equals(target[0]) && target.length > 1) {
+                            events.add(SimpleConditionEvent.violated(source, dependency.getDescription()));
+                        }
+                    }
+                }
+            });
 
     @ArchTest
     static final ArchRule 공용_기반은_모듈을_참조하지_않는다 = noClasses()

@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import xyz.gentask.module.tracker.Projects;
+import xyz.gentask.module.project.ProjectCreationIn;
 import xyz.gentask.module.user.application.AdminProperties;
 import xyz.gentask.module.user.application.PasswordHasher;
 import xyz.gentask.module.user.application.TokenGenerator;
@@ -49,7 +49,7 @@ public class AuthService {
     private final TokenGenerator tokenGenerator;
     private final AuthProperties properties;
     private final AdminProperties adminProperties;
-    private final Projects projects;
+    private final ProjectCreationIn projects;
     private final Clock clock;
 
     private final String timingEqualizerHash;
@@ -67,7 +67,7 @@ public class AuthService {
             TokenGenerator tokenGenerator,
             AuthProperties properties,
             AdminProperties adminProperties,
-            Projects projects,
+            ProjectCreationIn projects,
             Clock clock) {
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
