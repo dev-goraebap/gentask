@@ -45,6 +45,9 @@ for attempt in range(60):
     time.sleep(2)
 else:
     raise RuntimeError('API가 120초 안에 준비되지 않음. 릴리스 정보를 갱신하지 않음')
+settings = app / '.env'
+lines = [line for line in settings.read_text().splitlines() if not line.startswith('GENTASK_IMAGE=')]
+settings.write_text('\n'.join([*lines, f'GENTASK_IMAGE={image}']) + '\n')
 for name, value in (('RELEASE_SHA', sha), ('RELEASE_TAG', tag)):
     (app / 'api' / name).write_text(value + '\n')
 print(f'{container}: {tag} ({sha[:7]}) 준비됨')
