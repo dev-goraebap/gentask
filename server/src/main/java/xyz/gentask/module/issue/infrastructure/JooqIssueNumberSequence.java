@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 import static xyz.gentask.jooq.Tables.PROJECTS;
 
 import java.time.Instant;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
@@ -17,7 +16,7 @@ class JooqIssueNumberSequence implements IssueNumberSequence {
     private final DSLContext dslContext;
 
     @Override
-    public int next(UUID projectId, Instant now) {
+    public int next(String projectId, Instant now) {
         return requireNonNull(dslContext
                                 .update(PROJECTS)
                                 .set(PROJECTS.NEXT_NUMBER, PROJECTS.NEXT_NUMBER.plus(1))

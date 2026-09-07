@@ -62,6 +62,45 @@ class ArtifactApiTest {
     }
 
     @Test
+    void 최초_작성자와_최종_수정자를_구분한다() throws Exception {
+        String artifactId = 아티팩트를_세운다("""
+                {"title":"작성자 검증","body":"본문"}
+                """);
+        var artifacts = xyz.gentask.jooq.Tables.ARTIFACTS;
+        var users = xyz.gentask.jooq.Tables.USERS;
+        var original = dslContext
+                .selectFrom(artifacts)
+                .where(artifacts.ID.eq(artifactId))
+                .fetchSingle();
+        String editorEmail = "editor-" + UUID.randomUUID() + "@example.com";
+        AuthTestSupport.가입한다(mockMvc, mail, editorEmail);
+        UUID editor = dslContext
+                .select(users.ID)
+                .from(users)
+                .where(users.EMAIL.eq(editorEmail))
+                .fetchSingle(users.ID);
+        dslContext
+                .update(users)
+                .set(users.NICKNAME, "최초 작성자")
+                .where(users.ID.eq(original.getCreatedBy()))
+                .execute();
+        dslContext
+                .update(users)
+                .set(users.NICKNAME, "최종 수정자")
+                .where(users.ID.eq(editor))
+                .execute();
+        dslContext
+                .update(artifacts)
+                .set(artifacts.UPDATED_BY, editor)
+                .where(artifacts.ID.eq(artifactId))
+                .execute();
+
+        상세(artifactId)
+                .andExpect(jsonPath("$.authorName").value("최초 작성자"))
+                .andExpect(jsonPath("$.lastEditorName").value("최종 수정자"));
+    }
+
+    @Test
     void 이전_문서_URL은_제공하지_않는다() throws Exception {
         mockMvc.perform(get("/api/v1/projects/{projectId}/documents", projectId).cookie(session))
                 .andExpect(status().isNotFound());
@@ -78,7 +117,7 @@ class ArtifactApiTest {
         상세(artifactId)
                 .andExpect(jsonPath("$.summary.title").value("정한 것"))
                 .andExpect(jsonPath("$.body").value("본문"))
-                .andExpect(jsonPath("$.revisionNo").value(1));
+                .andExpect(jsonPath("$.versionNo").value(1));
         assertThat(개정들(artifactId)).hasSize(1);
     }
 
@@ -89,7 +128,7 @@ class ArtifactApiTest {
 
         상세(artifactId)
                 .andExpect(jsonPath("$.body").value(""))
-                .andExpect(jsonPath("$.revisionNo").value(1));
+                .andExpect(jsonPath("$.versionNo").value(1));
     }
 
     @Test
@@ -171,7 +210,7 @@ class ArtifactApiTest {
         상세(artifactId)
                 .andExpect(jsonPath("$.summary.title").value("옮길 것"))
                 .andExpect(jsonPath("$.body").value("본문"))
-                .andExpect(jsonPath("$.revisionNo").value(1));
+                .andExpect(jsonPath("$.versionNo").value(1));
         assertThat(개정들(artifactId)).hasSize(1);
     }
 
@@ -196,7 +235,7 @@ class ArtifactApiTest {
 
         상세(artifactId)
                 .andExpect(jsonPath("$.summary.folderId").value(folderId))
-                .andExpect(jsonPath("$.revisionNo").value(1));
+                .andExpect(jsonPath("$.versionNo").value(1));
         assertThat(개정들(artifactId)).hasSize(1);
     }
 
@@ -280,7 +319,7 @@ class ArtifactApiTest {
 
         상세(artifactId)
                 .andExpect(jsonPath("$.body").value("고친 본문"))
-                .andExpect(jsonPath("$.revisionNo").value(2));
+                .andExpect(jsonPath("$.versionNo").value(2));
     }
 
     /*
@@ -331,7 +370,7 @@ class ArtifactApiTest {
         상세(artifactId)
                 .andExpect(jsonPath("$.summary.title").value("고친 제목"))
                 .andExpect(jsonPath("$.body").value("고친 본문"))
-                .andExpect(jsonPath("$.revisionNo").value(2));
+                .andExpect(jsonPath("$.versionNo").value(2));
     }
 
     @Test
@@ -341,7 +380,7 @@ class ArtifactApiTest {
 
         고친다(artifactId, "{\"title\":\"고친 제목\",\"body\":\"그대로 둘 본문\",\"comment\":null}");
 
-        상세(artifactId).andExpect(jsonPath("$.revisionNo").value(2));
+        상세(artifactId).andExpect(jsonPath("$.versionNo").value(2));
     }
 
     @Test
@@ -366,7 +405,7 @@ class ArtifactApiTest {
 
         고친다(artifactId, "{\"title\":\"그대로\",\"body\":\"그대로인 본문\",\"comment\":null}");
 
-        상세(artifactId).andExpect(jsonPath("$.revisionNo").value(1));
+        상세(artifactId).andExpect(jsonPath("$.versionNo").value(1));
         assertThat(개정들(artifactId)).hasSize(1);
     }
 
@@ -383,7 +422,7 @@ class ArtifactApiTest {
 
         상세(artifactId)
                 .andExpect(jsonPath("$.summary.title").value("그대로 둘 것"))
-                .andExpect(jsonPath("$.revisionNo").value(1));
+                .andExpect(jsonPath("$.versionNo").value(1));
         assertThat(개정들(artifactId)).hasSize(1);
     }
 
@@ -394,7 +433,7 @@ class ArtifactApiTest {
 
         고친다(artifactId, "{\"title\":\"사유 없이\",\"body\":\"고친 것\"}");
 
-        상세(artifactId).andExpect(jsonPath("$.revisionNo").value(2));
+        상세(artifactId).andExpect(jsonPath("$.versionNo").value(2));
         assertThat(개정들(artifactId).get(1).getComment()).isNull();
     }
 
@@ -441,11 +480,11 @@ class ArtifactApiTest {
         이력(artifactId)
                 .andExpect(jsonPath("$.total").value(2))
                 .andExpect(jsonPath("$.items", hasSize(2)))
-                .andExpect(jsonPath("$.items[0].revisionNo").value(2))
+                .andExpect(jsonPath("$.items[0].versionNo").value(2))
                 .andExpect(jsonPath("$.items[0].comment").value("왜 고쳤는지"))
                 .andExpect(jsonPath("$.items[0].authorName").isNotEmpty())
                 .andExpect(jsonPath("$.items[0].createdAt").isNotEmpty())
-                .andExpect(jsonPath("$.items[1].revisionNo").value(1))
+                .andExpect(jsonPath("$.items[1].versionNo").value(1))
                 .andExpect(jsonPath("$.items[1].comment").isEmpty());
     }
 
@@ -465,7 +504,7 @@ class ArtifactApiTest {
         이력(artifactId)
                 .andExpect(jsonPath("$.total").value(1))
                 .andExpect(jsonPath("$.items", hasSize(1)))
-                .andExpect(jsonPath("$.items[0].revisionNo").value(1));
+                .andExpect(jsonPath("$.items[0].versionNo").value(1));
     }
 
     @Test
@@ -480,12 +519,12 @@ class ArtifactApiTest {
                 .andExpect(jsonPath("$.page").value(0))
                 .andExpect(jsonPath("$.size").value(2))
                 .andExpect(jsonPath("$.items", hasSize(2)))
-                .andExpect(jsonPath("$.items[0].revisionNo").value(3))
-                .andExpect(jsonPath("$.items[1].revisionNo").value(2));
+                .andExpect(jsonPath("$.items[0].versionNo").value(3))
+                .andExpect(jsonPath("$.items[1].versionNo").value(2));
 
         이력(artifactId, "?page=1&size=2")
                 .andExpect(jsonPath("$.items", hasSize(1)))
-                .andExpect(jsonPath("$.items[0].revisionNo").value(1));
+                .andExpect(jsonPath("$.items[0].versionNo").value(1));
     }
 
     @Test
@@ -497,7 +536,7 @@ class ArtifactApiTest {
         개정(artifactId, 1)
                 .andExpect(jsonPath("$.title").value("처음 제목"))
                 .andExpect(jsonPath("$.body").value("처음 본문"))
-                .andExpect(jsonPath("$.summary.revisionNo").value(1));
+                .andExpect(jsonPath("$.summary.versionNo").value(1));
 
         개정(artifactId, 2)
                 .andExpect(jsonPath("$.title").value("고친 제목"))
@@ -510,7 +549,7 @@ class ArtifactApiTest {
         String artifactId = 아티팩트를_세운다("{\"title\":\"제목\",\"body\":\"본문\"}");
 
         mockMvc.perform(get(
-                                "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions/{revisionNo}",
+                                "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{revisionNo}",
                                 projectId,
                                 artifactId,
                                 "9")
@@ -526,7 +565,7 @@ class ArtifactApiTest {
 
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
-        mockMvc.perform(get("/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions", projectId, artifactId)
+        mockMvc.perform(get("/api/v1/projects/{projectId}/artifacts/{artifactId}/versions", projectId, artifactId)
                         .cookie(other))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("PROJECT_NOT_FOUND"));
@@ -539,7 +578,7 @@ class ArtifactApiTest {
 
         String other = 프로젝트를_세운다(session, "Other", "OT");
 
-        mockMvc.perform(get("/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions", other, artifactId)
+        mockMvc.perform(get("/api/v1/projects/{projectId}/artifacts/{artifactId}/versions", other, artifactId)
                         .cookie(session))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("ARTIFACT_NOT_FOUND"));
@@ -556,7 +595,7 @@ class ArtifactApiTest {
         상세(artifactId)
                 .andExpect(jsonPath("$.summary.title").value("처음 제목"))
                 .andExpect(jsonPath("$.body").value("처음 본문"))
-                .andExpect(jsonPath("$.revisionNo").value(3));
+                .andExpect(jsonPath("$.versionNo").value(3));
     }
 
     @Test
@@ -583,7 +622,7 @@ class ArtifactApiTest {
         되돌린다(artifactId, 1, null);
 
         이력(artifactId)
-                .andExpect(jsonPath("$.items[0].revisionNo").value(3))
+                .andExpect(jsonPath("$.items[0].versionNo").value(3))
                 .andExpect(jsonPath("$.items[0].comment").value("1번 개정으로 되돌림"));
     }
 
@@ -605,7 +644,7 @@ class ArtifactApiTest {
 
         되돌린다(artifactId, 1, null);
 
-        상세(artifactId).andExpect(jsonPath("$.revisionNo").value(1));
+        상세(artifactId).andExpect(jsonPath("$.versionNo").value(1));
         assertThat(개정들(artifactId)).hasSize(1);
     }
 
@@ -620,7 +659,7 @@ class ArtifactApiTest {
 
         상세(artifactId)
                 .andExpect(jsonPath("$.body").value("고친 본문"))
-                .andExpect(jsonPath("$.revisionNo").value(4));
+                .andExpect(jsonPath("$.versionNo").value(4));
     }
 
     @Test
@@ -629,7 +668,7 @@ class ArtifactApiTest {
         String artifactId = 아티팩트를_세운다("{\"title\":\"제목\",\"body\":\"본문\"}");
 
         mockMvc.perform(post(
-                                "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions/{revisionNo}/revert",
+                                "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{revisionNo}/revert",
                                 projectId,
                                 artifactId,
                                 "9")
@@ -649,7 +688,7 @@ class ArtifactApiTest {
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
 
         mockMvc.perform(post(
-                                "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions/{revisionNo}/revert",
+                                "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{revisionNo}/revert",
                                 projectId,
                                 artifactId,
                                 "1")
@@ -665,7 +704,7 @@ class ArtifactApiTest {
     void 로그인_없이_이력에_닿을_수_없다() throws Exception {
         String artifactId = 아티팩트를_세운다("{\"title\":\"제목\",\"body\":\"본문\"}");
 
-        mockMvc.perform(get("/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions", projectId, artifactId))
+        mockMvc.perform(get("/api/v1/projects/{projectId}/artifacts/{artifactId}/versions", projectId, artifactId))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
@@ -677,7 +716,7 @@ class ArtifactApiTest {
 
     private ResultActions 이력(String artifactId, String query) throws Exception {
         return mockMvc.perform(get(
-                                "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions" + query,
+                                "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions" + query,
                                 projectId,
                                 artifactId)
                         .cookie(session))
@@ -686,7 +725,7 @@ class ArtifactApiTest {
 
     private ResultActions 개정(String artifactId, int revisionNo) throws Exception {
         return mockMvc.perform(get(
-                                "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions/{revisionNo}",
+                                "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{revisionNo}",
                                 projectId,
                                 artifactId,
                                 revisionNo)
@@ -696,7 +735,7 @@ class ArtifactApiTest {
 
     private void 되돌린다(String artifactId, int revisionNo, String body) throws Exception {
         MockHttpServletRequestBuilder request = post(
-                        "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions/{revisionNo}/revert",
+                        "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{revisionNo}/revert",
                         projectId,
                         artifactId,
                         revisionNo)
@@ -729,7 +768,9 @@ class ArtifactApiTest {
                         .andReturn()
                         .getResponse()
                         .getHeader("Location"));
-        return location.substring(location.lastIndexOf('/') + 1);
+        String id = location.substring(location.lastIndexOf('/') + 1);
+        org.assertj.core.api.Assertions.assertThat(id).matches("[0-9A-Za-z_-]{12}");
+        return id;
     }
 
     private ResultActions 목록() throws Exception {
@@ -761,13 +802,15 @@ class ArtifactApiTest {
                 .andReturn()
                 .getResponse()
                 .getHeader("Location"));
-        return location.substring(location.lastIndexOf('/') + 1);
+        String id = location.substring(location.lastIndexOf('/') + 1);
+        org.assertj.core.api.Assertions.assertThat(id).matches("[0-9A-Za-z_-]{12}");
+        return id;
     }
 
     private List<ArtifactRevisionsRecord> 개정들(String artifactId) {
         return dslContext
                 .selectFrom(ARTIFACT_REVISIONS)
-                .where(ARTIFACT_REVISIONS.ARTIFACT_ID.eq(UUID.fromString(artifactId)))
+                .where(ARTIFACT_REVISIONS.ARTIFACT_ID.eq(artifactId))
                 .orderBy(ARTIFACT_REVISIONS.REVISION_NO.asc())
                 .fetch();
     }
@@ -781,6 +824,8 @@ class ArtifactApiTest {
                 .andReturn()
                 .getResponse()
                 .getHeader("Location"));
-        return location.substring(location.lastIndexOf('/') + 1);
+        String id = location.substring(location.lastIndexOf('/') + 1);
+        org.assertj.core.api.Assertions.assertThat(id).matches("[0-9A-Za-z_-]{12}");
+        return id;
     }
 }

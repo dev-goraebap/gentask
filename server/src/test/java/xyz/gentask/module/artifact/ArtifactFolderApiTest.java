@@ -328,7 +328,9 @@ class ArtifactFolderApiTest {
                         .andReturn()
                         .getResponse()
                         .getHeader("Location"));
-        return location.substring(location.lastIndexOf('/') + 1);
+        String id = location.substring(location.lastIndexOf('/') + 1);
+        org.assertj.core.api.Assertions.assertThat(id).matches("[0-9A-Za-z_-]{12}");
+        return id;
     }
 
     private void 이름을_바꾼다(String folderId, String body) throws Exception {
@@ -362,7 +364,9 @@ class ArtifactFolderApiTest {
                 .andReturn()
                 .getResponse()
                 .getHeader("Location"));
-        return location.substring(location.lastIndexOf('/') + 1);
+        String id = location.substring(location.lastIndexOf('/') + 1);
+        org.assertj.core.api.Assertions.assertThat(id).matches("[0-9A-Za-z_-]{12}");
+        return id;
     }
 
     private ResultActions 아티팩트상세(String artifactId) throws Exception {
@@ -380,6 +384,8 @@ class ArtifactFolderApiTest {
                 .andReturn()
                 .getResponse()
                 .getHeader("Location"));
-        return location.substring(location.lastIndexOf('/') + 1);
+        String id = location.substring(location.lastIndexOf('/') + 1);
+        org.assertj.core.api.Assertions.assertThat(id).matches("[0-9A-Za-z_-]{12}");
+        return id;
     }
 }

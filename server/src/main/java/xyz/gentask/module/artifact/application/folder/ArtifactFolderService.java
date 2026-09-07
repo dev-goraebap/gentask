@@ -16,6 +16,7 @@ import xyz.gentask.module.artifact.domain.folder.ArtifactFolder;
 import xyz.gentask.module.artifact.domain.folder.ArtifactFolderName;
 import xyz.gentask.module.artifact.domain.folder.ArtifactFolderRepository;
 import xyz.gentask.module.project.ProjectAccessIn;
+import xyz.gentask.shared.domain.NanoId;
 
 /**
  * 폴더를 세우고 이름을 바꾸고 옮기고 지운다(DOC-008).
@@ -49,23 +50,24 @@ public class ArtifactFolderService {
     // --- 명령 --------------------------------------------------------------------------------------------------------
     /** 지금 자리 아래에 폴더를 세운다. 같은 이름이 이미 있어도 막지 않는다(DOC-008 A2). */
     @Transactional
-    public UUID add(UUID userId, String projectId, String name, String parentId) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
-        ArtifactFolder folder = ArtifactFolder.create(
-                UUID.randomUUID(),
-                internalProjectId,
-                ArtifactFolderName.of(name),
-                findParent(internalProjectId, parentId),
-                userId,
-                clock.instant());
-        artifactFolderRepository.save(folder);
+    public String add(UUID userId, String projectId, String name, String parentId) {
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactFolder folder = NanoId.create(
+                id -> ArtifactFolder.create(
+                        id,
+                        accessibleProjectId,
+                        ArtifactFolderName.of(name),
+                        findParent(accessibleProjectId, parentId),
+                        userId,
+                        clock.instant()),
+                artifactFolderRepository::insert);
         return folder.id();
     }
 
     @Transactional
     public void rename(UUID userId, String projectId, String folderId, String name) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
-        ArtifactFolder folder = find(internalProjectId, folderId);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactFolder folder = find(accessibleProjectId, folderId);
         folder.rename(ArtifactFolderName.of(name), userId, clock.instant());
         artifactFolderRepository.save(folder);
     }
@@ -76,11 +78,11 @@ public class ArtifactFolderService {
      */
     @Transactional
     public void move(UUID userId, String projectId, String folderId, String parentId) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
-        ArtifactFolder folder = find(internalProjectId, folderId);
-        UUID targetId = findParent(internalProjectId, parentId);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactFolder folder = find(accessibleProjectId, folderId);
+        String targetId = findParent(accessibleProjectId, parentId);
 
-        ensureNotItselfOrDescendant(internalProjectId, folder.id(), targetId);
+        ensureNotItselfOrDescendant(accessibleProjectId, folder.id(), targetId);
 
         folder.moveTo(targetId, userId, clock.instant());
         artifactFolderRepository.save(folder);
@@ -91,8 +93,8 @@ public class ArtifactFolderService {
      */
     @Transactional
     public void remove(UUID userId, String projectId, String folderId) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
-        ArtifactFolder folder = find(internalProjectId, folderId);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactFolder folder = find(accessibleProjectId, folderId);
         Instant now = clock.instant();
 
         for (ArtifactFolder child : artifactFolderRepository.findChildren(folder.id())) {
@@ -107,14 +109,14 @@ public class ArtifactFolderService {
     }
 
     // --- 보조 --------------------------------------------------------------------------------------------------------
-    private ArtifactFolder find(UUID projectId, String folderId) {
+    private ArtifactFolder find(String projectId, String folderId) {
         return artifactFolderRepository
                 .findById(projectId, readId(folderId))
                 .orElseThrow(ArtifactErrorCode.FOLDER_NOT_FOUND::raise);
     }
 
     /** 상위 폴더 식별자를 조회한다. 미지정 시 null(최상위 루트)을 반환한다(DOC-006 A1). */
-    private UUID findParent(UUID projectId, String parentId) {
+    private String findParent(String projectId, String parentId) {
         if (parentId == null || parentId.isBlank()) {
             return null;
         }
@@ -127,8 +129,8 @@ public class ArtifactFolderService {
      * 고른 자리에서 위로 걸어 올라가며 자신을 만나는지 본다. 트리에 고리가 없으므로 걸음은 뿌리에서
      * 끝난다.
      */
-    private void ensureNotItselfOrDescendant(UUID projectId, UUID folderId, UUID targetId) {
-        UUID cursor = targetId;
+    private void ensureNotItselfOrDescendant(String projectId, String folderId, String targetId) {
+        String cursor = targetId;
         while (cursor != null) {
             if (cursor.equals(folderId)) {
                 throw ArtifactErrorCode.FOLDER_MOVE_INTO_DESCENDANT.raise();
@@ -146,9 +148,9 @@ public class ArtifactFolderService {
      * 모양이 맞지 않는 것을 잘못된 요청이 아니라 없는 자리로 낸다. 사람이 손으로 고치거나 옛 링크를
      * 따라온 것이다.
      */
-    private static UUID readId(String rawId) {
+    private static String readId(String rawId) {
         try {
-            return UUID.fromString(rawId);
+            return NanoId.requireValid(rawId);
         } catch (IllegalArgumentException ignored) {
             throw ArtifactErrorCode.FOLDER_NOT_FOUND.raise();
         }

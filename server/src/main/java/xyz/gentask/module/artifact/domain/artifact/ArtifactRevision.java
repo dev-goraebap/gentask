@@ -23,7 +23,7 @@ public final class ArtifactRevision {
     @NonNull private final UUID id;
 
     // 딸린 아티팩트
-    @NonNull private final UUID artifactId;
+    @NonNull private final String artifactId;
 
     // 아티팩트 안의 번호. 사람이 몇 번째 개정인지를 이 값으로 부른다
     private final int revisionNo;
@@ -49,7 +49,7 @@ public final class ArtifactRevision {
     /** 아티팩트를 세우는 것이 곧 이 개정을 남기는 것이다(DOC-001). */
     public static ArtifactRevision first(
             UUID id,
-            UUID artifactId,
+            String artifactId,
             ArtifactTitle title,
             ArtifactBody body,
             RevisionComment comment,
@@ -60,7 +60,7 @@ public final class ArtifactRevision {
 
     public static ArtifactRevision restore(
             UUID id,
-            UUID artifactId,
+            String artifactId,
             int revisionNo,
             ArtifactTitle title,
             ArtifactBody body,

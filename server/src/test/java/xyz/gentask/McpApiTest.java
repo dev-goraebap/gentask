@@ -160,18 +160,18 @@ class McpApiTest {
                         .getResponse()
                         .getContentAsString());
         assertThat(detail.path("body").asText()).isEqualTo("# 변경한 본문");
-        assertThat(detail.path("revisionNo").asInt()).isEqualTo(2);
+        assertThat(detail.path("versionNo").asInt()).isEqualTo(2);
         assertThat(detail.path("summary").path("folderId").asText()).isEqualTo(folderId);
         assertThat(데이터(호출(token, "get_artifact", Map.of("projectId", projectId, "artifactId", artifactId))))
                 .isEqualTo(detail);
         var history =
-                데이터(호출(token, "list_artifact_revisions", Map.of("projectId", projectId, "artifactId", artifactId)));
+                데이터(호출(token, "list_artifact_versions", Map.of("projectId", projectId, "artifactId", artifactId)));
         assertThat(history.path("total").asInt()).isEqualTo(2);
         assertThat(history.path("items").get(0).path("comment").asText()).isEqualTo("React 기준으로 수정한다");
         assertThat(데이터(호출(
                                 token,
-                                "get_artifact_revision",
-                                Map.of("projectId", projectId, "artifactId", artifactId, "revisionNo", "1")))
+                                "get_artifact_version",
+                                Map.of("projectId", projectId, "artifactId", artifactId, "versionNo", "1")))
                         .path("body")
                         .asText())
                 .isEqualTo("# 첫 본문");
@@ -198,8 +198,8 @@ class McpApiTest {
             "create_artifact_folder",
             "create_artifact",
             "update_artifact",
-            "list_artifact_revisions",
-            "get_artifact_revision"
+            "list_artifact_versions",
+            "get_artifact_version"
         }) {
             var result = 호출(
                     otherToken,
@@ -215,7 +215,7 @@ class McpApiTest {
                             "침범",
                             "name",
                             "침범",
-                            "revisionNo",
+                            "versionNo",
                             "1"));
             assertThat(result.path("isError").asBoolean()).as(name).isTrue();
             assertThat(내용(result).path("code").asText()).isEqualTo("PROJECT_NOT_FOUND");

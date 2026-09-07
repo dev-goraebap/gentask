@@ -41,7 +41,7 @@ public class ArtifactFolderController {
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> add(
             @CurrentUser UUID userId, @PathVariable String projectId, @Valid @RequestBody CreateFolder request) {
-        UUID folderId = artifactFolderService.add(userId, projectId, request.name(), request.parentId());
+        String folderId = artifactFolderService.add(userId, projectId, request.name(), request.parentId());
         return ResponseEntity.created(URI.create("/api/v1/projects/" + projectId + "/artifact-folders/" + folderId))
                 .build();
     }

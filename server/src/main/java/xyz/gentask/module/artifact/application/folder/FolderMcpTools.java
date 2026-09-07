@@ -35,7 +35,7 @@ public class FolderMcpTools {
             McpTransportContext context,
             @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
             @McpToolParam(description = "폴더 이름", required = true) String name,
-            @McpToolParam(description = "상위 폴더 UUID", required = false) String parentId) {
+            @McpToolParam(description = "상위 폴더 NanoID", required = false) String parentId) {
         return results.call(() -> {
             var request = results.validate(new ArtifactRequests.CreateFolder(name, parentId));
             return Map.of("id", folders.add(results.userId(context), projectId, request.name(), request.parentId()));

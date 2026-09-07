@@ -33,7 +33,7 @@ class JooqIssueQuery implements IssueQuery {
     private final DSLContext dslContext;
 
     @Override
-    public List<IssueSummary> findAll(UUID projectId) {
+    public List<IssueSummary> findAll(String projectId) {
         String key = keyOf(projectId);
         List<IssuesRecord> records = dslContext
                 .selectFrom(ISSUES)
@@ -63,7 +63,7 @@ class JooqIssueQuery implements IssueQuery {
     }
 
     @Override
-    public Optional<IssueView> findOne(UUID projectId, int number) {
+    public Optional<IssueView> findOne(String projectId, int number) {
         return dslContext
                 .selectFrom(ISSUES)
                 .where(ISSUES.PROJECT_ID.eq(projectId))
@@ -73,7 +73,7 @@ class JooqIssueQuery implements IssueQuery {
     }
 
     // --- 내부 --------------------------------------------------------------------------------------------------------
-    private String keyOf(UUID projectId) {
+    private String keyOf(String projectId) {
         return dslContext
                 .select(PROJECTS.KEY)
                 .from(PROJECTS)
@@ -82,7 +82,7 @@ class JooqIssueQuery implements IssueQuery {
                 .orElseThrow(() -> new IllegalStateException("프로젝트 없이 작업 아이템을 낼 수 없다"));
     }
 
-    private IssueView toView(IssuesRecord issuesRecord, UUID projectId) {
+    private IssueView toView(IssuesRecord issuesRecord, String projectId) {
         List<AcceptanceCriterion> criteria = AcceptanceCriterion.readFrom(IssueBody.of(issuesRecord.getBody()));
 
         // 상세 조회를 위해 상위 작업 일련번호 및 하위 작업 수를 집계한다.

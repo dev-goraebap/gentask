@@ -28,25 +28,25 @@ public class ArtifactMcpTools {
 
     @McpTool(
             name = "get_artifact",
-            description = "아티팩트의 마크다운 원문, 제목, 현재 개정 번호를 조회한다.",
+            description = "아티팩트의 마크다운 원문, 제목, 현재 버전 번호를 조회한다.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult getArtifact(
             McpTransportContext context,
             @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
-            @McpToolParam(description = "아티팩트 UUID", required = true) String artifactId) {
+            @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId) {
         return results.call(() -> artifacts.detail(results.userId(context), projectId, artifactId));
     }
 
     @McpTool(
             name = "create_artifact",
-            description = "마크다운 아티팩트를 생성하고 식별자를 반환한다. folderId를 생략하면 최상위에 생성한다. 첫 개정이 함께 기록된다.",
+            description = "마크다운 아티팩트를 생성하고 식별자를 반환한다. folderId를 생략하면 최상위에 생성한다. 첫 버전이 함께 기록된다.",
             annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
     public CallToolResult createArtifact(
             McpTransportContext context,
             @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
             @McpToolParam(description = "제목", required = true) String title,
             @McpToolParam(description = "마크다운 원문", required = true) String body,
-            @McpToolParam(description = "대상 폴더 UUID", required = false) String folderId) {
+            @McpToolParam(description = "대상 폴더 NanoID", required = false) String folderId) {
         return results.call(() -> {
             var request = results.validate(new ArtifactRequests.CreateArtifact(title, body, folderId));
             return Map.of(
@@ -58,15 +58,15 @@ public class ArtifactMcpTools {
 
     @McpTool(
             name = "update_artifact",
-            description = "제목과 마크다운 본문 전체를 교체하고 개정을 기록한다. 수정 전 get_artifact로 최신 본문을 확인한다. 현재 동시 편집 충돌 검사는 제공하지 않는다.",
+            description = "제목과 마크다운 본문 전체를 교체하고 버전을 기록한다. 수정 전 get_artifact로 최신 본문을 확인한다. 현재 동시 편집 충돌 검사는 제공하지 않는다.",
             annotations = @McpAnnotations(destructiveHint = true, openWorldHint = false))
     public CallToolResult updateArtifact(
             McpTransportContext context,
             @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
-            @McpToolParam(description = "아티팩트 UUID", required = true) String artifactId,
+            @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
             @McpToolParam(description = "새 제목", required = true) String title,
             @McpToolParam(description = "새 마크다운 본문 전체", required = true) String body,
-            @McpToolParam(description = "개정 사유", required = false) String comment) {
+            @McpToolParam(description = "버전 사유", required = false) String comment) {
         return results.call(() -> {
             var request = results.validate(new ArtifactRequests.EditArtifact(title, body, comment));
             artifacts.edit(
@@ -76,13 +76,13 @@ public class ArtifactMcpTools {
     }
 
     @McpTool(
-            name = "list_artifact_revisions",
-            description = "아티팩트 개정 이력을 최신순으로 조회한다. page는 0부터, size는 최대 100이다.",
+            name = "list_artifact_versions",
+            description = "아티팩트 버전 이력을 최신순으로 조회한다. page는 0부터, size는 최대 100이다.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult listRevisions(
             McpTransportContext context,
             @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
-            @McpToolParam(description = "아티팩트 UUID", required = true) String artifactId,
+            @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
             @McpToolParam(description = "0부터 시작하는 페이지", required = false) Integer page,
             @McpToolParam(description = "페이지 크기. 기본 25, 최대 100", required = false) Integer size) {
         return results.call(() -> artifacts.revisions(
@@ -90,14 +90,14 @@ public class ArtifactMcpTools {
     }
 
     @McpTool(
-            name = "get_artifact_revision",
-            description = "지정한 개정의 제목과 마크다운 본문을 조회한다.",
+            name = "get_artifact_version",
+            description = "지정한 버전의 제목과 마크다운 본문을 조회한다.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult getRevision(
             McpTransportContext context,
             @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
-            @McpToolParam(description = "아티팩트 UUID", required = true) String artifactId,
-            @McpToolParam(description = "1부터 시작하는 개정 번호", required = true) String revisionNo) {
-        return results.call(() -> artifacts.revision(results.userId(context), projectId, artifactId, revisionNo));
+            @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
+            @McpToolParam(description = "1부터 시작하는 버전 번호", required = true) String versionNo) {
+        return results.call(() -> artifacts.revision(results.userId(context), projectId, artifactId, versionNo));
     }
 }

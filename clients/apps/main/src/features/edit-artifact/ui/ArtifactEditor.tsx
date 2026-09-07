@@ -10,7 +10,7 @@ export function ArtifactEditor({ projectId, folderId, artifact, onClose, onSaved
 }) {
   const [title, setTitle] = useState(artifact?.summary.title ?? '');
   const [body, setBody] = useState(artifact?.body ?? '');
-  const revision = useRef(artifact?.revisionNo);
+  const version = useRef(artifact?.versionNo);
   const client = useQueryClient();
   const toast = useToast();
   const label = artifact ? '아티팩트 편집' : '새 아티팩트';
@@ -18,7 +18,7 @@ export function ArtifactEditor({ projectId, folderId, artifact, onClose, onSaved
     mutationFn: async () => {
       if (!artifact) return createArtifact(projectId, { folderId, title: title.trim(), body });
       const latest = await client.fetchQuery({ ...artifactOptions(projectId, artifact.summary.id), staleTime: 0 });
-      if (latest.revisionNo !== revision.current) throw new Error('편집 중 새 개정이 저장됐습니다. 작성한 내용을 복사한 뒤 편집기를 다시 열어 확인해 주세요.');
+      if (latest.versionNo !== version.current) throw new Error('편집 중 새 버전이 저장됐습니다. 작성한 내용을 복사한 뒤 편집기를 다시 열어 확인해 주세요.');
       await editArtifact(projectId, artifact.summary.id, { title: title.trim(), body });
       return artifact.summary.id;
     },

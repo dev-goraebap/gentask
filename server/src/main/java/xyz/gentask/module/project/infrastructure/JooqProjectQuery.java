@@ -36,15 +36,14 @@ class JooqProjectQuery implements ProjectQuery {
     }
 
     @Override
-    public Optional<ProjectView> findOne(UUID ownerId, String publicId) {
-        return fetch(PROJECTS.OWNER_ID.eq(ownerId).and(PROJECTS.PUBLIC_ID.eq(publicId))).stream()
+    public Optional<ProjectView> findOne(UUID ownerId, String id) {
+        return fetch(PROJECTS.OWNER_ID.eq(ownerId).and(PROJECTS.ID.eq(id))).stream()
                 .findFirst();
     }
 
     private List<ProjectView> fetch(Condition condition) {
         return dslContext
-                // 클라이언트에 노출하는 식별자는 URL용 공개 식별자(publicId)다.
-                .select(PROJECTS.PUBLIC_ID, PROJECTS.NAME, PROJECTS.KEY, ISSUE_COUNT)
+                .select(PROJECTS.ID, PROJECTS.NAME, PROJECTS.KEY, ISSUE_COUNT)
                 .from(PROJECTS)
                 .where(condition)
                 .orderBy(PROJECTS.CREATED_AT.asc())

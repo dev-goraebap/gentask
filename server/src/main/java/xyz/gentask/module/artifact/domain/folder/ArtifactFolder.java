@@ -17,13 +17,13 @@ import lombok.NonNull;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ArtifactFolder {
 
-    @NonNull private final UUID id;
+    @NonNull private final String id;
 
-    @NonNull private final UUID projectId;
+    @NonNull private final String projectId;
 
     @NonNull private ArtifactFolderName name;
 
-    private UUID parentId;
+    private String parentId;
 
     @NonNull private final Instant createdAt;
 
@@ -34,15 +34,15 @@ public final class ArtifactFolder {
     @NonNull private UUID updatedBy;
 
     public static ArtifactFolder create(
-            UUID id, UUID projectId, ArtifactFolderName name, UUID parentId, UUID authorId, Instant now) {
+            String id, String projectId, ArtifactFolderName name, String parentId, UUID authorId, Instant now) {
         return new ArtifactFolder(id, projectId, name, parentId, now, authorId, now, authorId);
     }
 
     public static ArtifactFolder restore(
-            UUID id,
-            UUID projectId,
+            String id,
+            String projectId,
             ArtifactFolderName name,
-            UUID parentId,
+            String parentId,
             Instant createdAt,
             UUID createdBy,
             Instant updatedAt,
@@ -50,7 +50,7 @@ public final class ArtifactFolder {
         return new ArtifactFolder(id, projectId, name, parentId, createdAt, createdBy, updatedAt, updatedBy);
     }
 
-    public boolean belongsTo(@NonNull UUID candidateProjectId) {
+    public boolean belongsTo(@NonNull String candidateProjectId) {
         return projectId.equals(candidateProjectId);
     }
 
@@ -65,7 +65,7 @@ public final class ArtifactFolder {
      * 상위 폴더를 변경하여 폴더를 이동한다(DOC-008 A5).
      * null인 경우 최상위 루트로 이동한다. 순환 참조 검증은 호출 측에서 수행한다(DOC-008 A6).
      */
-    public void moveTo(UUID parentId, @NonNull UUID editorId, Instant now) {
+    public void moveTo(String parentId, @NonNull UUID editorId, Instant now) {
         this.parentId = parentId;
         this.updatedAt = now;
         this.updatedBy = editorId;

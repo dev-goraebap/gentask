@@ -15,7 +15,7 @@ import {
     EmptyState,
     Heading,
     HStack,
-    Item,
+    ListItem,
     Layout,
     LayoutContent,
     LayoutHeader,
@@ -166,11 +166,11 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
           </HStack>
           {folderId && !currentFolder ? <EmptyState title="폴더를 찾을 수 없습니다"
             actions={<Button label="전체 아티팩트로" onClick={() => onFolderChange(null)} />} /> : <>
-            {folders.length || matched.length ? <List hasDividers style={{ marginInline: mobile ? 'calc(-1 * var(--spacing-3))' : 'calc(-1 * var(--spacing-2))' }}>
+            {folders.length || matched.length ? <List hasDividers density={mobile ? 'spacious' : 'balanced'} style={{ marginInline: mobile ? 'calc(-1 * var(--spacing-3))' : 'calc(-1 * var(--spacing-2))' }}>
               {visible.map((entry) => entry.kind === 'folder' ?
-                <Item key={entry.folder.id} as="li" label={entry.folder.title} density={mobile ? 'spacious' : 'balanced'}
+                <ListItem key={entry.folder.id} label={entry.folder.title}
                   startContent={<HgiFolder size={16} />} onClick={() => onFolderChange(entry.folder.id)} description="폴더" /> :
-                <Item key={entry.doc.id} as="li" label={entry.doc.title} density={mobile ? 'spacious' : 'balanced'} labelLines={mobile ? 2 : 1}
+                <ListItem key={entry.doc.id} label={<Text type="inherit" maxLines={mobile ? 2 : 1}>{entry.doc.title}</Text>}
                   startContent={<HgiFile size={15} />} onClick={() => onOpen(entry.doc.id)}
                   description={`수정 ${new Date(entry.doc.updatedAt).toLocaleString('ko-KR')}`} />)}
             </List> : <EmptyState icon={isFiltered ? <HgiSearchEmpty /> : <HgiFolder />}

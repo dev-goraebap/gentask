@@ -32,3 +32,12 @@ export async function createFolder(projectId: string, input: components['schemas
   const result = await request(base(projectId) + '/artifact-folders', { method: 'POST', body: JSON.stringify(input) });
   return createdId(result.location);
 }
+
+export const versionsOptions = (projectId: string, artifactId: string, page = 0) => queryOptions({
+  queryKey: [...artifactKeys.all(projectId), 'history', artifactId, page],
+  queryFn: ({ signal }) => get<components['schemas']['VersionPageView']>(base(projectId) + '/artifacts/' + encodeURIComponent(artifactId) + '/versions?page=' + page + '&size=20', signal),
+});
+export const versionOptions = (projectId: string, artifactId: string, versionNo: number) => queryOptions({
+  queryKey: [...artifactKeys.all(projectId), 'version', artifactId, versionNo],
+  queryFn: ({ signal }) => get<components['schemas']['VersionView']>(base(projectId) + '/artifacts/' + encodeURIComponent(artifactId) + '/versions/' + versionNo, signal),
+});

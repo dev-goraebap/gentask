@@ -1,9 +1,9 @@
-import type { SearchSchemaInput } from '@tanstack/react-router';
+import { stripSearchParams, type SearchSchemaInput } from '@tanstack/react-router';
 import { parseListingSearch, type ListingSearch } from '@/shared/ui/listing';
 import type { QueryClient } from '@tanstack/react-query';
 import { sessionOptions } from '@/entities/session';
 import { projectsOptions } from '@/entities/workspace';
-import { artifactsOptions, artifactOptions, foldersOptions } from '@/entities/artifact';
+import { artifactsOptions, artifactOptions, foldersOptions, parseVersionSearch } from '@/entities/artifact';
 import { ApiError } from '@/shared/api';
 import { UnavailablePage } from '@/pages/unavailable';
 import { RootLayout } from './RootLayout';
@@ -107,7 +107,11 @@ export const docsRoute = createRoute({
 export const docRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/projects/$projectId/artifacts/$docId',
-  validateSearch: (search: Partial<ListingSearch> & SearchSchemaInput) => parseListingSearch(search, ['title', 'updated'], 'title'),
+  validateSearch: (search: Partial<ListingSearch> & { version?: number | string } & SearchSchemaInput) => ({
+    ...parseListingSearch(search, ['title', 'updated'], 'title'),
+    version: parseVersionSearch(search.version),
+  }),
+  search: { middlewares: [stripSearchParams({ q: '', sort: 'title', direction: 'asc', page: 1, size: 25 })] },
   loader: ({ context, params }) => context.queryClient.ensureQueryData({ ...artifactOptions(params.projectId, params.docId), revalidateIfStale: true }),
   component: DocRoute,
 });

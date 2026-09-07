@@ -35,10 +35,10 @@ CREATE TABLE blobs (
 );
 
 CREATE TABLE artifact_folders (
-    id uuid NOT NULL,
-    project_id uuid NOT NULL,
+    id varchar(12) NOT NULL,
+    project_id varchar(12) NOT NULL,
     name varchar(200) NOT NULL,
-    parent_id uuid,
+    parent_id varchar(12),
     created_at timestamptz NOT NULL,
     created_by uuid NOT NULL,
     updated_at timestamptz NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE artifact_folders (
 
 CREATE TABLE artifact_revisions (
     id uuid NOT NULL,
-    artifact_id uuid NOT NULL,
+    artifact_id varchar(12) NOT NULL,
     revision_no integer NOT NULL,
     title varchar(200) NOT NULL,
     body text DEFAULT '' NOT NULL,
@@ -62,8 +62,8 @@ CREATE TABLE artifact_revisions (
 );
 
 CREATE TABLE artifacts (
-    id uuid NOT NULL,
-    project_id uuid NOT NULL,
+    id varchar(12) NOT NULL,
+    project_id varchar(12) NOT NULL,
     title varchar(200) NOT NULL,
     head_revision_id uuid,
     deleted_at timestamptz,
@@ -72,14 +72,14 @@ CREATE TABLE artifacts (
     created_by uuid NOT NULL,
     updated_at timestamptz NOT NULL,
     updated_by uuid NOT NULL,
-    folder_id uuid,
+    folder_id varchar(12),
     CONSTRAINT ck_artifacts_deleted CHECK ((deleted_at is null and deleted_by is null) or (deleted_at is not null and deleted_by is not null)),
     CONSTRAINT ck_artifacts_title_not_blank CHECK (btrim(title) <> '')
 );
 
 CREATE TABLE issues (
     id uuid NOT NULL,
-    project_id uuid NOT NULL,
+    project_id varchar(12) NOT NULL,
     number integer NOT NULL,
     kind varchar(20) NOT NULL,
     state varchar(20) NOT NULL,
@@ -110,14 +110,13 @@ CREATE TABLE pending_uploads (
 );
 
 CREATE TABLE projects (
-    id uuid NOT NULL,
+    id varchar(12) NOT NULL,
     owner_id uuid NOT NULL,
     name varchar(100) NOT NULL,
     key varchar(10) NOT NULL,
     next_number integer DEFAULT 1 NOT NULL,
     created_at timestamptz NOT NULL,
     updated_at timestamptz NOT NULL,
-    public_id varchar(16) NOT NULL,
     CONSTRAINT ck_projects_key_not_blank CHECK (btrim(key) <> ''),
     CONSTRAINT ck_projects_next_number CHECK (next_number >= 1)
 );
@@ -264,8 +263,6 @@ ALTER TABLE issues
 ALTER TABLE pending_uploads
     ADD CONSTRAINT uq_pending_uploads_storage_key UNIQUE (storage_key);
 
-ALTER TABLE projects
-    ADD CONSTRAINT uq_projects_public_id UNIQUE (public_id);
 
 ALTER TABLE push_subscriptions
     ADD CONSTRAINT uq_push_subscriptions_endpoint UNIQUE (endpoint);

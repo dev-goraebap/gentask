@@ -8,7 +8,6 @@ import static xyz.gentask.jooq.Tables.USERS;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -22,8 +21,8 @@ import xyz.gentask.module.artifact.application.artifact.ArtifactQuery;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.ArtifactSummary;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.ArtifactView;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.FolderSummary;
-import xyz.gentask.module.artifact.application.artifact.ArtifactViews.RevisionSummary;
-import xyz.gentask.module.artifact.application.artifact.ArtifactViews.RevisionView;
+import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionSummary;
+import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionView;
 
 /**
  * 아티팩트 목록 및 상세 조회를 담당하는 jOOQ 쿼리 구현체다.
@@ -35,7 +34,7 @@ class JooqArtifactQuery implements ArtifactQuery {
     private final DSLContext dslContext;
 
     @Override
-    public List<ArtifactSummary> findAll(UUID projectId) {
+    public List<ArtifactSummary> findAll(String projectId) {
         return dslContext
                 .select(ARTIFACTS.ID, ARTIFACTS.TITLE, ARTIFACTS.FOLDER_ID, ARTIFACTS.CREATED_AT, ARTIFACTS.UPDATED_AT)
                 .from(ARTIFACTS)
@@ -49,7 +48,7 @@ class JooqArtifactQuery implements ArtifactQuery {
      * 폴더별 하위 아티팩트 및 자식 폴더 수를 집계한다(DOC-008 A7).
      */
     @Override
-    public List<FolderSummary> findFolders(UUID projectId) {
+    public List<FolderSummary> findFolders(String projectId) {
         ArtifactFolders child = ARTIFACT_FOLDERS.as("child");
         Field<Integer> artifactCount = DSL.selectCount()
                 .from(ARTIFACTS)
@@ -84,7 +83,8 @@ class JooqArtifactQuery implements ArtifactQuery {
     }
 
     @Override
-    public Optional<ArtifactView> findOne(UUID projectId, UUID artifactId) {
+    public Optional<ArtifactView> findOne(String projectId, String artifactId) {
+        var editor = USERS.as("editor");
         return dslContext
                 .select(
                         ARTIFACTS.ID,
@@ -94,12 +94,15 @@ class JooqArtifactQuery implements ArtifactQuery {
                         ARTIFACTS.UPDATED_AT,
                         ARTIFACT_REVISIONS.BODY,
                         ARTIFACT_REVISIONS.REVISION_NO,
-                        USERS.NICKNAME)
+                        USERS.NICKNAME,
+                        editor.NICKNAME)
                 .from(ARTIFACTS)
                 .join(ARTIFACT_REVISIONS)
                 .on(ARTIFACT_REVISIONS.ID.eq(ARTIFACTS.HEAD_REVISION_ID))
                 .leftJoin(USERS)
                 .on(USERS.ID.eq(ARTIFACTS.CREATED_BY))
+                .leftJoin(editor)
+                .on(editor.ID.eq(ARTIFACTS.UPDATED_BY))
                 .where(ARTIFACTS.ID.eq(artifactId))
                 .and(ARTIFACTS.PROJECT_ID.eq(projectId))
                 .and(ARTIFACTS.DELETED_AT.isNull())
@@ -113,11 +116,12 @@ class JooqArtifactQuery implements ArtifactQuery {
                                 record.get(ARTIFACTS.UPDATED_AT)),
                         record.get(ARTIFACT_REVISIONS.BODY),
                         record.get(ARTIFACT_REVISIONS.REVISION_NO),
-                        record.get(USERS.NICKNAME) == null ? "" : record.get(USERS.NICKNAME)));
+                        record.get(USERS.NICKNAME) == null ? "" : record.get(USERS.NICKNAME),
+                        record.get(editor.NICKNAME) == null ? "" : record.get(editor.NICKNAME)));
     }
 
     @Override
-    public List<RevisionSummary> findRevisions(UUID projectId, UUID artifactId, int limit, int offset) {
+    public List<VersionSummary> findRevisions(String projectId, String artifactId, int limit, int offset) {
         return dslContext
                 .select(
                         ARTIFACT_REVISIONS.REVISION_NO,
@@ -133,11 +137,11 @@ class JooqArtifactQuery implements ArtifactQuery {
                 .orderBy(ARTIFACT_REVISIONS.REVISION_NO.desc())
                 .limit(limit)
                 .offset(offset)
-                .fetch(JooqArtifactQuery::toRevisionSummary);
+                .fetch(JooqArtifactQuery::toVersionSummary);
     }
 
     @Override
-    public long countRevisions(UUID projectId, UUID artifactId) {
+    public long countRevisions(String projectId, String artifactId) {
         return dslContext
                 .selectCount()
                 .from(ARTIFACT_REVISIONS)
@@ -149,7 +153,7 @@ class JooqArtifactQuery implements ArtifactQuery {
     }
 
     @Override
-    public Optional<RevisionView> findRevision(UUID projectId, UUID artifactId, int revisionNo) {
+    public Optional<VersionView> findRevision(String projectId, String artifactId, int revisionNo) {
         return dslContext
                 .select(
                         ARTIFACT_REVISIONS.REVISION_NO,
@@ -166,14 +170,14 @@ class JooqArtifactQuery implements ArtifactQuery {
                 .where(livingArtifact(projectId, artifactId))
                 .and(ARTIFACT_REVISIONS.REVISION_NO.eq(revisionNo))
                 .fetchOptional()
-                .map(record -> new RevisionView(
-                        toRevisionSummary(record),
+                .map(record -> new VersionView(
+                        toVersionSummary(record),
                         record.get(ARTIFACT_REVISIONS.TITLE),
                         record.get(ARTIFACT_REVISIONS.BODY)));
     }
 
     /** 타 프로젝트 아티팩트 또는 논리 삭제된 아티팩트의 개정 이력 조회를 차단한다(DOC-004 A4, A5). */
-    private static Condition livingArtifact(UUID projectId, UUID artifactId) {
+    private static Condition livingArtifact(String projectId, String artifactId) {
         return ARTIFACTS
                 .ID
                 .eq(artifactId)
@@ -181,16 +185,16 @@ class JooqArtifactQuery implements ArtifactQuery {
                 .and(ARTIFACTS.DELETED_AT.isNull());
     }
 
-    private static RevisionSummary toRevisionSummary(Record record) {
+    private static VersionSummary toVersionSummary(Record record) {
         String nickname = record.get(USERS.NICKNAME);
-        return new RevisionSummary(
+        return new VersionSummary(
                 record.get(ARTIFACT_REVISIONS.REVISION_NO),
                 record.get(ARTIFACT_REVISIONS.CREATED_AT),
                 nickname == null ? "" : nickname,
                 record.get(ARTIFACT_REVISIONS.COMMENT));
     }
 
-    private static ArtifactSummary toSummary(Record5<UUID, String, UUID, Instant, Instant> record) {
+    private static ArtifactSummary toSummary(Record5<String, String, String, Instant, Instant> record) {
         return new ArtifactSummary(
                 record.get(ARTIFACTS.ID),
                 record.get(ARTIFACTS.TITLE),

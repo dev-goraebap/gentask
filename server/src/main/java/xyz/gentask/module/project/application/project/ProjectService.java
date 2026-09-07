@@ -14,9 +14,8 @@ import xyz.gentask.module.project.application.project.ProjectViews.ProjectView;
 import xyz.gentask.module.project.domain.project.Project;
 import xyz.gentask.module.project.domain.project.ProjectKey;
 import xyz.gentask.module.project.domain.project.ProjectName;
-import xyz.gentask.module.project.domain.project.ProjectPublicId;
 import xyz.gentask.module.project.domain.project.ProjectRepository;
-import xyz.gentask.shared.error.DomainRuleViolation;
+import xyz.gentask.shared.domain.NanoId;
 
 @Service
 @RequiredArgsConstructor
@@ -35,21 +34,19 @@ public class ProjectService implements ProjectCreationIn, ProjectAccessIn {
 
     @Transactional(readOnly = true)
     public ProjectView detail(UUID ownerId, String projectId) {
-        return projectQuery
-                .findOne(ownerId, readPublicId(projectId).value())
-                .orElseThrow(ProjectErrorCode.PROJECT_NOT_FOUND::raise);
+        return projectQuery.findOne(ownerId, readId(projectId)).orElseThrow(ProjectErrorCode.PROJECT_NOT_FOUND::raise);
     }
 
     /** 현재 접근 정책은 소유자에게만 허용한다. 멤버 권한 도입 시 이 구현에서 판정한다. */
     @Override
     @Transactional(readOnly = true)
-    public UUID requireAccess(UUID userId, String projectId) {
+    public String requireAccess(UUID userId, String projectId) {
         return find(userId, projectId).id();
     }
 
     private Project find(UUID ownerId, String projectId) {
         return projectRepository
-                .findByPublicId(ownerId, readPublicId(projectId))
+                .findById(ownerId, readId(projectId))
                 .orElseThrow(ProjectErrorCode.PROJECT_NOT_FOUND::raise);
     }
 
@@ -64,10 +61,10 @@ public class ProjectService implements ProjectCreationIn, ProjectAccessIn {
     @Transactional
     public String create(UUID ownerId, String name, String key) {
         Instant now = clock.instant();
-        Project project = Project.create(
-                UUID.randomUUID(), ProjectPublicId.generate(), ownerId, ProjectName.of(name), ProjectKey.of(key), now);
-        projectRepository.save(project);
-        return project.publicId().value();
+        Project project = NanoId.create(
+                id -> Project.create(id, ownerId, ProjectName.of(name), ProjectKey.of(key), now),
+                projectRepository::insert);
+        return project.id();
     }
 
     /** 넘긴 것만 바꾼다. 번호는 접두어를 따라 바뀌지 않는다. */
@@ -92,10 +89,10 @@ public class ProjectService implements ProjectCreationIn, ProjectAccessIn {
      * 모양이 맞지 않는 것을 잘못된 요청이 아니라 없는 자리로 낸다. 주소에 담긴 값이라 사람이 손으로
      * 고치거나 옛 링크를 따라온 것이며, 그때 보아야 하는 것은 400 이 아니라 없다는 말이다.
      */
-    private static ProjectPublicId readPublicId(String rawId) {
+    private static String readId(String rawId) {
         try {
-            return ProjectPublicId.of(rawId);
-        } catch (DomainRuleViolation ignored) {
+            return NanoId.requireValid(rawId);
+        } catch (IllegalArgumentException ignored) {
             throw ProjectErrorCode.PROJECT_NOT_FOUND.raise();
         }
     }

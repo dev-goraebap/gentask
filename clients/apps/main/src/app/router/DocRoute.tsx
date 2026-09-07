@@ -10,9 +10,11 @@ export function DocRoute() {
   const search = useSearch({ from: '/projects/$projectId/artifacts/$docId' });
   const query = useQuery(artifactOptions(projectId, docId));
   if (!query.data) return <RequestState error={query.error} retry={() => { void query.refetch(); }} />;
+  const { version, ...listingSearch } = search;
   return <>
     {query.isRefetchError ? <RequestState error={query.error} retry={() => { void query.refetch(); }} /> : null}
-    <ArtifactDetailPage key={projectId + ':' + docId} projectId={projectId} artifact={query.data}
-      onBack={() => navigate({ to: '/projects/$projectId/artifacts', params: { projectId }, search: { ...search, folder: query.data.summary.folderId ?? undefined } })} />
+    <ArtifactDetailPage key={projectId + ':' + docId} projectId={projectId} artifact={query.data} selectedVersion={version ?? null}
+      onSelectVersion={value => { void navigate({ to: '/projects/$projectId/artifacts/$docId', params: { projectId, docId }, search: { ...listingSearch, version: value ?? undefined } }); }}
+      onBack={() => navigate({ to: '/projects/$projectId/artifacts', params: { projectId }, search: { ...listingSearch, folder: query.data.summary.folderId ?? undefined } })} />
   </>;
 }

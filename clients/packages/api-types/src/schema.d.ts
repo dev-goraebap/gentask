@@ -164,7 +164,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions/{revisionNo}/revert": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/revert": {
         parameters: {
             query?: never;
             header?: never;
@@ -564,7 +564,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions": {
         parameters: {
             query?: never;
             header?: never;
@@ -580,7 +580,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifacts/{artifactId}/revisions/{revisionNo}": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}": {
         parameters: {
             query?: never;
             header?: never;
@@ -714,13 +714,10 @@ export interface components {
             title: string;
             /** @description 적지 않으면 빈 본문으로 선다 */
             body?: string;
-            /**
-             * Format: uuid
-             * @description 담을 폴더. 적지 않으면 뿌리에 선다
-             */
+            /** @description 담을 폴더. 적지 않으면 뿌리에 선다 */
             folderId?: string | null;
         };
-        RevertRevision: {
+        RevertVersion: {
             /** @description 왜 되돌리는지. 적지 않아도 된다 */
             comment?: string | null;
         };
@@ -848,7 +845,7 @@ export interface components {
             publicKey: string;
         };
         ProjectView: {
-            /** @description 주소가 담는 식별자 */
+            /** @description 프로젝트 NanoID */
             id: string;
             name: string;
             /** @description 작업 아이템 이름의 접두어 */
@@ -904,13 +901,9 @@ export interface components {
             createdAt: string;
         };
         ArtifactSummary: {
-            /** Format: uuid */
             id: string;
             title: string;
-            /**
-             * Format: uuid
-             * @description 담긴 폴더. 값이 없으면 뿌리에 선다
-             */
+            /** @description 담긴 폴더. 값이 없으면 뿌리에 선다 */
             folderId: string | null;
             /** Format: date-time */
             createdAt: string;
@@ -919,21 +912,23 @@ export interface components {
         };
         ArtifactView: {
             summary: components["schemas"]["ArtifactSummary"];
-            /** @description 지금 참인 개정의 본문. 마크다운 원문이다 */
+            /** @description 지금 참인 버전의 본문. 마크다운 원문이다 */
             body: string;
             /**
              * Format: int32
-             * @description 지금 참인 개정의 번호. 1부터 매긴다
+             * @description 지금 참인 버전의 번호. 1부터 매긴다
              */
-            revisionNo: number;
+            versionNo: number;
             /** @description 세운 사람의 별명 */
             authorName: string;
+            /** @description 최종 수정자의 닉네임 */
+            lastEditorName: string;
         };
-        RevisionPageView: {
-            items: components["schemas"]["RevisionSummary"][];
+        VersionPageView: {
+            items: components["schemas"]["VersionSummary"][];
             /**
              * Format: int64
-             * @description 이 아티팩트의 개정 전체 수
+             * @description 이 아티팩트의 버전 전체 수
              */
             total: number;
             /**
@@ -947,12 +942,12 @@ export interface components {
              */
             size: number;
         };
-        RevisionSummary: {
+        VersionSummary: {
             /**
              * Format: int32
-             * @description 아티팩트 안의 개정 번호. 1부터 매긴다
+             * @description 아티팩트 안의 버전 번호. 1부터 매긴다
              */
-            revisionNo: number;
+            versionNo: number;
             /** Format: date-time */
             createdAt: string;
             /** @description 남긴 사람의 별명 */
@@ -960,21 +955,17 @@ export interface components {
             /** @description 왜 고쳤는지. 적지 않았으면 값이 없다 */
             comment: string | null;
         };
-        RevisionView: {
-            summary: components["schemas"]["RevisionSummary"];
+        VersionView: {
+            summary: components["schemas"]["VersionSummary"];
             /** @description 그때의 제목 */
             title: string;
             /** @description 그때의 본문. 마크다운 원문이다 */
             body: string;
         };
         ArtifactFolderSummary: {
-            /** Format: uuid */
             id: string;
             name: string;
-            /**
-             * Format: uuid
-             * @description 담긴 자리. 값이 없으면 뿌리에 선다
-             */
+            /** @description 담긴 자리. 값이 없으면 뿌리에 선다 */
             parentId: string | null;
             /**
              * Format: int32
@@ -1472,13 +1463,13 @@ export interface operations {
             path: {
                 projectId: string;
                 artifactId: string;
-                revisionNo: string;
+                versionNo: string;
             };
             cookie?: never;
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["RevertRevision"];
+                "application/json": components["schemas"]["RevertVersion"];
             };
         };
         responses: {
@@ -2266,7 +2257,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["RevisionPageView"];
+                    "*/*": components["schemas"]["VersionPageView"];
                 };
             };
         };
@@ -2278,7 +2269,7 @@ export interface operations {
             path: {
                 projectId: string;
                 artifactId: string;
-                revisionNo: string;
+                versionNo: string;
             };
             cookie?: never;
         };
@@ -2290,7 +2281,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["RevisionView"];
+                    "*/*": components["schemas"]["VersionView"];
                 };
             };
         };

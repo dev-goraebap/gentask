@@ -12,7 +12,7 @@ public final class ArtifactRequests {
 
     private ArtifactRequests() {}
 
-    /** 세우는 것이 곧 첫 개정을 남기는 것이므로 본문을 여기서 함께 받는다(DOC-001). */
+    /** 세우는 것이 곧 첫 버전을 남기는 것이므로 본문을 여기서 함께 받는다(DOC-001). */
     public record CreateArtifact(
             @NotBlank(message = ArtifactTitle.REQUIRED) @Size(max = ArtifactTitle.MAX) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             String title,
@@ -23,7 +23,9 @@ public final class ArtifactRequests {
             @Schema(
                     description = "담을 폴더. 적지 않으면 뿌리에 선다",
                     types = {"string", "null"},
-                    format = "uuid")
+                    minLength = 12,
+                    maxLength = 12,
+                    pattern = "[0-9A-Za-z_-]{12}")
             String folderId) {}
 
     /**
@@ -68,9 +70,9 @@ public final class ArtifactRequests {
             String parentId) {}
 
     /**
-     * 고치는 것은 제목과 본문 둘이며 개정 사유를 함께 받는다.
+     * 고치는 것은 제목과 본문 둘이며 버전 사유를 함께 받는다.
      *
-     * 앞의 개정과 같은 것을 담으면 개정을 만들지 않는다(DOC-003 A2).
+     * 앞의 버전과 같은 것을 담으면 버전을 만들지 않는다(DOC-003 A2).
      */
     public record EditArtifact(
             @NotBlank(message = ArtifactTitle.REQUIRED) @Size(max = ArtifactTitle.MAX) @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -85,12 +87,12 @@ public final class ArtifactRequests {
             String comment) {}
 
     /**
-     * 되돌리기. 되돌아갈 개정은 주소가 담으므로 여기 담는 것은 왜 되돌리는지뿐이다.
+     * 되돌리기. 되돌아갈 버전은 주소가 담으므로 여기 담는 것은 왜 되돌리는지뿐이다.
      *
-     * 적지 않아도 되며, 적지 않으면 몇 번째 개정으로 되돌렸는지를 시스템이 사유 자리에 적는다
+     * 적지 않아도 되며, 적지 않으면 몇 번째 버전으로 되돌렸는지를 시스템이 사유 자리에 적는다
      * (DOC-005 A3).
      */
-    public record RevertRevision(
+    public record RevertVersion(
             @Size(max = RevisionComment.MAX) @Schema(
                     description = "왜 되돌리는지. 적지 않아도 된다",
                     types = {"string", "null"})

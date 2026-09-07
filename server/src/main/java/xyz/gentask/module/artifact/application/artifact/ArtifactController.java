@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 import xyz.gentask.module.artifact.application.artifact.ArtifactRequests.CreateArtifact;
 import xyz.gentask.module.artifact.application.artifact.ArtifactRequests.EditArtifact;
 import xyz.gentask.module.artifact.application.artifact.ArtifactRequests.MoveArtifact;
-import xyz.gentask.module.artifact.application.artifact.ArtifactRequests.RevertRevision;
+import xyz.gentask.module.artifact.application.artifact.ArtifactRequests.RevertVersion;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.ArtifactSummary;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.ArtifactView;
-import xyz.gentask.module.artifact.application.artifact.ArtifactViews.RevisionPageView;
-import xyz.gentask.module.artifact.application.artifact.ArtifactViews.RevisionView;
+import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionPageView;
+import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionView;
 import xyz.gentask.shared.web.CurrentUser;
 
 /**
@@ -45,7 +45,7 @@ public class ArtifactController {
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> add(
             @CurrentUser UUID userId, @PathVariable String projectId, @Valid @RequestBody CreateArtifact request) {
-        UUID artifactId = artifactService.add(userId, projectId, request.title(), request.body(), request.folderId());
+        String artifactId = artifactService.add(userId, projectId, request.title(), request.body(), request.folderId());
         return ResponseEntity.created(URI.create("/api/v1/projects/" + projectId + "/artifacts/" + artifactId))
                 .build();
     }
@@ -74,7 +74,7 @@ public class ArtifactController {
     /**
      * 아티팩트를 다른 자리로 옮긴다(DOC-006).
      *
-     * 고치는 자리에 얹지 않는다. 그쪽은 제목과 본문을 담아 개정을 남기는 길인데 옮기는 것은 개정이
+     * 고치는 자리에 얹지 않는다. 그쪽은 제목과 본문을 담아 버전을 남기는 길인데 옮기는 것은 버전이
      * 아니며, 최상위로 옮기는 것이 값을 비우는 일이라 한 몸에 담으면 "적지 않았다"와 "뿌리로"가 같은
      * 모양이 된다.
      */
@@ -88,8 +88,8 @@ public class ArtifactController {
         artifactService.move(userId, projectId, artifactId, request == null ? null : request.folderId());
     }
 
-    @GetMapping("/{artifactId}/revisions")
-    public RevisionPageView revisions(
+    @GetMapping("/{artifactId}/versions")
+    public VersionPageView revisions(
             @CurrentUser UUID userId,
             @PathVariable String projectId,
             @PathVariable String artifactId,
@@ -98,29 +98,29 @@ public class ArtifactController {
         return artifactService.revisions(userId, projectId, artifactId, page, size);
     }
 
-    @GetMapping("/{artifactId}/revisions/{revisionNo}")
-    public RevisionView revision(
+    @GetMapping("/{artifactId}/versions/{versionNo}")
+    public VersionView revision(
             @CurrentUser UUID userId,
             @PathVariable String projectId,
             @PathVariable String artifactId,
-            @PathVariable String revisionNo) {
-        return artifactService.revision(userId, projectId, artifactId, revisionNo);
+            @PathVariable String versionNo) {
+        return artifactService.revision(userId, projectId, artifactId, versionNo);
     }
 
     /**
      * 되돌리기.
      *
      * 경로에 동사를 두지 않는다는 BE-STY-079 의 예외다. 되돌리기가 만드는 것은 아직 번호가 없는 새
-     * 개정이라 그것을 가리키는 자리에 PUT 이나 PATCH 를 걸 수 없고, 이력 자체는 고칠 수 없는 자원이다.
+     * 버전이라 그것을 가리키는 자리에 PUT 이나 PATCH 를 걸 수 없고, 이력 자체는 고칠 수 없는 자원이다.
      */
-    @PostMapping("/{artifactId}/revisions/{revisionNo}/revert")
+    @PostMapping("/{artifactId}/versions/{versionNo}/revert")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void revert(
             @CurrentUser UUID userId,
             @PathVariable String projectId,
             @PathVariable String artifactId,
-            @PathVariable String revisionNo,
-            @Valid @RequestBody(required = false) RevertRevision request) {
-        artifactService.revert(userId, projectId, artifactId, revisionNo, request == null ? null : request.comment());
+            @PathVariable String versionNo,
+            @Valid @RequestBody(required = false) RevertVersion request) {
+        artifactService.revert(userId, projectId, artifactId, versionNo, request == null ? null : request.comment());
     }
 }

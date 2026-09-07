@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import xyz.gentask.AuthTestSupport;
 import xyz.gentask.FakeMailConfiguration;
 import xyz.gentask.TestcontainersConfiguration;
-import xyz.gentask.module.project.domain.project.ProjectPublicId;
+import xyz.gentask.shared.domain.NanoId;
 import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 
 @SpringBootTest
@@ -32,6 +32,26 @@ import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 @Import({TestcontainersConfiguration.class, FakeMailConfiguration.class})
 @Transactional
 class ProjectApiTest {
+    @Autowired
+    private org.jooq.DSLContext dsl;
+
+    @Autowired
+    private xyz.gentask.module.project.domain.project.ProjectRepository projects;
+
+    @Test
+    void 기본키가_충돌하면_기존_프로젝트를_덮어쓰지_않는다() throws Exception {
+        String id = 프로젝트를_세운다("원본", "GT");
+        var table = xyz.gentask.jooq.Tables.PROJECTS;
+        var original = dsl.selectFrom(table).where(table.ID.eq(id)).fetchSingle();
+        var duplicate = xyz.gentask.module.project.domain.project.Project.create(
+                id,
+                original.getOwnerId(),
+                xyz.gentask.module.project.domain.project.ProjectName.of("덮어쓸 이름"),
+                xyz.gentask.module.project.domain.project.ProjectKey.of("XX"),
+                java.time.Instant.now());
+        assertThat(projects.insert(duplicate)).isFalse();
+        assertThat(dsl.selectFrom(table).where(table.ID.eq(id)).fetchSingle()).isEqualTo(original);
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -61,7 +81,7 @@ class ProjectApiTest {
         String projectId = 프로젝트를_세운다("Gentask Tracker", "GT");
 
         // 식별자는 사용자가 지정하지 않으며 이름 및 접두어와 무관한 난수형 식별자로 생성한다.
-        assertThat(projectId).hasSize(ProjectPublicId.LENGTH).isNotEqualToIgnoringCase("GT");
+        assertThat(projectId).hasSize(NanoId.LENGTH).isNotEqualToIgnoringCase("GT");
 
         mockMvc.perform(get("/api/v1/projects/{projectId}", projectId).cookie(session))
                 .andExpect(status().isOk())
@@ -170,7 +190,9 @@ class ProjectApiTest {
                 .andReturn()
                 .getResponse()
                 .getHeader("Location"));
-        return location.substring(location.lastIndexOf('/') + 1);
+        String id = location.substring(location.lastIndexOf('/') + 1);
+        org.assertj.core.api.Assertions.assertThat(id).matches("[0-9A-Za-z_-]{12}");
+        return id;
     }
 
     private void 세우기를_거절한다(String body) throws Exception {

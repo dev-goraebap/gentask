@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import xyz.gentask.module.artifact.application.ArtifactErrorCode;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.ArtifactSummary;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.ArtifactView;
-import xyz.gentask.module.artifact.application.artifact.ArtifactViews.RevisionPageView;
-import xyz.gentask.module.artifact.application.artifact.ArtifactViews.RevisionSummary;
-import xyz.gentask.module.artifact.application.artifact.ArtifactViews.RevisionView;
+import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionPageView;
+import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionSummary;
+import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionView;
 import xyz.gentask.module.artifact.domain.artifact.Artifact;
 import xyz.gentask.module.artifact.domain.artifact.ArtifactBody;
 import xyz.gentask.module.artifact.domain.artifact.ArtifactRepository;
@@ -23,6 +23,7 @@ import xyz.gentask.module.artifact.domain.artifact.RevisionComment;
 import xyz.gentask.module.artifact.domain.folder.ArtifactFolder;
 import xyz.gentask.module.artifact.domain.folder.ArtifactFolderRepository;
 import xyz.gentask.module.project.ProjectAccessIn;
+import xyz.gentask.shared.domain.NanoId;
 
 @Service
 @RequiredArgsConstructor
@@ -52,9 +53,9 @@ public class ArtifactService {
 
     @Transactional(readOnly = true)
     public ArtifactView detail(UUID userId, String projectId, String artifactId) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         return artifactQuery
-                .findOne(internalProjectId, readId(artifactId))
+                .findOne(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
     }
 
@@ -65,21 +66,21 @@ public class ArtifactService {
      * 아티팩트는 없고, 지워진 것과 남의 것은 조회가 걸러 낸다(DOC-004 A4 · A5).
      */
     @Transactional(readOnly = true)
-    public RevisionPageView revisions(UUID userId, String projectId, String artifactId, int page, int size) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
-        UUID id = readId(artifactId);
+    public VersionPageView revisions(UUID userId, String projectId, String artifactId, int page, int size) {
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        String id = readId(artifactId);
 
         int limitedSize = Math.clamp(size, 1, MAX_PAGE_SIZE);
         int safePage = Math.max(page, 0);
 
-        long total = artifactQuery.countRevisions(internalProjectId, id);
+        long total = artifactQuery.countRevisions(accessibleProjectId, id);
         if (total == 0) {
             throw ArtifactErrorCode.ARTIFACT_NOT_FOUND.raise();
         }
 
-        List<RevisionSummary> items =
-                artifactQuery.findRevisions(internalProjectId, id, limitedSize, safePage * limitedSize);
-        return new RevisionPageView(items, total, safePage, limitedSize);
+        List<VersionSummary> items =
+                artifactQuery.findRevisions(accessibleProjectId, id, limitedSize, safePage * limitedSize);
+        return new VersionPageView(items, total, safePage, limitedSize);
     }
 
     /**
@@ -88,10 +89,10 @@ public class ArtifactService {
      * 두 개정의 차이를 여기서 계산하지 않는다. 본문을 그대로 내고 견주는 일은 읽는 쪽이 한다.
      */
     @Transactional(readOnly = true)
-    public RevisionView revision(UUID userId, String projectId, String artifactId, String revisionNo) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
+    public VersionView revision(UUID userId, String projectId, String artifactId, String revisionNo) {
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         return artifactQuery
-                .findRevision(internalProjectId, readId(artifactId), readRevisionNo(revisionNo))
+                .findRevision(accessibleProjectId, readId(artifactId), readRevisionNo(revisionNo))
                 .orElseThrow(ArtifactErrorCode.REVISION_NOT_FOUND::raise);
     }
 
@@ -100,18 +101,19 @@ public class ArtifactService {
      * 아티팩트를 생성하고 초기 개정을 함께 등록한다(DOC-001).
      */
     @Transactional
-    public UUID add(UUID userId, String projectId, String title, String body, String folderId) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
+    public String add(UUID userId, String projectId, String title, String body, String folderId) {
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         Instant now = clock.instant();
 
-        Artifact artifact = Artifact.create(
-                UUID.randomUUID(),
-                internalProjectId,
-                ArtifactTitle.of(title),
-                findFolder(internalProjectId, folderId),
-                userId,
-                now);
-        artifactRepository.save(artifact);
+        Artifact artifact = NanoId.create(
+                id -> Artifact.create(
+                        id,
+                        accessibleProjectId,
+                        ArtifactTitle.of(title),
+                        findFolder(accessibleProjectId, folderId),
+                        userId,
+                        now),
+                artifactRepository::insert);
 
         ArtifactRevision first = ArtifactRevision.first(
                 UUID.randomUUID(),
@@ -133,9 +135,9 @@ public class ArtifactService {
      */
     @Transactional
     public void edit(UUID userId, String projectId, String artifactId, String title, String body, String comment) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         Artifact artifact = artifactRepository
-                .findById(internalProjectId, readId(artifactId))
+                .findById(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
         ArtifactRevision head = head(artifact);
 
@@ -159,9 +161,9 @@ public class ArtifactService {
      */
     @Transactional
     public void revert(UUID userId, String projectId, String artifactId, String revisionNo, String comment) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         Artifact artifact = artifactRepository
-                .findById(internalProjectId, readId(artifactId))
+                .findById(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
         int targetNo = readRevisionNo(revisionNo);
         ArtifactRevision target = artifactRepository
@@ -187,12 +189,12 @@ public class ArtifactService {
      */
     @Transactional
     public void move(UUID userId, String projectId, String artifactId, String folderId) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         Artifact artifact = artifactRepository
-                .findById(internalProjectId, readId(artifactId))
+                .findById(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
 
-        UUID target = findFolder(internalProjectId, folderId);
+        String target = findFolder(accessibleProjectId, folderId);
         if (Objects.equals(artifact.folderId(), target)) {
             return;
         }
@@ -205,7 +207,7 @@ public class ArtifactService {
     /**
      * 대상 폴더 식별자를 검증하여 반환한다. 미지정 시 null(루트)을 반환한다(DOC-006 A1, A4, A6).
      */
-    private UUID findFolder(UUID projectId, String folderId) {
+    private String findFolder(String projectId, String folderId) {
         if (folderId == null || folderId.isBlank()) {
             return null;
         }
@@ -215,9 +217,9 @@ public class ArtifactService {
                 .orElseThrow(ArtifactErrorCode.FOLDER_NOT_FOUND::raise);
     }
 
-    private static UUID readFolderId(String rawId) {
+    private static String readFolderId(String rawId) {
         try {
-            return UUID.fromString(rawId);
+            return NanoId.requireValid(rawId);
         } catch (IllegalArgumentException ignored) {
             throw ArtifactErrorCode.FOLDER_NOT_FOUND.raise();
         }
@@ -244,9 +246,9 @@ public class ArtifactService {
      * 모양이 맞지 않는 것을 잘못된 요청이 아니라 없는 자리로 낸다. 주소에 담긴 값이라 사람이 손으로
      * 고치거나 옛 링크를 따라온 것이다.
      */
-    private static UUID readId(String rawId) {
+    private static String readId(String rawId) {
         try {
-            return UUID.fromString(rawId);
+            return NanoId.requireValid(rawId);
         } catch (IllegalArgumentException ignored) {
             throw ArtifactErrorCode.ARTIFACT_NOT_FOUND.raise();
         }

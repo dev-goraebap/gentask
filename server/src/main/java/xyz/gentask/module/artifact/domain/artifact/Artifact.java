@@ -20,10 +20,10 @@ import lombok.NonNull;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Artifact {
 
-    @NonNull private final UUID id;
+    @NonNull private final String id;
 
     // 담긴 프로젝트
-    @NonNull private final UUID projectId;
+    @NonNull private final String projectId;
 
     // 지금 참인 개정의 제목을 앞당겨 둔 것
     @NonNull private ArtifactTitle title;
@@ -32,7 +32,7 @@ public final class Artifact {
     private UUID headRevisionId;
 
     // 담긴 폴더. 비어 있으면 뿌리에 선다
-    private UUID folderId;
+    private String folderId;
 
     private Instant deletedAt;
 
@@ -47,16 +47,16 @@ public final class Artifact {
     @NonNull private UUID updatedBy;
 
     public static Artifact create(
-            UUID id, UUID projectId, ArtifactTitle title, UUID folderId, UUID authorId, Instant now) {
+            String id, String projectId, ArtifactTitle title, String folderId, UUID authorId, Instant now) {
         return new Artifact(id, projectId, title, null, folderId, null, null, now, authorId, now, authorId);
     }
 
     public static Artifact restore(
-            UUID id,
-            UUID projectId,
+            String id,
+            String projectId,
             ArtifactTitle title,
             UUID headRevisionId,
-            UUID folderId,
+            String folderId,
             Instant deletedAt,
             UUID deletedBy,
             Instant createdAt,
@@ -77,7 +77,7 @@ public final class Artifact {
                 updatedBy);
     }
 
-    public boolean belongsTo(@NonNull UUID candidateProjectId) {
+    public boolean belongsTo(@NonNull String candidateProjectId) {
         return projectId.equals(candidateProjectId);
     }
 
@@ -99,7 +99,7 @@ public final class Artifact {
      * 소속 폴더를 변경한다. null인 경우 루트 폴더로 이동한다(DOC-006 A1).
      * 폴더 이동은 아티팩트 내용 변경이 아니므로 수정 시각을 변경하지 않는다(DOC-006).
      */
-    public void moveTo(UUID folderId) {
+    public void moveTo(String folderId) {
         this.folderId = folderId;
     }
 }

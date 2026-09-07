@@ -8,7 +8,12 @@ public final class ProjectViews {
 
     @Schema(name = "ProjectView")
     public record ProjectView(
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "주소가 담는 식별자")
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    description = "프로젝트 NanoID",
+                    minLength = 12,
+                    maxLength = 12,
+                    pattern = "[0-9A-Za-z_-]{12}")
             String id,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

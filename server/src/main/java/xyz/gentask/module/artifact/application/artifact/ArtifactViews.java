@@ -3,7 +3,6 @@ package xyz.gentask.module.artifact.application.artifact;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 public final class ArtifactViews {
 
@@ -21,8 +20,12 @@ public final class ArtifactViews {
      */
     @Schema(name = "ArtifactFolderSummary")
     public record FolderSummary(
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            UUID id,
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    minLength = 12,
+                    maxLength = 12,
+                    pattern = "[0-9A-Za-z_-]{12}")
+            String id,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             String name,
@@ -30,9 +33,11 @@ public final class ArtifactViews {
             @Schema(
                     requiredMode = Schema.RequiredMode.REQUIRED,
                     types = {"string", "null"},
-                    format = "uuid",
+                    minLength = 12,
+                    maxLength = 12,
+                    pattern = "[0-9A-Za-z_-]{12}",
                     description = "담긴 자리. 값이 없으면 뿌리에 선다")
-            UUID parentId,
+            String parentId,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "바로 아래에 담긴 아티팩트 수")
             int artifactCount,
@@ -49,12 +54,16 @@ public final class ArtifactViews {
     /**
      * 목록의 한 줄.
      *
-     * 본문을 담지 않는다. 제목과 고친 때는 아티팩트가 앞당겨 들고 있으므로 개정을 잇지 않는다.
+     * 본문을 담지 않는다. 제목과 고친 때는 아티팩트가 앞당겨 들고 있으므로 버전을 잇지 않는다.
      */
     @Schema(name = "ArtifactSummary")
     public record ArtifactSummary(
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            UUID id,
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    minLength = 12,
+                    maxLength = 12,
+                    pattern = "[0-9A-Za-z_-]{12}")
+            String id,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             String title,
@@ -62,9 +71,11 @@ public final class ArtifactViews {
             @Schema(
                     requiredMode = Schema.RequiredMode.REQUIRED,
                     types = {"string", "null"},
-                    format = "uuid",
+                    minLength = 12,
+                    maxLength = 12,
+                    pattern = "[0-9A-Za-z_-]{12}",
                     description = "담긴 폴더. 값이 없으면 뿌리에 선다")
-            UUID folderId,
+            String folderId,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
             Instant createdAt,
@@ -77,25 +88,28 @@ public final class ArtifactViews {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             ArtifactSummary summary,
 
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "지금 참인 개정의 본문. 마크다운 원문이다")
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "지금 참인 버전의 본문. 마크다운 원문이다")
             String body,
 
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "지금 참인 개정의 번호. 1부터 매긴다")
-            int revisionNo,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "지금 참인 버전의 번호. 1부터 매긴다")
+            int versionNo,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "세운 사람의 별명")
-            String authorName) {}
+            String authorName,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "최종 수정자의 닉네임")
+            String lastEditorName) {}
 
     /**
      * 이력의 한 줄.
      *
-     * 본문을 싣지 않는다. 이력은 언제 누가 왜 고쳤는지를 훑는 자리이고, 본문은 개정 하나를 고른 뒤에
+     * 본문을 싣지 않는다. 이력은 언제 누가 왜 고쳤는지를 훑는 자리이고, 본문은 버전 하나를 고른 뒤에
      * 낸다(DOC-004).
      */
-    @Schema(name = "RevisionSummary")
-    public record RevisionSummary(
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "아티팩트 안의 개정 번호. 1부터 매긴다")
-            int revisionNo,
+    @Schema(name = "VersionSummary")
+    public record VersionSummary(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "아티팩트 안의 버전 번호. 1부터 매긴다")
+            int versionNo,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
             Instant createdAt,
@@ -110,12 +124,12 @@ public final class ArtifactViews {
             String comment) {}
 
     /** 이력 한 쪽. 최근 것부터 담는다(DOC-004 A3). */
-    @Schema(name = "RevisionPageView")
-    public record RevisionPageView(
+    @Schema(name = "VersionPageView")
+    public record VersionPageView(
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            List<RevisionSummary> items,
+            List<VersionSummary> items,
 
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "이 아티팩트의 개정 전체 수")
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "이 아티팩트의 버전 전체 수")
             long total,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "0부터 매긴 쪽 번호")
@@ -125,21 +139,21 @@ public final class ArtifactViews {
             int size) {
 
         /** 담아 온 목록을 그대로 쥐지 않는다. 부르는 쪽이 뒤에 고치면 이 값이 함께 바뀐다. */
-        public RevisionPageView {
+        public VersionPageView {
             items = List.copyOf(items);
         }
     }
 
     /**
-     * 개정 하나.
+     * 버전 하나.
      *
-     * 그때의 제목과 본문을 그대로 낸다. 두 개정의 차이는 서버가 계산하지 않으며 견주는 일은 읽는
+     * 그때의 제목과 본문을 그대로 낸다. 두 버전의 차이는 서버가 계산하지 않으며 견주는 일은 읽는
      * 쪽이 한다(DOC-004).
      */
-    @Schema(name = "RevisionView")
-    public record RevisionView(
+    @Schema(name = "VersionView")
+    public record VersionView(
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            RevisionSummary summary,
+            VersionSummary summary,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "그때의 제목")
             String title,

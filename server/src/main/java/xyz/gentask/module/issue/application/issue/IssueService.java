@@ -46,20 +46,20 @@ public class IssueService {
      */
     @Transactional(readOnly = true)
     public IssueView detail(UUID userId, String projectId, int number) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
-        return issueQuery.findOne(internalProjectId, number).orElseThrow(IssueErrorCode.ISSUE_NOT_FOUND::raise);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        return issueQuery.findOne(accessibleProjectId, number).orElseThrow(IssueErrorCode.ISSUE_NOT_FOUND::raise);
     }
 
     // --- 명령 --------------------------------------------------------------------------------------------------------
     @Transactional
     public int add(UUID userId, String projectId, String title, IssueKind kind, String body, String parentKey) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         Instant now = clock.instant();
-        int number = issueNumberSequence.next(internalProjectId, now);
+        int number = issueNumberSequence.next(accessibleProjectId, now);
 
         Issue issue = Issue.create(
                 UUID.randomUUID(),
-                internalProjectId,
+                accessibleProjectId,
                 number,
                 kind == null ? IssueKind.DEFAULT : kind,
                 IssueTitle.of(title),
@@ -67,7 +67,7 @@ public class IssueService {
                 userId,
                 number * ORDINAL_STEP,
                 now);
-        issue.changeParent(parentOf(internalProjectId, parentKey), now);
+        issue.changeParent(parentOf(accessibleProjectId, parentKey), now);
         issueRepository.save(issue);
         return number;
     }
@@ -81,29 +81,29 @@ public class IssueService {
     @Transactional
     public void edit(
             UUID userId, String projectId, int number, String title, IssueKind kind, String body, String parentKey) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         Issue issue = issueRepository
-                .findByNumber(internalProjectId, number)
+                .findByNumber(accessibleProjectId, number)
                 .orElseThrow(IssueErrorCode.ISSUE_NOT_FOUND::raise);
 
         Instant now = clock.instant();
         issue.changeTitle(IssueTitle.of(title), now);
         issue.changeKind(kind, now);
         issue.changeBody(IssueBody.of(body), now);
-        issue.changeParent(parentOf(internalProjectId, parentKey), now);
+        issue.changeParent(parentOf(accessibleProjectId, parentKey), now);
         issueRepository.save(issue);
     }
 
     /**
      * 상위 작업 항목 키로부터 해당 작업의 고유 식별자(UUID)를 조회한다.
      */
-    private UUID parentOf(UUID internalProjectId, String parentKey) {
+    private UUID parentOf(String accessibleProjectId, String parentKey) {
         if (parentKey == null || parentKey.isBlank()) {
             return null;
         }
         int number = numberOf(parentKey);
         return issueRepository
-                .findByNumber(internalProjectId, number)
+                .findByNumber(accessibleProjectId, number)
                 .map(Issue::id)
                 .orElseThrow(IssueErrorCode.ISSUE_NOT_FOUND::raise);
     }
@@ -135,9 +135,9 @@ public class IssueService {
 
     // --- 내부 --------------------------------------------------------------------------------------------------------
     private Issue find(UUID userId, String projectId, int number) {
-        UUID internalProjectId = projectAccess.requireAccess(userId, projectId);
+        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         return issueRepository
-                .findByNumber(internalProjectId, number)
+                .findByNumber(accessibleProjectId, number)
                 .orElseThrow(IssueErrorCode.ISSUE_NOT_FOUND::raise);
     }
 }

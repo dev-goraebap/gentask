@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 class ArtifactRevisionTest {
 
-    private static final UUID 아티팩트 = UUID.randomUUID();
+    private static final String 아티팩트 = "Artifact0001";
     private static final UUID 사람 = UUID.randomUUID();
     private static final Instant 그때 = Instant.parse("2026-09-03T00:00:00Z");
 

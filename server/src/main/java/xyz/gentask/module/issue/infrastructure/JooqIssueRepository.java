@@ -63,7 +63,7 @@ class JooqIssueRepository implements IssueRepository {
     }
 
     @Override
-    public Optional<Issue> findByNumber(UUID projectId, int number) {
+    public Optional<Issue> findByNumber(String projectId, int number) {
         return dslContext
                 .selectFrom(ISSUES)
                 .where(ISSUES.PROJECT_ID.eq(projectId))

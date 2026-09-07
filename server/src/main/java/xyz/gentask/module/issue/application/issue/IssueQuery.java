@@ -2,13 +2,12 @@ package xyz.gentask.module.issue.application.issue;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import xyz.gentask.module.issue.application.issue.IssueViews.IssueSummary;
 import xyz.gentask.module.issue.application.issue.IssueViews.IssueView;
 
 public interface IssueQuery {
 
-    List<IssueSummary> findAll(UUID projectId);
+    List<IssueSummary> findAll(String projectId);
 
-    Optional<IssueView> findOne(UUID projectId, int number);
+    Optional<IssueView> findOne(String projectId, int number);
 }

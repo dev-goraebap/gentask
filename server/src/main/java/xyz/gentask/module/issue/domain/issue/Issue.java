@@ -21,7 +21,7 @@ public final class Issue {
 
     @NonNull private final UUID id;
 
-    @NonNull private final UUID projectId;
+    @NonNull private final String projectId;
 
     private final int number;
 
@@ -47,7 +47,7 @@ public final class Issue {
 
     public static Issue create(
             UUID id,
-            UUID projectId,
+            String projectId,
             int number,
             IssueKind kind,
             IssueTitle title,
@@ -74,7 +74,7 @@ public final class Issue {
 
     public static Issue restore(
             UUID id,
-            UUID projectId,
+            String projectId,
             int number,
             IssueKind kind,
             IssueState state,
@@ -92,7 +92,7 @@ public final class Issue {
                 createdAt, updatedAt);
     }
 
-    public boolean belongsTo(@NonNull UUID candidateProjectId) {
+    public boolean belongsTo(@NonNull String candidateProjectId) {
         return projectId.equals(candidateProjectId);
     }
 

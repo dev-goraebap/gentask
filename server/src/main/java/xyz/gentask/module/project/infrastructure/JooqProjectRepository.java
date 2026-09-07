@@ -11,7 +11,6 @@ import xyz.gentask.jooq.tables.records.ProjectsRecord;
 import xyz.gentask.module.project.domain.project.Project;
 import xyz.gentask.module.project.domain.project.ProjectKey;
 import xyz.gentask.module.project.domain.project.ProjectName;
-import xyz.gentask.module.project.domain.project.ProjectPublicId;
 import xyz.gentask.module.project.domain.project.ProjectRepository;
 
 @Repository
@@ -21,11 +20,26 @@ class JooqProjectRepository implements ProjectRepository {
     private final DSLContext dslContext;
 
     @Override
+    public boolean insert(Project project) {
+        return dslContext
+                        .insertInto(PROJECTS)
+                        .set(PROJECTS.ID, project.id())
+                        .set(PROJECTS.OWNER_ID, project.ownerId())
+                        .set(PROJECTS.NAME, project.name().value())
+                        .set(PROJECTS.KEY, project.key().value())
+                        .set(PROJECTS.CREATED_AT, project.createdAt())
+                        .set(PROJECTS.UPDATED_AT, project.updatedAt())
+                        .onConflict(PROJECTS.ID)
+                        .doNothing()
+                        .execute()
+                == 1;
+    }
+
+    @Override
     public void save(Project project) {
         dslContext
                 .insertInto(PROJECTS)
                 .set(PROJECTS.ID, project.id())
-                .set(PROJECTS.PUBLIC_ID, project.publicId().value())
                 .set(PROJECTS.OWNER_ID, project.ownerId())
                 .set(PROJECTS.NAME, project.name().value())
                 .set(PROJECTS.KEY, project.key().value())
@@ -40,11 +54,11 @@ class JooqProjectRepository implements ProjectRepository {
     }
 
     @Override
-    public Optional<Project> findByPublicId(UUID ownerId, ProjectPublicId publicId) {
+    public Optional<Project> findById(UUID ownerId, String id) {
         return dslContext
                 .selectFrom(PROJECTS)
                 .where(PROJECTS.OWNER_ID.eq(ownerId))
-                .and(PROJECTS.PUBLIC_ID.eq(publicId.value()))
+                .and(PROJECTS.ID.eq(id))
                 .fetchOptional()
                 .map(JooqProjectRepository::toDomain);
     }
@@ -52,7 +66,6 @@ class JooqProjectRepository implements ProjectRepository {
     private static Project toDomain(ProjectsRecord projectsRecord) {
         return Project.restore(
                 projectsRecord.getId(),
-                ProjectPublicId.of(projectsRecord.getPublicId()),
                 projectsRecord.getOwnerId(),
                 ProjectName.of(projectsRecord.getName()),
                 ProjectKey.of(projectsRecord.getKey()),

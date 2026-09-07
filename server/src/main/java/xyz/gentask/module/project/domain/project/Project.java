@@ -14,9 +14,7 @@ import lombok.NonNull;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Project {
 
-    @NonNull private final UUID id;
-
-    @NonNull private final ProjectPublicId publicId;
+    @NonNull private final String id;
 
     @NonNull private final UUID ownerId;
 
@@ -28,20 +26,13 @@ public final class Project {
 
     @NonNull private Instant updatedAt;
 
-    public static Project create(
-            UUID id, ProjectPublicId publicId, UUID ownerId, ProjectName name, ProjectKey key, Instant now) {
-        return new Project(id, publicId, ownerId, name, key, now, now);
+    public static Project create(String id, UUID ownerId, ProjectName name, ProjectKey key, Instant now) {
+        return new Project(id, ownerId, name, key, now, now);
     }
 
     public static Project restore(
-            UUID id,
-            ProjectPublicId publicId,
-            UUID ownerId,
-            ProjectName name,
-            ProjectKey key,
-            Instant createdAt,
-            Instant updatedAt) {
-        return new Project(id, publicId, ownerId, name, key, createdAt, updatedAt);
+            String id, UUID ownerId, ProjectName name, ProjectKey key, Instant createdAt, Instant updatedAt) {
+        return new Project(id, ownerId, name, key, createdAt, updatedAt);
     }
 
     public boolean isOwnedBy(@NonNull UUID candidateOwnerId) {

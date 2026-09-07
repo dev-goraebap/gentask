@@ -25,6 +25,27 @@ class JooqArtifactRepository implements ArtifactRepository {
     private final DSLContext dslContext;
 
     @Override
+    public boolean insert(Artifact artifact) {
+        return dslContext
+                        .insertInto(ARTIFACTS)
+                        .set(ARTIFACTS.ID, artifact.id())
+                        .set(ARTIFACTS.PROJECT_ID, artifact.projectId())
+                        .set(ARTIFACTS.TITLE, artifact.title().value())
+                        .set(ARTIFACTS.HEAD_REVISION_ID, artifact.headRevisionId())
+                        .set(ARTIFACTS.FOLDER_ID, artifact.folderId())
+                        .set(ARTIFACTS.DELETED_AT, artifact.deletedAt())
+                        .set(ARTIFACTS.DELETED_BY, artifact.deletedBy())
+                        .set(ARTIFACTS.CREATED_AT, artifact.createdAt())
+                        .set(ARTIFACTS.CREATED_BY, artifact.createdBy())
+                        .set(ARTIFACTS.UPDATED_AT, artifact.updatedAt())
+                        .set(ARTIFACTS.UPDATED_BY, artifact.updatedBy())
+                        .onConflict(ARTIFACTS.ID)
+                        .doNothing()
+                        .execute()
+                == 1;
+    }
+
+    @Override
     public void save(Artifact artifact) {
         dslContext
                 .insertInto(ARTIFACTS)
@@ -52,7 +73,7 @@ class JooqArtifactRepository implements ArtifactRepository {
     }
 
     @Override
-    public Optional<Artifact> findById(UUID projectId, UUID artifactId) {
+    public Optional<Artifact> findById(String projectId, String artifactId) {
         return dslContext
                 .selectFrom(ARTIFACTS)
                 .where(ARTIFACTS.ID.eq(artifactId))
@@ -66,7 +87,7 @@ class JooqArtifactRepository implements ArtifactRepository {
      * 폴더 이동 시 논리 삭제된 아티팩트도 참조 정합성을 위해 함께 이동 대상에 포함한다(DOC-008 A7).
      */
     @Override
-    public List<Artifact> findAllInFolder(UUID folderId) {
+    public List<Artifact> findAllInFolder(String folderId) {
         return dslContext
                 .selectFrom(ARTIFACTS)
                 .where(ARTIFACTS.FOLDER_ID.eq(folderId))
@@ -99,7 +120,7 @@ class JooqArtifactRepository implements ArtifactRepository {
     }
 
     @Override
-    public Optional<ArtifactRevision> findRevisionByNo(UUID artifactId, int revisionNo) {
+    public Optional<ArtifactRevision> findRevisionByNo(String artifactId, int revisionNo) {
         return dslContext
                 .selectFrom(ARTIFACT_REVISIONS)
                 .where(ARTIFACT_REVISIONS.ARTIFACT_ID.eq(artifactId))
