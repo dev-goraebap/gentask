@@ -9,5 +9,7 @@ public interface TaskQuery {
 
     List<TaskView> findAll(UUID userId);
 
+    List<TaskView> findProject(String projectId);
+
     Optional<TaskView> findOne(UUID taskId, UUID userId);
 }

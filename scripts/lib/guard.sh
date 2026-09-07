@@ -110,7 +110,7 @@ guard_deploy_env() {
 
 # 두 축의 검증 명령이 통과하는가
 guard_web_check() {
-  (cd "$REPO_ROOT/clients/apps/web" && npm run check) || fail "web 검증 실패"
+  (cd "$REPO_ROOT/clients/apps/main" && npm run check) || fail "web 검증 실패"
   step "web 검증 통과"
 }
 

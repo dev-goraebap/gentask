@@ -9,5 +9,7 @@ public interface TaskRepository {
 
     Optional<Task> findById(UUID taskId);
 
+    Optional<Task> findByIdForUpdate(UUID taskId);
+
     void deleteById(UUID taskId);
 }

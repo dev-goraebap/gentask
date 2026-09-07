@@ -27,6 +27,9 @@ public class TaskService {
     private final TaskQuery taskQuery;
     private final Attachments attachments;
     private final Clock clock;
+    private final xyz.gentask.module.project.ProjectAccessIn projects;
+    private final xyz.gentask.module.artifact.ArtifactReferenceIn artifacts;
+    private final TaskLinkStore links;
 
     // --- 조회 --------------------------------------------------------------------------------------------------------
     @Transactional(readOnly = true)
@@ -41,10 +44,69 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public Task find(UUID taskId, UUID userId) {
-        return taskRepository
-                .findById(taskId)
-                .filter(task -> task.isOwnedBy(userId))
-                .orElseThrow(TaskErrorCode.TASK_NOT_FOUND::raise);
+        Task task = taskRepository.findById(taskId).orElseThrow(TaskErrorCode.TASK_NOT_FOUND::raise);
+        if (task.projectId() == null) {
+            if (!task.isOwnedBy(userId)) throw TaskErrorCode.TASK_NOT_FOUND.raise();
+        } else projects.requireAccess(userId, task.projectId());
+        return task;
+    }
+
+    @Transactional
+    public Task findForWrite(UUID taskId, UUID userId) {
+        Task found = find(taskId, userId);
+        if (found.projectId() != null) projects.requireWrite(userId, found.projectId());
+        return taskRepository.findByIdForUpdate(taskId).orElseThrow(TaskErrorCode.TASK_NOT_FOUND::raise);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskView> listProject(UUID userId, String projectId) {
+        projects.requireAccess(userId, projectId);
+        return taskQuery.findProject(projectId);
+    }
+
+    @Transactional
+    public UUID addProject(UUID userId, String projectId, String title, LocalDate dueDate) {
+        projects.requireWrite(userId, projectId);
+        Task task = Task.create(UUID.randomUUID(), userId, TaskTitle.of(title), clock.instant());
+        task.restoreScope(projectId, null, xyz.gentask.module.task.domain.task.TaskState.TODO);
+        task.changeDueDate(dueDate, clock.instant());
+        taskRepository.save(task);
+        return task.id();
+    }
+
+    @Transactional
+    public void changeState(UUID userId, UUID taskId, String state) {
+        Task task = findForWrite(taskId, userId);
+        task.changeState(xyz.gentask.module.task.domain.task.TaskState.valueOf(state), clock.instant());
+        taskRepository.save(task);
+    }
+
+    @Transactional
+    public void assign(UUID userId, UUID taskId, UUID assigneeId) {
+        Task task = findForWrite(taskId, userId);
+        if (task.projectId() == null) throw TaskErrorCode.PROJECT_TASK_REQUIRED.raise();
+        if (assigneeId != null) projects.requireAccess(assigneeId, task.projectId());
+        task.assign(assigneeId, clock.instant());
+        taskRepository.save(task);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskLinkStore.LinkedArtifact> linkedArtifacts(UUID userId, UUID taskId) {
+        find(taskId, userId);
+        return links.list(taskId);
+    }
+
+    @Transactional
+    public void linkArtifact(UUID userId, UUID taskId, String artifactId) {
+        Task task = findForWrite(taskId, userId);
+        artifacts.requireReference(userId, task.projectId(), artifactId);
+        links.add(taskId, artifactId);
+    }
+
+    @Transactional
+    public void unlinkArtifact(UUID userId, UUID taskId, String artifactId) {
+        findForWrite(taskId, userId);
+        links.remove(taskId, artifactId);
     }
 
     // --- 명령 --------------------------------------------------------------------------------------------------------
@@ -59,18 +121,19 @@ public class TaskService {
 
     @Transactional
     public void edit(UUID userId, UUID taskId, String title, String note, LocalDate dueDate, LocalDateTime remindAt) {
-        Task task = find(taskId, userId);
+        Task task = findForWrite(taskId, userId);
         Instant now = clock.instant();
         task.changeTitle(TaskTitle.of(title), now);
         task.changeNote(TaskNote.of(note), now);
         task.changeDueDate(dueDate, now);
+        if (task.projectId() != null && remindAt != null) throw TaskErrorCode.PERSONAL_SETTING_ONLY.raise();
         task.changeRemindAt(remindAt, now);
         taskRepository.save(task);
     }
 
     @Transactional
     public void changeCompletion(UUID userId, UUID taskId, boolean completed) {
-        Task task = find(taskId, userId);
+        Task task = findForWrite(taskId, userId);
         Instant now = clock.instant();
         if (completed) {
             task.complete(now);
@@ -82,8 +145,9 @@ public class TaskService {
 
     @Transactional
     public void changeImportance(UUID userId, UUID taskId, boolean important) {
-        Task task = find(taskId, userId);
+        Task task = findForWrite(taskId, userId);
         Instant now = clock.instant();
+        if (task.projectId() != null) throw TaskErrorCode.PERSONAL_SETTING_ONLY.raise();
         if (important) {
             task.markImportant(now);
         } else {
@@ -94,8 +158,9 @@ public class TaskService {
 
     @Transactional
     public void changeMyDay(UUID userId, UUID taskId, boolean inMyDay) {
-        Task task = find(taskId, userId);
+        Task task = findForWrite(taskId, userId);
         Instant now = clock.instant();
+        if (task.projectId() != null) throw TaskErrorCode.PERSONAL_SETTING_ONLY.raise();
         if (inMyDay) {
             task.addToMyDay(LocalDate.now(clock), now);
         } else {
@@ -106,7 +171,7 @@ public class TaskService {
 
     @Transactional
     public void remove(UUID userId, UUID taskId) {
-        find(taskId, userId);
+        findForWrite(taskId, userId);
         // 다형 첨부 구조에 따라 작업 삭제 시 연관된 첨부 파일도 함께 삭제한다.
         attachments.detachAll(AttachmentSlot.TASK_FILES, taskId);
         taskRepository.deleteById(taskId);

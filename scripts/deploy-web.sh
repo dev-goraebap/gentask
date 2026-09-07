@@ -26,10 +26,10 @@ fi
 SHA="$(deployed_sha)"
 REL="$DEPLOY_TAG"
 TARGET="$(ssh_target)"
-DIST="$REPO_ROOT/clients/apps/web/dist/web/browser"
+DIST="$REPO_ROOT/clients/apps/main/dist"
 
 [ -d "$DIST" ] || fail "$DIST 가 없습니다"
-[ -f "$DIST/index.csr.html" ] || fail "$DIST/index.csr.html 이 없습니다 (nginx 폴백 대상)"
+[ -f "$DIST/index.html" ] || fail "$DIST/index.html 이 없습니다 (nginx 폴백 대상)"
 
 echo "운반 릴리스 $REL"
 echo "$SHA" >"$DIST/RELEASE_SHA"
@@ -37,6 +37,6 @@ ssh -p "$DEPLOY_PORT" "$TARGET" "mkdir -p ~/$WEB_ROOT/releases/$REL"
 scp -P "$DEPLOY_PORT" -r "$DIST/." "$TARGET:$WEB_ROOT/releases/$REL/"
 
 echo "링크 교체"
-ssh -p "$DEPLOY_PORT" "$TARGET" "cd ~/$WEB_ROOT && ln -sfn releases/$REL current"
+ssh -p "$DEPLOY_PORT" "$TARGET" "cd ~/$WEB_ROOT && ln -s releases/$REL current.next && mv -Tf current.next current"
 
 echo "완료 $REL (${SHA:0:7}) → $DEPLOY_TARGET"

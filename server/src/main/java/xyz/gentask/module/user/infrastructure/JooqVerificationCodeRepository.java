@@ -17,6 +17,22 @@ class JooqVerificationCodeRepository implements VerificationCodeRepository {
 
     private final DSLContext dslContext;
 
+    @Override
+    public void ensureLoginSlot(String emailNormalized) {
+        dslContext
+                .insertInto(VERIFICATION_CODES)
+                .set(VERIFICATION_CODES.ID, java.util.UUID.randomUUID())
+                .set(VERIFICATION_CODES.EMAIL_NORMALIZED, emailNormalized)
+                .set(VERIFICATION_CODES.PURPOSE, "LOGIN")
+                .set(VERIFICATION_CODES.CODE_HASH, "")
+                .set(VERIFICATION_CODES.ATTEMPTS, 0)
+                .set(VERIFICATION_CODES.EXPIRES_AT, java.time.Instant.EPOCH)
+                .set(VERIFICATION_CODES.CREATED_AT, java.time.Instant.EPOCH)
+                .onConflict(VERIFICATION_CODES.EMAIL_NORMALIZED, VERIFICATION_CODES.PURPOSE)
+                .doNothing()
+                .execute();
+    }
+
     /**
      * (이메일, 발급목적) 고유 제약에 따라 재발급 시 기존 레코드를 갱신한다.
      */
@@ -51,6 +67,17 @@ class JooqVerificationCodeRepository implements VerificationCodeRepository {
                 .selectFrom(VERIFICATION_CODES)
                 .where(VERIFICATION_CODES.EMAIL_NORMALIZED.eq(emailNormalized))
                 .and(VERIFICATION_CODES.PURPOSE.eq(purpose.name()))
+                .fetchOptional()
+                .map(JooqVerificationCodeRepository::toDomain);
+    }
+
+    @Override
+    public Optional<VerificationCode> findForUpdate(String emailNormalized, VerificationPurpose purpose) {
+        return dslContext
+                .selectFrom(VERIFICATION_CODES)
+                .where(VERIFICATION_CODES.EMAIL_NORMALIZED.eq(emailNormalized))
+                .and(VERIFICATION_CODES.PURPOSE.eq(purpose.name()))
+                .forUpdate()
                 .fetchOptional()
                 .map(JooqVerificationCodeRepository::toDomain);
     }

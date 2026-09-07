@@ -1,5 +1,0 @@
-{
-  "componentsPath": "src/shared/ui",
-  "style": "vega",
-  "importAlias": "@/shared/ui"
-}

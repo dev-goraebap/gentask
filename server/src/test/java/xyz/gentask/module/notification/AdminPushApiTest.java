@@ -47,6 +47,8 @@ import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
     AdminPushApiTest.AlwaysFailingSenderConfig.class
 })
 class AdminPushApiTest {
+    @Autowired
+    private org.jooq.DSLContext dsl;
 
     static final String ADMIN_EMAIL = "admin-push-fixture@example.com";
 
@@ -127,6 +129,11 @@ class AdminPushApiTest {
     // --- 준비 --------------------------------------------------------------------------------------------------------
 
     private Cookie 관리자로_가입한다() throws Exception {
+        var codes = xyz.gentask.jooq.Tables.VERIFICATION_CODES;
+        dsl.update(codes)
+                .set(codes.CREATED_AT, java.time.Instant.EPOCH)
+                .where(codes.EMAIL_NORMALIZED.eq(ADMIN_EMAIL))
+                .execute();
         return AuthTestSupport.가입하거나_로그인한다(mockMvc, mail, ADMIN_EMAIL);
     }
 

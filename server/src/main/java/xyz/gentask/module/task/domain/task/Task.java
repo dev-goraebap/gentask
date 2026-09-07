@@ -21,6 +21,9 @@ public final class Task {
 
     @NonNull private TaskNote note;
 
+    private String projectId;
+    private UUID assigneeId;
+    private TaskState state;
     private LocalDate dueDate;
 
     private LocalDateTime remindAt;
@@ -36,7 +39,21 @@ public final class Task {
     @NonNull private Instant updatedAt;
 
     public static Task create(UUID id, UUID userId, TaskTitle title, Instant now) {
-        return new Task(id, userId, title, TaskNote.empty(), null, null, false, null, null, now, now);
+        return new Task(
+                id,
+                userId,
+                title,
+                TaskNote.empty(),
+                null,
+                null,
+                TaskState.TODO,
+                null,
+                null,
+                false,
+                null,
+                null,
+                now,
+                now);
     }
 
     public static Task restore(
@@ -52,7 +69,38 @@ public final class Task {
             Instant createdAt,
             Instant updatedAt) {
         return new Task(
-                id, userId, title, note, dueDate, remindAt, important, myDayOn, completedAt, createdAt, updatedAt);
+                id,
+                userId,
+                title,
+                note,
+                null,
+                null,
+                completedAt == null ? TaskState.TODO : TaskState.DONE,
+                dueDate,
+                remindAt,
+                important,
+                myDayOn,
+                completedAt,
+                createdAt,
+                updatedAt);
+    }
+
+    public void restoreScope(String projectId, UUID assigneeId, TaskState state) {
+        this.projectId = projectId;
+        this.assigneeId = assigneeId;
+        this.state = state;
+    }
+
+    public void changeState(TaskState state, Instant now) {
+        if (this.state == state) return;
+        this.state = state;
+        this.completedAt = state == TaskState.DONE ? now : null;
+        this.updatedAt = now;
+    }
+
+    public void assign(UUID assigneeId, Instant now) {
+        this.assigneeId = assigneeId;
+        this.updatedAt = now;
     }
 
     public boolean isOwnedBy(@NonNull UUID candidateUserId) {
@@ -67,6 +115,7 @@ public final class Task {
         if (isCompleted()) {
             return;
         }
+        this.state = TaskState.DONE;
         this.completedAt = now;
         this.updatedAt = now;
     }
@@ -75,6 +124,7 @@ public final class Task {
         if (!isCompleted()) {
             return;
         }
+        this.state = TaskState.TODO;
         this.completedAt = null;
         this.updatedAt = now;
     }

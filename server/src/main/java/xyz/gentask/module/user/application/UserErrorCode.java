@@ -8,6 +8,7 @@ import xyz.gentask.shared.error.ErrorCode;
 @Getter
 @RequiredArgsConstructor
 public enum UserErrorCode implements ErrorCode {
+    CODE_REQUEST_TOO_SOON(HttpStatus.TOO_MANY_REQUESTS, "인증번호는 1분 뒤에 다시 받을 수 있습니다"),
     EMAIL_ALREADY_USED(HttpStatus.CONFLICT, "이미 등록된 이메일입니다"),
 
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 맞지 않습니다"),

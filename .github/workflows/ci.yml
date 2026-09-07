@@ -84,14 +84,9 @@ jobs:
         working-directory: clients
         run: npm ci
 
-      # web 은 lint · lint:fsd · test · build 를, gentask 는 test · build 를 돈다.
-      - name: web check
+      - name: main check
         working-directory: clients
-        run: npm run check -w web
-
-      - name: cli check
-        working-directory: clients
-        run: npm run check -w gentask
+        run: npm run check -w main
 
   # 필수 상태 검사로 지정할 잡은 이것 하나다. 앞의 두 잡을 직접 지정하면, 초안 PR 처럼
   # 건너뛴 경우에 "대기 중" 으로 남아 PR 이 병합되지 않는다.

@@ -57,49 +57,6 @@ class UserApiTest {
     }
 
     @Test
-    @DisplayName("이미 등록된 이메일로 가입 요청 시 409 Conflict와 EMAIL_ALREADY_USED를 반환한다")
-    void 이미_등록된_이메일은_다시_등록되지_않는다() throws Exception {
-        AuthTestSupport.가입한다(mockMvc, mail, "dup@example.com");
-
-        mockMvc.perform(post("/api/v1/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"DUP@example.com\",\"password\":\"password-123\"}"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("EMAIL_ALREADY_USED"));
-    }
-
-    @Test
-    @DisplayName("로그인 성공 시 HttpOnly 세션 쿠키를 발급한다")
-    void 맞는_자격으로_로그인하면_세션_쿠키를_받는다() throws Exception {
-        AuthTestSupport.가입한다(mockMvc, mail, "login@example.com");
-
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"login@example.com\",\"password\":\"" + AuthTestSupport.PASSWORD + "\"}"))
-                .andExpect(status().isNoContent())
-                .andExpect(cookie().exists("session_token"))
-                .andExpect(cookie().httpOnly("session_token", true));
-    }
-
-    @Test
-    @DisplayName("로그인 실패 시 계정 존재 여부 및 비밀번호 오류를 구분하지 않고 동일한 오류를 반환한다")
-    void 자격이_맞지_않으면_어느_쪽이_틀렸는지_구분하지_않는다() throws Exception {
-        AuthTestSupport.가입한다(mockMvc, mail, "wrong@example.com");
-
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"wrong@example.com\",\"password\":\"not-the-password\"}"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
-
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"nobody@example.com\",\"password\":\"password-123\"}"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
-    }
-
-    @Test
     @DisplayName("로그아웃 시 세션 쿠키를 만료 처리하고 이후 요청에 401을 반환한다")
     void 로그아웃하면_그_세션으로_다시_닿을_수_없다() throws Exception {
         Cookie session = AuthTestSupport.가입한다(mockMvc, mail, "logout@example.com");
@@ -206,7 +163,7 @@ class UserApiTest {
     @Test
     @DisplayName("이메일 형식이 올바르지 않으면 가입 요청을 거부한다")
     void 이메일_형식이_아니면_등록되지_않는다() throws Exception {
-        mockMvc.perform(post("/api/v1/auth/signup")
+        mockMvc.perform(post("/api/v1/auth/login/code")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"not-an-email\",\"password\":\"password-123\"}"))
                 .andExpect(status().isBadRequest());

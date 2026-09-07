@@ -30,11 +30,11 @@ JAR="$REPO_ROOT/server/build/libs/app.jar"
 [ -f "$JAR" ] || fail "$JAR 가 없습니다"
 
 echo "운반"
-ssh -p "$DEPLOY_PORT" "$TARGET" "mkdir -p ~/$APP_DIR/api"
-scp -P "$DEPLOY_PORT" "$JAR" "$REPO_ROOT/server/Dockerfile" "$TARGET:$APP_DIR/api/"
-ssh -p "$DEPLOY_PORT" "$TARGET" "echo $SHA > ~/$APP_DIR/api/RELEASE_SHA && echo $DEPLOY_TAG > ~/$APP_DIR/api/RELEASE_TAG"
+ssh -p "$DEPLOY_PORT" "$TARGET" "mkdir -p ~/$APP_DIR/api/releases/$SHA"
+scp -P "$DEPLOY_PORT" "$JAR" "$REPO_ROOT/server/Dockerfile" "$TARGET:$APP_DIR/api/releases/$SHA/"
+scp -P "$DEPLOY_PORT" "$REPO_ROOT/scripts/release-api.py" "$TARGET:$APP_DIR/api/"
 
 echo "컨테이너 교체"
-ssh -p "$DEPLOY_PORT" "$TARGET" "cd ~/$APP_DIR && sudo docker compose up -d --build"
+ssh -p "$DEPLOY_PORT" "$TARGET" "python3 ~/$APP_DIR/api/release-api.py $SHA $DEPLOY_TAG"
 
 echo "완료 $DEPLOY_TAG (${SHA:0:7}) → $DEPLOY_TARGET"

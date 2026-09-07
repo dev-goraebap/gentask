@@ -27,7 +27,7 @@ public final class UserRequests {
 
             @Schema(types = {"string", "null"}) @Size(max = Nickname.MAX) String nickname) {}
 
-    public record ConfirmSignup(
+    public record ConfirmLogin(
             @NotBlank(message = Email.REQUIRED) @Size(max = Email.MAX) String email,
 
             @NotBlank(message = CODE_REQUIRED) @Size(max = CODE_MAX) String code) {}
