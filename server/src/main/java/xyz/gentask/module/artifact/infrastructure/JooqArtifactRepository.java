@@ -83,6 +83,18 @@ class JooqArtifactRepository implements ArtifactRepository {
                 .map(JooqArtifactRepository::toDomain);
     }
 
+    @Override
+    public Optional<Artifact> findByIdForUpdate(String projectId, String artifactId) {
+        return dslContext
+                .selectFrom(ARTIFACTS)
+                .where(ARTIFACTS.ID.eq(artifactId))
+                .and(ARTIFACTS.PROJECT_ID.eq(projectId))
+                .and(ARTIFACTS.DELETED_AT.isNull())
+                .forUpdate()
+                .fetchOptional()
+                .map(JooqArtifactRepository::toDomain);
+    }
+
     /*
      * 폴더 이동 시 논리 삭제된 아티팩트도 참조 정합성을 위해 함께 이동 대상에 포함한다(DOC-008 A7).
      */

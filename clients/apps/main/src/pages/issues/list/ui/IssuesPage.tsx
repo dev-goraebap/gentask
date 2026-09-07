@@ -1,3 +1,4 @@
+import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { IssueSortFields } from './IssueSortFields';
 import { IssueSortSelector } from './IssueSortSelector';
 import { ListingFooter, useListing } from '@/shared/ui/listing';
@@ -81,7 +82,7 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
 
   return (
     <>
-    <Layout
+    <PageLayout
       padding={0}
       height="fill"
       footer={!mobile && view === 'list' ? <ListingFooter {...listing.pagination(filtered.length)} /> : undefined}
@@ -202,7 +203,7 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
         </>
       }
     >
-      <LayoutContent ref={listing.ref} onScroll={listing.onScroll} padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-4))' } : undefined}>
+      <PageContent ref={listing.ref} onScroll={listing.onScroll} padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-4))' } : undefined}>
         {filtered.length === 0 ? (
           <EmptyState
             icon={<HgiSearchEmpty />}
@@ -221,8 +222,8 @@ export function IssuesPage({ projectId, items, view, onViewChange, onOpen }: Iss
           </>
         )}
         {mobile && view === 'list' ? <ListingFooter {...listing.pagination(filtered.length)} /> : null}
-      </LayoutContent>
-    </Layout>
+      </PageContent>
+    </PageLayout>
     <MobileSurface title="이슈 필터" isOpen={filtersOpen} onOpenChange={setFiltersOpen}>
       <Layout header={<DialogHeader title="이슈 표시 옵션" onOpenChange={setFiltersOpen} />} content={<LayoutContent><VStack gap={4}>
         <CheckboxList label="상태" description="선택하지 않으면 모든 상태를 표시합니다." value={draft.state} onChange={state => setDraft({ ...draft, state })}>{ITEM_STATES.map(value => <CheckboxListItem key={value} value={value} label={value} />)}</CheckboxList>

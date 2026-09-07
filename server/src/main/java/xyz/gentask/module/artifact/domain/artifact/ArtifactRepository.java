@@ -18,6 +18,8 @@ public interface ArtifactRepository {
      */
     Optional<Artifact> findById(String projectId, String artifactId);
 
+    Optional<Artifact> findByIdForUpdate(String projectId, String artifactId);
+
     /**
      * 특정 폴더에 소속된 모든 아티팩트를 조회한다. 폴더 삭제 시 상위 승격을 위해 논리 삭제된 아티팩트도 포함한다(DOC-008 A7).
      */

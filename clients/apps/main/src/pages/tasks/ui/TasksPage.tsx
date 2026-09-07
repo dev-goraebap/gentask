@@ -1,3 +1,4 @@
+import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { MobilePageHeader } from '@/shared/ui/mobile';
 import { filterByView, isCompleted, splitByCompletion, TASK_VIEWS, useTaskStore, type TaskViewKey } from '@/entities/task';
 import { TITLE_PAD_TOP, TITLE_ROW, TODAY, WIDTH } from '@/shared/config';
@@ -51,7 +52,7 @@ export function TasksPage({ view, taskId, onViewChange, onSelect }: TasksProps) 
 
   return (
     <>
-    <Layout
+    <PageLayout
       padding={0}
       height="fill"
       contentWidth={WIDTH.narrow}
@@ -126,7 +127,7 @@ export function TasksPage({ view, taskId, onViewChange, onSelect }: TasksProps) 
         </LayoutFooter>
       }
     >
-      <LayoutContent padding={mobile ? 3 : 4}>
+      <PageContent padding={mobile ? 3 : 4}>
         {mobile ? <VStack gap={2}><Text color="secondary">개인 작업을 정리하고 일정과 진행 상황을 확인합니다.</Text><Text type="supporting">남은 {active.length} · 완료 {completed.length}</Text></VStack> : null}
         {inView.length === 0 ? (
           <EmptyState
@@ -167,8 +168,8 @@ export function TasksPage({ view, taskId, onViewChange, onSelect }: TasksProps) 
             ) : null}
           </VStack>
         )}
-      </LayoutContent>
-    </Layout>
+      </PageContent>
+    </PageLayout>
 
       {/*
         * 상세는 화면 오른쪽 가장자리에 붙는 전체 높이 드로어로 연다. Dialog 를 가장자리로

@@ -1,3 +1,4 @@
+import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
 import { artifactKeys, artifactsOptions, foldersOptions, createFolder } from '@/entities/artifact';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -92,7 +93,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
   return (
     <>
     {artifacts.isRefetchError || folderQuery.isRefetchError ? <RequestState error={artifacts.error ?? folderQuery.error} retry={() => { void artifacts.refetch(); void folderQuery.refetch(); }} /> : null}
-    <Layout
+    <PageLayout
       padding={0}
       height="fill"
       contentWidth={WIDTH.wide}
@@ -153,7 +154,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
       }
       footer={mobile ? undefined : <ListingFooter {...listing.pagination(entries.length)} />}
     >
-      <LayoutContent padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-4))' } : undefined} ref={listing.ref} onScroll={listing.onScroll}>
+      <PageContent padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-4))' } : undefined} ref={listing.ref} onScroll={listing.onScroll}>
         <VStack gap={4}>
           <HStack justify="between" align="center" gap={2} wrap="wrap" padding={0}>
           <Breadcrumbs label="아티팩트 폴더 경로">
@@ -180,8 +181,8 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
           </>}
         </VStack>
         {mobile ? <ListingFooter {...listing.pagination(entries.length)} /> : null}
-      </LayoutContent>
-    </Layout>
+      </PageContent>
+    </PageLayout>
     <MobileSurface title="필터" isOpen={filtersOpen} onOpenChange={setFiltersOpen}>
       <Layout header={<DialogHeader title="아티팩트 표시 옵션" onOpenChange={setFiltersOpen} />} content={<LayoutContent><VStack gap={4}>
         <SortFields options={sortOptions} value={{ key: draft.sort, direction: draft.direction }} onChange={value => setDraft({ ...draft, sort: value.key as DocSort, direction: value.direction })} />

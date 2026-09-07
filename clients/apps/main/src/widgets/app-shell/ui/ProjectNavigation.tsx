@@ -12,10 +12,10 @@ export function ProjectNavigation({ onOpen, onCreate }: { onOpen: (id: string, a
     moveProject(source, target);
     setAnnouncement(`${projects.find(project => project.id === source)?.name ?? '프로젝트'} 순서를 변경했습니다.`);
   };
-  return <VStack gap={2} paddingBlockStart={4}>
-    <Text weight="semibold">프로젝트</Text>
+  return <VStack gap={0} paddingBlockStart={2}>
+    <VStack paddingBlockEnd={1}><Text weight="semibold">프로젝트</Text></VStack>
     <Text id="project-order-help" className="project-order-status">순서 변경 버튼을 끌거나 위·아래 방향키로 이동하세요.</Text>
-    <VStack role="list" aria-label="참여 중인 프로젝트" gap={1}>
+    <VStack role="list" aria-label="참여 중인 프로젝트" gap={0}>
       {projects.map((project, index) => <ProjectNavigationItem key={project.id} project={project}
         onOpen={() => onOpen(project.id, project.archived)} onMove={move}
         onStep={direction => { const target = projects[index + direction]; if (target) move(project.id, target.id); }} />)}

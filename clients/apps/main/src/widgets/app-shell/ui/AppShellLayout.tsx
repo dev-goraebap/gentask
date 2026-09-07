@@ -1,6 +1,6 @@
 import { ProjectAvatar, useWorkspaceStore } from '@/entities/workspace';
 import { CreateProjectDialog } from '@/features/create-project';
-import { HgiArrowLeft, HgiBook, HgiFolder, HgiMembers, HgiNote, HgiSettings, HgiUser } from '@/shared/ui/icons';
+import { HgiArrowLeft, HgiArtifacts, HgiFolder, HgiMembers, HgiTask, HgiSettings, HgiUser } from '@/shared/ui/icons';
 import { MOBILE_QUERY, MobilePageHeader } from '@/shared/ui/mobile';
 import { AppShell, Button, EmptyState, HStack, Layout, LayoutFooter, SideNav, SideNavItem, Text, VStack } from '@astryxdesign/core';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
@@ -18,12 +18,13 @@ export function AppShellLayout() {
   const { projectId } = useParams({ strict: false });
   const project = projects.find((p) => p.id === projectId);
   const menu = [
-    { label: '아티팩트', icon: <HgiBook />, path: '/projects/$projectId/artifacts' as const },
+    { label: '작업', icon: <HgiTask />, path: '/projects/$projectId/tasks' as const },
+    { label: '아티팩트', icon: <HgiArtifacts />, path: '/projects/$projectId/artifacts' as const },
     { label: '멤버', icon: <HgiMembers />, path: '/projects/$projectId/members' as const },
     { label: '설정', icon: <HgiSettings />, path: '/projects/$projectId/settings' as const },
   ];
-  const inDrawer = Boolean(matchRoute({ to: '/drawer' }));
-  const basicMenu = [{ label: '서랍', icon: <HgiNote />, path: '/drawer' as const }, { label: '프로젝트', icon: <HgiFolder />, path: '/projects' as const }, { label: '내 정보', icon: <HgiUser />, path: '/me' as const }];
+  const personalMenu = [{ label: '작업', icon: <HgiTask />, path: '/tasks' as const }, { label: '아티팩트', icon: <HgiArtifacts />, path: '/artifacts' as const }];
+  const basicMenu = [...personalMenu, { label: '프로젝트', icon: <HgiFolder />, path: '/projects' as const }, { label: '계정', icon: <HgiUser />, path: '/me' as const }];
   const selected = menu.find((m) => matchRoute({ to: m.path, fuzzy: true }));
   const missing = Boolean(projectId && !project);
   const archived = project?.archived && selected?.path !== '/projects/$projectId/settings';
@@ -35,15 +36,17 @@ export function AppShellLayout() {
     <AppShell mobileNav={false} height="fill" variant="section" contentPadding={0}
       sideNav={mobile ? undefined : <SideNav style={{ width: '16.25rem' }}
         header={<HStack gap={2} align="center"><img src="/icon-192.png" alt="" width={28} height={28} style={{ width: '1.75rem', height: '1.75rem' }} /><Text className="app-logo" size="lg">Gentask</Text></HStack>}
-        topContent={project ? <SideNavItem label="전체 메뉴로" icon={<HgiArrowLeft />} onClick={() => navigate({ to: '/drawer' })} /> : undefined}
-        footer={<HStack justify="between" align="center"><Button label="내 정보" icon={<HgiUser />} variant="ghost" onClick={() => navigate({ to: '/me' })} /><ThemeToggle /></HStack>}>
-        {project ? <VStack gap={2} paddingBlockStart={4}>
-          <HStack gap={2} align="center"><ProjectAvatar project={project} /><Text weight="semibold" style={{ overflowWrap: 'anywhere' }}>{project.name}</Text></HStack>
+        topContent={project ? <SideNavItem label="전체 메뉴로" icon={<HgiArrowLeft />} onClick={() => navigate({ to: '/tasks' })} /> : undefined}
+        footer={<HStack justify="between" align="center"><Button label="계정" icon={<HgiUser />} variant="ghost" onClick={() => navigate({ to: '/me' })} /><ThemeToggle /></HStack>}>
+        {project ? <VStack gap={0}>
+          <HStack gap={2} align="center" paddingBlockEnd={1}><ProjectAvatar project={project} /><Text weight="semibold" style={{ overflowWrap: 'anywhere' }}>{project.name}</Text></HStack>
           {menu.map((m) => <SideNavItem key={m.path} label={m.label} icon={m.icon}
             isSelected={selected?.path === m.path} onClick={() => navigate({ to: m.path, params: { projectId: project.id }, search: {} })} />)}
-        </VStack> : <VStack gap={1}>
-          <SideNavItem label="서랍" icon={<HgiNote />} isSelected={inDrawer} onClick={() => navigate({ to: '/drawer' })} />
-          <ProjectNavigation onCreate={() => setCreating(true)} onOpen={(id, archived) => navigate({ to: archived ? '/projects/$projectId/settings' : '/projects/$projectId/artifacts', params: { projectId: id }, search: {} })} />
+        </VStack> : <VStack gap={0}>
+          <VStack gap={0} paddingBlockStart={2}><VStack paddingBlockEnd={1}><Text weight="semibold">개인</Text></VStack>
+            {personalMenu.map(m => <SideNavItem key={m.path} label={m.label} icon={m.icon} isSelected={Boolean(matchRoute({ to: m.path, fuzzy: true }))} onClick={() => navigate({ to: m.path })} />)}
+          </VStack>
+          <ProjectNavigation onCreate={() => setCreating(true)} onOpen={(id, archived) => navigate({ to: archived ? '/projects/$projectId/settings' : '/projects/$projectId/tasks', params: { projectId: id }, search: {} })} />
         </VStack>}
       </SideNav>}>
       <Layout padding={0} style={mobileDetail ? { paddingBottom: 'env(safe-area-inset-bottom)', boxSizing: 'border-box' } : undefined} header={mobile && project && !mobileDetail ? <MobilePageHeader title={project.name} backLabel="프로젝트 목록으로" onBack={() => navigate({ to: '/projects' })} /> : undefined}
@@ -58,6 +61,6 @@ export function AppShellLayout() {
           </Button>)}
         </HStack></LayoutFooter> : undefined} />
     </AppShell>
-    {creating ? <CreateProjectDialog onClose={() => setCreating(false)} onCreated={id => navigate({ to: '/projects/$projectId/artifacts', params: { projectId: id }, search: {} })} /> : null}
+    {creating ? <CreateProjectDialog onClose={() => setCreating(false)} onCreated={id => navigate({ to: '/projects/$projectId/tasks', params: { projectId: id }, search: {} })} /> : null}
   </>;
 }

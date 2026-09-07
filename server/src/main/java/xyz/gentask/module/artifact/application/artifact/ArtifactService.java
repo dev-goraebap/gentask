@@ -137,7 +137,7 @@ public class ArtifactService {
     public void edit(UUID userId, String projectId, String artifactId, String title, String body, String comment) {
         String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         Artifact artifact = artifactRepository
-                .findById(accessibleProjectId, readId(artifactId))
+                .findByIdForUpdate(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
         ArtifactRevision head = head(artifact);
 
@@ -163,7 +163,7 @@ public class ArtifactService {
     public void revert(UUID userId, String projectId, String artifactId, String revisionNo, String comment) {
         String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         Artifact artifact = artifactRepository
-                .findById(accessibleProjectId, readId(artifactId))
+                .findByIdForUpdate(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
         int targetNo = readRevisionNo(revisionNo);
         ArtifactRevision target = artifactRepository
@@ -191,7 +191,7 @@ public class ArtifactService {
     public void move(UUID userId, String projectId, String artifactId, String folderId) {
         String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         Artifact artifact = artifactRepository
-                .findById(accessibleProjectId, readId(artifactId))
+                .findByIdForUpdate(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
 
         String target = findFolder(accessibleProjectId, folderId);

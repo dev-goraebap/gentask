@@ -394,3 +394,18 @@ ALTER TABLE sessions
 
 ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+CREATE TABLE artifact_comments (
+    id varchar(12) PRIMARY KEY,
+    revision_id uuid NOT NULL REFERENCES artifact_revisions(id) ON DELETE CASCADE,
+    block_start integer,
+    block_end integer,
+    body varchar(5000) NOT NULL,
+    created_by uuid NOT NULL REFERENCES users(id),
+    created_at timestamptz NOT NULL,
+    CONSTRAINT ck_artifact_comments_range CHECK (
+        (block_start IS NULL AND block_end IS NULL) OR
+        (block_start IS NOT NULL AND block_end IS NOT NULL AND block_start >= 0 AND block_end > block_start)
+    ),
+    CONSTRAINT ck_artifact_comments_body CHECK (btrim(body) <> '')
+);
+CREATE INDEX ix_artifact_comments_revision ON artifact_comments(revision_id, created_at, id);

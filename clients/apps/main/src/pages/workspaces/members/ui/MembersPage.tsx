@@ -1,3 +1,4 @@
+import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
 import { ME } from '@/entities/session';
 import { ROLE_LABEL, useWorkspaceStore, type Invitation, type ProjectMember } from '@/entities/workspace';
@@ -146,7 +147,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
     </>} />;
 
   return <>
-    <Layout padding={0} height="fill" contentWidth={WIDTH.wide}
+    <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
       header={<>{mobile ? null : <LayoutHeader hasDivider padding={mobile ? 0 : undefined}>
         <VStack gap={2}>
         <HStack justify="between" align="center" width="100%" height={mobile ? undefined : TITLE_ROW}
@@ -167,7 +168,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
         </HStack> : null}
       </>}
       footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} unit="명" />}
-      content={<LayoutContent padding={mobile ? 3 : 4} ref={listing.ref} onScroll={listing.onScroll}>
+      content={<PageContent padding={mobile ? 3 : 4} ref={listing.ref} onScroll={listing.onScroll}>
         <VStack gap={6}>
           <VStack gap={3}>
             {mobile ? <Text weight="semibold">참여 중 · {matched.length}명</Text> : null}
@@ -184,7 +185,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
           </VStack>
         </VStack>
         {mobile ? <ListingFooter {...listing.pagination(matched.length)} unit="명" /> : null}
-      </LayoutContent>} />
+      </PageContent>} />
 
     <MobileSurface title="필터" isOpen={filtersOpen} onOpenChange={setFiltersOpen}>
       <Layout header={<DialogHeader title="멤버 필터" onOpenChange={setFiltersOpen} />} content={<LayoutContent><VStack gap={4}>

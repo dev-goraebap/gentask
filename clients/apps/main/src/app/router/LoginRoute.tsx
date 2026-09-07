@@ -3,5 +3,5 @@ import { useNavigate } from '@tanstack/react-router';
 
 export function LoginRoute() {
   const navigate = useNavigate();
-  return <LoginPage onLoggedIn={() => navigate({ to: '/projects', replace: true })} />;
+  return <LoginPage onLoggedIn={() => navigate({ to: '/tasks', replace: true })} />;
 }

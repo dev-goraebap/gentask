@@ -101,6 +101,138 @@ class ArtifactApiTest {
     }
 
     @Test
+    void 코멘트를_버전과_블록에_저장하고_새_버전으로_옮기지_않는다() throws Exception {
+        String id = 아티팩트를_세운다("{\"title\":\"코멘트\",\"body\":\"같은 문단\\n\\n같은 문단\"}");
+        String path = "/api/v1/projects/" + projectId + "/artifacts/" + id + "/versions/1/comments";
+        mockMvc.perform(post(path)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"두 번째 문단 의견\",\"blockStart\":7,\"blockEnd\":12}"))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post(path)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"문서 전체 의견\"}"))
+                .andExpect(status().isCreated());
+        mockMvc.perform(get(path).cookie(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].blockStart").value(7))
+                .andExpect(jsonPath("$[0].blockSource").value("같은 문단"))
+                .andExpect(jsonPath("$[1].blockStart").doesNotExist());
+        assertThat(개정들(id)).hasSize(1);
+        고친다(id, "{\"title\":\"코멘트\",\"body\":\"새 본문\"}");
+        mockMvc.perform(get(path).cookie(session)).andExpect(jsonPath("$", hasSize(2)));
+        mockMvc.perform(get(path.replace("/versions/1/", "/versions/2/")).cookie(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+        mockMvc.perform(post(path)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"늦은 의견\"}"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void 잘못된_코멘트_범위와_권한_없는_접근을_거절한다() throws Exception {
+        String id = 아티팩트를_세운다("{\"title\":\"코멘트\",\"body\":\"본문\"}");
+        String path = "/api/v1/projects/" + projectId + "/artifacts/" + id + "/versions/1/comments";
+        for (String body : List.of(
+                "{\"body\":\" \"}",
+                "{\"body\":\"의견\",\"blockStart\":0}",
+                "{\"body\":\"의견\",\"blockStart\":-1,\"blockEnd\":1}",
+                "{\"body\":\"의견\",\"blockStart\":0,\"blockEnd\":30}")) {
+            mockMvc.perform(post(path)
+                            .cookie(session)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest());
+        }
+        mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "comment-other-" + UUID.randomUUID() + "@example.com");
+        mockMvc.perform(get(path).cookie(other)).andExpect(status().isNotFound());
+        mockMvc.perform(post(path)
+                        .cookie(other)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"의견\"}"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get(path.replace("/versions/1/", "/versions/99/")).cookie(session))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void 최신_버전의_본인_코멘트만_삭제한다() throws Exception {
+        String id = 아티팩트를_세운다("{\"title\":\"삭제 검증\",\"body\":\"본문\"}");
+        String path = "/api/v1/projects/" + projectId + "/artifacts/" + id + "/versions/1/comments";
+        mockMvc.perform(post(path)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"삭제할 의견\"}"))
+                .andExpect(status().isCreated());
+        var comments = xyz.gentask.jooq.Tables.ARTIFACT_COMMENTS;
+        UUID revisionId = 개정들(id).getFirst().getId();
+        var comment = dslContext
+                .selectFrom(comments)
+                .where(comments.REVISION_ID.eq(revisionId))
+                .fetchSingle();
+        String target = path + "/" + comment.getId();
+        var deletion = org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(target);
+        mockMvc.perform(deletion).andExpect(status().isUnauthorized());
+        String otherEmail = "delete-comment-" + UUID.randomUUID() + "@example.com";
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, otherEmail);
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(target)
+                        .cookie(other))
+                .andExpect(status().isNotFound());
+        var users = xyz.gentask.jooq.Tables.USERS;
+        UUID otherId = dslContext
+                .select(users.ID)
+                .from(users)
+                .where(users.EMAIL.eq(otherEmail))
+                .fetchSingle(users.ID);
+        dslContext
+                .update(comments)
+                .set(comments.CREATED_BY, otherId)
+                .where(comments.ID.eq(comment.getId()))
+                .execute();
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(target)
+                        .cookie(session))
+                .andExpect(status().isNotFound());
+        assertThat(dslContext.fetchCount(comments, comments.ID.eq(comment.getId())))
+                .isEqualTo(1);
+        dslContext
+                .update(comments)
+                .set(comments.CREATED_BY, comment.getCreatedBy())
+                .where(comments.ID.eq(comment.getId()))
+                .execute();
+        String another = 아티팩트를_세운다("{\"title\":\"다른 문서\",\"body\":\"본문\"}");
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                                target.replace(id, another))
+                        .cookie(session))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(target)
+                        .cookie(session))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get(path).cookie(session)).andExpect(jsonPath("$", hasSize(0)));
+        assertThat(개정들(id)).hasSize(1);
+        mockMvc.perform(post(path)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"보존할 의견\"}"))
+                .andExpect(status().isCreated());
+        String preserved = dslContext
+                .select(comments.ID)
+                .from(comments)
+                .where(comments.REVISION_ID.eq(revisionId))
+                .fetchSingle(comments.ID);
+        고친다(id, "{\"title\":\"삭제 검증\",\"body\":\"새 본문\"}");
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                                path + "/" + preserved)
+                        .cookie(session))
+                .andExpect(status().isConflict());
+        mockMvc.perform(get(path).cookie(session)).andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    @Test
     void 이전_문서_URL은_제공하지_않는다() throws Exception {
         mockMvc.perform(get("/api/v1/projects/{projectId}/documents", projectId).cookie(session))
                 .andExpect(status().isNotFound());

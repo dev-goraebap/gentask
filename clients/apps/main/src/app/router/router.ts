@@ -12,7 +12,8 @@ import { RouteError } from './RouteError';
 import { RoutePending } from './RoutePending';
 import { queryClient, onSessionExpired } from '../model/query-client';
 import { AccountPage } from '@/pages/account';
-import { DrawerPage } from '@/pages/drawer';
+import { TasksComingSoonPage } from '@/pages/tasks-coming-soon';
+import { PersonalArtifactsPage } from '@/pages/personal-artifacts';
 import { type IssueView } from '@/pages/issues/list';
 import { WorkspaceSettingsPage } from '@/pages/workspaces/settings';
 import { WorkspacesPage } from '@/pages/workspaces/list';
@@ -49,7 +50,7 @@ export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   beforeLoad: () => {
-    throw redirect({ to: '/projects' });
+    throw redirect({ to: '/tasks' });
   },
 });
 
@@ -59,8 +60,12 @@ export const tasksRoute = createRoute({
   validateSearch: (search: Record<string, unknown>): { task?: string } => ({
     task: typeof search.task === 'string' ? search.task : undefined,
   }),
-  component: UnavailablePage,
+  component: TasksComingSoonPage,
 });
+
+export const personalTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks', component: TasksComingSoonPage });
+export const projectTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects/$projectId/tasks', component: TasksComingSoonPage });
+export const personalArtifactsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/artifacts', component: PersonalArtifactsPage });
 
 export const notesRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -145,7 +150,6 @@ export const membersRoute = createRoute({
   component: UnavailablePage,
 });
 
-export const drawerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/drawer', component: UnavailablePage });
 
 export const projectsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects', validateSearch: (search: Partial<ListingSearch> & SearchSchemaInput) => parseListingSearch(search, ['manual', 'name'], 'manual'), component: WorkspacesPage, loader: ({ context }) => context.queryClient.ensureQueryData({ ...projectsOptions(), revalidateIfStale: true }) });
 
@@ -160,7 +164,9 @@ export const routeTree = rootRoute.addChildren([
   legacyDiscoveriesRoute,
   legacyDiscoveryRoute,
   accountRoute,
-  drawerRoute,
+  personalTasksRoute,
+  projectTasksRoute,
+  personalArtifactsRoute,
   projectsRoute,
   settingsRoute,
   membersRoute,

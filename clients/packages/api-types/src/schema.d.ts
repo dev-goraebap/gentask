@@ -180,7 +180,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifact-folders": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments": {
         parameters: {
             query?: never;
             header?: never;
@@ -190,6 +190,22 @@ export interface paths {
         get: operations["list_5"];
         put?: never;
         post: operations["add_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/artifact-folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_6"];
+        put?: never;
+        post: operations["add_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -603,7 +619,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_6"];
+        get: operations["list_7"];
         put?: never;
         post?: never;
         delete?: never;
@@ -619,7 +635,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_7"];
+        get: operations["list_8"];
         put?: never;
         post?: never;
         delete?: never;
@@ -639,6 +655,22 @@ export interface paths {
         put?: never;
         post?: never;
         delete: operations["detach"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -720,6 +752,13 @@ export interface components {
         RevertVersion: {
             /** @description 왜 되돌리는지. 적지 않아도 된다 */
             comment?: string | null;
+        };
+        CreateArtifactComment: {
+            body: string;
+            /** Format: int32 */
+            blockStart?: number;
+            /** Format: int32 */
+            blockEnd?: number;
         };
         CreateFolder: {
             name: string;
@@ -961,6 +1000,22 @@ export interface components {
             title: string;
             /** @description 그때의 본문. 마크다운 원문이다 */
             body: string;
+        };
+        ArtifactCommentView: {
+            id: string;
+            /** Format: int32 */
+            versionNo: number;
+            /** Format: int32 */
+            blockStart?: number;
+            /** Format: int32 */
+            blockEnd?: number;
+            blockSource?: string;
+            body: string;
+            /** Format: uuid */
+            authorId: string;
+            authorName: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         ArtifactFolderSummary: {
             id: string;
@@ -1488,6 +1543,60 @@ export interface operations {
             header?: never;
             path: {
                 projectId: string;
+                artifactId: string;
+                versionNo: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ArtifactCommentView"][];
+                };
+            };
+        };
+    };
+    add_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                artifactId: string;
+                versionNo: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateArtifactComment"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    list_6: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
             };
             cookie?: never;
         };
@@ -1504,7 +1613,7 @@ export interface operations {
             };
         };
     };
-    add_3: {
+    add_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2286,7 +2395,7 @@ export interface operations {
             };
         };
     };
-    list_6: {
+    list_7: {
         parameters: {
             query?: {
                 keyword?: string;
@@ -2310,7 +2419,7 @@ export interface operations {
             };
         };
     };
-    list_7: {
+    list_8: {
         parameters: {
             query?: {
                 includeResolved?: boolean;
@@ -2341,6 +2450,29 @@ export interface operations {
             path: {
                 taskId: string;
                 taskFileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                artifactId: string;
+                versionNo: number;
+                commentId: string;
             };
             cookie?: never;
         };

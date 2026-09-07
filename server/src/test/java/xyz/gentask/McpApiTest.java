@@ -85,7 +85,7 @@ class McpApiTest {
                 .isEqualTo("2025-11-25");
         var response = 요청(token, "tools/list", Map.of());
         JsonNode tools = mapper.readTree(response.body()).path("result").path("tools");
-        assertThat(tools.size()).isEqualTo(9);
+        assertThat(tools.size()).isEqualTo(10);
         for (JsonNode tool : tools) {
             assertThat(tool.path("inputSchema").path("properties").has("context"))
                     .isFalse();
@@ -181,6 +181,27 @@ class McpApiTest {
         assertThat(데이터(호출(token, "list_artifacts", Map.of("projectId", projectId)))
                         .size())
                 .isEqualTo(1);
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                "/api/v1/projects/{projectId}/artifacts/{id}/versions/2/comments",
+                                projectId,
+                                artifactId)
+                        .cookie(session)
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"제목 검토\",\"blockStart\":0,\"blockEnd\":8}"))
+                .andExpect(status().isCreated());
+        var comments = 데이터(호출(
+                token,
+                "list_artifact_comments",
+                Map.of("projectId", projectId, "artifactId", artifactId, "versionNo", 2)));
+        assertThat(comments.size()).isEqualTo(1);
+        assertThat(comments.get(0).path("blockSource").asText()).isEqualTo("# 변경한 본문");
+        assertThat(comments.get(0).path("body").asText()).isEqualTo("제목 검토");
+        assertThat(데이터(호출(
+                                token,
+                                "list_artifact_comments",
+                                Map.of("projectId", projectId, "artifactId", artifactId, "versionNo", 1)))
+                        .size())
+                .isZero();
     }
 
     @Test

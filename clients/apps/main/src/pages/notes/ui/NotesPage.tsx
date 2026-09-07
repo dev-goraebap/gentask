@@ -1,3 +1,4 @@
+import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { MobilePageHeader } from '@/shared/ui/mobile';
 import { useNoteStore } from '@/entities/note';
 import { PANEL, TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
@@ -30,7 +31,7 @@ export function NotesPage({ notes, selectedId, onSelect }: NotesProps) {
 
   return (
     <>
-    <Layout
+    <PageLayout
       padding={0}
       height="fill"
       contentWidth={WIDTH.wide}
@@ -66,7 +67,7 @@ export function NotesPage({ notes, selectedId, onSelect }: NotesProps) {
         </LayoutPanel>
       }
     >
-      <LayoutContent padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-4))' } : undefined}>
+      <PageContent padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-4))' } : undefined}>
         {mobile ? <VStack gap={3}><Text color="secondary">아이디어와 참고할 내용을 개인 메모로 기록합니다.</Text><List hasDividers style={{ marginInline: 'calc(-1 * var(--spacing-3))' }}>{notes.map((n) => <Item key={n.id} as="li" label={n.title} labelLines={2} description={n.updatedAt} density="spacious"
           startContent={<HgiNote />} onClick={() => { onSelect(n.id); setDetailOpen(true); }} />)}</List></VStack> : note ? (
           <VStack gap={4}>
@@ -81,8 +82,8 @@ export function NotesPage({ notes, selectedId, onSelect }: NotesProps) {
             </VStack>
           </VStack>
         ) : null}
-      </LayoutContent>
-    </Layout>
+      </PageContent>
+    </PageLayout>
     <MobileSurface title="메모" presentation="fullscreen" isOpen={mobile && detailOpen} onOpenChange={setDetailOpen}>
       <Layout header={<DialogHeader title="메모" onOpenChange={setDetailOpen} />} content={<LayoutContent><VStack gap={4}>
         <Heading level={2}>{note?.title}</Heading><Text color="secondary">{note?.updatedAt}</Text>

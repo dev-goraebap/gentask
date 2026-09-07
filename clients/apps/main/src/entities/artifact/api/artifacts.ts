@@ -3,6 +3,7 @@ import { queryOptions } from '@tanstack/react-query';
 import type { components } from 'api-types';
 
 export type ArtifactView = components['schemas']['ArtifactView'];
+export type ArtifactCommentView = components['schemas']['ArtifactCommentView'];
 const base = (projectId: string) => '/projects/' + encodeURIComponent(projectId);
 export const artifactKeys = {
   all: (projectId: string) => ['artifacts', projectId] as const,
@@ -41,3 +42,13 @@ export const versionOptions = (projectId: string, artifactId: string, versionNo:
   queryKey: [...artifactKeys.all(projectId), 'version', artifactId, versionNo],
   queryFn: ({ signal }) => get<components['schemas']['VersionView']>(base(projectId) + '/artifacts/' + encodeURIComponent(artifactId) + '/versions/' + versionNo, signal),
 });
+
+export const commentsOptions = (projectId: string, artifactId: string, versionNo: number) => queryOptions({
+  queryKey: [...artifactKeys.all(projectId), 'comments', artifactId, versionNo],
+  queryFn: ({ signal }) => get<ArtifactCommentView[]>(base(projectId) + '/artifacts/' + encodeURIComponent(artifactId) + '/versions/' + versionNo + '/comments', signal),
+});
+export const createArtifactComment = (projectId: string, artifactId: string, versionNo: number, input: components['schemas']['CreateArtifactComment']) =>
+  request(base(projectId) + '/artifacts/' + encodeURIComponent(artifactId) + '/versions/' + versionNo + '/comments', { method: 'POST', body: JSON.stringify(input) });
+
+export const deleteArtifactComment = (projectId: string, artifactId: string, versionNo: number, commentId: string) =>
+  request(base(projectId) + '/artifacts/' + encodeURIComponent(artifactId) + '/versions/' + versionNo + '/comments/' + encodeURIComponent(commentId), { method: 'DELETE' });

@@ -1,3 +1,4 @@
+import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { BackButton } from '@/shared/ui/navigation';
 import { MobilePageHeader } from '@/shared/ui/mobile';
 import { DOCS } from '@/entities/document';
@@ -11,8 +12,6 @@ import {
     Heading,
     HStack,
     Item,
-    Layout,
-    LayoutContent,
     LayoutHeader,
     LayoutPanel,
     List,
@@ -38,7 +37,7 @@ export function IssueDetailPage({
   const linked = DOCS.filter((d) => item.docIds.includes(d.id));
 
   return (
-    <Layout
+    <PageLayout
       padding={0}
       height="fill"
       contentWidth={WIDTH.wide}
@@ -71,7 +70,7 @@ export function IssueDetailPage({
         </LayoutPanel>
       }
     >
-      <LayoutContent padding={mobile ? 3 : 4}>
+      <PageContent contentWidth={mobile ? WIDTH.wide : `calc(${WIDTH.wide} - ${PANEL.meta})`} padding={mobile ? 3 : 4}>
         <VStack gap={5}>
           {mobile ? <MetaRail item={item} onToggleCriterion={onToggleCriterion} onStateChange={onStateChange} /> : null}
           <Heading level={2} accessibilityLevel={1}>{item.title}</Heading>
@@ -145,7 +144,7 @@ export function IssueDetailPage({
             <Button label="담당자 지정" variant="ghost" size="sm" />
           </HStack>
         </VStack>
-      </LayoutContent>
-    </Layout>
+      </PageContent>
+    </PageLayout>
   );
 }
