@@ -1,3 +1,4 @@
+import { InvitationRoute } from './InvitationRoute';
 import { stripSearchParams, type SearchSchemaInput } from '@tanstack/react-router';
 import { parseListingSearch, type ListingSearch } from '@/shared/ui/listing';
 import type { QueryClient } from '@tanstack/react-query';
@@ -13,7 +14,8 @@ import { RoutePending } from './RoutePending';
 import { queryClient, onSessionExpired } from '../model/query-client';
 import { AccountPage } from '@/pages/account';
 import { TasksComingSoonPage } from '@/pages/tasks-coming-soon';
-import { PersonalArtifactsPage } from '@/pages/personal-artifacts';
+import { PersonalArtifactsRoute } from './PersonalArtifactsRoute';
+import { PersonalArtifactRoute } from './PersonalArtifactRoute';
 import { type IssueView } from '@/pages/issues/list';
 import { WorkspaceSettingsPage } from '@/pages/workspaces/settings';
 import { WorkspacesPage } from '@/pages/workspaces/list';
@@ -35,7 +37,7 @@ import { TasksRoute } from './TasksRoute';
 export const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootLayout,
   beforeLoad: async ({ context, location }) => {
-    if (location.pathname === '/login') return;
+    if (location.pathname === '/login' || location.pathname.startsWith('/invitations/')) return;
     try { await context.queryClient.fetchQuery(sessionOptions()); }
     catch (error) {
       if (error instanceof ApiError && error.status === 401) throw redirect({ to: '/login', replace: true });
@@ -43,7 +45,7 @@ export const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }
     }
   },
 });
-export const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/login', component: LoginRoute });
+export const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/login', validateSearch: (search: Record<string, unknown>): { invite?: string } => ({ invite: typeof search.invite === 'string' ? search.invite : undefined }), component: LoginRoute });
 
 
 export const indexRoute = createRoute({
@@ -65,7 +67,15 @@ export const tasksRoute = createRoute({
 
 export const personalTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks', component: TasksComingSoonPage });
 export const projectTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects/$projectId/tasks', component: TasksComingSoonPage });
-export const personalArtifactsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/artifacts', component: PersonalArtifactsPage });
+export const personalArtifactsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/artifacts', component: PersonalArtifactsRoute,
+  validateSearch: (search: Partial<ListingSearch> & { folder?: string } & SearchSchemaInput) => ({ ...parseListingSearch(search, ['title', 'updated'], 'title'), folder: typeof search.folder === 'string' ? search.folder : undefined }),
+  loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData({ ...artifactsOptions(null), revalidateIfStale: true }), context.queryClient.ensureQueryData({ ...foldersOptions(null), revalidateIfStale: true })]),
+});
+export const personalArtifactRoute = createRoute({ getParentRoute: () => rootRoute, path: '/artifacts/$docId', component: PersonalArtifactRoute,
+  validateSearch: (search: Partial<ListingSearch> & { version?: number | string } & SearchSchemaInput) => ({ ...parseListingSearch(search, ['title', 'updated'], 'title'), version: parseVersionSearch(search.version) }),
+  search: { middlewares: [stripSearchParams({ q: '', sort: 'title', direction: 'asc', page: 1, size: 25 })] },
+  loader: ({ context, params }) => context.queryClient.ensureQueryData({ ...artifactOptions(null, params.docId), revalidateIfStale: true }),
+});
 
 export const notesRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -141,13 +151,14 @@ const legacyDiscoveryRoute = createRoute({
 
 
 
+export const invitationRoute = createRoute({ getParentRoute: () => rootRoute, path: '/invitations/$token', component: InvitationRoute });
 export const membersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/projects/$projectId/members',
   validateSearch: (search: Record<string, unknown>): { invite?: string } => ({
     invite: typeof search.invite === 'string' ? search.invite : undefined,
   }),
-  component: UnavailablePage,
+  component: MembersRoute,
 });
 
 
@@ -158,7 +169,7 @@ export const settingsRoute = createRoute({ getParentRoute: () => rootRoute, path
 export const accountRoute = createRoute({ getParentRoute: () => rootRoute, path: '/me', component: AccountPage });
 
 export const routeTree = rootRoute.addChildren([
-  loginRoute,
+  loginRoute, invitationRoute,
   legacyDocsRoute,
   legacyDocRoute,
   legacyDiscoveriesRoute,
@@ -167,6 +178,7 @@ export const routeTree = rootRoute.addChildren([
   personalTasksRoute,
   projectTasksRoute,
   personalArtifactsRoute,
+  personalArtifactRoute,
   projectsRoute,
   settingsRoute,
   membersRoute,
@@ -194,6 +206,6 @@ onSessionExpired(() => {
   expiring = true;
   void queryClient.cancelQueries().then(() => {
     queryClient.clear();
-    return router.navigate({ to: '/login', replace: true });
+    return router.navigate({ to: '/login', search: { invite: router.state.location.pathname.startsWith('/invitations/') ? router.state.location.pathname.split('/')[2] : undefined }, replace: true });
   }).finally(() => { expiring = false; });
 });

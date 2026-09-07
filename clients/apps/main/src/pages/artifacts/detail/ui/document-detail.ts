@@ -1,7 +1,7 @@
 import type { ArtifactView } from '@/entities/artifact';
 export interface DocDetailProps {
   readonly artifact: ArtifactView;
-  readonly projectId: string;
+  readonly projectId: string | null;
   readonly onBack: () => void;
   readonly selectedVersion: number | null;
   readonly onSelectVersion: (version: number | null) => void;

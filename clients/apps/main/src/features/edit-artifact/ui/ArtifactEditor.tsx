@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Suspense, useRef, useState } from 'react';
 
 export function ArtifactEditor({ projectId, folderId, artifact, onClose, onSaved }: {
-  projectId: string; folderId: string | null; artifact?: ArtifactView; onClose: () => void; onSaved: (id: string) => void;
+  projectId: string | null; folderId: string | null; artifact?: ArtifactView; onClose: () => void; onSaved: (id: string) => void;
 }) {
   const [title, setTitle] = useState(artifact?.summary.title ?? '');
   const [body, setBody] = useState(artifact?.body ?? '');

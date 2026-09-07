@@ -31,7 +31,7 @@ import xyz.gentask.shared.web.CurrentUser;
  * 일이라(DOC-008 A5) 한 몸에 담으면 "적지 않았다"와 "비웠다"가 같은 모양이 된다.
  */
 @RestController
-@RequestMapping("/api/v1/projects/{projectId}/artifact-folders")
+@RequestMapping({"/api/v1/projects/{projectId}/artifact-folders", "/api/v1/me/artifact-folders"})
 @RequiredArgsConstructor
 public class ArtifactFolderController {
 
@@ -40,14 +40,17 @@ public class ArtifactFolderController {
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> add(
-            @CurrentUser UUID userId, @PathVariable String projectId, @Valid @RequestBody CreateFolder request) {
+            @CurrentUser UUID userId,
+            @PathVariable(required = false) String projectId,
+            @Valid @RequestBody CreateFolder request) {
         String folderId = artifactFolderService.add(userId, projectId, request.name(), request.parentId());
-        return ResponseEntity.created(URI.create("/api/v1/projects/" + projectId + "/artifact-folders/" + folderId))
+        return ResponseEntity.created(URI.create((projectId == null ? "/api/v1/me" : "/api/v1/projects/" + projectId)
+                        + "/artifact-folders/" + folderId))
                 .build();
     }
 
     @GetMapping
-    public List<FolderSummary> list(@CurrentUser UUID userId, @PathVariable String projectId) {
+    public List<FolderSummary> list(@CurrentUser UUID userId, @PathVariable(required = false) String projectId) {
         return artifactFolderService.list(userId, projectId);
     }
 
@@ -55,7 +58,7 @@ public class ArtifactFolderController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void rename(
             @CurrentUser UUID userId,
-            @PathVariable String projectId,
+            @PathVariable(required = false) String projectId,
             @PathVariable String folderId,
             @Valid @RequestBody RenameFolder request) {
         artifactFolderService.rename(userId, projectId, folderId, request.name());
@@ -65,7 +68,7 @@ public class ArtifactFolderController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void move(
             @CurrentUser UUID userId,
-            @PathVariable String projectId,
+            @PathVariable(required = false) String projectId,
             @PathVariable String folderId,
             @Valid @RequestBody(required = false) MoveFolder request) {
         artifactFolderService.move(userId, projectId, folderId, request == null ? null : request.parentId());
@@ -73,7 +76,8 @@ public class ArtifactFolderController {
 
     @DeleteMapping("/{folderId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void remove(@CurrentUser UUID userId, @PathVariable String projectId, @PathVariable String folderId) {
+    public void remove(
+            @CurrentUser UUID userId, @PathVariable(required = false) String projectId, @PathVariable String folderId) {
         artifactFolderService.remove(userId, projectId, folderId);
     }
 }

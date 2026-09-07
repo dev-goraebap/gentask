@@ -1,6 +1,5 @@
 package xyz.gentask.module.user.application.me;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import xyz.gentask.module.user.application.AuthRequestAttributes;
 import xyz.gentask.module.user.application.UserRequests.ChangeNickname;
-import xyz.gentask.module.user.application.UserRequests.ChangePassword;
 import xyz.gentask.module.user.application.UserRequests.ConfirmProfileImage;
 import xyz.gentask.module.user.application.me.UserViews.IssuedApiToken;
 import xyz.gentask.module.user.application.me.UserViews.MeView;
@@ -38,16 +35,6 @@ public class MeController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void changeNickname(@CurrentUser UUID userId, @Valid @RequestBody ChangeNickname request) {
         meService.changeNickname(userId, request.nickname());
-    }
-
-    /** 남길 자리는 지금 요청이 지나온 세션이다. Bearer 로 부르면 그 자리가 없어 모두 거둔다. */
-    @PutMapping("/password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changePassword(
-            @CurrentUser UUID userId, @Valid @RequestBody ChangePassword request, HttpServletRequest servletRequest) {
-        Object sessionId = servletRequest.getAttribute(AuthRequestAttributes.SESSION_ID);
-        meService.changePassword(
-                userId, sessionId instanceof UUID id ? id : null, request.currentPassword(), request.newPassword());
     }
 
     @PostMapping("/api-token")

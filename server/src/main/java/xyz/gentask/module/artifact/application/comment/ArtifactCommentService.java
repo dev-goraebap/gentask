@@ -6,27 +6,28 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import xyz.gentask.module.artifact.application.ArtifactAccess;
 import xyz.gentask.module.artifact.application.ArtifactErrorCode;
 import xyz.gentask.module.artifact.application.comment.ArtifactCommentRequests.CreateComment;
 import xyz.gentask.module.artifact.application.comment.ArtifactCommentViews.CommentView;
+import xyz.gentask.module.artifact.domain.ArtifactScope;
 import xyz.gentask.module.artifact.domain.artifact.Artifact;
 import xyz.gentask.module.artifact.domain.artifact.ArtifactRepository;
 import xyz.gentask.module.artifact.domain.artifact.ArtifactRevision;
-import xyz.gentask.module.project.ProjectAccessIn;
 import xyz.gentask.shared.domain.NanoId;
 import xyz.gentask.shared.error.DomainRuleViolation;
 
 @Service
 @RequiredArgsConstructor
 public class ArtifactCommentService {
-    private final ProjectAccessIn projectAccess;
+    private final ArtifactAccess projectAccess;
     private final ArtifactRepository artifacts;
     private final ArtifactCommentStore comments;
     private final Clock clock;
 
     @Transactional(readOnly = true)
     public List<CommentView> list(UUID userId, String projectId, String artifactId, int versionNo) {
-        String accessible = projectAccess.requireAccess(userId, projectId);
+        ArtifactScope accessible = projectAccess.requireAccess(userId, projectId);
         artifacts.findById(accessible, artifactId).orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
         ArtifactRevision revision = revision(artifactId, versionNo);
         return comments.list(revision.id(), versionNo, revision.body().value());
@@ -34,7 +35,7 @@ public class ArtifactCommentService {
 
     @Transactional
     public String add(UUID userId, String projectId, String artifactId, int versionNo, CreateComment request) {
-        String accessible = projectAccess.requireAccess(userId, projectId);
+        ArtifactScope accessible = projectAccess.requireAccess(userId, projectId);
         Artifact artifact = artifacts
                 .findByIdForUpdate(accessible, artifactId)
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
@@ -51,7 +52,7 @@ public class ArtifactCommentService {
 
     @Transactional
     public void delete(UUID userId, String projectId, String artifactId, int versionNo, String commentId) {
-        String accessible = projectAccess.requireAccess(userId, projectId);
+        ArtifactScope accessible = projectAccess.requireAccess(userId, projectId);
         Artifact artifact = artifacts
                 .findByIdForUpdate(accessible, artifactId)
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);

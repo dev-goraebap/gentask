@@ -35,7 +35,7 @@ import xyz.gentask.shared.web.CurrentUser;
  * 식별자가 그대로 온다.
  */
 @RestController
-@RequestMapping("/api/v1/projects/{projectId}/artifacts")
+@RequestMapping({"/api/v1/projects/{projectId}/artifacts", "/api/v1/me/artifacts"})
 @RequiredArgsConstructor
 public class ArtifactController {
 
@@ -44,20 +44,25 @@ public class ArtifactController {
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> add(
-            @CurrentUser UUID userId, @PathVariable String projectId, @Valid @RequestBody CreateArtifact request) {
+            @CurrentUser UUID userId,
+            @PathVariable(required = false) String projectId,
+            @Valid @RequestBody CreateArtifact request) {
         String artifactId = artifactService.add(userId, projectId, request.title(), request.body(), request.folderId());
-        return ResponseEntity.created(URI.create("/api/v1/projects/" + projectId + "/artifacts/" + artifactId))
+        return ResponseEntity.created(URI.create((projectId == null ? "/api/v1/me" : "/api/v1/projects/" + projectId)
+                        + "/artifacts/" + artifactId))
                 .build();
     }
 
     @GetMapping
-    public List<ArtifactSummary> list(@CurrentUser UUID userId, @PathVariable String projectId) {
+    public List<ArtifactSummary> list(@CurrentUser UUID userId, @PathVariable(required = false) String projectId) {
         return artifactService.list(userId, projectId);
     }
 
     @GetMapping("/{artifactId}")
     public ArtifactView detail(
-            @CurrentUser UUID userId, @PathVariable String projectId, @PathVariable String artifactId) {
+            @CurrentUser UUID userId,
+            @PathVariable(required = false) String projectId,
+            @PathVariable String artifactId) {
         return artifactService.detail(userId, projectId, artifactId);
     }
 
@@ -65,7 +70,7 @@ public class ArtifactController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void edit(
             @CurrentUser UUID userId,
-            @PathVariable String projectId,
+            @PathVariable(required = false) String projectId,
             @PathVariable String artifactId,
             @Valid @RequestBody EditArtifact request) {
         artifactService.edit(userId, projectId, artifactId, request.title(), request.body(), request.comment());
@@ -82,7 +87,7 @@ public class ArtifactController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void move(
             @CurrentUser UUID userId,
-            @PathVariable String projectId,
+            @PathVariable(required = false) String projectId,
             @PathVariable String artifactId,
             @Valid @RequestBody(required = false) MoveArtifact request) {
         artifactService.move(userId, projectId, artifactId, request == null ? null : request.folderId());
@@ -91,7 +96,7 @@ public class ArtifactController {
     @GetMapping("/{artifactId}/versions")
     public VersionPageView revisions(
             @CurrentUser UUID userId,
-            @PathVariable String projectId,
+            @PathVariable(required = false) String projectId,
             @PathVariable String artifactId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -101,7 +106,7 @@ public class ArtifactController {
     @GetMapping("/{artifactId}/versions/{versionNo}")
     public VersionView revision(
             @CurrentUser UUID userId,
-            @PathVariable String projectId,
+            @PathVariable(required = false) String projectId,
             @PathVariable String artifactId,
             @PathVariable String versionNo) {
         return artifactService.revision(userId, projectId, artifactId, versionNo);
@@ -117,7 +122,7 @@ public class ArtifactController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void revert(
             @CurrentUser UUID userId,
-            @PathVariable String projectId,
+            @PathVariable(required = false) String projectId,
             @PathVariable String artifactId,
             @PathVariable String versionNo,
             @Valid @RequestBody(required = false) RevertVersion request) {

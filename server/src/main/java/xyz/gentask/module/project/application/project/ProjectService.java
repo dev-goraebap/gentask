@@ -25,6 +25,7 @@ public class ProjectService implements ProjectCreationIn, ProjectAccessIn {
     private final ProjectRepository projectRepository;
     private final ProjectQuery projectQuery;
     private final Clock clock;
+    private final xyz.gentask.module.project.application.member.MemberStore members;
 
     // --- 조회 --------------------------------------------------------------------------------------------------------
     @Transactional(readOnly = true)
@@ -41,7 +42,17 @@ public class ProjectService implements ProjectCreationIn, ProjectAccessIn {
     @Override
     @Transactional(readOnly = true)
     public String requireAccess(UUID userId, String projectId) {
-        return find(userId, projectId).id();
+        members.role(userId, readId(projectId)).orElseThrow(ProjectErrorCode.PROJECT_NOT_FOUND::raise);
+        return projectId;
+    }
+
+    @Override
+    @Transactional
+    public String requireWrite(UUID userId, String projectId) {
+        members.lockProject(projectId);
+        String role = members.role(userId, readId(projectId)).orElseThrow(ProjectErrorCode.PROJECT_NOT_FOUND::raise);
+        if ("viewer".equals(role)) throw ProjectErrorCode.MEMBER_FORBIDDEN.raise();
+        return projectId;
     }
 
     private Project find(UUID ownerId, String projectId) {

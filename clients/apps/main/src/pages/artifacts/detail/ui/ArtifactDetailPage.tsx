@@ -1,3 +1,4 @@
+import { useWorkspaceStore } from '@/entities/workspace';
 import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { versionOptions } from '@/entities/artifact';
 import { ArtifactEditor } from '@/features/edit-artifact';
@@ -17,6 +18,8 @@ import { formatArtifactDate, type DocDetailProps } from './document-detail';
 
 export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersion, onSelectVersion }: DocDetailProps) {
   const mobile = useMediaQuery(MOBILE_QUERY);
+  const { projects } = useWorkspaceStore();
+  const canEdit = projectId === null || ['owner', 'editor'].includes(projects.find(p => p.id === projectId)?.role ?? '');
   const [editing, setEditing] = useState(false);
   const aside = useAppAside();
   const historyKey = `artifact-history:${artifact.summary.id}`;
@@ -30,7 +33,7 @@ export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersio
   const actions = <HStack gap={1} align="center">
     <Button label="버전 이력" tooltip="버전 이력" icon={<HgiHistory />} isIconOnly variant="ghost" size="sm" aria-pressed={aside.active?.key === historyKey} onClick={() => aside.open({ key: historyKey, title: '버전 이력' })} />
     <Button label="코멘트" icon={<HgiComment />} variant="ghost" size="sm" aria-pressed={aside.active?.key === commentsKey} onClick={() => aside.open({ key: commentsKey, title: '코멘트' })} />
-    {editButton}</HStack>;
+    {canEdit ? editButton : null}</HStack>;
   const versionHistory = <ArtifactHistory artifactId={doc.id} latestVersion={artifact.versionNo} projectId={projectId} selectedVersion={selectedVersion}
     onSelect={version => onSelectVersion(version === artifact.versionNo ? null : version)} />;
   return <>
@@ -52,6 +55,6 @@ export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersio
           <ArtifactComments key={`${doc.id}:${selectedVersion ?? artifact.versionNo}`} panelKey={commentsKey} projectId={projectId} artifactId={doc.id} versionNo={selectedVersion ?? artifact.versionNo} body={body ?? ''} writable={(selectedVersion ?? artifact.versionNo) === artifact.versionNo} />}
       </VStack></PageContent>} />
     <AppAsideContent panelKey={historyKey}><LayoutContent padding={3}>{versionHistory}</LayoutContent></AppAsideContent>
-    {editing ? <ArtifactEditor projectId={projectId} folderId={doc.folderId} artifact={artifact} onClose={() => setEditing(false)} onSaved={() => setEditing(false)} /> : null}
+    {editing && canEdit ? <ArtifactEditor projectId={projectId} folderId={doc.folderId} artifact={artifact} onClose={() => setEditing(false)} onSaved={() => setEditing(false)} /> : null}
   </>;
 }

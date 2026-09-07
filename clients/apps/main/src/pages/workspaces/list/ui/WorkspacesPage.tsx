@@ -2,7 +2,7 @@ import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton, MobileSurface } from '@/shared/ui/mobile';
 import { ListingFooter, SortSelector, SortFields, type SortValue, type SortOption, useListing } from '@/shared/ui/listing';
 import { MobilePageHeader } from '@/shared/ui/mobile';
-import { ProjectAvatar, useWorkspaceStore } from '@/entities/workspace';
+import { ProjectAvatar } from '@/entities/workspace';
 import { CreateProjectDialog } from '@/features/create-project';
 import { useProjectList } from '@/features/project-list';
 import { TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
@@ -18,7 +18,7 @@ const statusOptions = [{ value: 'active', label: '진행 중' }, { value: 'archi
 const sortOptions: SortOption[] = [{ value: 'manual', label: '지정한 순서', hasDirection: false }, { value: 'name', label: '이름 순' }];
 
 export function WorkspacesPage() {
-  const { members } = useWorkspaceStore();
+
   const { projects } = useProjectList();
   const navigate = useNavigate();
   const search = useSearch({ from: '/projects' });

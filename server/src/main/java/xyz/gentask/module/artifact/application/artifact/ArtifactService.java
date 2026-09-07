@@ -8,12 +8,14 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import xyz.gentask.module.artifact.application.ArtifactAccess;
 import xyz.gentask.module.artifact.application.ArtifactErrorCode;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.ArtifactSummary;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.ArtifactView;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionPageView;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionSummary;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionView;
+import xyz.gentask.module.artifact.domain.ArtifactScope;
 import xyz.gentask.module.artifact.domain.artifact.Artifact;
 import xyz.gentask.module.artifact.domain.artifact.ArtifactBody;
 import xyz.gentask.module.artifact.domain.artifact.ArtifactRepository;
@@ -22,7 +24,6 @@ import xyz.gentask.module.artifact.domain.artifact.ArtifactTitle;
 import xyz.gentask.module.artifact.domain.artifact.RevisionComment;
 import xyz.gentask.module.artifact.domain.folder.ArtifactFolder;
 import xyz.gentask.module.artifact.domain.folder.ArtifactFolderRepository;
-import xyz.gentask.module.project.ProjectAccessIn;
 import xyz.gentask.shared.domain.NanoId;
 
 @Service
@@ -42,7 +43,7 @@ public class ArtifactService {
     private final ArtifactRepository artifactRepository;
     private final ArtifactFolderRepository artifactFolderRepository;
     private final ArtifactQuery artifactQuery;
-    private final ProjectAccessIn projectAccess;
+    private final ArtifactAccess projectAccess;
     private final Clock clock;
 
     // --- 조회 --------------------------------------------------------------------------------------------------------
@@ -53,7 +54,7 @@ public class ArtifactService {
 
     @Transactional(readOnly = true)
     public ArtifactView detail(UUID userId, String projectId, String artifactId) {
-        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactScope accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         return artifactQuery
                 .findOne(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
@@ -67,7 +68,7 @@ public class ArtifactService {
      */
     @Transactional(readOnly = true)
     public VersionPageView revisions(UUID userId, String projectId, String artifactId, int page, int size) {
-        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactScope accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         String id = readId(artifactId);
 
         int limitedSize = Math.clamp(size, 1, MAX_PAGE_SIZE);
@@ -90,7 +91,7 @@ public class ArtifactService {
      */
     @Transactional(readOnly = true)
     public VersionView revision(UUID userId, String projectId, String artifactId, String revisionNo) {
-        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactScope accessibleProjectId = projectAccess.requireAccess(userId, projectId);
         return artifactQuery
                 .findRevision(accessibleProjectId, readId(artifactId), readRevisionNo(revisionNo))
                 .orElseThrow(ArtifactErrorCode.REVISION_NOT_FOUND::raise);
@@ -102,13 +103,13 @@ public class ArtifactService {
      */
     @Transactional
     public String add(UUID userId, String projectId, String title, String body, String folderId) {
-        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactScope accessibleProjectId = projectAccess.requireWrite(userId, projectId);
         Instant now = clock.instant();
 
         Artifact artifact = NanoId.create(
                 id -> Artifact.create(
                         id,
-                        accessibleProjectId,
+                        accessibleProjectId.projectId(),
                         ArtifactTitle.of(title),
                         findFolder(accessibleProjectId, folderId),
                         userId,
@@ -135,7 +136,7 @@ public class ArtifactService {
      */
     @Transactional
     public void edit(UUID userId, String projectId, String artifactId, String title, String body, String comment) {
-        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactScope accessibleProjectId = projectAccess.requireWrite(userId, projectId);
         Artifact artifact = artifactRepository
                 .findByIdForUpdate(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
@@ -161,7 +162,7 @@ public class ArtifactService {
      */
     @Transactional
     public void revert(UUID userId, String projectId, String artifactId, String revisionNo, String comment) {
-        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactScope accessibleProjectId = projectAccess.requireWrite(userId, projectId);
         Artifact artifact = artifactRepository
                 .findByIdForUpdate(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
@@ -189,7 +190,7 @@ public class ArtifactService {
      */
     @Transactional
     public void move(UUID userId, String projectId, String artifactId, String folderId) {
-        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        ArtifactScope accessibleProjectId = projectAccess.requireWrite(userId, projectId);
         Artifact artifact = artifactRepository
                 .findByIdForUpdate(accessibleProjectId, readId(artifactId))
                 .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
@@ -207,7 +208,7 @@ public class ArtifactService {
     /**
      * 대상 폴더 식별자를 검증하여 반환한다. 미지정 시 null(루트)을 반환한다(DOC-006 A1, A4, A6).
      */
-    private String findFolder(String projectId, String folderId) {
+    private String findFolder(ArtifactScope projectId, String folderId) {
         if (folderId == null || folderId.isBlank()) {
             return null;
         }

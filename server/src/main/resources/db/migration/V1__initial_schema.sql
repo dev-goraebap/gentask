@@ -36,7 +36,8 @@ CREATE TABLE blobs (
 
 CREATE TABLE artifact_folders (
     id varchar(12) NOT NULL,
-    project_id varchar(12) NOT NULL,
+    project_id varchar(12),
+    owner_id uuid,
     name varchar(200) NOT NULL,
     parent_id varchar(12),
     created_at timestamptz NOT NULL,
@@ -44,7 +45,8 @@ CREATE TABLE artifact_folders (
     updated_at timestamptz NOT NULL,
     updated_by uuid NOT NULL,
     CONSTRAINT ck_artifact_folders_name_not_blank CHECK (btrim(name) <> ''),
-    CONSTRAINT ck_artifact_folders_parent_not_self CHECK (parent_id <> id)
+    CONSTRAINT ck_artifact_folders_parent_not_self CHECK (parent_id <> id),
+    CONSTRAINT ck_artifact_folders_scope CHECK ((project_id IS NOT NULL AND owner_id IS NULL) OR (project_id IS NULL AND owner_id IS NOT NULL))
 );
 
 CREATE TABLE artifact_revisions (
@@ -63,7 +65,8 @@ CREATE TABLE artifact_revisions (
 
 CREATE TABLE artifacts (
     id varchar(12) NOT NULL,
-    project_id varchar(12) NOT NULL,
+    project_id varchar(12),
+    owner_id uuid,
     title varchar(200) NOT NULL,
     head_revision_id uuid,
     deleted_at timestamptz,
@@ -74,7 +77,8 @@ CREATE TABLE artifacts (
     updated_by uuid NOT NULL,
     folder_id varchar(12),
     CONSTRAINT ck_artifacts_deleted CHECK ((deleted_at is null and deleted_by is null) or (deleted_at is not null and deleted_by is not null)),
-    CONSTRAINT ck_artifacts_title_not_blank CHECK (btrim(title) <> '')
+    CONSTRAINT ck_artifacts_title_not_blank CHECK (btrim(title) <> ''),
+    CONSTRAINT ck_artifacts_scope CHECK ((project_id IS NOT NULL AND owner_id IS NULL) OR (project_id IS NULL AND owner_id IS NOT NULL))
 );
 
 CREATE TABLE issues (
@@ -409,3 +413,32 @@ CREATE TABLE artifact_comments (
     CONSTRAINT ck_artifact_comments_body CHECK (btrim(body) <> '')
 );
 CREATE INDEX ix_artifact_comments_revision ON artifact_comments(revision_id, created_at, id);
+
+ALTER TABLE artifacts ADD CONSTRAINT fk_artifacts_owner FOREIGN KEY (owner_id) REFERENCES users(id);
+CREATE INDEX ix_artifacts_owner ON artifacts(owner_id);
+
+ALTER TABLE artifact_folders ADD CONSTRAINT fk_artifact_folders_owner FOREIGN KEY (owner_id) REFERENCES users(id);
+CREATE INDEX ix_artifact_folders_owner ON artifact_folders(owner_id);
+
+CREATE TABLE project_members (
+    project_id varchar(12) NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role varchar(10) NOT NULL CHECK (role IN ('editor', 'viewer')),
+    joined_at timestamptz NOT NULL,
+    PRIMARY KEY (project_id, user_id)
+);
+CREATE INDEX ix_project_members_user ON project_members(user_id);
+
+CREATE TABLE project_invitations (
+    id varchar(12) PRIMARY KEY,
+    project_id varchar(12) NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    token varchar(64) NOT NULL UNIQUE,
+    label varchar(100) NOT NULL,
+    role varchar(10) NOT NULL CHECK (role IN ('editor', 'viewer')),
+    created_by uuid NOT NULL REFERENCES users(id),
+    created_at timestamptz NOT NULL,
+    expires_at timestamptz NOT NULL,
+    revoked boolean NOT NULL DEFAULT false,
+    uses integer NOT NULL DEFAULT 0
+);
+CREATE INDEX ix_project_invitations_project ON project_invitations(project_id);

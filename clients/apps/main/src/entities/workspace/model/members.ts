@@ -2,12 +2,14 @@ import { TODAY } from '@/shared/config';
 import { MEMBERS, PROJECTS, type Member, type Role } from './data';
 
 export interface ProjectMember extends Member {
+  readonly profileImageUrl?: string;
   readonly id: string;
   readonly projectId: string;
   readonly joinedOn: string;
 }
 
 export interface Invitation {
+  readonly token?: string;
   readonly id: string;
   readonly projectId: string;
   readonly label: string;

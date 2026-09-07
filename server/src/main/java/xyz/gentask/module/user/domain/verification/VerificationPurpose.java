@@ -8,5 +8,6 @@ public enum VerificationPurpose {
     SIGNUP,
 
     /** 비밀번호 재설정 본인 확인 목적이다. */
-    PASSWORD_RESET
+    PASSWORD_RESET,
+    LOGIN
 }

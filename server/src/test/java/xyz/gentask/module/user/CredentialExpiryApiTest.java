@@ -52,10 +52,10 @@ class CredentialExpiryApiTest {
     private MovableClock clock;
 
     @Test
-    @DisplayName("회원가입 인증 코드 유효 기간 만료 시 만료 오류를 반환한다")
+    @DisplayName("신규 로그인 인증번호 유효 기간 만료 시 만료 오류를 반환한다")
     void 가입_코드가_만료된다() throws Exception {
         String email = "signup-expiry-" + UUID.randomUUID() + "@example.com";
-        mockMvc.perform(post("/api/v1/auth/signup")
+        mockMvc.perform(post("/api/v1/auth/login/code")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + AuthTestSupport.PASSWORD + "\"}"))
                 .andExpect(status().isAccepted());
@@ -63,19 +63,20 @@ class CredentialExpiryApiTest {
 
         clock.앞으로(BEYOND_TTL);
 
-        mockMvc.perform(post("/api/v1/auth/signup/confirm")
+        mockMvc.perform(post("/api/v1/auth/login/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"code\":\"" + code + "\"}"))
                 .andExpect(status().isGone());
     }
 
     @Test
-    @DisplayName("비밀번호 재설정 코드 유효 기간 만료 시 만료 오류를 반환한다")
-    void 재설정_코드가_만료된다() throws Exception {
+    @DisplayName("기존 계정 로그인 인증번호 유효 기간 만료 시 만료 오류를 반환한다")
+    void 기존_계정_코드가_만료된다() throws Exception {
         String email = "reset-expiry-" + UUID.randomUUID() + "@example.com";
         AuthTestSupport.가입한다(mockMvc, mail, email);
+        clock.앞으로(Duration.ofMinutes(1));
 
-        mockMvc.perform(post("/api/v1/auth/password-reset")
+        mockMvc.perform(post("/api/v1/auth/login/code")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\"}"))
                 .andExpect(status().isAccepted());
@@ -83,7 +84,7 @@ class CredentialExpiryApiTest {
 
         clock.앞으로(BEYOND_TTL);
 
-        mockMvc.perform(post("/api/v1/auth/password-reset/confirm")
+        mockMvc.perform(post("/api/v1/auth/login/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"code\":\"" + code
                                 + "\",\"newPassword\":\"brand-new-9!\"}"))

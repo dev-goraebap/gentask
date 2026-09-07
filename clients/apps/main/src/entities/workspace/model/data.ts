@@ -1,4 +1,5 @@
 export interface Project {
+  readonly role?: string;
   readonly image?: File;
   readonly description?: string;
   readonly archived?: boolean;

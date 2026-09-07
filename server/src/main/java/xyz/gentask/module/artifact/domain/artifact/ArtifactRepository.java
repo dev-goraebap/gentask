@@ -3,6 +3,7 @@ package xyz.gentask.module.artifact.domain.artifact;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import xyz.gentask.module.artifact.domain.ArtifactScope;
 
 /**
  * 아티팩트 및 개정 이력 저장소 포트 인터페이스다.
@@ -16,9 +17,9 @@ public interface ArtifactRepository {
     /**
      * 프로젝트 식별자와 아티팩트 식별자로 유효한 아티팩트를 조회한다. 논리 삭제된 아티팩트는 제외한다(DOC-002 A3, A4).
      */
-    Optional<Artifact> findById(String projectId, String artifactId);
+    Optional<Artifact> findById(ArtifactScope projectId, String artifactId);
 
-    Optional<Artifact> findByIdForUpdate(String projectId, String artifactId);
+    Optional<Artifact> findByIdForUpdate(ArtifactScope projectId, String artifactId);
 
     /**
      * 특정 폴더에 소속된 모든 아티팩트를 조회한다. 폴더 삭제 시 상위 승격을 위해 논리 삭제된 아티팩트도 포함한다(DOC-008 A7).

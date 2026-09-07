@@ -20,7 +20,10 @@ import xyz.gentask.shared.web.CurrentUser;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments")
+@RequestMapping({
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments",
+    "/api/v1/me/artifacts/{artifactId}/versions/{versionNo}/comments"
+})
 public class ArtifactCommentController {
     private final ArtifactCommentService comments;
 
@@ -28,7 +31,7 @@ public class ArtifactCommentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
             @CurrentUser UUID userId,
-            @PathVariable String projectId,
+            @PathVariable(required = false) String projectId,
             @PathVariable String artifactId,
             @PathVariable int versionNo,
             @PathVariable String commentId) {
@@ -38,7 +41,7 @@ public class ArtifactCommentController {
     @GetMapping
     public List<CommentView> list(
             @CurrentUser UUID userId,
-            @PathVariable String projectId,
+            @PathVariable(required = false) String projectId,
             @PathVariable String artifactId,
             @PathVariable int versionNo) {
         return comments.list(userId, projectId, artifactId, versionNo);
@@ -48,7 +51,7 @@ public class ArtifactCommentController {
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, String> add(
             @CurrentUser UUID userId,
-            @PathVariable String projectId,
+            @PathVariable(required = false) String projectId,
             @PathVariable String artifactId,
             @PathVariable int versionNo,
             @Valid @RequestBody CreateComment request) {

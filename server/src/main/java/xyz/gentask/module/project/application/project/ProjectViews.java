@@ -23,5 +23,8 @@ public final class ProjectViews {
             String key,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            int issueCount) {}
+            int issueCount,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            String role) {}
 }

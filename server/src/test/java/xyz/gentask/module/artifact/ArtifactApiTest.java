@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -54,6 +55,100 @@ class ArtifactApiTest {
 
     private Cookie session;
     private String projectId;
+
+    @Test
+    void 개인_아티팩트는_본인만_접근하고_프로젝트와_섞이지_않는다() throws Exception {
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "personal-other-" + UUID.randomUUID() + "@example.com");
+        String location = mockMvc.perform(post("/api/v1/me/artifacts")
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"개인 문서\",\"body\":\"본문\"}"))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getHeader("Location");
+        java.util.Objects.requireNonNull(location);
+        String id = location.substring(location.lastIndexOf('/') + 1);
+        mockMvc.perform(get(location).cookie(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.versionNo").value(1));
+        mockMvc.perform(get(location).cookie(other)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/me/artifacts").cookie(other))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(get("/api/v1/projects/" + projectId + "/artifacts/" + id)
+                        .cookie(session))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(patch(location)
+                        .cookie(other)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"침범\",\"body\":\"수정\"}"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get(location + "/versions").cookie(other)).andExpect(status().isNotFound());
+        mockMvc.perform(get(location + "/versions/1/comments").cookie(other)).andExpect(status().isNotFound());
+        mockMvc.perform(post(location + "/versions/1/comments")
+                        .cookie(other)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"의견\"}"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post(location + "/versions/1/comments")
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"의견\",\"blockStart\":0,\"blockEnd\":2}"))
+                .andExpect(status().isCreated());
+        mockMvc.perform(patch(location)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"개인 문서\",\"body\":\"수정한 본문\"}"))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get(location).cookie(session))
+                .andExpect(jsonPath("$.versionNo").value(2));
+        mockMvc.perform(get(location + "/versions/1/comments").cookie(session))
+                .andExpect(jsonPath("$.length()").value(1));
+        mockMvc.perform(get(location + "/versions/2/comments").cookie(session))
+                .andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(get(location)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void 개인_폴더에는_본인_아티팩트만_넣을_수_있다() throws Exception {
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "folder-other-" + UUID.randomUUID() + "@example.com");
+        String folderLocation = mockMvc.perform(post("/api/v1/me/artifact-folders")
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"개인 폴더\"}"))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getHeader("Location");
+        java.util.Objects.requireNonNull(folderLocation);
+        String folderId = folderLocation.substring(folderLocation.lastIndexOf('/') + 1);
+        String payload = "{\"title\":\"문서\",\"body\":\"본문\",\"folderId\":\"" + folderId + "\"}";
+        mockMvc.perform(post("/api/v1/me/artifacts")
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/v1/me/artifacts")
+                        .cookie(other)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/v1/projects/" + projectId + "/artifacts")
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/v1/me/artifact-folders")
+                        .cookie(other)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"자식\",\"parentId\":\"" + folderId + "\"}"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(delete(folderLocation).cookie(other)).andExpect(status().isNotFound());
+        mockMvc.perform(delete(folderLocation).cookie(session)).andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/v1/me/artifacts").cookie(session))
+                .andExpect(jsonPath("$[0].folderId").doesNotExist());
+    }
 
     @BeforeEach
     void 로그인하고_프로젝트를_고른다() throws Exception {

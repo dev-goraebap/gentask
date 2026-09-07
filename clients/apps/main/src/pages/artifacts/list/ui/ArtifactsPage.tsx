@@ -1,3 +1,4 @@
+import { useWorkspaceStore } from '@/entities/workspace';
 import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
 import { artifactKeys, artifactsOptions, foldersOptions, createFolder } from '@/entities/artifact';
@@ -5,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RequestState } from '@/shared/ui/request-state';
 import { TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
 import { HgiFile, HgiFolder, HgiPlus, HgiSearch, HgiSearchEmpty } from '@/shared/ui/icons';
-import { ListingFooter, PageSize, SortSelector, SortFields, type SortOption, useListing } from '@/shared/ui/listing';
+import { ListingFooter, PageSize, SortSelector, SortFields, type SortOption, parseListingSearch, useListing } from '@/shared/ui/listing';
 import { CreateButton, CreateDialog, MobileSurface } from '@/shared/ui/mobile';
 import {
     BottomSheet,
@@ -35,11 +36,14 @@ import { SORT_LABEL, type DocSort, type DocsProps } from './documents';
 const sortOptions: SortOption[] = Object.entries(SORT_LABEL).map(([value, label]) => ({ value, label, defaultDirection: value === 'updated' ? 'desc' : 'asc' }));
 
 export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: DocsProps) {
-  const search = useSearch({ from: '/projects/$projectId/artifacts' });
+  const { projects } = useWorkspaceStore();
+  const canEdit = projectId === null || ['owner', 'editor'].includes(projects.find(p => p.id === projectId)?.role ?? '');
+  const rawSearch = useSearch({ strict: false });
+  const search = parseListingSearch(rawSearch, ['title', 'updated'], 'title');
   const navigate = useNavigate();
   const listing = useListing(`artifacts:${projectId}:${folderId ?? ''}`, '', {
     value: { query: search.q, sort: search.sort, direction: search.direction, page: search.page, size: search.size },
-    onChange: state => { void navigate({ to: '/projects/$projectId/artifacts', params: { projectId }, replace: state.query !== search.q,
+    onChange: state => { void navigate({ ...(projectId === null ? { to: '/artifacts' as const } : { to: '/projects/$projectId/artifacts' as const, params: { projectId } }), replace: state.query !== search.q,
       search: { folder: folderId ?? undefined, q: state.query, sort: state.sort, direction: state.direction, page: state.page, size: state.size } }); },
   });
   const { query, mobile } = listing;
@@ -99,7 +103,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
       contentWidth={WIDTH.wide}
       header={
         <>
-          {mobile ? <CreateButton label="새로 만들기" onClick={() => setCreateMenu(true)} /> : <LayoutHeader hasDivider padding={mobile ? 0 : undefined}>
+          {mobile ? canEdit ? <CreateButton label="새로 만들기" onClick={() => setCreateMenu(true)} /> : null : <LayoutHeader hasDivider padding={mobile ? 0 : undefined}>
             <VStack gap={2}>
             <HStack
               justify="between"
@@ -112,12 +116,12 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
             >
               <Heading level={1}>아티팩트</Heading>
               <HStack gap={2} align="center">
-                {!mobile ? <Button label="새 폴더" variant="secondary" size="sm" icon={<HgiFolder />} onClick={() => setCreating('folder')} /> : null}
-                <CreateButton label={mobile ? "새로 만들기" : "새 아티팩트"} onClick={() => mobile ? setCreateMenu(true) : setCreating('doc')} />
+                {!mobile && canEdit ? <Button label="새 폴더" variant="secondary" size="sm" icon={<HgiFolder />} onClick={() => setCreating('folder')} /> : null}
+                {canEdit ? <CreateButton label={mobile ? "새로 만들기" : "새 아티팩트"} onClick={() => mobile ? setCreateMenu(true) : setCreating('doc')} /> : null}
               </HStack>
             </HStack>
               <VStack paddingInline={mobile ? 3 : 4}>
-                <Text color="secondary">프로젝트의 생각과 지식을 함께 기록합니다.</Text>
+                <Text color="secondary">{projectId === null ? '아이디어부터 다양한 기록과 문서까지, 한곳에서 관리하세요.' : '프로젝트의 생각과 지식을 함께 기록합니다.'}</Text>
               </VStack>
             </VStack>
           </LayoutHeader>}

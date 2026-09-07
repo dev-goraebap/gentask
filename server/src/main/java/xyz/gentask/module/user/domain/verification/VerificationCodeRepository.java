@@ -9,5 +9,9 @@ public interface VerificationCodeRepository {
 
     Optional<VerificationCode> find(String emailNormalized, VerificationPurpose purpose);
 
+    Optional<VerificationCode> findForUpdate(String emailNormalized, VerificationPurpose purpose);
+
+    void ensureLoginSlot(String emailNormalized);
+
     void delete(String emailNormalized, VerificationPurpose purpose);
 }

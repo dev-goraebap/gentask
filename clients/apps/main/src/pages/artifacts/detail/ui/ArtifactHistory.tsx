@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { formatArtifactDate } from './document-detail';
 
 export function ArtifactHistory({ projectId, artifactId, latestVersion, selectedVersion, onSelect }: {
-  projectId: string; artifactId: string; latestVersion: number; selectedVersion: number | null; onSelect: (version: number) => void;
+  projectId: string | null; artifactId: string; latestVersion: number; selectedVersion: number | null; onSelect: (version: number) => void;
 }) {
   const [page, setPage] = useState(0);
   const query = useQuery(versionsOptions(projectId, artifactId, page));

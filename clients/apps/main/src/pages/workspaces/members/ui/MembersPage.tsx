@@ -1,6 +1,9 @@
 import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
-import { ME } from '@/entities/session';
+import { useSession } from '@/entities/session';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { RequestState } from '@/shared/ui/request-state';
+import { membersOptions, invitationsOptions, createInvitation, changeMemberRole, removeMember, revokeInvitation } from '@/entities/workspace';
 import { ROLE_LABEL, useWorkspaceStore, type Invitation, type ProjectMember } from '@/entities/workspace';
 import { TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
 import { HgiMembers, HgiPlus, HgiSearch, HgiTrash } from '@/shared/ui/icons';
@@ -26,8 +29,18 @@ import { ROLE_OPTIONS, type MemberRow, type MembersProps } from './members';
 
 const sortOptions = [{ value: 'title', label: '이름 순' }, { value: 'role', label: '역할 순' }];
 
-export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
-  const { projects, members, invitations, setMembers, setInvitations } = useWorkspaceStore();
+export function MembersPage({ projectId, onPreview }: MembersProps) {
+  const { projects } = useWorkspaceStore();
+  const session = useSession();
+  const client = useQueryClient();
+  const memberQuery = useQuery(membersOptions(projectId));
+  const members = memberQuery.data ?? [];
+  const canManage = members.some(m => m.id === session.data?.id && m.role === 'owner');
+  const invitationQuery = useQuery({ ...invitationsOptions(projectId), enabled: canManage });
+  const invitations = invitationQuery.data ?? [];
+  const mutation = useMutation({ mutationFn: (work: () => Promise<unknown>) => work(), onSuccess: async () => {
+    await Promise.all([client.invalidateQueries({ queryKey: ['project-members', projectId] }), client.invalidateQueries({ queryKey: ['project-invitations', projectId] })]);
+  } });
   const toast = useToast();
   const listing = useListing(`members:${projectId}`);
   const { query, filter: roleFilter, mobile } = listing;
@@ -45,7 +58,6 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
   const [createdId, setCreatedId] = useState<string>();
   const [removing, setRemoving] = useState<ProjectMember>();
   const [revoking, setRevoking] = useState<Invitation>();
-  const [guestName, setGuestName] = useState('');
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
@@ -55,7 +67,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
   const project = projects.find((p) => p.id === projectId);
   const projectMembers = members.filter((m) => m.projectId === projectId);
   const projectInvites = invitations.filter((i) => i.projectId === projectId);
-  const canManage = projectMembers.some((m) => m.name === ME && m.role === 'owner');
+
   const matched = projectMembers.filter((m) =>
     m.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()) &&
     (!roles.length || roles.includes(m.role)),
@@ -65,9 +77,9 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
   const visibleMembers = matched.slice(listing.range(matched.length).start, listing.range(matched.length).end);
   const selected = projectMembers.find((m) => m.id === selectedMember);
   useEffect(() => { if (page !== listing.page) listing.change({ page }); }, [page, listing.page]);
-  const preview = projectInvites.find((i) => i.id === inviteId);
+
   const isActive = (invite: Invitation) => !invite.revoked && invite.expiresAt > now;
-  const urlFor = (id: string) => `${window.location.origin}/projects/${projectId}/members?invite=${id}`;
+  const urlFor = (id: string) => `${window.location.origin}/invitations/${projectInvites.find(i => i.id === id)?.token ?? ''}`;
   const copy = async (id: string) => {
     try {
       await navigator.clipboard.writeText(urlFor(id));
@@ -80,40 +92,21 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
     }
   };
   const create = () => {
-    if (!canManage || !label.trim()) return;
-    const invitation: Invitation = {
-      id: crypto.randomUUID(), projectId, label: label.trim(), role,
-      expiresAt: Date.now() + Number(days) * 86400000, revoked: false, uses: 0,
-    };
-    setInvitations((prev) => [invitation, ...prev]);
-    setCreatedId(invitation.id);
+    if (!canManage || !label.trim() || mutation.isPending) return;
+    mutation.mutate(async () => { const result = await createInvitation(projectId, { label: label.trim(), role, days: Number(days) }); setCreatedId(result.id); });
   };
   const changeRole = (member: ProjectMember, next: string) => {
-    if (!canManage || member.role === 'owner' || (next !== 'editor' && next !== 'viewer')) return;
-    setMembers((prev) => prev.map((m) => m.id === member.id ? { ...m, role: next } : m));
-    toast({ body: `${member.name} 님을 ${ROLE_LABEL[next]}로 변경했습니다.` });
+    if (!canManage || member.role === 'owner' || mutation.isPending) return;
+    mutation.mutate(() => changeMemberRole(projectId, member.id, next));
   };
-  const duplicateName = projectMembers.some((m) => m.name === guestName.trim());
-  const join = () => {
-    if (!preview || preview.revoked || preview.expiresAt <= Date.now() || !guestName.trim() || duplicateName) return;
-    setMembers((prev) => [...prev, {
-      id: crypto.randomUUID(), projectId, name: guestName.trim(), role: preview.role,
-      isGuest: true, joinedOn: new Date().toLocaleDateString('sv-SE'),
-    }]);
-    setInvitations((prev) => prev.map((i) => i.id === preview.id ? { ...i, uses: i.uses + 1 } : i));
-    setGuestName('');
-    onPreview();
-    toast({ body: '게스트가 프로젝트에 참여했습니다.' });
-  };
-
   const columns: TableColumn<MemberRow>[] = [
     {
       key: 'name', header: '멤버', width: proportional(2),
       renderCell: (member) => <HStack gap={2} align="center">
-        <Avatar name={member.name} size="sm" />
+        <Avatar src={member.profileImageUrl} name={member.name} size="sm" />
         <HStack gap={1} wrap="wrap" align="center">
           <Text weight="semibold">{member.name}</Text>
-          {member.name === ME ? <Text type="supporting">나</Text> : null}
+          {member.id === session.data?.id ? <Text type="supporting">나</Text> : null}
           {member.isGuest ? <Token label="게스트" size="sm" color="orange" /> : null}
         </HStack>
       </HStack>,
@@ -123,7 +116,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
       renderCell: (member) => member.role === 'owner'
         ? <Token label="소유자" color="purple" size="sm" />
         : <Selector label={`${member.name} 역할`} isLabelHidden size="sm" variant="ghost" width="100%" value={member.role}
-            options={ROLE_OPTIONS} isDisabled={!canManage} onChange={(next) => changeRole(member, next)} />,
+            options={ROLE_OPTIONS} isDisabled={!canManage || mutation.isPending} onChange={(next) => changeRole(member, next)} />,
     },
     { key: 'joinedOn', header: '참여일', width: pixel(130) },
     {
@@ -134,6 +127,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
     },
   ];
 
+  if (!memberQuery.data) return <RequestState error={memberQuery.error} retry={() => { void memberQuery.refetch(); }} />;
   if (!project) return <EmptyState title="프로젝트를 찾을 수 없습니다" />;
 
   const memberToolbar = mobile ? <MobileFilterBar label="멤버 필터" searchLabel="멤버 검색" placeholder="이름으로 검색" query={query} onQueryChange={setQuery}
@@ -170,18 +164,19 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
       footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} unit="명" />}
       content={<PageContent padding={mobile ? 3 : 4} ref={listing.ref} onScroll={listing.onScroll}>
         <VStack gap={6}>
+          {mutation.error ? <Text role="alert">{mutation.error.message}</Text> : null}
           <VStack gap={3}>
             {mobile ? <Text weight="semibold">참여 중 · {matched.length}명</Text> : null}
             {mobile ? <List hasDividers style={{ marginInline: 'calc(-1 * var(--spacing-3))' }}>{visibleMembers.map((member) => <Item as="li" key={member.id}
               label={member.name} labelLines={2} description={`${ROLE_LABEL[member.role]}${member.isGuest ? ' · 게스트' : ''}`}
-              startContent={<Avatar name={member.name} size="sm" />} density="spacious"
+              startContent={<Avatar src={member.profileImageUrl} name={member.name} size="sm" />} density="spacious"
               onClick={() => setSelectedMember(member.id)} />)}</List> :
               <Table<MemberRow> aria-label="프로젝트 멤버" data={visibleMembers.map((member) => ({ ...member }))}
                 columns={columns} idKey="id" density="balanced" dividers="rows" hasHover />}
             {!matched.length ? <EmptyState title="검색 결과가 없습니다" description="다른 이름이나 역할로 검색해 주세요." /> : null}
           </VStack>
           <VStack gap={1} paddingInline={0}>
-            <Text color="secondary">게스트는 인수 조건의 완료 판정을 할 수 없습니다.</Text>
+            <Text color="secondary">편집자는 문서를 수정하고, 열람자는 문서를 읽고 코멘트를 남길 수 있습니다.</Text>
           </VStack>
         </VStack>
         {mobile ? <ListingFooter {...listing.pagination(matched.length)} unit="명" /> : null}
@@ -215,9 +210,10 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
       <Layout header={<DialogHeader title="멤버 초대" onOpenChange={setCreating} />}
         footer={mobile && inviteTab === 'new' && !created ? <LayoutFooter hasDivider><HStack paddingBlock={3} gap={2} wrap="wrap">
           <Button label="취소" size="lg" onClick={() => setCreating(false)} />
-          <Button label="링크 만들기" size="lg" width="100%" variant="primary" isDisabled={!label.trim() || !canManage} onClick={create} />
+          <Button label="링크 만들기" size="lg" width="100%" variant="primary" isDisabled={!label.trim() || !canManage || mutation.isPending} onClick={create} />
         </HStack></LayoutFooter> : undefined} content={<LayoutContent>
       <VStack gap={4}>
+        {mutation.error || invitationQuery.error ? <Text role="alert">{(mutation.error ?? invitationQuery.error)?.message}</Text> : null}
         <TabList role="tablist" aria-label="초대 방식" value={inviteTab} onChange={(value) => { setInviteTab(value); setRevoking(undefined); }} hasDivider>
           <Tab value="new" label="새 초대" panelId="invite-new" />
           <Tab value="manage" label="초대 링크 관리" panelId="invite-manage" />
@@ -230,15 +226,13 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
             <Button label="취소" onClick={() => setRevoking(undefined)} />
             <Button label="비활성화" variant="destructive" onClick={() => {
               if (!canManage) return;
-              setInvitations((prev) => prev.map((i) => i.id === revoking.id ? { ...i, revoked: true } : i));
-              setRevoking(undefined);
-              toast({ body: '초대 링크를 비활성화했습니다.' });
+              mutation.mutate(async () => { await revokeInvitation(projectId, revoking.id); setRevoking(undefined); });
             }} />
           </HStack>
         </> : <>
           <VStack gap={3}>
             <VStack gap={1}><Text weight="semibold" size="lg">초대 링크</Text>
-              <Text color="secondary">링크를 받은 사람은 지정한 역할의 게스트로 참여합니다.</Text></VStack>
+              <Text color="secondary">링크를 받은 사람은 이메일 인증 후 지정한 역할로 참여합니다.</Text></VStack>
             {projectInvites.length ? <List hasDividers>
               {projectInvites.map((invite) => <Item as="li" key={invite.id}
                 label={<HStack gap={2} wrap="wrap" align="center"><Text weight="semibold">{invite.label}</Text>
@@ -246,7 +240,7 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
                 description={`${ROLE_LABEL[invite.role]} · ${new Date(invite.expiresAt).toLocaleDateString('ko-KR')} 만료 · ${invite.uses}명 참여`}
                 endContent={<HStack gap={1} wrap="wrap">
                   <Button label="복사" size="sm" variant="ghost" isDisabled={!isActive(invite)} onClick={() => void copy(invite.id)} />
-                  <Button label="미리보기" size="sm" variant="ghost" isDisabled={!isActive(invite)} onClick={() => { setCreating(false); onPreview(invite.id); }} />
+                  <Button label="미리보기" size="sm" variant="ghost" isDisabled={!isActive(invite)} onClick={() => { setCreating(false); onPreview(invite.token); }} />
                   <Button label={`${invite.label} 비활성화`} size="sm" variant="ghost" isIconOnly icon={<HgiTrash />}
                     isDisabled={!canManage || !isActive(invite)} onClick={() => setRevoking(invite)} />
                 </HStack>} />)}
@@ -257,17 +251,17 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
           <Text weight="semibold">초대 링크가 준비됐습니다.</Text>
           <Text>{created.label} · {ROLE_LABEL[created.role]}</Text>
           <TextInput label="초대 링크" value={urlFor(created.id)} isReadOnly />
-          <Text color="secondary">프로토타입 링크는 현재 탭에서만 유효하며 새로 고침하면 초기화됩니다.</Text>
+          <Text color="secondary">링크를 전달받은 사람 누구나 참여할 수 있습니다. 필요한 사람에게만 공유하세요.</Text>
           <HStack gap={2} justify="end" wrap="wrap">
             <Button label="새 링크 만들기" variant="ghost" onClick={() => { setCreatedId(undefined); setLabel(''); }} />
-            <Button label="참여 미리보기" isDisabled={!isActive(created)} onClick={() => { setCreating(false); onPreview(created.id); }} />
+            <Button label="참여 미리보기" isDisabled={!isActive(created)} onClick={() => { setCreating(false); onPreview(created.token); }} />
             <Button label="링크 복사" variant="primary" isDisabled={!isActive(created)} onClick={() => void copy(created.id)} />
           </HStack>
         </> : <>
           <TextInput label="링크 이름" placeholder="예: 외부 검토자" value={label} onChange={setLabel} isRequired onEnter={create} />
           <Selector label="참여 역할" value={role} onChange={(value) => setRole(value as Invitation['role'])} options={ROLE_OPTIONS} />
           <Selector label="유효 기간" value={days} onChange={setDays} options={['1', '7', '30'].map((value) => ({ value, label: `${value}일` }))} />
-          <Text color="secondary">게스트는 계정 없이 참여하며 인수 조건의 완료 판정은 제한됩니다.</Text>
+          <Text color="secondary">이미 가입한 사람은 기존 계정으로, 처음 사용하는 사람은 이메일 인증 후 참여합니다.</Text>
           {!mobile ? <HStack gap={2} justify="end"><Button label="취소" onClick={() => setCreating(false)} />
             <Button label="링크 만들기" variant="primary" isDisabled={!label.trim() || !canManage} onClick={create} /></HStack> : null}
         </>}
@@ -278,28 +272,13 @@ export function MembersPage({ projectId, inviteId, onPreview }: MembersProps) {
     <Dialog isOpen={Boolean(removing)} onOpenChange={() => setRemoving(undefined)}>
       <Layout header={<DialogHeader title="멤버 제외" onOpenChange={() => setRemoving(undefined)} />} content={<LayoutContent>
       <VStack gap={4}>
+        {mutation.error ? <Text role="alert">{mutation.error.message}</Text> : null}
         <Text>{removing?.name} 님을 {project.name}에서 제외하시겠습니까?</Text>
         <HStack gap={2} justify="end"><Button label="취소" onClick={() => setRemoving(undefined)} />
-          <Button label="제외" variant="destructive" onClick={() => {
+          <Button label="제외" variant="destructive" isLoading={mutation.isPending} isDisabled={mutation.isPending} onClick={() => {
             if (!canManage) return;
-            if (removing && removing.role !== 'owner') setMembers((prev) => prev.filter((m) => m.id !== removing.id));
-            toast({ body: '멤버를 제외했습니다.' });
-            setRemoving(undefined);
+            if (removing && removing.role !== 'owner') mutation.mutate(async () => { await removeMember(projectId, removing.id); setRemoving(undefined); });
           }} /></HStack>
-      </VStack>
-      </LayoutContent>} />
-    </Dialog>
-    <Dialog isOpen={Boolean(inviteId)} onOpenChange={(open) => { if (!open) { onPreview(); setGuestName(''); } }} purpose="form" variant={mobile ? 'fullscreen' : 'standard'} width="30rem">
-      <Layout header={<DialogHeader title="프로젝트 초대" onOpenChange={() => { onPreview(); setGuestName(''); }} />} content={<LayoutContent>
-      <VStack gap={4}>
-        {preview && isActive(preview) ? <>
-          <Text size="lg" weight="semibold">{project.name}</Text>
-          <Text>{ROLE_LABEL[preview.role]} 역할로 참여하도록 초대받았습니다.</Text>
-          <TextInput label="표시 이름" value={guestName} onChange={setGuestName} onEnter={join} isRequired
-            status={duplicateName ? { type: 'error', message: '이미 참여 중인 이름입니다. 다른 이름을 입력해 주세요.' } : undefined} />
-          <Text color="secondary">참여 흐름 미리보기입니다. 입력한 이름이 이 탭의 멤버 목록에 추가됩니다.</Text>
-          <Button label="게스트로 참여" variant="primary" isDisabled={!guestName.trim() || duplicateName} onClick={join} />
-        </> : <EmptyState title="사용할 수 없는 초대 링크입니다" description="링크가 만료·비활성화되었거나 프로토타입 상태가 초기화되었습니다." />}
       </VStack>
       </LayoutContent>} />
     </Dialog>

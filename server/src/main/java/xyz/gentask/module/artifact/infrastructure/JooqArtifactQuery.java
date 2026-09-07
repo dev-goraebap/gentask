@@ -23,6 +23,7 @@ import xyz.gentask.module.artifact.application.artifact.ArtifactViews.ArtifactVi
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.FolderSummary;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionSummary;
 import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionView;
+import xyz.gentask.module.artifact.domain.ArtifactScope;
 
 /**
  * 아티팩트 목록 및 상세 조회를 담당하는 jOOQ 쿼리 구현체다.
@@ -34,11 +35,11 @@ class JooqArtifactQuery implements ArtifactQuery {
     private final DSLContext dslContext;
 
     @Override
-    public List<ArtifactSummary> findAll(String projectId) {
+    public List<ArtifactSummary> findAll(ArtifactScope projectId) {
         return dslContext
                 .select(ARTIFACTS.ID, ARTIFACTS.TITLE, ARTIFACTS.FOLDER_ID, ARTIFACTS.CREATED_AT, ARTIFACTS.UPDATED_AT)
                 .from(ARTIFACTS)
-                .where(ARTIFACTS.PROJECT_ID.eq(projectId))
+                .where(ArtifactScopeCondition.matches(projectId, ARTIFACTS.PROJECT_ID, ARTIFACTS.OWNER_ID))
                 .and(ARTIFACTS.DELETED_AT.isNull())
                 .orderBy(ARTIFACTS.UPDATED_AT.desc(), ARTIFACTS.ID.asc())
                 .fetch(JooqArtifactQuery::toSummary);
@@ -48,7 +49,7 @@ class JooqArtifactQuery implements ArtifactQuery {
      * 폴더별 하위 아티팩트 및 자식 폴더 수를 집계한다(DOC-008 A7).
      */
     @Override
-    public List<FolderSummary> findFolders(String projectId) {
+    public List<FolderSummary> findFolders(ArtifactScope projectId) {
         ArtifactFolders child = ARTIFACT_FOLDERS.as("child");
         Field<Integer> artifactCount = DSL.selectCount()
                 .from(ARTIFACTS)
@@ -70,7 +71,8 @@ class JooqArtifactQuery implements ArtifactQuery {
                         ARTIFACT_FOLDERS.CREATED_AT,
                         ARTIFACT_FOLDERS.UPDATED_AT)
                 .from(ARTIFACT_FOLDERS)
-                .where(ARTIFACT_FOLDERS.PROJECT_ID.eq(projectId))
+                .where(ArtifactScopeCondition.matches(
+                        projectId, ARTIFACT_FOLDERS.PROJECT_ID, ARTIFACT_FOLDERS.OWNER_ID))
                 .orderBy(ARTIFACT_FOLDERS.NAME.asc(), ARTIFACT_FOLDERS.ID.asc())
                 .fetch(record -> new FolderSummary(
                         record.get(ARTIFACT_FOLDERS.ID),
@@ -83,7 +85,7 @@ class JooqArtifactQuery implements ArtifactQuery {
     }
 
     @Override
-    public Optional<ArtifactView> findOne(String projectId, String artifactId) {
+    public Optional<ArtifactView> findOne(ArtifactScope projectId, String artifactId) {
         var editor = USERS.as("editor");
         return dslContext
                 .select(
@@ -104,7 +106,7 @@ class JooqArtifactQuery implements ArtifactQuery {
                 .leftJoin(editor)
                 .on(editor.ID.eq(ARTIFACTS.UPDATED_BY))
                 .where(ARTIFACTS.ID.eq(artifactId))
-                .and(ARTIFACTS.PROJECT_ID.eq(projectId))
+                .and(ArtifactScopeCondition.matches(projectId, ARTIFACTS.PROJECT_ID, ARTIFACTS.OWNER_ID))
                 .and(ARTIFACTS.DELETED_AT.isNull())
                 .fetchOptional()
                 .map(record -> new ArtifactView(
@@ -121,7 +123,7 @@ class JooqArtifactQuery implements ArtifactQuery {
     }
 
     @Override
-    public List<VersionSummary> findRevisions(String projectId, String artifactId, int limit, int offset) {
+    public List<VersionSummary> findRevisions(ArtifactScope projectId, String artifactId, int limit, int offset) {
         return dslContext
                 .select(
                         ARTIFACT_REVISIONS.REVISION_NO,
@@ -141,7 +143,7 @@ class JooqArtifactQuery implements ArtifactQuery {
     }
 
     @Override
-    public long countRevisions(String projectId, String artifactId) {
+    public long countRevisions(ArtifactScope projectId, String artifactId) {
         return dslContext
                 .selectCount()
                 .from(ARTIFACT_REVISIONS)
@@ -153,7 +155,7 @@ class JooqArtifactQuery implements ArtifactQuery {
     }
 
     @Override
-    public Optional<VersionView> findRevision(String projectId, String artifactId, int revisionNo) {
+    public Optional<VersionView> findRevision(ArtifactScope projectId, String artifactId, int revisionNo) {
         return dslContext
                 .select(
                         ARTIFACT_REVISIONS.REVISION_NO,
@@ -177,11 +179,11 @@ class JooqArtifactQuery implements ArtifactQuery {
     }
 
     /** 타 프로젝트 아티팩트 또는 논리 삭제된 아티팩트의 개정 이력 조회를 차단한다(DOC-004 A4, A5). */
-    private static Condition livingArtifact(String projectId, String artifactId) {
+    private static Condition livingArtifact(ArtifactScope projectId, String artifactId) {
         return ARTIFACTS
                 .ID
                 .eq(artifactId)
-                .and(ARTIFACTS.PROJECT_ID.eq(projectId))
+                .and(ArtifactScopeCondition.matches(projectId, ARTIFACTS.PROJECT_ID, ARTIFACTS.OWNER_ID))
                 .and(ARTIFACTS.DELETED_AT.isNull());
     }
 

@@ -8,7 +8,7 @@ import { blockKey, type CommentBlock } from '../model/comment-blocks';
 import { formatArtifactDate } from './document-detail';
 
 export function ArtifactCommentPanel({ projectId, artifactId, versionNo, block, blocks, comments, writable, loading, error, onSelect, onReveal, selecting, onPick, onCancel }: {
-  projectId: string; artifactId: string; versionNo: number; block: CommentBlock | null; blocks: CommentBlock[];
+  projectId: string | null; artifactId: string; versionNo: number; block: CommentBlock | null; blocks: CommentBlock[];
   comments: ArtifactCommentView[]; writable: boolean; loading: boolean; error: Error | null;
   onSelect: (block: CommentBlock | null) => void; onReveal: (block: CommentBlock) => void; selecting: boolean; onPick: () => void; onCancel: () => void;
 }) {

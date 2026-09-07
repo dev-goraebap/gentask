@@ -11,6 +11,7 @@ import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 import xyz.gentask.jooq.tables.records.ArtifactRevisionsRecord;
 import xyz.gentask.jooq.tables.records.ArtifactsRecord;
+import xyz.gentask.module.artifact.domain.ArtifactScope;
 import xyz.gentask.module.artifact.domain.artifact.Artifact;
 import xyz.gentask.module.artifact.domain.artifact.ArtifactBody;
 import xyz.gentask.module.artifact.domain.artifact.ArtifactRepository;
@@ -30,6 +31,7 @@ class JooqArtifactRepository implements ArtifactRepository {
                         .insertInto(ARTIFACTS)
                         .set(ARTIFACTS.ID, artifact.id())
                         .set(ARTIFACTS.PROJECT_ID, artifact.projectId())
+                        .set(ARTIFACTS.OWNER_ID, artifact.projectId() == null ? artifact.createdBy() : null)
                         .set(ARTIFACTS.TITLE, artifact.title().value())
                         .set(ARTIFACTS.HEAD_REVISION_ID, artifact.headRevisionId())
                         .set(ARTIFACTS.FOLDER_ID, artifact.folderId())
@@ -51,6 +53,7 @@ class JooqArtifactRepository implements ArtifactRepository {
                 .insertInto(ARTIFACTS)
                 .set(ARTIFACTS.ID, artifact.id())
                 .set(ARTIFACTS.PROJECT_ID, artifact.projectId())
+                .set(ARTIFACTS.OWNER_ID, artifact.projectId() == null ? artifact.createdBy() : null)
                 .set(ARTIFACTS.TITLE, artifact.title().value())
                 .set(ARTIFACTS.HEAD_REVISION_ID, artifact.headRevisionId())
                 .set(ARTIFACTS.FOLDER_ID, artifact.folderId())
@@ -73,22 +76,22 @@ class JooqArtifactRepository implements ArtifactRepository {
     }
 
     @Override
-    public Optional<Artifact> findById(String projectId, String artifactId) {
+    public Optional<Artifact> findById(ArtifactScope projectId, String artifactId) {
         return dslContext
                 .selectFrom(ARTIFACTS)
                 .where(ARTIFACTS.ID.eq(artifactId))
-                .and(ARTIFACTS.PROJECT_ID.eq(projectId))
+                .and(ArtifactScopeCondition.matches(projectId, ARTIFACTS.PROJECT_ID, ARTIFACTS.OWNER_ID))
                 .and(ARTIFACTS.DELETED_AT.isNull())
                 .fetchOptional()
                 .map(JooqArtifactRepository::toDomain);
     }
 
     @Override
-    public Optional<Artifact> findByIdForUpdate(String projectId, String artifactId) {
+    public Optional<Artifact> findByIdForUpdate(ArtifactScope projectId, String artifactId) {
         return dslContext
                 .selectFrom(ARTIFACTS)
                 .where(ARTIFACTS.ID.eq(artifactId))
-                .and(ARTIFACTS.PROJECT_ID.eq(projectId))
+                .and(ArtifactScopeCondition.matches(projectId, ARTIFACTS.PROJECT_ID, ARTIFACTS.OWNER_ID))
                 .and(ARTIFACTS.DELETED_AT.isNull())
                 .forUpdate()
                 .fetchOptional()

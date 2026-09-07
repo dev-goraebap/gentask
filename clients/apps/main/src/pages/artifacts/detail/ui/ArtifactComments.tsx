@@ -11,7 +11,7 @@ import { ArtifactCommentBody } from './ArtifactCommentBody';
 import { ArtifactCommentPanel } from './ArtifactCommentPanel';
 
 export function ArtifactComments({ projectId, artifactId, versionNo, body, writable, panelKey }: {
-  projectId: string; artifactId: string; versionNo: number; body: string; writable: boolean; panelKey: string;
+  projectId: string | null; artifactId: string; versionNo: number; body: string; writable: boolean; panelKey: string;
 }) {
   const query = useQuery(commentsOptions(projectId, artifactId, versionNo));
   const blocks = useMemo(() => commentBlocks(body), [body]);

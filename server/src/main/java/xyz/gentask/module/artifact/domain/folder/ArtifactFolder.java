@@ -19,7 +19,7 @@ public final class ArtifactFolder {
 
     @NonNull private final String id;
 
-    @NonNull private final String projectId;
+    private final String projectId;
 
     @NonNull private ArtifactFolderName name;
 
@@ -51,7 +51,7 @@ public final class ArtifactFolder {
     }
 
     public boolean belongsTo(@NonNull String candidateProjectId) {
-        return projectId.equals(candidateProjectId);
+        return java.util.Objects.equals(projectId, candidateProjectId);
     }
 
     /** 폴더명을 변경한다(DOC-008 A4). */

@@ -4,38 +4,6 @@
  */
 
 export interface paths {
-    "/api/v1/projects/{projectId}/artifacts/{artifactId}/folder": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["move"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/projects/{projectId}/artifact-folders/{folderId}/parent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["move_1"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/me/profile-image": {
         parameters: {
             query?: never;
@@ -52,7 +20,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/me/password": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/folder": {
         parameters: {
             query?: never;
             header?: never;
@@ -60,7 +28,55 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["changePassword"];
+        put: operations["move"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/artifacts/{artifactId}/folder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["move_1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/artifact-folders/{folderId}/parent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["move_2"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/artifact-folders/{folderId}/parent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["move_3"];
         post?: never;
         delete?: never;
         options?: never;
@@ -148,23 +164,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifacts": {
+    "/api/v1/projects/{projectId}/invitations": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["list_4"];
+        get: operations["invitations"];
         put?: never;
-        post: operations["add_2"];
+        post: operations["create_1"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/revert": {
+    "/api/v1/me/artifacts/{artifactId}/versions/{versionNo}/revert": {
         parameters: {
             query?: never;
             header?: never;
@@ -180,7 +196,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/revert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["revert_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_4"];
+        put?: never;
+        post: operations["add_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/artifacts/{artifactId}/versions/{versionNo}/comments": {
         parameters: {
             query?: never;
             header?: never;
@@ -196,7 +244,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifact-folders": {
+    "/api/v1/me/artifacts": {
         parameters: {
             query?: never;
             header?: never;
@@ -206,6 +254,54 @@ export interface paths {
         get: operations["list_6"];
         put?: never;
         post: operations["add_4"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/artifacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_7"];
+        put?: never;
+        post: operations["add_5"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/artifact-folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_8"];
+        put?: never;
+        post: operations["add_6"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/artifact-folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_9"];
+        put?: never;
+        post: operations["add_7"];
         delete?: never;
         options?: never;
         head?: never;
@@ -228,7 +324,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/signup": {
+    "/api/v1/invitations/{token}/accept": {
         parameters: {
             query?: never;
             header?: never;
@@ -237,87 +333,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["signup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/signup/resend": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["resendSignupCode"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/signup/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["confirmSignup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/password-reset": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["requestPasswordReset"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/password-reset/resend": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["resendPasswordResetCode"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/password-reset/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["confirmPasswordReset"];
+        post: operations["accept"];
         delete?: never;
         options?: never;
         head?: never;
@@ -340,7 +356,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/login": {
+    "/api/v1/auth/login/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -349,7 +365,23 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["login"];
+        post: operations["confirmLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["requestLoginCode"];
         delete?: never;
         options?: never;
         head?: never;
@@ -484,6 +516,22 @@ export interface paths {
         patch: operations["edit_1"];
         trace?: never;
     };
+    "/api/v1/projects/{projectId}/members/{memberId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["remove_1"];
+        options?: never;
+        head?: never;
+        patch: operations["changeRole"];
+        trace?: never;
+    };
     "/api/v1/projects/{projectId}/issues/{number}": {
         parameters: {
             query?: never;
@@ -494,7 +542,7 @@ export interface paths {
         get: operations["detail_2"];
         put?: never;
         post?: never;
-        delete: operations["remove_1"];
+        delete: operations["remove_2"];
         options?: never;
         head?: never;
         patch: operations["edit_2"];
@@ -516,7 +564,23 @@ export interface paths {
         patch: operations["changeState"];
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifacts/{artifactId}": {
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["changeNickname"];
+        trace?: never;
+    };
+    "/api/v1/me/artifacts/{artifactId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -532,6 +596,22 @@ export interface paths {
         patch: operations["edit_3"];
         trace?: never;
     };
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["detail_4"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["edit_4"];
+        trace?: never;
+    };
     "/api/v1/projects/{projectId}/artifact-folders/{folderId}": {
         parameters: {
             query?: never;
@@ -542,26 +622,26 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete: operations["remove_2"];
+        delete: operations["remove_3"];
         options?: never;
         head?: never;
         patch: operations["rename"];
         trace?: never;
     };
-    "/api/v1/me": {
+    "/api/v1/me/artifact-folders/{folderId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["me"];
+        get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["remove_4"];
         options?: never;
         head?: never;
-        patch: operations["changeNickname"];
+        patch: operations["rename_1"];
         trace?: never;
     };
     "/api/v1/push/config": {
@@ -580,14 +660,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions": {
+    "/api/v1/projects/{projectId}/members": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["revisions"];
+        get: operations["members"];
         put?: never;
         post?: never;
         delete?: never;
@@ -612,6 +692,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/artifacts/{artifactId}/versions/{versionNo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["revision_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["revisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/artifacts/{artifactId}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["revisions_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/{token}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -619,7 +763,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_7"];
+        get: operations["list_10"];
         put?: never;
         post?: never;
         delete?: never;
@@ -635,7 +779,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_8"];
+        get: operations["list_11"];
         put?: never;
         post?: never;
         delete?: never;
@@ -660,7 +804,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
+    "/api/v1/projects/{projectId}/invitations/{invitationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["revoke_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -676,10 +836,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ConfirmProfileImage: {
+            objectKey: string;
+        };
         MoveArtifact: {
             /**
              * Format: uuid
@@ -693,13 +872,6 @@ export interface components {
              * @description 옮길 자리. 값이 없으면 최상위로 옮긴다
              */
             parentId?: string | null;
-        };
-        ConfirmProfileImage: {
-            objectKey: string;
-        };
-        ChangePassword: {
-            currentPassword: string;
-            newPassword: string;
         };
         CreateTask: {
             title: string;
@@ -742,12 +914,23 @@ export interface components {
             /** @description 부모의 이름(GT-41). 없으면 최상위다 */
             parentKey?: string | null;
         };
-        CreateArtifact: {
-            title: string;
-            /** @description 적지 않으면 빈 본문으로 선다 */
-            body?: string;
-            /** @description 담을 폴더. 적지 않으면 뿌리에 선다 */
-            folderId?: string | null;
+        CreateInvitation: {
+            label: string;
+            role: string;
+            /** Format: int32 */
+            days?: number;
+        };
+        InvitationView: {
+            id?: string;
+            projectId?: string;
+            token?: string;
+            label?: string;
+            role?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+            revoked?: boolean;
+            /** Format: int32 */
+            uses?: number;
         };
         RevertVersion: {
             /** @description 왜 되돌리는지. 적지 않아도 된다 */
@@ -759,6 +942,13 @@ export interface components {
             blockStart?: number;
             /** Format: int32 */
             blockEnd?: number;
+        };
+        CreateArtifact: {
+            title: string;
+            /** @description 적지 않으면 빈 본문으로 선다 */
+            body?: string;
+            /** @description 담을 폴더. 적지 않으면 뿌리에 선다 */
+            folderId?: string | null;
         };
         CreateFolder: {
             name: string;
@@ -773,29 +963,19 @@ export interface components {
             /** Format: date-time */
             issuedAt: string;
         };
-        Signup: {
+        InvitationPreview: {
+            projectId?: string;
+            projectName?: string;
+            role?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+        };
+        ConfirmLogin: {
             email: string;
-            password: string;
-            nickname?: string | null;
+            code: string;
         };
         ResendCode: {
             email: string;
-        };
-        ConfirmSignup: {
-            email: string;
-            code: string;
-        };
-        RequestPasswordReset: {
-            email: string;
-        };
-        ConfirmPasswordReset: {
-            email: string;
-            code: string;
-            newPassword: string;
-        };
-        Login: {
-            email: string;
-            password: string;
         };
         PresignAttachment: {
             /** @enum {string} */
@@ -833,6 +1013,9 @@ export interface components {
             name?: string;
             key?: string;
         };
+        ChangeMemberRole: {
+            role: string;
+        };
         EditIssue: {
             title: string;
             /** @enum {string} */
@@ -845,6 +1028,9 @@ export interface components {
             /** @enum {string} */
             state: "BACKLOG" | "UNSTARTED" | "STARTED" | "COMPLETED" | "CANCELED";
         };
+        ChangeNickname: {
+            nickname: string;
+        };
         EditArtifact: {
             title: string;
             body: string;
@@ -853,9 +1039,6 @@ export interface components {
         };
         RenameFolder: {
             name: string;
-        };
-        ChangeNickname: {
-            nickname: string;
         };
         TaskView: {
             /** Format: uuid */
@@ -891,6 +1074,16 @@ export interface components {
             key: string;
             /** Format: int32 */
             issueCount: number;
+            role: string;
+        };
+        MemberProfileView: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            role?: string;
+            /** Format: date-time */
+            joinedAt?: string;
+            profileImageUrl?: string;
         };
         IssueSummary: {
             /** Format: uuid */
@@ -939,6 +1132,73 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        MeView: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            nickname: string;
+            /** @enum {string} */
+            role: "USER" | "ADMIN";
+            profileImageUrl: string | null;
+            /** Format: date-time */
+            apiTokenIssuedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ArtifactCommentView: {
+            id: string;
+            /** Format: int32 */
+            versionNo: number;
+            /** Format: int32 */
+            blockStart?: number;
+            /** Format: int32 */
+            blockEnd?: number;
+            blockSource?: string;
+            body: string;
+            /** Format: uuid */
+            authorId: string;
+            authorName: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        VersionSummary: {
+            /**
+             * Format: int32
+             * @description 아티팩트 안의 버전 번호. 1부터 매긴다
+             */
+            versionNo: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description 남긴 사람의 별명 */
+            authorName: string;
+            /** @description 왜 고쳤는지. 적지 않았으면 값이 없다 */
+            comment: string | null;
+        };
+        VersionView: {
+            summary: components["schemas"]["VersionSummary"];
+            /** @description 그때의 제목 */
+            title: string;
+            /** @description 그때의 본문. 마크다운 원문이다 */
+            body: string;
+        };
+        VersionPageView: {
+            items: components["schemas"]["VersionSummary"][];
+            /**
+             * Format: int64
+             * @description 이 아티팩트의 버전 전체 수
+             */
+            total: number;
+            /**
+             * Format: int32
+             * @description 0부터 매긴 쪽 번호
+             */
+            page: number;
+            /**
+             * Format: int32
+             * @description 한 쪽에 담은 수
+             */
+            size: number;
+        };
         ArtifactSummary: {
             id: string;
             title: string;
@@ -963,60 +1223,6 @@ export interface components {
             /** @description 최종 수정자의 닉네임 */
             lastEditorName: string;
         };
-        VersionPageView: {
-            items: components["schemas"]["VersionSummary"][];
-            /**
-             * Format: int64
-             * @description 이 아티팩트의 버전 전체 수
-             */
-            total: number;
-            /**
-             * Format: int32
-             * @description 0부터 매긴 쪽 번호
-             */
-            page: number;
-            /**
-             * Format: int32
-             * @description 한 쪽에 담은 수
-             */
-            size: number;
-        };
-        VersionSummary: {
-            /**
-             * Format: int32
-             * @description 아티팩트 안의 버전 번호. 1부터 매긴다
-             */
-            versionNo: number;
-            /** Format: date-time */
-            createdAt: string;
-            /** @description 남긴 사람의 별명 */
-            authorName: string;
-            /** @description 왜 고쳤는지. 적지 않았으면 값이 없다 */
-            comment: string | null;
-        };
-        VersionView: {
-            summary: components["schemas"]["VersionSummary"];
-            /** @description 그때의 제목 */
-            title: string;
-            /** @description 그때의 본문. 마크다운 원문이다 */
-            body: string;
-        };
-        ArtifactCommentView: {
-            id: string;
-            /** Format: int32 */
-            versionNo: number;
-            /** Format: int32 */
-            blockStart?: number;
-            /** Format: int32 */
-            blockEnd?: number;
-            blockSource?: string;
-            body: string;
-            /** Format: uuid */
-            authorId: string;
-            authorName: string;
-            /** Format: date-time */
-            createdAt: string;
-        };
         ArtifactFolderSummary: {
             id: string;
             name: string;
@@ -1036,19 +1242,6 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
-        };
-        MeView: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            nickname: string;
-            /** @enum {string} */
-            role: "USER" | "ADMIN";
-            profileImageUrl: string | null;
-            /** Format: date-time */
-            apiTokenIssuedAt: string | null;
-            /** Format: date-time */
-            createdAt: string;
         };
         AdminUserPageView: {
             items: components["schemas"]["AdminUserView"][];
@@ -1109,56 +1302,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    move: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                projectId: string;
-                artifactId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["MoveArtifact"];
-            };
-        };
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    move_1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                projectId: string;
-                folderId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["MoveFolder"];
-            };
-        };
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     confirmProfileImage: {
         parameters: {
             query?: never;
@@ -1199,16 +1342,92 @@ export interface operations {
             };
         };
     };
-    changePassword: {
+    move: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                projectId: string;
+                artifactId: string;
+            };
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
-                "application/json": components["schemas"]["ChangePassword"];
+                "application/json": components["schemas"]["MoveArtifact"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    move_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MoveArtifact"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    move_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MoveFolder"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    move_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MoveFolder"];
             };
         };
         responses: {
@@ -1465,7 +1684,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    invitations: {
         parameters: {
             query?: never;
             header?: never;
@@ -1482,12 +1701,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ArtifactSummary"][];
+                    "*/*": components["schemas"]["InvitationView"][];
                 };
             };
         };
     };
-    add_2: {
+    create_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1498,7 +1717,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateArtifact"];
+                "application/json": components["schemas"]["CreateInvitation"];
             };
         };
         responses: {
@@ -1507,11 +1726,38 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "*/*": components["schemas"]["InvitationView"];
+                };
             };
         };
     };
     revert: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifactId: string;
+                versionNo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RevertVersion"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    revert_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1537,7 +1783,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -1561,7 +1807,7 @@ export interface operations {
             };
         };
     };
-    add_3: {
+    add_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1591,7 +1837,189 @@ export interface operations {
             };
         };
     };
+    list_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifactId: string;
+                versionNo: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ArtifactCommentView"][];
+                };
+            };
+        };
+    };
+    add_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifactId: string;
+                versionNo: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateArtifactComment"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
     list_6: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ArtifactSummary"][];
+                };
+            };
+        };
+    };
+    add_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateArtifact"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_7: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ArtifactSummary"][];
+                };
+            };
+        };
+    };
+    add_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateArtifact"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_8: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ArtifactFolderSummary"][];
+                };
+            };
+        };
+    };
+    add_6: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFolder"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -1613,7 +2041,7 @@ export interface operations {
             };
         };
     };
-    add_4: {
+    add_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -1675,135 +2103,25 @@ export interface operations {
             };
         };
     };
-    signup: {
+    accept: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                token: string;
+            };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Signup"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description 코드를 보냈다 */
-            202: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
-            };
-        };
-    };
-    resendSignupCode: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResendCode"];
-            };
-        };
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
+                content: {
+                    "*/*": components["schemas"]["InvitationPreview"];
                 };
-                content?: never;
-            };
-        };
-    };
-    confirmSignup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConfirmSignup"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    requestPasswordReset: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RequestPasswordReset"];
-            };
-        };
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    resendPasswordResetCode: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResendCode"];
-            };
-        };
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    confirmPasswordReset: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConfirmPasswordReset"];
-            };
-        };
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -1825,7 +2143,7 @@ export interface operations {
             };
         };
     };
-    login: {
+    confirmLogin: {
         parameters: {
             query?: never;
             header?: never;
@@ -1834,12 +2152,34 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Login"];
+                "application/json": components["schemas"]["ConfirmLogin"];
             };
         };
         responses: {
             /** @description No Content */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    requestLoginCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResendCode"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2095,6 +2435,52 @@ export interface operations {
             };
         };
     };
+    remove_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                memberId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    changeRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                memberId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeMemberRole"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     detail_2: {
         parameters: {
             query?: never;
@@ -2118,7 +2504,7 @@ export interface operations {
             };
         };
     };
-    remove_1: {
+    remove_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -2189,7 +2575,95 @@ export interface operations {
             };
         };
     };
+    me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MeView"];
+                };
+            };
+        };
+    };
+    changeNickname: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeNickname"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     detail_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ArtifactView"];
+                };
+            };
+        };
+    };
+    edit_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditArtifact"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    detail_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2212,7 +2686,7 @@ export interface operations {
             };
         };
     };
-    edit_3: {
+    edit_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2237,7 +2711,7 @@ export interface operations {
             };
         };
     };
-    remove_2: {
+    remove_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -2283,36 +2757,38 @@ export interface operations {
             };
         };
     };
-    me: {
+    remove_4: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                folderId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description No Content */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "*/*": components["schemas"]["MeView"];
-                };
+                content?: never;
             };
         };
     };
-    changeNickname: {
+    rename_1: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                folderId: string;
+            };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ChangeNickname"];
+                "application/json": components["schemas"]["RenameFolder"];
             };
         };
         responses: {
@@ -2345,16 +2821,12 @@ export interface operations {
             };
         };
     };
-    revisions: {
+    members: {
         parameters: {
-            query?: {
-                page?: number;
-                size?: number;
-            };
+            query?: never;
             header?: never;
             path: {
                 projectId: string;
-                artifactId: string;
             };
             cookie?: never;
         };
@@ -2366,7 +2838,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["VersionPageView"];
+                    "*/*": components["schemas"]["MemberProfileView"][];
                 };
             };
         };
@@ -2395,7 +2867,103 @@ export interface operations {
             };
         };
     };
-    list_7: {
+    revision_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifactId: string;
+                versionNo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VersionView"];
+                };
+            };
+        };
+    };
+    revisions: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                projectId: string;
+                artifactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VersionPageView"];
+                };
+            };
+        };
+    };
+    revisions_1: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                artifactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VersionPageView"];
+                };
+            };
+        };
+    };
+    preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InvitationPreview"];
+                };
+            };
+        };
+    };
+    list_10: {
         parameters: {
             query?: {
                 keyword?: string;
@@ -2419,7 +2987,7 @@ export interface operations {
             };
         };
     };
-    list_8: {
+    list_11: {
         parameters: {
             query?: {
                 includeResolved?: boolean;
@@ -2464,7 +3032,50 @@ export interface operations {
             };
         };
     };
+    revoke_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                invitationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifactId: string;
+                versionNo: number;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_1: {
         parameters: {
             query?: never;
             header?: never;

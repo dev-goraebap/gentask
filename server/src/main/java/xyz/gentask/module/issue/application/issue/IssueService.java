@@ -53,7 +53,7 @@ public class IssueService {
     // --- 명령 --------------------------------------------------------------------------------------------------------
     @Transactional
     public int add(UUID userId, String projectId, String title, IssueKind kind, String body, String parentKey) {
-        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        String accessibleProjectId = projectAccess.requireWrite(userId, projectId);
         Instant now = clock.instant();
         int number = issueNumberSequence.next(accessibleProjectId, now);
 
@@ -81,7 +81,7 @@ public class IssueService {
     @Transactional
     public void edit(
             UUID userId, String projectId, int number, String title, IssueKind kind, String body, String parentKey) {
-        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        String accessibleProjectId = projectAccess.requireWrite(userId, projectId);
         Issue issue = issueRepository
                 .findByNumber(accessibleProjectId, number)
                 .orElseThrow(IssueErrorCode.ISSUE_NOT_FOUND::raise);
@@ -135,7 +135,7 @@ public class IssueService {
 
     // --- 내부 --------------------------------------------------------------------------------------------------------
     private Issue find(UUID userId, String projectId, int number) {
-        String accessibleProjectId = projectAccess.requireAccess(userId, projectId);
+        String accessibleProjectId = projectAccess.requireWrite(userId, projectId);
         return issueRepository
                 .findByNumber(accessibleProjectId, number)
                 .orElseThrow(IssueErrorCode.ISSUE_NOT_FOUND::raise);

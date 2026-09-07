@@ -23,7 +23,7 @@ public final class Artifact {
     @NonNull private final String id;
 
     // 담긴 프로젝트
-    @NonNull private final String projectId;
+    private final String projectId;
 
     // 지금 참인 개정의 제목을 앞당겨 둔 것
     @NonNull private ArtifactTitle title;
@@ -78,7 +78,7 @@ public final class Artifact {
     }
 
     public boolean belongsTo(@NonNull String candidateProjectId) {
-        return projectId.equals(candidateProjectId);
+        return java.util.Objects.equals(projectId, candidateProjectId);
     }
 
     public boolean isDeleted() {

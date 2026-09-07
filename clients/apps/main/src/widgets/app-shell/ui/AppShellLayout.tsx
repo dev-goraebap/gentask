@@ -28,7 +28,8 @@ export function AppShellLayout() {
   const selected = menu.find((m) => matchRoute({ to: m.path, fuzzy: true }));
   const missing = Boolean(projectId && !project);
   const archived = project?.archived && selected?.path !== '/projects/$projectId/settings';
-  const mobileDetail = mobile && Boolean(project) && !archived && Boolean(
+  const mobileDetail = mobile && !archived && Boolean(
+    matchRoute({ to: '/artifacts/$docId' }) ||
     matchRoute({ to: '/projects/$projectId/issues/$itemId' }) ||
     matchRoute({ to: '/projects/$projectId/artifacts/$docId' }),
   );
