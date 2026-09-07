@@ -29,15 +29,6 @@ jobs:
     name: 리뷰
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # secrets 컨텍스트는 if 에서 쓸 수 없다. 존재 여부만 env 로 옮겨 판정한다.
-    env:
-      HAS_GENTASK_TOKEN: ${{ secrets.GENTASK_TOKEN != '' }}
-      # CLI 는 저장된 설정보다 이 두 환경 변수를 먼저 본다(clients/apps/cli/src/config.ts).
-      # 그래서 러너에서 auth login 과 project use 를 하지 않아도 된다. 저장 경로가
-      # 리뷰를 실행하는 프로세스에 보이는지 따질 필요도 없어진다.
-      GENTASK_TOKEN: ${{ secrets.GENTASK_TOKEN }}
-      # 식별자이지 자격 증명이 아니라 평문으로 둔다.
-      GENTASK_PROJECT: 9G5xhlf0c_6t
     if: |
       (github.event_name == 'pull_request'
         && github.event.pull_request.draft == false
@@ -49,12 +40,6 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      # 백로그와 문서의 원본은 운영 서버다. 토큰이 없으면 이 단계를 건너뛰고
-      # 저장소 안의 것만 보고 검토한다.
-      - name: gentask CLI 를 설치한다
-        if: env.HAS_GENTASK_TOKEN == 'true'
-        run: npm i -g gentask@latest
 
       - uses: anthropics/claude-code-action@v1
         with:
@@ -69,14 +54,9 @@ jobs:
             저장소 루트의 `AGENTS.md` 를 읽는다. 개발 워크플로우와 마이그레이션 규약,
             수정하면 안 되는 대상이 거기 있다.
 
-            `gentask` 명령이 설치되어 있으면 다음을 읽는다. 실패하면 문서 없이 진행한다.
-
-                gentask doc show a2db36b6      # 작성 지침
-                gentask doc show 3063f084      # 교정 사례
-                gentask doc folder list        # 아키텍처 문서의 위치
-
-            변경된 코드가 특정 모듈에 속하면 그 모듈의 아키텍처 문서와 결정 기록을
-            `gentask doc list` 로 찾아 읽고, 코드가 그 결정을 벗어나지 않는지 본다.
+            Gentask CLI 는 제거되었으므로 설치하거나 호출하지 않는다.
+            접근할 수 있는 저장소 지침과 코드, PR 내용을 기준으로 검토한다.
+            외부 문서를 읽지 못했다면 그 문서와의 일치 여부는 판정하지 않는다.
 
             ## 이전 리뷰를 이어받는다
 
@@ -98,4 +78,4 @@ jobs:
             - 지적이 없으면 없다고 한 줄로 적는다. 채우기 위해 만들어 내지 않는다
             - 문체는 `작성 지침` 의 종결 어미 규격을 따른다. 리뷰 본문은 합니다체다
           claude_args: |
-            --allowedTools Read,Grep,Glob,Bash(gentask:*),Bash(git:*)
+            --allowedTools Read,Grep,Glob,Bash(git:*)
