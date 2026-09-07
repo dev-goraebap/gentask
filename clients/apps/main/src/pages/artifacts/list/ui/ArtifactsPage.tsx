@@ -1,10 +1,11 @@
+import { MobilePageHeader } from '@/shared/ui/mobile';
 import { useWorkspaceStore } from '@/entities/workspace';
-import { PageLayout, PageContent } from '@/shared/ui/page-layout';
+import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
 import { artifactKeys, artifactsOptions, foldersOptions, createFolder } from '@/entities/artifact';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RequestState } from '@/shared/ui/request-state';
-import { TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
+import { WIDTH } from '@/shared/config';
 import { HgiFile, HgiFolder, HgiPlus, HgiSearch, HgiSearchEmpty } from '@/shared/ui/icons';
 import { ListingFooter, PageSize, SortSelector, SortFields, type SortOption, parseListingSearch, useListing } from '@/shared/ui/listing';
 import { CreateButton, CreateDialog, MobileSurface } from '@/shared/ui/mobile';
@@ -20,7 +21,6 @@ import {
     ListItem,
     Layout,
     LayoutContent,
-    LayoutHeader,
     List,
     Text,
     TextInput,
@@ -103,28 +103,10 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
       contentWidth={WIDTH.wide}
       header={
         <>
-          {mobile ? canEdit ? <CreateButton label="새로 만들기" onClick={() => setCreateMenu(true)} /> : null : <LayoutHeader hasDivider padding={mobile ? 0 : undefined}>
-            <VStack gap={2}>
-            <HStack
-              justify="between"
-              align="center"
-              width="100%"
-              height={mobile ? undefined : TITLE_ROW}
-              paddingBlock={mobile ? 2 : undefined} paddingBlockStart={mobile ? 2 : TITLE_PAD_TOP}
-              paddingInline={mobile ? 3 : 4}
-              gap={3}
-            >
-              <Heading level={1}>아티팩트</Heading>
-              <HStack gap={2} align="center">
-                {!mobile && canEdit ? <Button label="새 폴더" variant="secondary" size="sm" icon={<HgiFolder />} onClick={() => setCreating('folder')} /> : null}
-                {canEdit ? <CreateButton label={mobile ? "새로 만들기" : "새 아티팩트"} onClick={() => mobile ? setCreateMenu(true) : setCreating('doc')} /> : null}
-              </HStack>
-            </HStack>
-              <VStack paddingInline={mobile ? 3 : 4}>
-                <Text color="secondary">{projectId === null ? '아이디어부터 다양한 기록과 문서까지, 한곳에서 관리하세요.' : '프로젝트의 생각과 지식을 함께 기록합니다.'}</Text>
-              </VStack>
-            </VStack>
-          </LayoutHeader>}
+          {mobile ? <>{projectId === null ? <MobilePageHeader title="아티팩트" /> : null}{canEdit ? <CreateButton label="새로 만들기" onClick={() => setCreateMenu(true)} /> : null}</> :
+            <PageHeader title="아티팩트"
+              description={projectId === null ? '아이디어부터 다양한 기록과 문서까지, 한곳에서 관리하세요.' : '프로젝트의 생각과 지식을 함께 기록합니다.'}
+              actions={canEdit ? <><Button label="새 폴더" variant="secondary" size="sm" icon={<HgiFolder />} onClick={() => setCreating('folder')} /><CreateButton label="새 아티팩트" onClick={() => setCreating('doc')} /></> : undefined} />}
 
           {mobile ? <MobileFilterBar label="아티팩트 필터" searchLabel="아티팩트 검색" placeholder="제목으로 검색" query={query} onQueryChange={setQuery}
             actions={<MobileFilterButton active={false} onClick={() => { setDraft({ sort, direction, filter: listing.filter, size: listing.size }); setFiltersOpen(true); }} />} /> : <Toolbar className="page-filter-toolbar"

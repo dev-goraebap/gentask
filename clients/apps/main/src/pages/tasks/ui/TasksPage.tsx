@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, EmptyState, Heading, HStack, LayoutFooter, LayoutHeader, List, Text, TextInput, VStack } from '@astryxdesign/core';
+import { Button, EmptyState, HStack, LayoutFooter, List, Text, TextInput, VStack } from '@astryxdesign/core';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { useWorkspaceStore } from '@/entities/workspace';
-import { PageLayout, PageContent } from '@/shared/ui/page-layout';
+import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { AppAsideContent, useAppAside } from '@/shared/ui/app-aside';
 import { RequestState } from '@/shared/ui/request-state';
 import { MobilePageHeader, MOBILE_QUERY } from '@/shared/ui/mobile';
 import { HgiPlus, HgiTask, HgiSearchEmpty } from '@/shared/ui/icons';
-import { TITLE_ROW, TITLE_PAD_TOP, WIDTH } from '@/shared/config';
+import { WIDTH } from '@/shared/config';
 import { addTask, changeTaskState, tasksOptions, type Task } from '../api/tasks';
 import { DEFAULT_FILTERS, filterTasks } from '../model/filters';
 import { useTaskAction } from '../model/useTaskAction';
@@ -42,19 +42,13 @@ export function TasksPage({ projectId }: { projectId: string | null }) {
     });
   };
   const tasks = filterTasks(query.data ?? [], search, filters);
-  const filtered = Boolean(search.trim()) || filters.state !== 'ALL';
+  const filtered = Boolean(search.trim()) || filters.states.length > 0;
   return <>
     <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
       header={<>
-        {mobile ? projectId === null ? <MobilePageHeader title="작업" /> : null : <LayoutHeader hasDivider>
-          <VStack gap={2}>
-            <HStack justify="between" align="center" width="100%" height={TITLE_ROW} paddingBlockStart={TITLE_PAD_TOP} paddingInline={4} gap={3}>
-              <Heading level={1}>작업</Heading>
-              <Text type="supporting">미완료 {(query.data ?? []).filter(task => task.state !== 'DONE').length}</Text>
-            </HStack>
-            <VStack paddingInline={4}><Text color="secondary">{projectId ? '프로젝트의 작업을 함께 관리하세요.' : '개인 작업과 나에게 할당된 프로젝트 작업을 한곳에서 관리하세요.'}</Text></VStack>
-          </VStack>
-        </LayoutHeader>}
+        {mobile ? projectId === null ? <MobilePageHeader title="작업" /> : null : <PageHeader title="작업"
+          description={projectId ? '프로젝트의 작업을 함께 관리하세요.' : '개인 작업과 나에게 할당된 프로젝트 작업을 한곳에서 관리하세요.'}
+          actions={<Text type="supporting">미완료 {(query.data ?? []).filter(task => task.state !== 'DONE').length}</Text>} />}
         <TaskFilters mobile={mobile} query={search} onQueryChange={setSearch} filters={filters} onChange={setFilters} view={view} onViewChange={setView} />
       </>}
       footer={writable(projectId) ? <LayoutFooter hasDivider padding={mobile ? 3 : 4} label="작업 추가">

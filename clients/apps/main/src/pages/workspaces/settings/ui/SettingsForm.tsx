@@ -1,8 +1,8 @@
-import { PageLayout, PageContent } from '@/shared/ui/page-layout';
+import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { editProject, projectsOptions, type Project } from '@/entities/workspace';
 import { WIDTH } from '@/shared/config';
 import { MOBILE_QUERY } from '@/shared/ui/mobile';
-import { Button, Heading, HStack, LayoutFooter, LayoutHeader, Text, TextInput, useToast, VStack } from '@astryxdesign/core';
+import { Button, HStack, LayoutFooter, Text, TextInput, useToast, VStack } from '@astryxdesign/core';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -22,7 +22,7 @@ export function SettingsForm({ project }: { project: Project }) {
   });
   const dirty = name.trim() !== project.name || key.trim() !== project.prefix;
   return <PageLayout contentWidth={WIDTH.narrow}
-    header={!mobile ? <LayoutHeader hasDivider padding={4}><Heading level={1}>프로젝트 설정</Heading></LayoutHeader> : undefined}
+    header={!mobile ? <PageHeader title="프로젝트 설정" /> : undefined}
     footer={<LayoutFooter hasDivider><HStack padding={4} justify="end">
       <Button label="변경사항 저장" variant="primary" isLoading={mutation.isPending} isDisabled={!name.trim() || !key.trim() || key.trim().length > 10 || !dirty || mutation.isPending} onClick={() => mutation.mutate()} />
     </HStack></LayoutFooter>}

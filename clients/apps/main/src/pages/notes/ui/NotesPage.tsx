@@ -1,7 +1,7 @@
-import { PageLayout, PageContent } from '@/shared/ui/page-layout';
+import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobilePageHeader } from '@/shared/ui/mobile';
 import { useNoteStore } from '@/entities/note';
-import { PANEL, TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
+import { PANEL, WIDTH } from '@/shared/config';
 import { HgiNote } from '@/shared/ui/icons';
 import { CreateButton, CreateDialog, MOBILE_QUERY, MobileSurface } from '@/shared/ui/mobile';
 import {
@@ -11,7 +11,6 @@ import {
     Item,
     Layout,
     LayoutContent,
-    LayoutHeader,
     LayoutPanel,
     List,
     Text,
@@ -36,17 +35,7 @@ export function NotesPage({ notes, selectedId, onSelect }: NotesProps) {
       height="fill"
       contentWidth={WIDTH.wide}
       header={
-        mobile ? <><MobilePageHeader title="메모" /><CreateButton label="새 메모" onClick={() => setCreating(true)} /></> : <LayoutHeader hasDivider padding={mobile ? 0 : undefined}>
-          <VStack gap={2}>
-          <HStack justify="between" align="center" width="100%" height={mobile ? undefined : TITLE_ROW} paddingBlock={mobile ? 2 : undefined} paddingBlockStart={mobile ? 2 : TITLE_PAD_TOP} paddingInline={mobile ? 3 : 4}>
-            <Heading level={1}>메모</Heading>
-            <CreateButton label="새 메모" onClick={() => setCreating(true)} />
-          </HStack>
-            <VStack paddingInline={mobile ? 3 : 4}>
-              <Text color="secondary">아이디어와 참고할 내용을 개인 메모로 기록합니다.</Text>
-            </VStack>
-          </VStack>
-        </LayoutHeader>
+        mobile ? <><MobilePageHeader title="메모" /><CreateButton label="새 메모" onClick={() => setCreating(true)} /></> : <PageHeader title="메모" description="아이디어와 참고할 내용을 개인 메모로 기록합니다." actions={<CreateButton label="새 메모" onClick={() => setCreating(true)} />} />
       }
       start={mobile ? undefined :
         <LayoutPanel width={PANEL.list} hasDivider isScrollable padding={3}>

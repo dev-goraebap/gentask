@@ -1,14 +1,13 @@
 import { useWorkspaceStore } from '@/entities/workspace';
-import { PageLayout, PageContent } from '@/shared/ui/page-layout';
+import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { versionOptions } from '@/entities/artifact';
 import { ArtifactEditor } from '@/features/edit-artifact';
-import { TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
+import { WIDTH } from '@/shared/config';
 import { AppAsideContent, useAppAside } from '@/shared/ui/app-aside';
 import { HgiComment, HgiEdit, HgiHistory } from '@/shared/ui/icons';
-import { BackButton } from '@/shared/ui/navigation';
 import { MobilePageHeader, MOBILE_QUERY } from '@/shared/ui/mobile';
 import { RequestState } from '@/shared/ui/request-state';
-import { Banner, Button, Heading, HStack, LayoutContent, LayoutHeader, Text, VStack } from '@astryxdesign/core';
+import { Banner, Button, HStack, LayoutContent, Text, VStack } from '@astryxdesign/core';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -39,10 +38,7 @@ export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersio
   return <>
     <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
       header={mobile ? <MobilePageHeader title={title} onBack={onBack} backLabel="아티팩트 목록으로" /> :
-        <LayoutHeader hasDivider><HStack gap={1} align="center" paddingInline={4} paddingBlockStart={TITLE_PAD_TOP} height={TITLE_ROW}>
-          <BackButton label="아티팩트 목록으로" onClick={onBack} />
-          <Heading level={1} style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</Heading>{actions}
-        </HStack></LayoutHeader>}
+        <PageHeader title={title} onBack={onBack} backLabel="아티팩트 목록으로" actions={actions} />}
       content={<PageContent padding={mobile ? 3 : 4}><VStack gap={4}>
         <HStack gap={2} justify="between" align="center" wrap="wrap">
           <HStack gap={2} align="center" wrap="wrap"><Text type="supporting">{doc.id}</Text><Text type="supporting">· v{selectedVersion ?? artifact.versionNo}</Text></HStack>
