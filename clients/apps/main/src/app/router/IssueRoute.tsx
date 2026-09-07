@@ -27,7 +27,7 @@ const { projects } = useWorkspaceStore();
         navigate({ to: '/projects/$projectId/issues/$itemId', params: { projectId, itemId: id } })
       }
       onOpenDoc={(docId) =>
-        navigate({ to: '/projects/$projectId/docs/$docId', params: { projectId, docId } })
+        navigate({ to: '/projects/$projectId/artifacts/$docId', params: { projectId, docId } })
       }
       onToggleCriterion={(n) => toggleCriterion(item.id, n)}
       onStateChange={(state) => changeItemState(item.id, state)}

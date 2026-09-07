@@ -8,7 +8,7 @@ import { TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
 import { HgiSearch } from '@/shared/ui/icons';
 import { CreateButton } from '@/shared/ui/mobile';
 import { Button, CheckboxList, CheckboxListItem, DialogHeader, MultiSelector, EmptyState, Heading, HStack, Item, Layout, LayoutContent, LayoutHeader, List, Selector, Text, TextInput, Token, Toolbar, VStack } from '@astryxdesign/core';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 
 
@@ -20,13 +20,20 @@ export function WorkspacesPage() {
   const { members } = useWorkspaceStore();
   const { projects } = useProjectList();
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
+  const search = useSearch({ from: '/projects' });
   const [status, setStatus] = useState<string[]>(['active']);
-  const [sort, setSort] = useState<SortValue>({ key: 'manual', direction: 'asc' });
+  const sort: SortValue = { key: search.sort, direction: search.direction };
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [draft, setDraft] = useState({ status, sort });
   const [creating, setCreating] = useState(false);
-  const listing = useListing('projects', JSON.stringify([query, status, sort]));
+  const listing = useListing('projects', '', {
+    value: { query: search.q, sort: search.sort, direction: search.direction, page: search.page, size: search.size },
+    onChange: state => { void navigate({ to: '/projects', replace: state.query !== search.q,
+      search: { q: state.query, sort: state.sort, direction: state.direction, page: state.page, size: state.size } }); },
+  });
+  const query = listing.query;
+  const setQuery = (query: string) => listing.change({ query });
+  const setSort = (value: SortValue) => listing.change({ sort: value.key, direction: value.direction });
   const { mobile } = listing;
   const matched = projects.filter((p) => p.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()) &&
     (!status.length || status.includes(p.archived ? 'archived' : 'active')));
@@ -51,9 +58,9 @@ export function WorkspacesPage() {
     </>} footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} />} content={<LayoutContent ref={listing.ref} onScroll={listing.onScroll} padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-10))' } : undefined}>
       {visible.length ? <List hasDividers style={{ marginInline: mobile ? 'calc(-1 * var(--spacing-3))' : 'calc(-1 * var(--spacing-2))' }}>{visible.map((p) => <Item as="li" key={p.id} label={p.name} labelLines={2} density={mobile ? 'spacious' : 'balanced'}
         startContent={<ProjectAvatar project={p} size="md" />}
-        description={`${members.filter((m) => m.projectId === p.id).length}명 참여${p.description ? ` · ${p.description}` : ''}`}
+        description={`프로젝트 키 · ${p.prefix}`}
         endContent={p.archived ? <Token label="보관됨" /> : undefined}
-        onClick={() => navigate({ to: p.archived ? '/projects/$projectId/settings' : '/projects/$projectId/issues', params: { projectId: p.id }, search: {} })} />)}</List> :
+        onClick={() => navigate({ to: p.archived ? '/projects/$projectId/settings' : '/projects/$projectId/artifacts', params: { projectId: p.id }, search: {} })} />)}</List> :
         <EmptyState title={!projects.length ? '참여 중인 프로젝트가 없습니다' : '표시할 프로젝트가 없습니다'}
           description={!projects.length ? '첫 프로젝트를 만들어 함께 작업할 공간을 마련하세요.' : '검색어나 프로젝트 상태를 바꿔 보세요.'}
           actions={!projects.length ? <Button label="첫 프로젝트 만들기" onClick={() => setCreating(true)} /> : <Button label="전체 프로젝트 보기" onClick={() => { setQuery(''); setStatus([]); }} />} />}
@@ -70,7 +77,7 @@ export function WorkspacesPage() {
       </VStack></LayoutContent>} />
     </MobileSurface>
     {creating ? <CreateProjectDialog onClose={() => setCreating(false)} onCreated={(id) => {
-      navigate({ to: '/projects/$projectId/issues', params: { projectId: id }, search: {} });
+      navigate({ to: '/projects/$projectId/artifacts', params: { projectId: id }, search: {} });
     }} /> : null}
   </>;
 }

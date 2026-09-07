@@ -6,7 +6,8 @@ import koKR from '@astryxdesign/core/locales/ko-KR.json';
 import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MockDataProvider } from './model/MockDataProvider';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './model/query-client';
 
 import '@/app/styles/index.css';
 
@@ -24,9 +25,9 @@ createRoot(root).render(
       {/* 토스트와 오버레이가 서는 자리를 함께 세운다. */}
       <LayerProvider toast={{ position: 'bottomEnd' }}>
         {/* 라우트가 화면을 갈아 끼워도 상태는 유지되도록 라우터 바깥에 둔다. */}
-        <MockDataProvider>
+        <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
-        </MockDataProvider>
+        </QueryClientProvider>
       </LayerProvider>
     </InternationalizationProvider>
   </StrictMode>,

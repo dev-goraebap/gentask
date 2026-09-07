@@ -4,3 +4,4 @@ export { useWorkspaceStore } from './model/useWorkspaceStore';
 export { WorkspaceProvider } from './model/WorkspaceProvider';
 export { ProjectAvatar } from './ui/ProjectAvatar';
 export { orderedProjectIds } from './lib/project-order';
+export { projectsOptions, createProject, editProject } from './api/projects';

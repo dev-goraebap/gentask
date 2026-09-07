@@ -5,15 +5,17 @@ export interface ListingState { page: number; size: number; query: string; filte
 export const saved = new Map<string, ListingState>();
 export function resetListing(key: string) { saved.delete(key); }
 
-export function useListing(key: string, scope = '') {
+export function useListing(key: string, scope = '', controlled?: { value: Partial<ListingState>; onChange: (state: ListingState) => void }) {
   const initial = (): ListingState => ({ page: 1, size: 25, query: '', filter: 'all', sort: 'title', direction: 'asc', scroll: 0, mobileScroll: 0, loaded: 25, scope });
-  const [entry, setEntry] = useState(() => ({ key, state: saved.get(key) ?? initial() }));
-  let state = entry.key === key ? entry.state : saved.get(key) ?? initial();
+  const controlKey = JSON.stringify(controlled?.value);
+  const [entry, setEntry] = useState(() => ({ key, controlKey, state: { ...(saved.get(key) ?? initial()), ...controlled?.value } }));
+  let state = entry.key === key ? entry.state : { ...(saved.get(key) ?? initial()), ...controlled?.value };
+  if (entry.controlKey !== controlKey) state = { ...state, ...controlled?.value };
   if (state.scope !== scope) state = { ...state, scope, page: 1, loaded: state.size, scroll: 0, mobileScroll: 0 };
-  if (entry.key !== key || entry.state !== state) setEntry({ key, state });
+  if (entry.key !== key || entry.state !== state) setEntry({ key, state, controlKey });
   const ref = useRef<HTMLDivElement>(null);
   const mobile = useMediaQuery('(max-width: 1024px)');
-  const persist = (next: ListingState) => { saved.set(key, next); setEntry({ key, state: next }); };
+  const persist = (next: ListingState) => { saved.set(key, next); setEntry({ key, state: next, controlKey }); controlled?.onChange(next); };
   const change = (patch: Partial<ListingState>) => {
     const resets = ['query', 'filter', 'sort', 'direction', 'size'].some(field => field in patch);
     const cached = saved.get(key);

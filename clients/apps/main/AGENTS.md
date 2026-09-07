@@ -5,7 +5,7 @@
 - 컴포넌트 이름과 파일 이름은 같은 PascalCase를 사용합니다. 예: `NoteEditor.tsx`의 `NoteEditor`.
 - 페이지를 담당하는 컴포넌트와 파일에만 `Page` 접미사를 붙입니다. 예: `pages/drawer/ui/DrawerPage.tsx`.
 - 페이지 슬라이스 폴더명은 kebab-case로 작성합니다. 폴더명에는 `-page`를 붙이지 않습니다.
-- 페이지 그룹은 `issues/list`, `issues/detail`, `documents/list`, `documents/detail`, `workspaces/list`, `workspaces/members`, `workspaces/settings`로 구성합니다.
+- 페이지 그룹은 `issues/list`, `issues/detail`, `artifacts/list`, `artifacts/detail`, `workspaces/list`, `workspaces/members`, `workspaces/settings`로 구성합니다.
 - 그룹 폴더에는 공통 코드, `ui`·`model` 등의 세그먼트, `index.ts`를 두지 않습니다. 각 슬라이스의 공개 진입점을 사용하며, 같은 그룹의 슬라이스끼리도 직접 참조하지 않습니다.
 - 일반 함수, 상수, 타입은 컴포넌트 수에 포함하지 않습니다. `lazy`로 선언한 컴포넌트도 별도 파일로 분리합니다.
 - Hook 파일은 `useDeleteWorkspace.ts`처럼 `use`로 시작하는 camelCase를 사용합니다.

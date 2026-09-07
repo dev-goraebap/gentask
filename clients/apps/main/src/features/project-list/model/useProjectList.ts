@@ -1,14 +1,12 @@
-import { ME, CURRENT_USER_ID } from '@/entities/session';
+import { useSession } from '@/entities/session';
 import { orderedProjectIds, useWorkspaceStore } from '@/entities/workspace';
-
 export function useProjectList() {
-  const { projects, members, projectOrderByUser, moveProject } = useWorkspaceStore();
-  const participating = projects.filter(project => members.some(member => member.projectId === project.id && member.name === ME));
-  const order = orderedProjectIds(participating.map(project => project.id), projectOrderByUser[CURRENT_USER_ID] ?? []);
+  const { data: me } = useSession();
+  const { projects, projectOrderByUser, moveProject } = useWorkspaceStore();
+  const userId = me?.id ?? '';
+  const order = orderedProjectIds(projects.map(project => project.id), projectOrderByUser[userId] ?? []);
   return {
-    projects: order.flatMap(id => participating.filter(project => project.id === id)),
-    moveProject: (source: string, target: string) => {
-      if (participating.some(project => project.id === source) && participating.some(project => project.id === target)) moveProject(CURRENT_USER_ID, source, target);
-    },
+    projects: order.flatMap(id => projects.filter(project => project.id === id)),
+    moveProject: (source: string, target: string) => moveProject(userId, source, target),
   };
 }

@@ -9,8 +9,7 @@ export interface Project {
 }
 
 export const PROJECTS: Project[] = [
-  { id: 'dental', name: '치과 예약 솔루션', prefix: 'GT' },
-  { id: 'stock', name: '사내 재고 관리', prefix: 'ST' },
+  { id: 'gentask', name: 'Gentask', prefix: 'GT', description: '사람과 에이전트가 함께 사용하는 프로젝트 지식 공간' },
 ];
 
 export type Role = 'owner' | 'editor' | 'viewer';
@@ -22,8 +21,4 @@ export interface Member {
   readonly isGuest?: boolean;
 }
 
-export const MEMBERS: Member[] = [
-  { name: '고재범', role: 'owner' },
-  { name: '윤도경', role: 'editor' },
-  { name: '김세아', role: 'viewer', isGuest: true },
-];
+export const MEMBERS: Member[] = [{ name: '고재범', role: 'owner' }];
