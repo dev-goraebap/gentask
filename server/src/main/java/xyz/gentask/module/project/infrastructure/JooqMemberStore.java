@@ -133,6 +133,11 @@ class JooqMemberStore implements MemberStore {
 
     @Override
     public void remove(String projectId, UUID userId) {
+        var tasks = xyz.gentask.jooq.Tables.TASKS;
+        dsl.update(tasks)
+                .setNull(tasks.ASSIGNEE_ID)
+                .where(tasks.PROJECT_ID.eq(projectId).and(tasks.ASSIGNEE_ID.eq(userId)))
+                .execute();
         dsl.deleteFrom(PROJECT_MEMBERS)
                 .where(PROJECT_MEMBERS.PROJECT_ID.eq(projectId).and(PROJECT_MEMBERS.USER_ID.eq(userId)))
                 .execute();

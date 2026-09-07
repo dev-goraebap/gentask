@@ -25,6 +25,9 @@ class JooqTaskRepository implements TaskRepository {
                 .insertInto(TASKS)
                 .set(TASKS.ID, task.id())
                 .set(TASKS.USER_ID, task.userId())
+                .set(TASKS.PROJECT_ID, task.projectId())
+                .set(TASKS.ASSIGNEE_ID, task.assigneeId())
+                .set(TASKS.STATE, task.state().name())
                 .set(TASKS.TITLE, task.title().value())
                 .set(TASKS.NOTE, task.note().value())
                 .set(TASKS.DUE_DATE, task.dueDate())
@@ -36,6 +39,9 @@ class JooqTaskRepository implements TaskRepository {
                 .set(TASKS.UPDATED_AT, task.updatedAt())
                 .onConflict(TASKS.ID)
                 .doUpdate()
+                .set(TASKS.PROJECT_ID, task.projectId())
+                .set(TASKS.ASSIGNEE_ID, task.assigneeId())
+                .set(TASKS.STATE, task.state().name())
                 .set(TASKS.TITLE, task.title().value())
                 .set(TASKS.NOTE, task.note().value())
                 .set(TASKS.DUE_DATE, task.dueDate())
@@ -57,12 +63,22 @@ class JooqTaskRepository implements TaskRepository {
     }
 
     @Override
+    public Optional<Task> findByIdForUpdate(UUID taskId) {
+        return dslContext
+                .selectFrom(TASKS)
+                .where(TASKS.ID.eq(taskId))
+                .forUpdate()
+                .fetchOptional()
+                .map(JooqTaskRepository::toDomain);
+    }
+
+    @Override
     public void deleteById(UUID taskId) {
         dslContext.deleteFrom(TASKS).where(TASKS.ID.eq(taskId)).execute();
     }
 
     private static Task toDomain(TasksRecord tasksRecord) {
-        return Task.restore(
+        Task task = Task.restore(
                 tasksRecord.getId(),
                 tasksRecord.getUserId(),
                 new TaskTitle(tasksRecord.getTitle()),
@@ -74,5 +90,10 @@ class JooqTaskRepository implements TaskRepository {
                 tasksRecord.getCompletedAt(),
                 tasksRecord.getCreatedAt(),
                 tasksRecord.getUpdatedAt());
+        task.restoreScope(
+                tasksRecord.getProjectId(),
+                tasksRecord.getAssigneeId(),
+                xyz.gentask.module.task.domain.task.TaskState.valueOf(tasksRecord.getState()));
+        return task;
     }
 }

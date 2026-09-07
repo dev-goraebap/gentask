@@ -54,5 +54,28 @@ public final class TaskViews {
             Instant completedAt,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Instant createdAt) {}
+            Instant createdAt,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            String state,
+
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    types = {"string", "null"})
+            String projectId,
+
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    types = {"string", "null"})
+            String projectName,
+
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    types = {"string", "null"})
+            UUID assigneeId,
+
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    types = {"string", "null"})
+            String assigneeName) {}
 }

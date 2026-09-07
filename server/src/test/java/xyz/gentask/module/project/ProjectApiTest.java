@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -72,7 +71,7 @@ class ProjectApiTest {
         mockMvc.perform(get("/api/v1/projects").cookie(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].issueCount").value(0));
+                .andExpect(jsonPath("$[0].taskCount").value(0));
     }
 
     @Test
@@ -112,24 +111,6 @@ class ProjectApiTest {
                 .andExpect(jsonPath("$.key").value("GT"));
         mockMvc.perform(get("/api/v1/projects/{projectId}", second).cookie(session))
                 .andExpect(jsonPath("$.key").value("GT"));
-    }
-
-    @Test
-    @DisplayName("프로젝트 접두어를 변경해도 기존 작업 항목의 일련번호는 유지된다")
-    void 접두어를_바꿔도_번호는_그대로다() throws Exception {
-        String projectId = 프로젝트를_세운다("옛 접두어", "TG");
-        작업_아이템을_세운다(projectId);
-
-        mockMvc.perform(patch("/api/v1/projects/{projectId}", projectId)
-                        .cookie(session)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"key\":\"GT\"}"))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(get("/api/v1/projects/{projectId}/issues/{number}", projectId, 1)
-                        .cookie(session))
-                .andExpect(jsonPath("$.summary.number").value(1))
-                .andExpect(jsonPath("$.summary.key").value("GT-1"));
     }
 
     @Test
@@ -201,13 +182,5 @@ class ProjectApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isBadRequest());
-    }
-
-    private void 작업_아이템을_세운다(String projectId) throws Exception {
-        mockMvc.perform(post("/api/v1/projects/{projectId}/issues", projectId)
-                        .cookie(session)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"번호가 매겨질 것\"}"))
-                .andExpect(status().isCreated());
     }
 }

@@ -81,28 +81,6 @@ CREATE TABLE artifacts (
     CONSTRAINT ck_artifacts_scope CHECK ((project_id IS NOT NULL AND owner_id IS NULL) OR (project_id IS NULL AND owner_id IS NOT NULL))
 );
 
-CREATE TABLE issues (
-    id uuid NOT NULL,
-    project_id varchar(12) NOT NULL,
-    number integer NOT NULL,
-    kind varchar(20) NOT NULL,
-    state varchar(20) NOT NULL,
-    title varchar(200) NOT NULL,
-    body text DEFAULT '' NOT NULL,
-    parent_id uuid,
-    ordinal integer NOT NULL,
-    author_id uuid NOT NULL,
-    due_date date,
-    closed_at timestamptz,
-    created_at timestamptz NOT NULL,
-    updated_at timestamptz NOT NULL,
-    CONSTRAINT ck_issues_closed_at CHECK ((state in ('COMPLETED', 'CANCELED') and closed_at is not null) or (state not in ('COMPLETED', 'CANCELED') and closed_at is null)),
-    CONSTRAINT ck_issues_kind CHECK (kind in ('EPIC', 'STORY', 'TASK', 'BUG')),
-    CONSTRAINT ck_issues_parent_not_self CHECK (parent_id <> id),
-    CONSTRAINT ck_issues_state CHECK (state in ('BACKLOG', 'UNSTARTED', 'STARTED', 'COMPLETED', 'CANCELED')),
-    CONSTRAINT ck_issues_title_not_blank CHECK (btrim(title) <> '')
-);
-
 CREATE TABLE pending_uploads (
     id uuid NOT NULL,
     storage_key varchar(512) NOT NULL,
@@ -118,11 +96,9 @@ CREATE TABLE projects (
     owner_id uuid NOT NULL,
     name varchar(100) NOT NULL,
     key varchar(10) NOT NULL,
-    next_number integer DEFAULT 1 NOT NULL,
     created_at timestamptz NOT NULL,
     updated_at timestamptz NOT NULL,
-    CONSTRAINT ck_projects_key_not_blank CHECK (btrim(key) <> ''),
-    CONSTRAINT ck_projects_next_number CHECK (next_number >= 1)
+    CONSTRAINT ck_projects_key_not_blank CHECK (btrim(key) <> '')
 );
 
 CREATE TABLE push_delivery_failures (
@@ -162,6 +138,12 @@ CREATE TABLE sessions (
 
 CREATE TABLE tasks (
     id uuid NOT NULL,
+    project_id varchar(12),
+    assignee_id uuid,
+    state varchar(20) NOT NULL DEFAULT 'TODO',
+    CONSTRAINT ck_tasks_state CHECK (state IN ('TODO','IN_PROGRESS','DONE')),
+    CONSTRAINT ck_tasks_completion CHECK ((state = 'DONE' AND completed_at IS NOT NULL) OR (state <> 'DONE' AND completed_at IS NULL)),
+    CONSTRAINT ck_tasks_assignee CHECK (project_id IS NOT NULL OR assignee_id IS NULL),
     title varchar(200) NOT NULL,
     note text DEFAULT '' NOT NULL,
     due_date date,
@@ -219,9 +201,6 @@ ALTER TABLE artifact_revisions
 ALTER TABLE artifacts
     ADD CONSTRAINT artifacts_pkey PRIMARY KEY (id);
 
-ALTER TABLE issues
-    ADD CONSTRAINT issues_pkey PRIMARY KEY (id);
-
 ALTER TABLE pending_uploads
     ADD CONSTRAINT pending_uploads_pkey PRIMARY KEY (id);
 
@@ -261,9 +240,6 @@ ALTER TABLE blobs
 ALTER TABLE artifact_revisions
     ADD CONSTRAINT uq_artifact_revisions_artifact_no UNIQUE (artifact_id, revision_no);
 
-ALTER TABLE issues
-    ADD CONSTRAINT uq_issues_project_number UNIQUE (project_id, number);
-
 ALTER TABLE pending_uploads
     ADD CONSTRAINT uq_pending_uploads_storage_key UNIQUE (storage_key);
 
@@ -300,11 +276,8 @@ CREATE INDEX ix_artifacts_folder_id ON artifacts (folder_id);
 
 CREATE INDEX ix_artifacts_project_id ON artifacts (project_id);
 
-CREATE INDEX ix_issues_parent_id ON issues (parent_id);
 
-CREATE INDEX ix_issues_project_ordinal ON issues (project_id, ordinal);
 
-CREATE INDEX ix_issues_project_state ON issues (project_id, state);
 
 CREATE INDEX ix_pending_uploads_created_at ON pending_uploads (created_at);
 
@@ -368,15 +341,6 @@ ALTER TABLE artifacts
 
 ALTER TABLE artifacts
     ADD CONSTRAINT fk_artifacts_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE CASCADE;
-
-ALTER TABLE issues
-    ADD CONSTRAINT fk_issues_author FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE;
-
-ALTER TABLE issues
-    ADD CONSTRAINT fk_issues_parent FOREIGN KEY (parent_id) REFERENCES issues(id) ON DELETE SET NULL;
-
-ALTER TABLE issues
-    ADD CONSTRAINT fk_issues_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
 ALTER TABLE projects
     ADD CONSTRAINT fk_projects_owner FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE;
@@ -442,3 +406,13 @@ CREATE TABLE project_invitations (
     uses integer NOT NULL DEFAULT 0
 );
 CREATE INDEX ix_project_invitations_project ON project_invitations(project_id);
+
+ALTER TABLE tasks ADD CONSTRAINT fk_tasks_project FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
+ALTER TABLE tasks ADD CONSTRAINT fk_tasks_assignee FOREIGN KEY (assignee_id) REFERENCES users(id) ON DELETE SET NULL;
+CREATE INDEX ix_tasks_project ON tasks(project_id);
+CREATE INDEX ix_tasks_assignee ON tasks(assignee_id);
+CREATE TABLE task_artifacts (
+    task_id uuid NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    artifact_id varchar(12) NOT NULL REFERENCES artifacts(id) ON DELETE CASCADE,
+    PRIMARY KEY (task_id, artifact_id)
+);

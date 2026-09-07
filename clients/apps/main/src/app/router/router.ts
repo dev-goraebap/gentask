@@ -13,10 +13,8 @@ import { RouteError } from './RouteError';
 import { RoutePending } from './RoutePending';
 import { queryClient, onSessionExpired } from '../model/query-client';
 import { AccountPage } from '@/pages/account';
-import { TasksComingSoonPage } from '@/pages/tasks-coming-soon';
 import { PersonalArtifactsRoute } from './PersonalArtifactsRoute';
 import { PersonalArtifactRoute } from './PersonalArtifactRoute';
-import { type IssueView } from '@/pages/issues/list';
 import { WorkspaceSettingsPage } from '@/pages/workspaces/settings';
 import { WorkspacesPage } from '@/pages/workspaces/list';
 import { AppShellLayout } from '@/widgets/app-shell';
@@ -28,8 +26,6 @@ import {
 } from '@tanstack/react-router';
 import { DocRoute } from './DocRoute';
 import { DocsRoute } from './DocsRoute';
-import { IssueRoute } from './IssueRoute';
-import { IssuesRoute } from './IssuesRoute';
 import { MembersRoute } from './MembersRoute';
 import { NotesRoute } from './NotesRoute';
 import { TasksRoute } from './TasksRoute';
@@ -62,11 +58,11 @@ export const tasksRoute = createRoute({
   validateSearch: (search: Record<string, unknown>): { task?: string } => ({
     task: typeof search.task === 'string' ? search.task : undefined,
   }),
-  component: TasksComingSoonPage,
+  component: TasksRoute,
 });
 
-export const personalTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks', component: TasksComingSoonPage });
-export const projectTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects/$projectId/tasks', component: TasksComingSoonPage });
+export const personalTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks', component: TasksRoute });
+export const projectTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects/$projectId/tasks', component: TasksRoute });
 export const personalArtifactsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/artifacts', component: PersonalArtifactsRoute,
   validateSearch: (search: Partial<ListingSearch> & { folder?: string } & SearchSchemaInput) => ({ ...parseListingSearch(search, ['title', 'updated'], 'title'), folder: typeof search.folder === 'string' ? search.folder : undefined }),
   loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData({ ...artifactsOptions(null), revalidateIfStale: true }), context.queryClient.ensureQueryData({ ...foldersOptions(null), revalidateIfStale: true })]),
@@ -86,22 +82,6 @@ export const notesRoute = createRoute({
 export const noteRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/notes/$noteId',
-  component: UnavailablePage,
-});
-
-export const issuesRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/projects/$projectId/issues',
-  validateSearch: (search: Record<string, unknown>): { view?: IssueView } => {
-    const v = search.view;
-    return { view: v === 'tree' || v === 'board' ? v : undefined };
-  },
-  component: UnavailablePage,
-});
-
-export const issueRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/projects/$projectId/issues/$itemId',
   component: UnavailablePage,
 });
 
@@ -186,8 +166,6 @@ export const routeTree = rootRoute.addChildren([
   tasksRoute,
   notesRoute,
   noteRoute,
-  issuesRoute,
-  issueRoute,
   docsRoute,
   docRoute,
 ]);

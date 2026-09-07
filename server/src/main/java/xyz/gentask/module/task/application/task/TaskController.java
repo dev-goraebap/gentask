@@ -32,6 +32,41 @@ public class TaskController {
 
     private final TaskService taskService;
 
+    public record ChangeTaskState(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Pattern(regexp = "TODO|IN_PROGRESS|DONE") String state) {}
+
+    public record AssignTask(UUID assigneeId) {}
+
+    @PatchMapping("/{taskId}/state")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void state(
+            @CurrentUser UUID userId, @PathVariable UUID taskId, @Valid @RequestBody ChangeTaskState request) {
+        taskService.changeState(userId, taskId, request.state());
+    }
+
+    @PatchMapping("/{taskId}/assignee")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void assign(@CurrentUser UUID userId, @PathVariable UUID taskId, @Valid @RequestBody AssignTask request) {
+        taskService.assign(userId, taskId, request.assigneeId());
+    }
+
+    @GetMapping("/{taskId}/artifacts")
+    public List<TaskLinkStore.LinkedArtifact> artifacts(@CurrentUser UUID userId, @PathVariable UUID taskId) {
+        return taskService.linkedArtifacts(userId, taskId);
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/{taskId}/artifacts/{artifactId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void link(@CurrentUser UUID userId, @PathVariable UUID taskId, @PathVariable String artifactId) {
+        taskService.linkArtifact(userId, taskId, artifactId);
+    }
+
+    @DeleteMapping("/{taskId}/artifacts/{artifactId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unlink(@CurrentUser UUID userId, @PathVariable UUID taskId, @PathVariable String artifactId) {
+        taskService.unlinkArtifact(userId, taskId, artifactId);
+    }
+
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> add(@CurrentUser UUID userId, @Valid @RequestBody CreateTask createTask) {

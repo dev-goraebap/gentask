@@ -1,60 +1,13 @@
-import { isCompleted, type Task } from '@/entities/task';
-import { TODAY } from '@/shared/config';
-import {
-    HgiStar
-} from '@/shared/ui/icons';
-import {
-    Button,
-    CheckboxInput,
-    Item
-} from '@astryxdesign/core';
-
-export function TaskRow({
-  task,
-  isSelected,
-  onToggle,
-  onOpen,
-  onStar,
-}: {
-  readonly task: Task;
-  readonly isSelected: boolean;
-  readonly onToggle: () => void;
-  readonly onOpen: () => void;
-  readonly onStar: () => void;
+import { ListItem, Text, HStack, StatusDot } from '@astryxdesign/core';
+import { type Task, STATES } from '../api/tasks';
+export function TaskRow({ task, onOpen, draggable = false, showProject = true, showState = true, selected = false }: {
+  task: Task; onOpen: () => void; draggable?: boolean; showProject?: boolean; showState?: boolean; selected?: boolean;
 }) {
-  const marks = [
-    task.myDayOn === TODAY ? '나의 하루' : null,
-    task.dueDate ? `기한 ${task.dueDate}` : null,
-    task.remindAt ? '알림' : null,
-    task.files.length > 0 ? `첨부 ${task.files.length}` : null,
-    task.note ? '메모' : null,
-  ].filter(Boolean);
-
-  return (
-    <Item
-      as="li"
-      isSelected={isSelected}
-      onClick={onOpen}
-      startContent={
-        <CheckboxInput
-          label={isCompleted(task) ? '완료 해제' : '완료'}
-          isLabelHidden
-          value={isCompleted(task)}
-          onChange={onToggle}
-        />
-      }
-      label={task.title}
-      description={marks.length > 0 ? marks.join(' · ') : undefined}
-      endContent={
-        <Button
-          label={task.important ? '중요 해제' : '중요 표시'}
-          isIconOnly
-          icon={<HgiStar />}
-          variant={task.important ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={onStar}
-        />
-      }
-    />
-  );
+  const state = STATES.find(state => state.value === task.state)!;
+  const metadata = [showProject ? task.projectName ?? '개인' : null, task.assigneeName,
+    task.dueDate ? new Date(task.dueDate + 'T00:00:00').toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) + ' 마감' : null].filter(Boolean).join(' · ');
+  return <ListItem label={<Text type="inherit" maxLines={2}>{task.title}</Text>} onClick={onOpen} isSelected={selected} draggable={draggable}
+    onDragStart={event => { event.dataTransfer.setData('application/gentask-task', task.id); event.dataTransfer.effectAllowed = 'move'; }}
+    description={metadata || undefined}
+    endContent={showState ? <HStack gap={1} align="center" style={{ whiteSpace: 'nowrap' }}><StatusDot label={state.label} variant={task.state === 'DONE' ? 'success' : task.state === 'IN_PROGRESS' ? 'accent' : 'neutral'} /><Text type="supporting">{state.label}</Text></HStack> : undefined} />;
 }

@@ -30,7 +30,6 @@ export function AppShellLayout() {
   const archived = project?.archived && selected?.path !== '/projects/$projectId/settings';
   const mobileDetail = mobile && !archived && Boolean(
     matchRoute({ to: '/artifacts/$docId' }) ||
-    matchRoute({ to: '/projects/$projectId/issues/$itemId' }) ||
     matchRoute({ to: '/projects/$projectId/artifacts/$docId' }),
   );
   return <>

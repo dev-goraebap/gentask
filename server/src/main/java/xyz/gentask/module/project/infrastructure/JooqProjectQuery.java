@@ -3,8 +3,8 @@ package xyz.gentask.module.project.infrastructure;
 import static org.jooq.impl.DSL.count;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.select;
-import static xyz.gentask.jooq.Tables.ISSUES;
 import static xyz.gentask.jooq.Tables.PROJECTS;
+import static xyz.gentask.jooq.Tables.TASKS;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,10 +22,10 @@ import xyz.gentask.module.project.application.project.ProjectViews.ProjectView;
 class JooqProjectQuery implements ProjectQuery {
 
     /**
-     * 기존 프로젝트 API의 issueCount 응답을 유지하는 조회 전용 집계다.
+     * 프로젝트 작업 수를 집계한다.
      */
-    private static final Field<Integer> ISSUE_COUNT =
-            field(select(count()).from(ISSUES).where(ISSUES.PROJECT_ID.eq(PROJECTS.ID)));
+    private static final Field<Integer> TASK_COUNT =
+            field(select(count()).from(TASKS).where(TASKS.PROJECT_ID.eq(PROJECTS.ID)));
 
     private final DSLContext dslContext;
 
@@ -60,7 +60,7 @@ class JooqProjectQuery implements ProjectQuery {
                         .where(members.PROJECT_ID.eq(PROJECTS.ID).and(members.USER_ID.eq(userId)))
                         .asField());
         return dslContext
-                .select(PROJECTS.ID, PROJECTS.NAME, PROJECTS.KEY, ISSUE_COUNT, role)
+                .select(PROJECTS.ID, PROJECTS.NAME, PROJECTS.KEY, TASK_COUNT, role)
                 .from(PROJECTS)
                 .where(condition)
                 .orderBy(PROJECTS.CREATED_AT.asc())

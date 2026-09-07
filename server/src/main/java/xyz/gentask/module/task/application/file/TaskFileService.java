@@ -39,13 +39,13 @@ public class TaskFileService {
      */
     @Transactional
     public TaskFileView attach(UUID userId, UUID taskId, String objectKey, String fileName, String contentType) {
-        taskService.find(taskId, userId);
+        taskService.findForWrite(taskId, userId);
         return toView(attachments.attach(SLOT, taskId, userId, objectKey));
     }
 
     @Transactional
     public void detach(UUID userId, UUID taskId, UUID taskFileId) {
-        taskService.find(taskId, userId);
+        taskService.findForWrite(taskId, userId);
         attachments.detach(SLOT, taskId, taskFileId);
     }
 
