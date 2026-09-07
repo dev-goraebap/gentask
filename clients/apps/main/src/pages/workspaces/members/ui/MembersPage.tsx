@@ -1,22 +1,20 @@
-import { PageLayout, PageContent } from '@/shared/ui/page-layout';
+import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
 import { useSession } from '@/entities/session';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RequestState } from '@/shared/ui/request-state';
 import { membersOptions, invitationsOptions, createInvitation, changeMemberRole, removeMember, revokeInvitation } from '@/entities/workspace';
 import { ROLE_LABEL, useWorkspaceStore, type Invitation, type ProjectMember } from '@/entities/workspace';
-import { TITLE_PAD_TOP, TITLE_ROW, WIDTH } from '@/shared/config';
+import { WIDTH } from '@/shared/config';
 import { HgiMembers, HgiPlus, HgiSearch, HgiTrash } from '@/shared/ui/icons';
 import { ListingFooter, PageSize, SortSelector, SortFields, useListing } from '@/shared/ui/listing';
 import { MobileSurface } from '@/shared/ui/mobile';
 import {
     Avatar, Button, CheckboxList, CheckboxListItem, MultiSelector, Dialog, DialogHeader, EmptyState,
     HStack,
-    Heading,
     Item,
     Layout, LayoutContent,
     LayoutFooter,
-    LayoutHeader,
     List, Selector,
     Tab, TabList,
     Text, TextInput,
@@ -142,19 +140,9 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
 
   return <>
     <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
-      header={<>{mobile ? null : <LayoutHeader hasDivider padding={mobile ? 0 : undefined}>
-        <VStack gap={2}>
-        <HStack justify="between" align="center" width="100%" height={mobile ? undefined : TITLE_ROW}
-          paddingBlock={mobile ? 2 : undefined} paddingBlockStart={mobile ? 2 : TITLE_PAD_TOP} paddingInline={mobile ? 3 : 4} gap={2}>
-          <Heading level={1}>멤버</Heading>
-          <Button label="멤버 초대" size={mobile ? 'lg' : 'sm'} variant="primary" icon={<HgiPlus />} isDisabled={!canManage}
-            onClick={() => { setLabel(''); setRole('viewer'); setDays('7'); setCreatedId(undefined); setInviteTab('new'); setRevoking(undefined); setCreating(true); }} />
-        </HStack>
-          <VStack paddingInline={mobile ? 3 : 4}>
-            <Text color="secondary">프로젝트 멤버와 역할을 관리합니다.</Text>
-          </VStack>
-        </VStack>
-      </LayoutHeader>}
+      header={<>{mobile ? null : <PageHeader title="멤버" description="프로젝트 멤버와 역할을 관리합니다."
+        actions={<Button label="멤버 초대" size="sm" variant="primary" icon={<HgiPlus />} isDisabled={!canManage}
+          onClick={() => { setLabel(''); setRole('viewer'); setDays('7'); setCreatedId(undefined); setInviteTab('new'); setRevoking(undefined); setCreating(true); }} />} />}
         {memberToolbar}
         {mobile && roleFilter !== 'all' ? <HStack paddingInline={mobile ? 3 : 4} paddingBlockEnd={2} gap={2} align="center">
           <Text color="secondary">역할 · {roles.map(role => ROLE_LABEL[role as keyof typeof ROLE_LABEL]).join(', ')}</Text>

@@ -18,24 +18,6 @@ export const WIDTH = {
   narrow: '40rem',
 } as const;
 
-/**
- * 제목 줄의 높이. 안에 무엇이 오든 이 값으로 고정해 화면마다 머리글이 같아진다.
- *
- * LayoutHeader 에 height 를 주는 대신 이 줄의 높이를 고정한다. 머리글의 남는 자리는
- * 아래쪽에 몰리므로, height 를 주면 내용이 위로 붙는다.
- *
- * 툴바나 탭이 그 아래 붙는 화면은 그만큼 더 높아진다. 통일하는 것은 제목 줄뿐이다.
- */
-export const TITLE_ROW = '3rem';
-
-/**
- * 제목 줄 위에 두는 여백.
- *
- * contentWidth 래퍼가 머리글 아래쪽에만 24px 을 갖는다. 같은 값을 위에 주어야 위아래가
- * 맞는다. Astryx 간격 한 단위는 6px 이므로 4단계다.
- */
-export const TITLE_PAD_TOP = 4;
-
 /** 목록과 상세를 나란히 두는 패널의 폭. */
 export const PANEL = {
   /** 목차나 항목 목록. */

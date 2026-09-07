@@ -163,7 +163,10 @@ body {
   margin-inline: auto;
 }
 
-:root { --mobile-header-height: 3.75rem; }
+:root {
+  --page-header-height: calc(var(--size-element-md) + var(--spacing-2) + var(--spacing-4));
+  --mobile-header-height: var(--page-header-height);
+}
 
 html { font-size: 100%; }
 
