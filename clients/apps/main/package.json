@@ -11,8 +11,8 @@
     "lint:components": "node scripts/check-components.mjs",
     "check": "npm run theme:check && npm run lint:components && npm run lint:fsd && tsc --noEmit && npm test && npm run build",
     "test": "node --import tsx --test tests/*.test.ts",
-    "theme:build": "astryx theme build themes/gentaskTheme.ts -o src/app/styles/gentask.css",
-    "theme:check": "astryx theme build themes/gentaskTheme.ts -o src/app/styles/gentask.css --check"
+    "theme:build": "node scripts/theme.mjs",
+    "theme:check": "node scripts/theme.mjs --check"
   },
   "dependencies": {
     "@astryxdesign/core": "^0.5.2",
