@@ -8,6 +8,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Gentask</title>
+    <meta name="theme-color" content="#f5f5ef" />
+    <meta name="apple-mobile-web-app-title" content="Gentask" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link id="app-favicon" rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
   </head>
   <body>
     <!--
@@ -25,7 +31,10 @@
           stored = null;
         }
         var system = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.body.setAttribute('data-astryx-media', stored === 'light' || stored === 'dark' ? stored : system);
+        var media = stored === 'light' || stored === 'dark' ? stored : system;
+        document.body.setAttribute('data-astryx-media', media);
+        document.getElementById('app-favicon').setAttribute('href', '/brand/favicon-' + media + '.svg');
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', media === 'dark' ? '#11120e' : '#f5f5ef');
       })();
     </script>
     <div id="root"></div>

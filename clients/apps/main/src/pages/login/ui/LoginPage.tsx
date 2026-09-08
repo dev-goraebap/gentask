@@ -1,6 +1,7 @@
 import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { login, requestLoginCode, sessionOptions } from '@/entities/session';
 import { WIDTH } from '@/shared/config';
+import { BrandMark } from '@/shared/ui/brand';
 import { Button, Heading, Text, TextInput, VStack, HStack } from '@astryxdesign/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
@@ -31,7 +32,8 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: () => Promise<unknown> }
   const submit = () => { if (busy) return; if (sentTo ? code.trim() : email.trim()) (sentTo ? confirm : send).mutate(); };
   return <PageLayout height="fill" contentWidth={WIDTH.narrow} content={<PageContent padding={6}>
     <VStack as="form" gap={4} onSubmit={(event: React.FormEvent) => { event.preventDefault(); submit(); }}>
-      <Heading level={1}>Gentask 로그인</Heading>
+      <BrandMark size={64} />
+      <Heading level={1}>로그인</Heading>
       <Text color="secondary">이메일 인증번호로 시작하세요. 처음이라면 계정이 자동으로 만들어집니다.</Text>
       {sentTo ? <>
         <Text>{sentTo}로 인증번호를 보냈습니다.</Text>

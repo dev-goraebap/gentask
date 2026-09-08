@@ -18,7 +18,7 @@ public class FileMcpTools {
     @McpTool(
             name = "prepare_file_upload",
             description =
-                    "파일 업로드용 URL과 objectKey를 발급한다. URL에 지정한 Content-Type으로 파일 원문을 PUT한 다음 attach_task_file 또는 set_profile_image를 호출한다. slot은 TASK_FILES 또는 USER_PROFILE_IMAGE이다. size는 바이트 수이다.",
+                    "파일 업로드용 URL과 objectKey를 발급한다. URL에 지정한 Content-Type으로 파일 원문을 PUT한 다음 attach_task_file, attach_note_file 또는 set_profile_image를 호출한다. slot은 TASK_FILES, NOTE_FILES 또는 USER_PROFILE_IMAGE이다. size는 바이트 수이다.",
             annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = false, openWorldHint = false))
     public CallToolResult prepareFileUpload(
             McpTransportContext context,

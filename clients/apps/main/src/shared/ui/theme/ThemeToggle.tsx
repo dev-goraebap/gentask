@@ -15,6 +15,8 @@ export function ThemeToggle() {
     const next: Media = media === 'light' ? 'dark' : 'light';
     setMedia(next);
     document.body.setAttribute(`data-${MEDIA_KEY}`, next);
+    document.getElementById('app-favicon')?.setAttribute('href', `/brand/favicon-${next}.svg`);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', next === 'dark' ? '#11120e' : '#f5f5ef');
     try {
       localStorage.setItem(MEDIA_KEY, next);
     } catch {
