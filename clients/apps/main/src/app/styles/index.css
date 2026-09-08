@@ -221,3 +221,11 @@ html { font-size: 100%; }
     flex-shrink: 0;
   }
 }
+
+/* 토스트 축소 애니메이션의 래퍼가 바깥 그림자를 자르므로 클리핑 여유를 확보한다. */
+@supports (overflow-clip-margin: 1px) {
+  div:has(> .astryx-toast) {
+    overflow: clip;
+    overflow-clip-margin: var(--spacing-4);
+  }
+}
