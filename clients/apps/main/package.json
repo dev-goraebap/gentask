@@ -12,7 +12,8 @@
     "check": "npm run theme:check && npm run lint:components && npm run lint:fsd && tsc --noEmit && npm test && npm run build",
     "test": "node --import tsx --test tests/*.test.ts",
     "theme:build": "node scripts/theme.mjs",
-    "theme:check": "node scripts/theme.mjs --check"
+    "theme:check": "node scripts/theme.mjs --check",
+    "brand:build": "node scripts/brand.mjs"
   },
   "dependencies": {
     "@astryxdesign/core": "^0.5.2",
@@ -44,6 +45,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.1",
     "lightningcss": "^1.32.0",
+    "sharp": "^0.35.4",
     "steiger": "^0.6.0",
     "tsx": "^4.23.13",
     "typescript": "~6.0.2",

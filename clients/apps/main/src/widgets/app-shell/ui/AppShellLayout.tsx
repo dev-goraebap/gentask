@@ -7,6 +7,7 @@ import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { Outlet, useMatchRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { ThemeToggle } from '@/shared/ui/theme';
+import { BrandMark } from '@/shared/ui/brand';
 import { ProjectNavigation } from './ProjectNavigation';
 
 export function AppShellLayout() {
@@ -35,7 +36,7 @@ export function AppShellLayout() {
   return <>
     <AppShell mobileNav={false} height="fill" variant="section" contentPadding={0}
       sideNav={mobile ? undefined : <SideNav style={{ width: '16.25rem' }}
-        header={<HStack gap={2} align="center"><img src="/icon-192.png" alt="" width={28} height={28} style={{ width: '1.75rem', height: '1.75rem' }} /><Text className="app-logo" size="lg">Gentask</Text></HStack>}
+        header={<HStack gap={2} align="center"><BrandMark size={36} /><Text className="app-logo" size="lg">Gentask</Text></HStack>}
         topContent={project ? <SideNavItem label="전체 메뉴로" icon={<HgiArrowLeft />} onClick={() => navigate({ to: '/tasks' })} /> : undefined}
         footer={<HStack justify="between" align="center"><Button label="계정" icon={<HgiUser />} variant="ghost" onClick={() => navigate({ to: '/me' })} /><ThemeToggle /></HStack>}>
         {project ? <VStack gap={0}>
