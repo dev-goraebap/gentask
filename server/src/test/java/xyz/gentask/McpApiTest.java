@@ -164,7 +164,8 @@ class McpApiTest {
                         .getContentAsString());
         assertThat(detail.path("body").asText()).isEqualTo("# 변경한 본문");
         assertThat(detail.path("versionNo").asInt()).isEqualTo(2);
-        assertThat(detail.path("summary").path("folderId").asText()).isEqualTo(folderId);
+        assertThat(detail.path("summary").path("summary").path("folderId").asText())
+                .isEqualTo(folderId);
         assertThat(데이터(호출(token, "get_artifact", Map.of("projectId", projectId, "artifactId", artifactId))))
                 .isEqualTo(detail);
         var history =
@@ -311,6 +312,7 @@ class McpApiTest {
         데이터(호출(token, "rename_artifact_folder", Map.of("folderId", folder, "name", "이름 변경")));
         데이터(호출(token, "delete_artifact_folder", Map.of("folderId", folder)));
         assertThat(데이터(호출(token, "get_artifact", Map.of("artifactId", artifact)))
+                        .path("summary")
                         .path("folderId")
                         .isNull())
                 .isTrue();
