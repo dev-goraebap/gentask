@@ -3,6 +3,7 @@ package xyz.gentask.shared.mcp;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import jakarta.validation.Validator;
+import java.time.DateTimeException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -48,7 +49,7 @@ public class McpResults {
                     .build();
         } catch (BusinessException exception) {
             return error(exception.errorCode().code(), exception.getMessage());
-        } catch (DomainRuleViolation | IllegalArgumentException exception) {
+        } catch (DomainRuleViolation | IllegalArgumentException | DateTimeException exception) {
             return error("COMMON_INVALID_REQUEST", exception.getMessage());
         } catch (DataIntegrityViolationException exception) {
             return error("COMMON_CONFLICT", "다른 변경과 충돌했습니다. 최신 내용을 다시 조회하세요");

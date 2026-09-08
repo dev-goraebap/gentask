@@ -33,6 +33,9 @@ import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
 @AutoConfigureMockMvc
 @Import({TestcontainersConfiguration.class, FakeMailConfiguration.class})
 class McpApiTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private xyz.gentask.shared.storage.ObjectStorage storage;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -85,7 +88,7 @@ class McpApiTest {
                 .isEqualTo("2025-11-25");
         var response = 요청(token, "tools/list", Map.of());
         JsonNode tools = mapper.readTree(response.body()).path("result").path("tools");
-        assertThat(tools.size()).isEqualTo(10);
+        assertThat(tools.size()).isEqualTo(48);
         for (JsonNode tool : tools) {
             assertThat(tool.path("inputSchema").path("properties").has("context"))
                     .isFalse();
@@ -266,6 +269,307 @@ class McpApiTest {
         assertThat(내용(result).path("code").asText()).isEqualTo("COMMON_INVALID_REQUEST");
         assertThat(데이터(호출(token, "list_artifacts", Map.of("projectId", projectId)))
                         .isEmpty())
+                .isTrue();
+    }
+
+    @Test
+    void 개인_아티팩트와_작업을_연결하고_다른_계정은_접근하지_못한다() throws Exception {
+        String folder = 데이터(호출(token, "create_artifact_folder", Map.of("name", "개인")))
+                .path("id")
+                .asText();
+        String artifact = 데이터(호출(token, "create_artifact", Map.of("title", "문서", "body", "본문", "folderId", folder)))
+                .path("id")
+                .asText();
+        String task = 데이터(호출(token, "create_task", Map.of("title", "개인 작업")))
+                .path("id")
+                .asText();
+        데이터(호출(token, "link_task_artifact", Map.of("taskId", task, "artifactId", artifact)));
+        assertThat(데이터(호출(token, "list_task_artifacts", Map.of("taskId", task))).size())
+                .isEqualTo(1);
+        데이터(호출(token, "update_task", Map.of("taskId", task, "title", "변경", "note", "설명", "dueDate", "2026-10-01")));
+        데이터(호출(token, "change_task_state", Map.of("taskId", task, "state", "IN_PROGRESS")));
+        assertThat(데이터(호출(token, "get_task", Map.of("taskId", task)))
+                        .path("state")
+                        .asText())
+                .isEqualTo("IN_PROGRESS");
+        데이터(호출(token, "set_task_importance", Map.of("taskId", task, "important", true)));
+        데이터(호출(token, "set_task_my_day", Map.of("taskId", task, "inMyDay", true)));
+        var other = AuthTestSupport.가입한다(mockMvc, mail, "other-" + UUID.randomUUID() + "@example.com");
+        String otherToken = 토큰(other);
+        assertThat(호출(otherToken, "get_task", Map.of("taskId", task))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        assertThat(호출(otherToken, "get_artifact", Map.of("artifactId", artifact))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        assertThat(호출(token, "get_artifact", Map.of("projectId", projectId, "artifactId", artifact))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        데이터(호출(token, "rename_artifact_folder", Map.of("folderId", folder, "name", "이름 변경")));
+        데이터(호출(token, "delete_artifact_folder", Map.of("folderId", folder)));
+        assertThat(데이터(호출(token, "get_artifact", Map.of("artifactId", artifact)))
+                        .path("folderId")
+                        .isNull())
+                .isTrue();
+        데이터(호출(token, "unlink_task_artifact", Map.of("taskId", task, "artifactId", artifact)));
+        데이터(호출(token, "delete_task", Map.of("taskId", task)));
+        assertThat(호출(token, "get_task", Map.of("taskId", task)).path("isError").asBoolean())
+                .isTrue();
+    }
+
+    @Test
+    void 코멘트_삭제는_작성자만_가능하고_복원은_새_버전을_만든다() throws Exception {
+        String artifact = 데이터(호출(token, "create_artifact", Map.of("projectId", projectId, "title", "문서", "body", "본문")))
+                .path("id")
+                .asText();
+        String comment = 데이터(호출(
+                        token,
+                        "create_artifact_comment",
+                        Map.of(
+                                "projectId",
+                                projectId,
+                                "artifactId",
+                                artifact,
+                                "versionNo",
+                                1,
+                                "body",
+                                "의견",
+                                "blockStart",
+                                0,
+                                "blockEnd",
+                                2)))
+                .path("id")
+                .asText();
+        var other = AuthTestSupport.가입한다(mockMvc, mail, "editor-" + UUID.randomUUID() + "@example.com");
+        String otherToken = 토큰(other);
+        String invitation = 데이터(호출(
+                        token,
+                        "create_project_invitation",
+                        Map.of("projectId", projectId, "label", "편집자", "role", "editor", "days", 1)))
+                .path("token")
+                .asText();
+        데이터(호출(otherToken, "accept_project_invitation", Map.of("invitationToken", invitation)));
+        assertThat(호출(
+                                otherToken,
+                                "delete_artifact_comment",
+                                Map.of(
+                                        "projectId",
+                                        projectId,
+                                        "artifactId",
+                                        artifact,
+                                        "versionNo",
+                                        1,
+                                        "commentId",
+                                        comment))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        데이터(호출(
+                token,
+                "delete_artifact_comment",
+                Map.of("projectId", projectId, "artifactId", artifact, "versionNo", 1, "commentId", comment)));
+        데이터(호출(
+                token,
+                "update_artifact",
+                Map.of("projectId", projectId, "artifactId", artifact, "title", "변경", "body", "새 본문")));
+        데이터(호출(
+                token,
+                "revert_artifact_version",
+                Map.of("projectId", projectId, "artifactId", artifact, "versionNo", "1")));
+        assertThat(데이터(호출(token, "get_artifact", Map.of("projectId", projectId, "artifactId", artifact)))
+                        .path("body")
+                        .asText())
+                .isEqualTo("본문");
+        assertThat(데이터(호출(
+                                token,
+                                "get_artifact_version",
+                                Map.of("projectId", projectId, "artifactId", artifact, "versionNo", "3")))
+                        .path("body")
+                        .asText())
+                .isEqualTo("본문");
+    }
+
+    @Test
+    void 초대와_멤버_권한을_작업에도_적용한다() throws Exception {
+        String project = 데이터(호출(token, "create_project", Map.of("name", "MCP 프로젝트", "key", "MCP")))
+                .path("id")
+                .asText();
+        데이터(호출(token, "update_project", Map.of("projectId", project, "name", "변경된 프로젝트")));
+        assertThat(데이터(호출(token, "get_project", Map.of("projectId", project)))
+                        .path("name")
+                        .asText())
+                .isEqualTo("변경된 프로젝트");
+        var invite = 데이터(호출(
+                token,
+                "create_project_invitation",
+                Map.of("projectId", project, "label", "뷰어", "role", "viewer", "days", 1)));
+        String invitation = invite.path("token").asText();
+        데이터(호출(token, "preview_project_invitation", Map.of("invitationToken", invitation)));
+        var other = AuthTestSupport.가입한다(mockMvc, mail, "viewer-" + UUID.randomUUID() + "@example.com");
+        String otherToken = 토큰(other);
+        데이터(호출(otherToken, "accept_project_invitation", Map.of("invitationToken", invitation)));
+        String member =
+                데이터(호출(otherToken, "get_my_profile", Map.of())).path("id").asText();
+        assertThat(호출(otherToken, "create_task", Map.of("projectId", project, "title", "거절"))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        assertThat(호출(
+                                otherToken,
+                                "create_project_invitation",
+                                Map.of("projectId", project, "label", "거절", "role", "editor", "days", 1))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        데이터(호출(
+                token,
+                "change_project_member_role",
+                Map.of("projectId", project, "memberId", member, "role", "editor")));
+        String task = 데이터(호출(otherToken, "create_task", Map.of("projectId", project, "title", "허용")))
+                .path("id")
+                .asText();
+        데이터(호출(token, "assign_task", Map.of("taskId", task, "assigneeId", member)));
+        assertThat(데이터(호출(otherToken, "list_tasks", Map.of())).toString()).contains(task);
+        데이터(호출(
+                token,
+                "revoke_project_invitation",
+                Map.of("projectId", project, "invitationId", invite.path("id").asText())));
+        assertThat(호출(token, "preview_project_invitation", Map.of("invitationToken", invitation))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        데이터(호출(token, "remove_project_member", Map.of("projectId", project, "memberId", member)));
+        assertThat(호출(otherToken, "get_task", Map.of("taskId", task))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+    }
+
+    @Test
+    void 잘못된_작업_날짜와_파일_메타데이터를_거절한다() throws Exception {
+        assertThat(호출(token, "create_task", Map.of("title", "작업", "dueDate", "wrong"))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        assertThat(호출(
+                                token,
+                                "prepare_file_upload",
+                                Map.of(
+                                        "slot",
+                                        "TASK_FILES",
+                                        "fileName",
+                                        "file.txt",
+                                        "contentType",
+                                        "text/plain",
+                                        "size",
+                                        -1))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        String task =
+                데이터(호출(token, "create_task", Map.of("title", "작업"))).path("id").asText();
+        assertThat(호출(token, "change_task_state", Map.of("taskId", task, "state", "INVALID"))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        assertThat(호출(
+                                token,
+                                "attach_task_file",
+                                Map.of(
+                                        "taskId",
+                                        task,
+                                        "objectKey",
+                                        "foreign/file",
+                                        "fileName",
+                                        "file.txt",
+                                        "contentType",
+                                        "text/plain"))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        assertThat(데이터(호출(token, "list_task_files", Map.of("taskId", task))).isEmpty())
+                .isTrue();
+    }
+
+    @Test
+    void 발급한_파일만_첨부하고_삭제하면_목록에서_제외한다() throws Exception {
+        org.mockito.Mockito.when(storage.presignPut(
+                        org.mockito.ArgumentMatchers.anyString(),
+                        org.mockito.ArgumentMatchers.anyString(),
+                        org.mockito.ArgumentMatchers.any()))
+                .thenReturn("https://storage.example/upload");
+        org.mockito.Mockito.when(storage.presignGet(
+                        org.mockito.ArgumentMatchers.anyString(),
+                        org.mockito.ArgumentMatchers.anyString(),
+                        org.mockito.ArgumentMatchers.any()))
+                .thenReturn("https://storage.example/download");
+        org.mockito.Mockito.when(storage.sizeOf(org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(java.util.Optional.of(12L));
+        String task = 데이터(호출(token, "create_task", Map.of("title", "첨부 확인")))
+                .path("id")
+                .asText();
+        String key = 데이터(호출(
+                        token,
+                        "prepare_file_upload",
+                        Map.of("slot", "TASK_FILES", "fileName", "file.txt", "contentType", "text/plain", "size", 12)))
+                .path("objectKey")
+                .asText();
+        var other = AuthTestSupport.가입한다(mockMvc, mail, "upload-" + UUID.randomUUID() + "@example.com");
+        String otherToken = 토큰(other);
+        String otherTask = 데이터(호출(otherToken, "create_task", Map.of("title", "다른 계정")))
+                .path("id")
+                .asText();
+        assertThat(호출(
+                                otherToken,
+                                "attach_task_file",
+                                Map.of(
+                                        "taskId",
+                                        otherTask,
+                                        "objectKey",
+                                        key,
+                                        "fileName",
+                                        "file.txt",
+                                        "contentType",
+                                        "text/plain"))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        String file = 데이터(호출(
+                        token,
+                        "attach_task_file",
+                        Map.of("taskId", task, "objectKey", key, "fileName", "file.txt", "contentType", "text/plain")))
+                .path("id")
+                .asText();
+        assertThat(데이터(호출(token, "list_task_files", Map.of("taskId", task))).size())
+                .isEqualTo(1);
+        데이터(호출(token, "delete_task_file", Map.of("taskId", task, "taskFileId", file)));
+        assertThat(데이터(호출(token, "list_task_files", Map.of("taskId", task))).isEmpty())
+                .isTrue();
+        데이터(호출(token, "update_my_nickname", Map.of("nickname", "새 닉네임")));
+        assertThat(데이터(호출(token, "get_my_profile", Map.of())).path("nickname").asText())
+                .isEqualTo("새 닉네임");
+        String image = 데이터(호출(
+                        token,
+                        "prepare_file_upload",
+                        Map.of(
+                                "slot",
+                                "USER_PROFILE_IMAGE",
+                                "fileName",
+                                "avatar.png",
+                                "contentType",
+                                "image/png",
+                                "size",
+                                12)))
+                .path("objectKey")
+                .asText();
+        데이터(호출(token, "set_profile_image", Map.of("objectKey", image)));
+        데이터(호출(token, "delete_profile_image", Map.of()));
+        assertThat(데이터(호출(token, "get_my_profile", Map.of()))
+                        .path("profileImageUrl")
+                        .isNull())
                 .isTrue();
     }
 
