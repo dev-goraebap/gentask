@@ -22,7 +22,7 @@ public class ArtifactMcpTools {
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult listArtifacts(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId) {
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId) {
         return results.call(() -> artifacts.list(results.userId(context), projectId));
     }
 
@@ -32,7 +32,7 @@ public class ArtifactMcpTools {
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult getArtifact(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
             @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId) {
         return results.call(() -> artifacts.detail(results.userId(context), projectId, artifactId));
     }
@@ -43,7 +43,7 @@ public class ArtifactMcpTools {
             annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
     public CallToolResult createArtifact(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
             @McpToolParam(description = "제목", required = true) String title,
             @McpToolParam(description = "마크다운 원문", required = true) String body,
             @McpToolParam(description = "대상 폴더 NanoID", required = false) String folderId) {
@@ -62,7 +62,7 @@ public class ArtifactMcpTools {
             annotations = @McpAnnotations(destructiveHint = true, openWorldHint = false))
     public CallToolResult updateArtifact(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
             @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
             @McpToolParam(description = "새 제목", required = true) String title,
             @McpToolParam(description = "새 마크다운 본문 전체", required = true) String body,
@@ -81,7 +81,7 @@ public class ArtifactMcpTools {
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult listRevisions(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
             @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
             @McpToolParam(description = "0부터 시작하는 페이지", required = false) Integer page,
             @McpToolParam(description = "페이지 크기. 기본 25, 최대 100", required = false) Integer size) {
@@ -95,9 +95,41 @@ public class ArtifactMcpTools {
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult getRevision(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
             @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
             @McpToolParam(description = "1부터 시작하는 버전 번호", required = true) String versionNo) {
         return results.call(() -> artifacts.revision(results.userId(context), projectId, artifactId, versionNo));
+    }
+
+    @McpTool(
+            name = "move_artifact",
+            description = "아티팩트를 폴더로 이동한다. folderId 생략 시 최상위로 이동한다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = false, openWorldHint = false))
+    public CallToolResult moveArtifact(
+            McpTransportContext context,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
+            @McpToolParam(description = "folderId", required = false) String folderId) {
+        return results.call(() -> {
+            artifacts.move(results.userId(context), projectId, artifactId, folderId);
+            return Map.of("saved", true);
+        });
+    }
+
+    @McpTool(
+            name = "revert_artifact_version",
+            description = "이전 버전의 내용을 새 최신 버전으로 발행한다. 기존 이력은 유지한다.",
+            annotations = @McpAnnotations(destructiveHint = true, openWorldHint = false))
+    public CallToolResult revertArtifactVersion(
+            McpTransportContext context,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
+            @McpToolParam(description = "복원할 버전 번호", required = true) String versionNo,
+            @McpToolParam(description = "복원 사유", required = false) String comment) {
+        return results.call(() -> {
+            var r = results.validate(new ArtifactRequests.RevertVersion(comment));
+            artifacts.revert(results.userId(context), projectId, artifactId, versionNo, r.comment());
+            return Map.of("saved", true);
+        });
     }
 }

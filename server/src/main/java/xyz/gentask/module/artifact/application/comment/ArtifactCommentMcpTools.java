@@ -2,6 +2,7 @@ package xyz.gentask.module.artifact.application.comment;
 
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.ai.mcp.annotation.McpTool.McpAnnotations;
@@ -22,9 +23,44 @@ public class ArtifactCommentMcpTools {
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult list(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트 NanoID", required = true) String projectId,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
             @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
             @McpToolParam(description = "조회할 버전 번호", required = true) int versionNo) {
         return results.call(() -> comments.list(results.userId(context), projectId, artifactId, versionNo));
+    }
+
+    @McpTool(
+            name = "create_artifact_comment",
+            description =
+                    "최신 버전에 코멘트를 남긴다. 블록 지정 시 마크다운 원문의 UTF-16 시작·끝 위치를 함께 전달한다. 끝은 포함하지 않는다. 둘 다 생략하면 문서 전체 의견이다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = false, openWorldHint = false))
+    public CallToolResult createArtifactComment(
+            McpTransportContext context,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
+            @McpToolParam(description = "versionNo", required = true) int versionNo,
+            @McpToolParam(description = "body", required = true) String body,
+            @McpToolParam(description = "blockStart", required = false) Integer blockStart,
+            @McpToolParam(description = "blockEnd", required = false) Integer blockEnd) {
+        return results.call(() -> {
+            var r = results.validate(new ArtifactCommentRequests.CreateComment(body, blockStart, blockEnd));
+            return Map.of("id", comments.add(results.userId(context), projectId, artifactId, versionNo, r));
+        });
+    }
+
+    @McpTool(
+            name = "delete_artifact_comment",
+            description = "자신이 작성한 코멘트를 삭제한다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = true, openWorldHint = false))
+    public CallToolResult deleteArtifactComment(
+            McpTransportContext context,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
+            @McpToolParam(description = "versionNo", required = true) int versionNo,
+            @McpToolParam(description = "commentId", required = true) String commentId) {
+        return results.call(() -> {
+            comments.delete(results.userId(context), projectId, artifactId, versionNo, commentId);
+            return Map.of("saved", true);
+        });
     }
 }

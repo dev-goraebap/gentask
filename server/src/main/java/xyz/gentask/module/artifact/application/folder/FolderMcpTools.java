@@ -23,7 +23,7 @@ public class FolderMcpTools {
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult listFolders(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId) {
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId) {
         return results.call(() -> folders.list(results.userId(context), projectId));
     }
 
@@ -33,12 +33,57 @@ public class FolderMcpTools {
             annotations = @McpAnnotations(destructiveHint = false, openWorldHint = false))
     public CallToolResult createFolder(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트의 공개 식별자", required = true) String projectId,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
             @McpToolParam(description = "폴더 이름", required = true) String name,
             @McpToolParam(description = "상위 폴더 NanoID", required = false) String parentId) {
         return results.call(() -> {
             var request = results.validate(new ArtifactRequests.CreateFolder(name, parentId));
             return Map.of("id", folders.add(results.userId(context), projectId, request.name(), request.parentId()));
+        });
+    }
+
+    @McpTool(
+            name = "rename_artifact_folder",
+            description = "폴더 이름을 변경한다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = false, openWorldHint = false))
+    public CallToolResult renameArtifactFolder(
+            McpTransportContext context,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "폴더 NanoID", required = true) String folderId,
+            @McpToolParam(description = "name", required = true) String name) {
+        return results.call(() -> {
+            var r = results.validate(new ArtifactRequests.RenameFolder(name));
+            folders.rename(results.userId(context), projectId, folderId, r.name());
+            return Map.of("saved", true);
+        });
+    }
+
+    @McpTool(
+            name = "move_artifact_folder",
+            description = "폴더를 이동한다. parentId 생략 시 최상위로 이동한다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = false, openWorldHint = false))
+    public CallToolResult moveArtifactFolder(
+            McpTransportContext context,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "폴더 NanoID", required = true) String folderId,
+            @McpToolParam(description = "parentId", required = false) String parentId) {
+        return results.call(() -> {
+            folders.move(results.userId(context), projectId, folderId, parentId);
+            return Map.of("saved", true);
+        });
+    }
+
+    @McpTool(
+            name = "delete_artifact_folder",
+            description = "폴더만 삭제하고 내부 문서와 하위 폴더는 상위 폴더로 이동한다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = true, openWorldHint = false))
+    public CallToolResult deleteArtifactFolder(
+            McpTransportContext context,
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "폴더 NanoID", required = true) String folderId) {
+        return results.call(() -> {
+            folders.remove(results.userId(context), projectId, folderId);
+            return Map.of("saved", true);
         });
     }
 }
