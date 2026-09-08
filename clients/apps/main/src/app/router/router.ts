@@ -1,3 +1,4 @@
+import { NotesRoute } from './NotesRoute';
 import { InvitationRoute } from './InvitationRoute';
 import { stripSearchParams, type SearchSchemaInput } from '@tanstack/react-router';
 import { parseListingSearch, type ListingSearch } from '@/shared/ui/listing';
@@ -27,7 +28,6 @@ import {
 import { DocRoute } from './DocRoute';
 import { DocsRoute } from './DocsRoute';
 import { MembersRoute } from './MembersRoute';
-import { NotesRoute } from './NotesRoute';
 import { TasksRoute } from './TasksRoute';
 
 export const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
@@ -48,7 +48,7 @@ export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   beforeLoad: () => {
-    throw redirect({ to: '/tasks' });
+    throw redirect({ to: '/notes' });
   },
 });
 
@@ -76,13 +76,18 @@ export const personalArtifactRoute = createRoute({ getParentRoute: () => rootRou
 export const notesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/notes',
-  component: UnavailablePage,
+  validateSearch: (search: Record<string, unknown>): {project?:string;q?:string;note?:string} => ({
+    note: typeof search.note === 'string' ? search.note : undefined,
+    project: typeof search.project === 'string' ? search.project : undefined,
+    q: typeof search.q === 'string' ? search.q.slice(0,200) : undefined,
+  }),
+  component: NotesRoute,
 });
 
 export const noteRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/notes/$noteId',
-  component: UnavailablePage,
+  beforeLoad: ({params}) => {throw redirect({to:'/notes',search:{note:params.noteId},replace:true});},
 });
 
 export const docsRoute = createRoute({

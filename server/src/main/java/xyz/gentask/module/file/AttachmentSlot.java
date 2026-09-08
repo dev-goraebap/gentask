@@ -14,6 +14,8 @@ public enum AttachmentSlot {
     /** 작업에 붙인 파일. 종류를 가리지 않는다. */
     TASK_FILES("TASK", "files", "tasks", 5, 10L * 1024 * 1024, null),
 
+    NOTE_FILES("NOTE", "files", "notes", 5, 10L * 1024 * 1024, null),
+
     /** 프로필 이미지. 자리 하나뿐이며 새로 올리면 앞의 것을 밀어낸다. */
     USER_PROFILE_IMAGE("USER", "profile_image", "users", 1, 1L * 1024 * 1024, "image/");
 

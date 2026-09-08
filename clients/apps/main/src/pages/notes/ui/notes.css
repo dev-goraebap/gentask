@@ -1,0 +1,155 @@
+.notes-masonry {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1px;
+  column-gap: var(--spacing-3);
+}
+.note-masonry-item {
+  align-self: start;
+  min-width: 0;
+  padding-block-end: var(--spacing-3);
+}
+.note-card {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 1.5rem;
+  corner-shape: superellipse(1.6);
+}
+.note-card-body {
+  max-height: 22rem;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.note-card-body :is(pre, table) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.note-card-image {
+  display: block;
+  width: 100%;
+  max-height: 20rem;
+  object-fit: cover;
+  border-radius: var(--radius-element);
+}
+.note-detail-body {
+  overflow-wrap: anywhere;
+}
+.note-detail-editor .drawer-rich-content {
+  min-height: 8rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+.note-detail-editor .drawer-rich-content:focus-visible {
+  outline: none;
+}
+.note-detail-body :is(pre, table) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.note-detail-image {
+  width: 100%;
+  max-height: 32rem;
+  object-fit: contain;
+}
+.note-composer {
+  max-width: 52rem;
+  margin-inline: auto;
+  width: 100%;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.note-composer .astryx-chat-composer {
+  --radius-chat: 1.5rem;
+  --_chat-composer-radius: 1.5rem;
+}
+.note-composer .astryx-chat-composer > div {
+  corner-shape: superellipse(1.6);
+}
+.note-composer .drawer-rich-content {
+  min-height: 3rem;
+  max-height: min(18rem, 35dvh);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  outline: none;
+}
+.note-composer .drawer-rich-content > * + * {
+  margin-block-start: var(--spacing-2);
+}
+.note-composer .drawer-rich-content:focus-visible {
+  outline: none;
+}
+.note-composer .drawer-rich-content :is(h1, h2, h3) {
+  font-size: var(--text-heading-3-size);
+}
+.note-attachment-tray {
+  display: flex;
+  gap: var(--spacing-3);
+  overflow-x: auto;
+  padding: var(--spacing-1);
+  scrollbar-width: thin;
+}
+.note-attachment-tray-detail {
+  flex-wrap: nowrap;
+  padding: var(--spacing-3);
+}
+.note-attachment {
+  width: 6rem;
+  min-width: 0;
+  flex: 0 0 6rem;
+}
+.note-attachment-preview {
+  position: relative;
+  width: 6rem;
+  height: 6rem;
+  margin-bottom: var(--spacing-1);
+}
+.note-attachment-file {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background: var(--color-background-body);
+  color: var(--color-icon-secondary);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 1.5rem;
+  corner-shape: superellipse(1.6);
+}
+.note-attachment-preview .astryx-thumbnail > div {
+  border-radius: 1.5rem;
+  corner-shape: superellipse(1.6);
+}
+.note-attachment .note-attachment-remove {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  z-index: 2;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  padding: 0;
+  box-shadow: var(--shadow-low);
+}
+.note-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@media (max-width: 1024px) {
+  .notes-masonry {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .notes-masonry {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

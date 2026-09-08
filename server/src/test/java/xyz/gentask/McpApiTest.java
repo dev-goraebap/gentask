@@ -88,7 +88,7 @@ class McpApiTest {
                 .isEqualTo("2025-11-25");
         var response = 요청(token, "tools/list", Map.of());
         JsonNode tools = mapper.readTree(response.body()).path("result").path("tools");
-        assertThat(tools.size()).isEqualTo(48);
+        assertThat(tools.size()).isEqualTo(57);
         for (JsonNode tool : tools) {
             assertThat(tool.path("inputSchema").path("properties").has("context"))
                     .isFalse();
@@ -600,6 +600,19 @@ class McpApiTest {
         try (HttpClient client = HttpClient.newHttpClient()) {
             return client.send(request.build(), HttpResponse.BodyHandlers.ofString());
         }
+    }
+
+    @Test
+    void 메모는_프로젝트를_연결해도_비공개이고_MCP에서_본문을_갱신한다() throws Exception {
+        String id = 데이터(호출(token, "create_note", Map.of("body", "# 발견", "projectId", projectId)))
+                .path("id")
+                .asText();
+        var note = 데이터(호출(token, "get_note", Map.of("noteId", id)));
+        assertThat(note.path("shared").asBoolean()).isFalse();
+        데이터(호출(token, "update_note", Map.of("noteId", id, "body", "정리한 발견")));
+        assertThat(데이터(호출(token, "get_note", Map.of("noteId", id))).path("body").asText())
+                .isEqualTo("정리한 발견");
+        데이터(호출(token, "delete_note", Map.of("noteId", id)));
     }
 
     private JsonNode 호출(String credential, String name, Map<String, ?> arguments) throws Exception {

@@ -20,6 +20,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notes/{id}/sharing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["share"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/{id}/project": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["connect"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/profile-image": {
         parameters: {
             query?: never;
@@ -196,6 +228,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_4"];
+        put?: never;
+        post: operations["create_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/{id}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["attach_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/artifacts/{artifactId}/versions/{versionNo}/revert": {
         parameters: {
             query?: never;
@@ -235,7 +299,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_4"];
+        get: operations["list_5"];
         put?: never;
         post: operations["add_2"];
         delete?: never;
@@ -251,7 +315,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         post: operations["add_3"];
         delete?: never;
@@ -267,7 +331,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_6"];
+        get: operations["list_7"];
         put?: never;
         post: operations["add_4"];
         delete?: never;
@@ -283,7 +347,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_7"];
+        get: operations["list_8"];
         put?: never;
         post: operations["add_5"];
         delete?: never;
@@ -299,7 +363,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_8"];
+        get: operations["list_9"];
         put?: never;
         post: operations["add_6"];
         delete?: never;
@@ -315,7 +379,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_9"];
+        get: operations["list_10"];
         put?: never;
         post: operations["add_7"];
         delete?: never;
@@ -580,6 +644,22 @@ export interface paths {
         patch: operations["changeRole"];
         trace?: never;
     };
+    "/api/v1/notes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["detail_2"];
+        put?: never;
+        post?: never;
+        delete: operations["delete"];
+        options?: never;
+        head?: never;
+        patch: operations["edit_2"];
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -603,13 +683,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["detail_2"];
+        get: operations["detail_3"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["edit_2"];
+        patch: operations["edit_3"];
         trace?: never;
     };
     "/api/v1/projects/{projectId}/artifacts/{artifactId}": {
@@ -619,13 +699,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["detail_3"];
+        get: operations["detail_4"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["edit_3"];
+        patch: operations["edit_4"];
         trace?: never;
     };
     "/api/v1/projects/{projectId}/artifact-folders/{folderId}": {
@@ -795,7 +875,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_10"];
+        get: operations["list_11"];
         put?: never;
         post?: never;
         delete?: never;
@@ -811,7 +891,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_11"];
+        get: operations["list_12"];
         put?: never;
         post?: never;
         delete?: never;
@@ -852,7 +932,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/me/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
+    "/api/v1/notes/{id}/files/{fileId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -862,13 +942,13 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete: operations["delete"];
+        delete: operations["detach_1"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
+    "/api/v1/me/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -884,10 +964,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_2"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ShareNote: {
+            shared?: boolean;
+        };
+        ConnectNote: {
+            projectId?: string;
+        };
         ConfirmProfileImage: {
             objectKey: string;
         };
@@ -953,6 +1055,25 @@ export interface components {
             /** Format: int32 */
             uses?: number;
         };
+        CreateNote: {
+            body: string;
+            projectId?: string;
+            objectKeys?: string[];
+        };
+        AttachNoteFile: {
+            objectKey: string;
+        };
+        AttachmentView: {
+            /** Format: uuid */
+            id: string;
+            fileName: string;
+            contentType: string;
+            /** Format: int64 */
+            size: number;
+            url: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         RevertVersion: {
             /** @description 왜 되돌리는지. 적지 않아도 된다 */
             comment?: string | null;
@@ -1000,7 +1121,7 @@ export interface components {
         };
         PresignAttachment: {
             /** @enum {string} */
-            slot: "TASK_FILES" | "USER_PROFILE_IMAGE";
+            slot: "TASK_FILES" | "NOTE_FILES" | "USER_PROFILE_IMAGE";
             fileName: string;
             contentType: string;
             /** Format: int64 */
@@ -1043,6 +1164,9 @@ export interface components {
         };
         ChangeMemberRole: {
             role: string;
+        };
+        EditNote: {
+            body: string;
         };
         ChangeNickname: {
             nickname: string;
@@ -1110,6 +1234,26 @@ export interface components {
             /** Format: date-time */
             joinedAt?: string;
             profileImageUrl?: string;
+        };
+        NotePage: {
+            items: components["schemas"]["NoteView"][];
+            /** Format: int32 */
+            nextOffset?: number;
+        };
+        NoteView: {
+            id: string;
+            body: string;
+            projectId: string | null;
+            projectName: string | null;
+            shared: boolean;
+            /** Format: uuid */
+            ownerId: string;
+            authorName: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            files: components["schemas"]["AttachmentView"][];
         };
         MeView: {
             /** Format: uuid */
@@ -1313,6 +1457,54 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    share: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareNote"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    connect: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectNote"];
+            };
+        };
         responses: {
             /** @description No Content */
             204: {
@@ -1753,6 +1945,78 @@ export interface operations {
             };
         };
     };
+    list_4: {
+        parameters: {
+            query?: {
+                projectId?: string;
+                q?: string;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NotePage"];
+                };
+            };
+        };
+    };
+    create_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateNote"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    attach_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachNoteFile"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AttachmentView"];
+                };
+            };
+        };
+    };
     revert: {
         parameters: {
             query?: never;
@@ -1804,7 +2068,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    list_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -1858,7 +2122,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -1910,7 +2174,7 @@ export interface operations {
             };
         };
     };
-    list_6: {
+    list_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -1952,7 +2216,7 @@ export interface operations {
             };
         };
     };
-    list_7: {
+    list_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -1998,7 +2262,7 @@ export interface operations {
             };
         };
     };
-    list_8: {
+    list_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -2040,7 +2304,7 @@ export interface operations {
             };
         };
     };
-    list_9: {
+    list_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -2550,6 +2814,72 @@ export interface operations {
             };
         };
     };
+    detail_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NoteView"];
+                };
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    edit_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditNote"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     me: {
         parameters: {
             query?: never;
@@ -2592,7 +2922,7 @@ export interface operations {
             };
         };
     };
-    detail_2: {
+    detail_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -2614,7 +2944,7 @@ export interface operations {
             };
         };
     };
-    edit_2: {
+    edit_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -2638,7 +2968,7 @@ export interface operations {
             };
         };
     };
-    detail_3: {
+    detail_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2661,7 +2991,7 @@ export interface operations {
             };
         };
     };
-    edit_3: {
+    edit_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2960,7 +3290,7 @@ export interface operations {
             };
         };
     };
-    list_10: {
+    list_11: {
         parameters: {
             query?: {
                 keyword?: string;
@@ -2984,7 +3314,7 @@ export interface operations {
             };
         };
     };
-    list_11: {
+    list_12: {
         parameters: {
             query?: {
                 includeResolved?: boolean;
@@ -3050,7 +3380,28 @@ export interface operations {
             };
         };
     };
-    delete: {
+    detach_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -3072,7 +3423,7 @@ export interface operations {
             };
         };
     };
-    delete_1: {
+    delete_2: {
         parameters: {
             query?: never;
             header?: never;

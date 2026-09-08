@@ -1,0 +1,220 @@
+package xyz.gentask.module.note;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static xyz.gentask.jooq.Tables.PROJECT_MEMBERS;
+
+import jakarta.servlet.http.Cookie;
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
+import org.jooq.DSLContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.json.JsonMapper;
+import xyz.gentask.AuthTestSupport;
+import xyz.gentask.FakeMailConfiguration;
+import xyz.gentask.FakeStorageConfiguration;
+import xyz.gentask.TestcontainersConfiguration;
+import xyz.gentask.shared.mail.E2eMailSupport.RecordingMailSender;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Import({TestcontainersConfiguration.class, FakeMailConfiguration.class, FakeStorageConfiguration.class})
+@Transactional
+class NoteApiTest {
+    @Autowired
+    MockMvc mvc;
+
+    @Autowired
+    RecordingMailSender mail;
+
+    @Autowired
+    JsonMapper json;
+
+    @Autowired
+    DSLContext dsl;
+
+    @Autowired
+    FakeStorageConfiguration.FakeObjectStorage storage;
+
+    Cookie owner;
+    Cookie member;
+    Cookie outsider;
+    String project;
+    UUID memberId;
+
+    @BeforeEach
+    void prepare() throws Exception {
+        owner = AuthTestSupport.가입한다(mvc, mail, UUID.randomUUID() + "@example.test");
+        member = AuthTestSupport.가입한다(mvc, mail, UUID.randomUUID() + "@example.test");
+        outsider = AuthTestSupport.가입한다(mvc, mail, UUID.randomUUID() + "@example.test");
+        project = json.readTree(mvc.perform(get("/api/v1/projects").cookie(owner))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString())
+                .get(0)
+                .get("id")
+                .asText();
+        memberId = UUID.fromString(json.readTree(mvc.perform(get("/api/v1/me").cookie(member))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString())
+                .get("id")
+                .asText());
+        dsl.insertInto(PROJECT_MEMBERS)
+                .set(PROJECT_MEMBERS.PROJECT_ID, project)
+                .set(PROJECT_MEMBERS.USER_ID, memberId)
+                .set(PROJECT_MEMBERS.ROLE, "editor")
+                .set(PROJECT_MEMBERS.JOINED_AT, Instant.now())
+                .execute();
+    }
+
+    private String create(Cookie actor, Map<String, ?> body) throws Exception {
+        String location = mvc.perform(post("/api/v1/notes")
+                        .cookie(actor)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getHeader("Location");
+        assertThat(location).matches("/api/v1/notes/[A-Za-z0-9_-]{12}");
+        return location;
+    }
+
+    @Test
+    void 프로젝트_연결은_공개하지_않고_명시적_공유와_회수는_조회에_반영한다() throws Exception {
+        String note = create(owner, Map.of("body", "# 아직 생각 중", "projectId", project));
+        mvc.perform(get(note).cookie(member)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/notes").cookie(member))
+                .andExpect(jsonPath("$.items.length()").value(0));
+        mvc.perform(put(note + "/sharing")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"shared\":true}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get(note).cookie(member))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.body").value("# 아직 생각 중"));
+        mvc.perform(get("/api/v1/notes").cookie(member))
+                .andExpect(jsonPath("$.items.length()").value(1));
+        mvc.perform(get("/api/v1/notes").cookie(outsider))
+                .andExpect(jsonPath("$.items.length()").value(0));
+        mvc.perform(get(note).cookie(outsider)).andExpect(status().isNotFound());
+        mvc.perform(patch(note)
+                        .cookie(member)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"다른 내용\"}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(delete(note).cookie(member)).andExpect(status().isForbidden());
+        mvc.perform(put(note + "/sharing")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"shared\":false}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get(note).cookie(member)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void 연결을_해제하면_공유가_해제되고_멤버_탈퇴도_접근을_차단한다() throws Exception {
+        String note = create(owner, Map.of("body", "공유 자료", "projectId", project));
+        mvc.perform(put(note + "/sharing")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"shared\":true}"))
+                .andExpect(status().isNoContent());
+        dsl.deleteFrom(PROJECT_MEMBERS)
+                .where(PROJECT_MEMBERS.PROJECT_ID.eq(project))
+                .and(PROJECT_MEMBERS.USER_ID.eq(memberId))
+                .execute();
+        mvc.perform(get(note).cookie(member)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/notes").cookie(member))
+                .andExpect(jsonPath("$.items.length()").value(0));
+        mvc.perform(put(note + "/project")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get(note).cookie(owner))
+                .andExpect(jsonPath("$.shared").value(false))
+                .andExpect(jsonPath("$.projectId").doesNotExist());
+        mvc.perform(put(note + "/sharing")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"shared\":true}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void 뷰어는_비공개_연결은_가능하지만_공유할_수_없다() throws Exception {
+        dsl.update(PROJECT_MEMBERS)
+                .set(PROJECT_MEMBERS.ROLE, "viewer")
+                .where(PROJECT_MEMBERS.PROJECT_ID.eq(project))
+                .and(PROJECT_MEMBERS.USER_ID.eq(memberId))
+                .execute();
+        String note = create(member, Map.of("body", "개인 생각", "projectId", project));
+        mvc.perform(get(note).cookie(owner)).andExpect(status().isNotFound());
+        mvc.perform(put(note + "/sharing")
+                        .cookie(member)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"shared\":true}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    void 파일만_등록할_수_있고_미업로드_파일은_메모와_함께_롤백한다() throws Exception {
+        mvc.perform(post("/api/v1/notes")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"   \"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/v1/notes")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"실패\",\"objectKeys\":[\"없는키\"]}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v1/notes").cookie(owner))
+                .andExpect(jsonPath("$.items.length()").value(0));
+        String key = json.readTree(mvc.perform(
+                                post("/api/v1/attachments/presign")
+                                        .cookie(owner)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(
+                                                "{\"slot\":\"NOTE_FILES\",\"fileName\":\"이미지.png\",\"contentType\":\"image/png\",\"size\":50}"))
+                        .andExpect(status().isOk())
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString())
+                .get("objectKey")
+                .asText();
+        storage.put(key, 50);
+        String note = create(owner, Map.of("body", "", "objectKeys", java.util.List.of(key)));
+        var detail = json.readTree(mvc.perform(get(note).cookie(owner))
+                .andExpect(jsonPath("$.files[0].fileName").value("이미지.png"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+        mvc.perform(get(note).cookie(member)).andExpect(status().isNotFound());
+        mvc.perform(delete(note + "/files/"
+                                + detail.get("files").get(0).get("id").asText())
+                        .cookie(owner))
+                .andExpect(status().isBadRequest());
+        mvc.perform(delete(note).cookie(owner)).andExpect(status().isNoContent());
+        mvc.perform(get(note).cookie(owner)).andExpect(status().isNotFound());
+    }
+}
