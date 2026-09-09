@@ -386,10 +386,11 @@ export const gentaskTheme = defineTheme({
       "cornerShape": "superellipse(1.6)"
     },
     "variant:secondary": {
+      "backgroundColor": "color-mix(in srgb, var(--color-accent) 12%, transparent)",
       "borderColor": "light-dark(oklch(0.5 0.105 118), oklch(0.68 0.12 118))",
       "color": "light-dark(oklch(0.5 0.105 118), oklch(0.68 0.12 118))",
       ":hover": {
-        "backgroundColor": "light-dark(oklch(0.95 0.04 118), oklch(0.3 0.05 118))"
+        "backgroundColor": "color-mix(in srgb, var(--color-accent) 20%, transparent)"
       }
     },
     "variant:ghost": {
@@ -455,6 +456,10 @@ export const gentaskTheme = defineTheme({
     }
   },
   "card": {
+    "base": {
+      "borderRadius": "1.5rem",
+      "cornerShape": "superellipse(1.6)"
+    },
     "variant:info": {
       "--color-text-primary": "light-dark(#1d1e16, #f2f2ee)",
       "--color-text-secondary": "light-dark(oklch(0.47 0.02 110), oklch(0.74 0.02 110))"

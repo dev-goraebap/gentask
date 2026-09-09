@@ -32,7 +32,7 @@ export function ArtifactCommentPanel({ projectId, artifactId, versionNo, block, 
             <Avatar name={comment.authorName || '알 수 없는 사용자'} size="sm" tooltip={false} /><Text size="sm" weight="medium" maxLines={1}>{comment.authorName || '알 수 없는 사용자'}</Text>
           </HStack>{writable && comment.authorId === session.data?.id ? <Button label="내 코멘트 삭제" icon={<HgiTrash size={16} />} isIconOnly size="sm" variant="ghost" isDisabled={busy} isLoading={remove.isPending && remove.variables === comment.id} onClick={() => remove.mutate(comment.id)} /> : null}</HStack>}
           description={<VStack gap={2}><Text type="supporting">{formatArtifactDate(comment.createdAt)}</Text>
-            {target ? <Button label={`${target.label.replace(/^\d+\.\s*/, '')}에 남긴 코멘트`} tooltip="본문에서 위치 보기" size="sm" variant="ghost" style={{ alignSelf: 'flex-start' }} isDisabled={busy} onClick={() => onReveal(target)} /> :
+            {target ? <Button label={`${target.label.replace(/^\d+\.\s*/, '')}에 남긴 코멘트`} tooltip="본문에서 위치 보기" size="sm" variant="secondary" style={{ alignSelf: 'flex-start' }} isDisabled={busy} onClick={() => onReveal(target)} /> :
               <Text type="supporting">{comment.blockStart == null ? '문서 전체에 남긴 코멘트' : '블록에 남긴 코멘트'}</Text>}
             <Text style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{comment.body}</Text>
           </VStack>} />;
@@ -42,8 +42,8 @@ export function ArtifactCommentPanel({ projectId, artifactId, versionNo, block, 
     footer={<LayoutFooter hasDivider padding={3}><VStack gap={2} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {writable ? <>
         <HStack gap={2} align="center" justify="between"><Text size="sm">{block?.label ?? '문서 전체'}에 작성</Text><HStack gap={1}>
-          {block ? <Button label="전체로" size="sm" variant="ghost" isDisabled={busy} onClick={() => onSelect(null)} /> : null}
-          <Button label={selecting ? '선택 취소' : '블록 지정'} size="sm" variant="ghost" isDisabled={busy || !blocks.length} onClick={selecting ? onCancel : onPick} />
+          {block ? <Button label="전체로" size="sm" variant="secondary" isDisabled={busy} onClick={() => onSelect(null)} /> : null}
+          <Button label={selecting ? '선택 취소' : '블록 지정'} size="sm" variant="secondary" isDisabled={busy || !blocks.length} onClick={selecting ? onCancel : onPick} />
         </HStack></HStack>
         <TextArea label="코멘트" value={draft} onChange={setDraft} maxLength={5000} rows={3} isDisabled={busy} />
         <HStack justify="end"><Button label="등록" variant="primary" size="sm" isDisabled={!draft.trim() || busy || selecting} isLoading={save.isPending} onClick={() => save.mutate()} /></HStack>

@@ -42,8 +42,8 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: () => Promise<unknown> }
       {send.error || confirm.error ? <Text role="alert">{(send.error ?? confirm.error)?.message}</Text> : null}
       <Button label={sentTo ? '로그인' : '인증번호 받기'} variant="primary" isLoading={busy} isDisabled={busy || !(sentTo ? code.trim() : email.trim())} onClick={submit} />
       {sentTo ? <HStack gap={2} wrap="wrap">
-        <Button label={remaining ? `${remaining}초 후 재전송` : '인증번호 다시 받기'} variant="ghost" isDisabled={busy || remaining > 0} onClick={() => { confirm.reset(); send.mutate(); }} />
-        <Button label="이메일 변경" variant="ghost" isDisabled={busy} onClick={() => { setSentTo(''); setCode(''); send.reset(); confirm.reset(); }} />
+        <Button label={remaining ? `${remaining}초 후 재전송` : '인증번호 다시 받기'} variant="secondary" isDisabled={busy || remaining > 0} onClick={() => { confirm.reset(); send.mutate(); }} />
+        <Button label="이메일 변경" variant="secondary" isDisabled={busy} onClick={() => { setSentTo(''); setCode(''); send.reset(); confirm.reset(); }} />
       </HStack> : null}
     </VStack>
   </PageContent>} />;

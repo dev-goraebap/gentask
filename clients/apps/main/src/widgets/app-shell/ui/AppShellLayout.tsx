@@ -40,7 +40,7 @@ export function AppShellLayout() {
       sideNav={mobile ? undefined : <SideNav style={{ width: '16.25rem' }}
         header={<HStack gap={2} align="center"><BrandMark size={36} /><Text className="app-logo" size="lg">Gentask</Text></HStack>}
         topContent={project ? <SideNavItem label="전체 메뉴로" icon={<HgiArrowLeft />} onClick={() => navigate({ to: '/notes' })} /> : undefined}
-        footer={<HStack justify="between" align="center"><Button label="계정" icon={<HgiUser />} variant="ghost" onClick={() => navigate({ to: '/me' })} /><ThemeToggle /></HStack>}>
+        footer={<HStack justify="between" align="center"><Button label="계정" icon={<HgiUser />} variant="secondary" onClick={() => navigate({ to: '/me' })} /><ThemeToggle /></HStack>}>
         {project ? <VStack gap={0}>
           <HStack gap={2} align="center" paddingBlockEnd={1}><ProjectAvatar project={project} /><Text weight="semibold" style={{ overflowWrap: 'anywhere' }}>{project.name}</Text></HStack>
           {menu.map((m) => <SideNavItem key={m.path} label={m.label} icon={m.icon}

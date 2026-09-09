@@ -126,7 +126,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
                     size="sm"
                   />
 
-                  {isFiltered ? <Button label="초기화" variant="ghost" onClick={reset} /> : null}
+                  {isFiltered ? <Button label="초기화" variant="secondary" onClick={reset} /> : null}
                 </>
               }
               endContent={
@@ -148,7 +148,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
             {ancestors.map((folder) => <BreadcrumbItem key={folder.id} isCurrent={folder.id === folderId}
               onClick={() => onFolderChange(folder.id)}>{folder.title}</BreadcrumbItem>)}
           </Breadcrumbs>
-            {currentFolder ? <Button label="상위 폴더로" variant="ghost" size="sm"
+            {currentFolder ? <Button label="상위 폴더로" variant="secondary" size="sm"
               onClick={() => onFolderChange(currentFolder.parentId)} /> : null}
           </HStack>
           {folderId && !currentFolder ? <EmptyState title="폴더를 찾을 수 없습니다"

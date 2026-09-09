@@ -95,7 +95,7 @@ export function NoteDetail({
             </HStack> : null}
           {writable && note && draft !== null && draft !== note.body ? (
             <HStack gap={1} style={{ flexShrink: 0 }}>
-              <Button label="수정 취소" aria-label="수정 취소" variant="ghost" size="sm" isDisabled={action.isPending}
+              <Button label="수정 취소" aria-label="수정 취소" variant="secondary" size="sm" isDisabled={action.isPending}
                 onClick={() => { setDraft(null); setEditorReset(value => value + 1); }}>취소</Button>
               <Button label="수정 저장" aria-label="수정 저장" variant="primary" size="sm"
                 isDisabled={action.isPending || (!draft.trim() && !note.files.length)}

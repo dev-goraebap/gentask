@@ -135,7 +135,7 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
     </>} /> : <Toolbar className="page-filter-toolbar" label="멤버 필터" size="sm" endContent={<HStack gap={2} align="center"><SortSelector options={sortOptions} value={{ key: listing.sort, direction: listing.direction }} onChange={value => listing.change({ sort: value.key, direction: value.direction })} /><Text type="supporting">참여 중 · {matched.length}명</Text></HStack>} startContent={<>
       <TextInput label="멤버 검색" isLabelHidden placeholder="이름으로 검색" startIcon={<HgiSearch />} value={query} onChange={setQuery} hasClear width="13.75rem" />
       <MultiSelector label="역할 필터" isLabelHidden placeholder="모든 역할" value={roles} onChange={setRoles} options={Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))} triggerDisplay="count" formatValue={items => `역할 · ${items.length}`} hasSelectAll selectAllLabel="전체 선택" />
-      {query || roleFilter !== 'all' ? <Button label="초기화" variant="ghost" onClick={() => { setQuery(''); setRoles([]); }} /> : null}
+      {query || roleFilter !== 'all' ? <Button label="초기화" variant="secondary" onClick={() => { setQuery(''); setRoles([]); }} /> : null}
     </>} />;
 
   return <>
@@ -146,7 +146,7 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
         {memberToolbar}
         {mobile && roleFilter !== 'all' ? <HStack paddingInline={mobile ? 3 : 4} paddingBlockEnd={2} gap={2} align="center">
           <Text color="secondary">역할 · {roles.map(role => ROLE_LABEL[role as keyof typeof ROLE_LABEL]).join(', ')}</Text>
-          <Button label="해제" variant="ghost" onClick={() => setRoles([])} />
+          <Button label="해제" variant="secondary" onClick={() => setRoles([])} />
         </HStack> : null}
       </>}
       footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} unit="명" />}
@@ -227,8 +227,8 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
                   <Token size="sm" label={invite.revoked ? '비활성' : isActive(invite) ? '사용 가능' : '만료'} color={isActive(invite) ? 'green' : 'gray'} /></HStack>}
                 description={`${ROLE_LABEL[invite.role]} · ${new Date(invite.expiresAt).toLocaleDateString('ko-KR')} 만료 · ${invite.uses}명 참여`}
                 endContent={<HStack gap={1} wrap="wrap">
-                  <Button label="복사" size="sm" variant="ghost" isDisabled={!isActive(invite)} onClick={() => void copy(invite.id)} />
-                  <Button label="미리보기" size="sm" variant="ghost" isDisabled={!isActive(invite)} onClick={() => { setCreating(false); onPreview(invite.token); }} />
+                  <Button label="복사" size="sm" variant="secondary" isDisabled={!isActive(invite)} onClick={() => void copy(invite.id)} />
+                  <Button label="미리보기" size="sm" variant="secondary" isDisabled={!isActive(invite)} onClick={() => { setCreating(false); onPreview(invite.token); }} />
                   <Button label={`${invite.label} 비활성화`} size="sm" variant="ghost" isIconOnly icon={<HgiTrash />}
                     isDisabled={!canManage || !isActive(invite)} onClick={() => setRevoking(invite)} />
                 </HStack>} />)}
@@ -241,7 +241,7 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
           <TextInput label="초대 링크" value={urlFor(created.id)} isReadOnly />
           <Text color="secondary">링크를 전달받은 사람 누구나 참여할 수 있습니다. 필요한 사람에게만 공유하세요.</Text>
           <HStack gap={2} justify="end" wrap="wrap">
-            <Button label="새 링크 만들기" variant="ghost" onClick={() => { setCreatedId(undefined); setLabel(''); }} />
+            <Button label="새 링크 만들기" variant="secondary" onClick={() => { setCreatedId(undefined); setLabel(''); }} />
             <Button label="참여 미리보기" isDisabled={!isActive(created)} onClick={() => { setCreating(false); onPreview(created.token); }} />
             <Button label="링크 복사" variant="primary" isDisabled={!isActive(created)} onClick={() => void copy(created.id)} />
           </HStack>

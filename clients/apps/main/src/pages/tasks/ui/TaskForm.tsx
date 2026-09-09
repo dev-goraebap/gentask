@@ -40,11 +40,11 @@ export function TaskForm({ task, onDeleted }: { task: Task; onDeleted: () => voi
         changeAction={value => autosave.change({ field: 'dueDate', value: value ?? null })}
         status={autosave.status('dueDate')} hasClear isDisabled={disabled} />
       {autosave.isPending ? <Text role="status" type="supporting">자동 저장 중…</Text> : null}
-      {autosave.hasErrors ? <Button label="다시 시도" variant="ghost" isDisabled={disabled || autosave.isPending} onClick={autosave.retry} /> : null}
+      {autosave.hasErrors ? <Button label="다시 시도" variant="secondary" isDisabled={disabled || autosave.isPending} onClick={autosave.retry} /> : null}
       {action.error ? <Text role="alert">{action.error.message}</Text> : null}
     </VStack>
     <TaskArtifacts task={task} writable={writable} /><TaskFiles taskId={task.id} writable={writable} />
-    {writable ? <Button label="작업 삭제" variant="ghost" isDisabled={action.isPending} onClick={() => {
+    {writable ? <Button label="작업 삭제" variant="secondary" isDisabled={action.isPending} onClick={() => {
       if (window.confirm('이 작업과 연결된 첨부파일을 삭제할까요?')) {
         autosave.flush('title'); autosave.flush('note');
         action.mutate(async () => { await deleteTask(task.id); onDeleted(); });

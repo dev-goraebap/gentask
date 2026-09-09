@@ -141,7 +141,7 @@ export function NotesPage({
               {query.hasNextPage ? (
                 <Button
                   label="더 보기"
-                  variant="ghost"
+                  variant="secondary"
                   isLoading={query.isFetchingNextPage}
                   onClick={() => void query.fetchNextPage()}
                 />

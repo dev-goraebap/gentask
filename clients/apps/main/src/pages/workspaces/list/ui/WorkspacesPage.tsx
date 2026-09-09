@@ -48,7 +48,7 @@ export function WorkspacesPage() {
         <Toolbar className="page-filter-toolbar" label="프로젝트 필터" size="sm" startContent={<>
           <TextInput label="프로젝트 검색" isLabelHidden placeholder="프로젝트 이름으로 검색" value={query} onChange={setQuery} startIcon={<HgiSearch />} hasClear width="13.75rem" />
           <MultiSelector label="프로젝트 상태" isLabelHidden placeholder="모든 상태" value={status} onChange={setStatus} options={statusOptions} triggerDisplay="count" formatValue={items => `상태 · ${items.length}`} hasSelectAll selectAllLabel="전체 선택" />
-          {query || status.length ? <Button label="초기화" variant="ghost" onClick={() => { setQuery(''); setStatus([]); }} /> : null}
+          {query || status.length ? <Button label="초기화" variant="secondary" onClick={() => { setQuery(''); setStatus([]); }} /> : null}
         </>} endContent={<SortSelector options={sortOptions} value={sort} onChange={setSort} />} />}
 
     </>} footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} />} content={<PageContent ref={listing.ref} onScroll={listing.onScroll} padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-10))' } : undefined}>

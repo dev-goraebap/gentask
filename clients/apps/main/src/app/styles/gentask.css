@@ -448,12 +448,13 @@
   }
 
   .astryx-button.secondary {
+    background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
     border-color: light-dark(oklch(0.5 0.105 118), oklch(0.68 0.12 118));
     color: light-dark(oklch(0.5 0.105 118), oklch(0.68 0.12 118));
   }
 
   .astryx-button.secondary:hover:where(:not(:disabled,[aria-disabled="true"])) {
-    background-color: light-dark(oklch(0.95 0.04 118), oklch(0.3 0.05 118));
+    background-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
   }
 
   .astryx-button.ghost {
@@ -474,9 +475,10 @@
   }
 
   .astryx-card {
-    border-radius: var(--radius-page);
+    border-radius: 1.5rem;
+    corner-shape: superellipse(1.6);
     --astryx-card-padding: var(--spacing-3);
-    --_card-radius: var(--radius-page);
+    --_card-radius: 1.5rem;
   }
 
   .astryx-card.info {

@@ -21,7 +21,7 @@ export function ProjectNavigation({ onOpen, onCreate }: { onOpen: (id: string, a
         onStep={direction => { const target = projects[index + direction]; if (target) move(project.id, target.id); }} />)}
     </VStack>
     {!projects.length ? <Text color="secondary">참여 중인 프로젝트가 없습니다.</Text> : null}
-    <Button label="프로젝트 만들기" icon={<HgiPlus />} variant="ghost" onClick={onCreate} />
+    <Button label="프로젝트 만들기" icon={<HgiPlus />} variant="secondary" onClick={onCreate} />
     <Text role="status" className="project-order-status">{announcement}</Text>
   </VStack>;
 }

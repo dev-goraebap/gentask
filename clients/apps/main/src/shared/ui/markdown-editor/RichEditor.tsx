@@ -102,7 +102,7 @@ export function RichEditor({ initialValue = '', onChange, hasToolbar = true, lab
     {hasToolbar ? <HStack gap={1} wrap="wrap" role="group" aria-label="본문 서식">
       {actions.map((action) => <Button key={action.label} label={action.label} size="sm" variant={action.active ? 'secondary' : 'ghost'} aria-pressed={action.active}
         onMouseDown={(e) => e.preventDefault()} onClick={action.run} />)}
-      <Button label="되돌리기" size="sm" variant="ghost" isDisabled={!editor?.can().undo()} onClick={() => editor?.chain().focus().undo().run()} />
+      <Button label="되돌리기" size="sm" variant="secondary" isDisabled={!editor?.can().undo()} onClick={() => editor?.chain().focus().undo().run()} />
     </HStack> : null}
     <VStack ref={host} className="drawer-editor" />
   </VStack>;
