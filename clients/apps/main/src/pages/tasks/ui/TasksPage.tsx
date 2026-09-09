@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, EmptyState, HStack, LayoutFooter, List, Text, TextInput, VStack } from '@astryxdesign/core';
+import { Button, EmptyState, HStack, LayoutFooter, List, Selector, Text, TextInput, VStack } from '@astryxdesign/core';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { useWorkspaceStore } from '@/entities/workspace';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { AppAsideContent, useAppAside } from '@/shared/ui/app-aside';
 import { RequestState } from '@/shared/ui/request-state';
-import { MobilePageHeader, MOBILE_QUERY } from '@/shared/ui/mobile';
+import { MOBILE_QUERY } from '@/shared/ui/mobile';
 import { HgiPlus, HgiTask, HgiSearchEmpty } from '@/shared/ui/icons';
 import { WIDTH } from '@/shared/config';
 import { addTask, changeTaskState, tasksOptions, type Task } from '../api/tasks';
@@ -17,11 +17,12 @@ import { TaskBoard } from './TaskBoard';
 import { TaskDetail } from './TaskDetail';
 import { TaskFilters } from './TaskFilters';
 
-export function TasksPage({ projectId }: { projectId: string | null }) {
-  const query = useQuery(tasksOptions(projectId));
+export function TasksPage({ projectId, personal = false }: { projectId: string | null; personal?: boolean }) {
+  const query = useQuery(tasksOptions(projectId, personal));
   const action = useTaskAction();
   const aside = useAppAside();
   const { projects } = useWorkspaceStore();
+  const [destination, setDestination] = useState(projectId);
   const [draft, setDraft] = useState('');
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
@@ -35,7 +36,7 @@ export function TasksPage({ projectId }: { projectId: string | null }) {
   const add = () => {
     if (!draft.trim() || action.isPending) return;
     action.mutate(async () => {
-      await addTask(projectId, draft.trim());
+      await addTask(destination, draft.trim());
       setDraft('');
       setSearch('');
       setFilters(DEFAULT_FILTERS);
@@ -45,14 +46,12 @@ export function TasksPage({ projectId }: { projectId: string | null }) {
   const filtered = Boolean(search.trim()) || filters.states.length > 0;
   return <>
     <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
-      header={<>
-        {mobile ? projectId === null ? <MobilePageHeader title="작업" /> : null : <PageHeader title="작업"
-          description={projectId ? '프로젝트의 작업을 함께 관리하세요.' : '개인 작업과 나에게 할당된 프로젝트 작업을 한곳에서 관리하세요.'}
-          actions={<Text type="supporting">미완료 {(query.data ?? []).filter(task => task.state !== 'DONE').length}</Text>} />}
-        <TaskFilters mobile={mobile} query={search} onQueryChange={setSearch} filters={filters} onChange={setFilters} view={view} onViewChange={setView} />
-      </>}
-      footer={writable(projectId) ? <LayoutFooter hasDivider padding={mobile ? 3 : 4} label="작업 추가">
-        <VStack gap={2}>
+      header={<PageHeader title="작업" compact={mobile}
+        toolbar={<TaskFilters mobile={mobile} query={search} onQueryChange={setSearch} filters={filters} onChange={setFilters} view={view} onViewChange={setView} />} />}
+      footer={writable(projectId) ? <LayoutFooter hasDivider padding={mobile ? 3 : 4} label="작업 추가" style={mobile ? { paddingBottom: 'calc(var(--spacing-3) + env(safe-area-inset-bottom))' } : undefined}>
+        <VStack gap={2}>{!projectId && !personal ? <Selector label="새 작업 소속" size="sm" width="18rem" value={destination ?? 'personal'}
+          options={[{ value: 'personal', label: '개인' }, ...projects.filter(p => !p.archived && writable(p.id)).map(p => ({ value: p.id, label: p.name }))]}
+          onChange={value => setDestination(value === 'personal' ? null : String(value))} /> : <Text type="supporting">추가 위치 · {projectId ? projects.find(p => p.id === projectId)?.name : '개인'}</Text>}
           {action.error ? <Text role="alert">{action.error.message}</Text> : null}
           <HStack gap={2} align="center" width="100%">
             <TextInput label="새 작업" isLabelHidden value={draft} onChange={setDraft} onEnter={add} placeholder="할 일을 입력하고 Enter" startIcon={<HgiPlus />} width="100%" isReadOnly={action.isPending} />

@@ -37,7 +37,7 @@ class ProjectTaskApiTest {
     private RecordingMailSender mail;
 
     @Test
-    void 할당한_프로젝트_작업은_개인_목록과_같은_상태를_보여준다() throws Exception {
+    void 접근_가능한_프로젝트_작업은_전체_목록과_같은_상태를_보여준다() throws Exception {
         Cookie owner = user();
         Cookie editor = user();
         Cookie outsider = user();
@@ -47,7 +47,7 @@ class ProjectTaskApiTest {
         String task = create(owner, "/projects/" + project + "/tasks", "{\"title\":\"문서 검토\"}");
         String personal = create(editor, "/tasks", "{\"title\":\"개인 할 일\"}");
         mvc.perform(get("/api/v1/tasks").cookie(editor))
-                .andExpect(jsonPath("$.length()").value(1));
+                .andExpect(jsonPath("$.length()").value(2));
         mvc.perform(patch("/api/v1/tasks/" + task + "/assignee")
                         .cookie(owner)
                         .contentType(MediaType.APPLICATION_JSON)

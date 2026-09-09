@@ -1,12 +1,12 @@
+import { resourceSearch } from '@/shared/config';
 import { createdId, get, request } from '@/shared/api';
 import { queryOptions } from '@tanstack/react-query';
 export type TaskState = 'TODO' | 'IN_PROGRESS' | 'DONE';
 export type Task = { id:string; title:string; note:string; state:TaskState; projectId:string|null; projectName:string|null; assigneeId:string|null; assigneeName:string|null; dueDate:string|null; remindAt:string|null; createdAt:string };
 export const STATES: {value:TaskState;label:string}[] = [{value:'TODO',label:'할 일'},{value:'IN_PROGRESS',label:'진행 중'},{value:'DONE',label:'완료'}];
-const base=(projectId:string|null)=>projectId ? '/projects/'+encodeURIComponent(projectId)+'/tasks':'/tasks';
-export const tasksOptions=(projectId:string|null)=>queryOptions({queryKey:['tasks','list',projectId],queryFn:({signal})=>get<Task[]>(base(projectId),signal)});
+export const tasksOptions=(projectId:string|null,personal=false)=>queryOptions({queryKey:['tasks','list',projectId,personal],queryFn:({signal})=>get<Task[]>('/tasks'+resourceSearch(projectId,personal),signal)});
 export const taskOptions=(id:string)=>queryOptions({queryKey:['tasks','detail',id],queryFn:({signal})=>get<Task>('/tasks/'+id,signal)});
-export const addTask=async(projectId:string|null,title:string)=>createdId((await request(base(projectId),{method:'POST',body:JSON.stringify({title})})).location);
+export const addTask=async(projectId:string|null,title:string)=>createdId((await request('/tasks',{method:'POST',body:JSON.stringify({title,projectId})})).location);
 export const editTask=(id:string,input:{title:string;note:string;dueDate:string|null;remindAt:string|null})=>request('/tasks/'+id,{method:'PATCH',body:JSON.stringify(input)});
 export const changeTaskState=(id:string,state:TaskState)=>request('/tasks/'+id+'/state',{method:'PATCH',body:JSON.stringify({state})});
 export const assignTask=(id:string,assigneeId:string|null)=>request('/tasks/'+id+'/assignee',{method:'PATCH',body:JSON.stringify({assigneeId})});

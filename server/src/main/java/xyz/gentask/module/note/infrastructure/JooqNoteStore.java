@@ -53,7 +53,8 @@ class JooqNoteStore implements NoteStore {
     }
 
     @Override
-    public List<NoteRecord> list(UUID userId, String projectId, String search, int offset, int limit) {
+    public List<NoteRecord> list(
+            UUID userId, String projectId, boolean personal, String search, int offset, int limit, String sort) {
         var membership = PROJECTS.OWNER_ID
                 .eq(userId)
                 .or(DSL.exists(dsl.selectOne()
@@ -69,9 +70,18 @@ class JooqNoteStore implements NoteStore {
                 .leftJoin(PROJECTS)
                 .on(PROJECTS.ID.eq(NOTES.PROJECT_ID))
                 .where(visible)
-                .and(projectId == null ? DSL.noCondition() : NOTES.PROJECT_ID.eq(projectId))
+                .and(
+                        personal
+                                ? NOTES.PROJECT_ID.isNull()
+                                : projectId == null ? DSL.noCondition() : NOTES.PROJECT_ID.eq(projectId))
                 .and(search.isBlank() ? DSL.noCondition() : NOTES.BODY.containsIgnoreCase(search))
-                .orderBy(NOTES.CREATED_AT.desc(), NOTES.ID.desc())
+                .orderBy(
+                        switch (sort) {
+                            case "created-asc" -> NOTES.CREATED_AT.asc();
+                            case "updated-desc" -> NOTES.UPDATED_AT.desc();
+                            default -> NOTES.CREATED_AT.desc();
+                        },
+                        NOTES.ID.desc())
                 .limit(limit)
                 .offset(offset)
                 .fetch(this::map);

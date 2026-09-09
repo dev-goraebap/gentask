@@ -22,7 +22,7 @@ export function SettingsForm({ project }: { project: Project }) {
   });
   const dirty = name.trim() !== project.name || key.trim() !== project.prefix;
   return <PageLayout contentWidth={WIDTH.narrow}
-    header={!mobile ? <PageHeader title="프로젝트 설정" /> : undefined}
+    header={<PageHeader title="프로젝트 설정" compact={mobile} />}
     footer={<LayoutFooter hasDivider><HStack padding={4} justify="end">
       <Button label="변경사항 저장" variant="primary" isLoading={mutation.isPending} isDisabled={!name.trim() || !key.trim() || key.trim().length > 10 || !dirty || mutation.isPending} onClick={() => mutation.mutate()} />
     </HStack></LayoutFooter>}

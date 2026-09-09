@@ -41,7 +41,7 @@ export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersio
         <PageHeader title={title} onBack={onBack} backLabel="아티팩트 목록으로" actions={actions} />}
       content={<PageContent padding={mobile ? 3 : 4}><VStack gap={4}>
         <HStack gap={2} justify="between" align="center" wrap="wrap">
-          <HStack gap={2} align="center" wrap="wrap"><Text type="supporting">{doc.id}</Text><Text type="supporting">· v{selectedVersion ?? artifact.versionNo}</Text></HStack>
+          <HStack gap={2} align="center" wrap="wrap"><Text type="supporting">{projectId ? projects.find(p => p.id === projectId)?.name ?? "프로젝트" : "개인"}</Text><Text type="supporting">· {doc.id}</Text><Text type="supporting">· v{selectedVersion ?? artifact.versionNo}</Text></HStack>
           {mobile ? actions : null}
         </HStack>
         {historical ? <Banner status="info" title={`버전 보기 · v${selectedVersion}`}

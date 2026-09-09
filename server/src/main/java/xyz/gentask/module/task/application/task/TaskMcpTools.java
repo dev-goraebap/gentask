@@ -21,16 +21,14 @@ public class TaskMcpTools {
 
     @McpTool(
             name = "list_tasks",
-            description = "projectId를 생략하면 개인 작업과 자신에게 할당된 프로젝트 작업을 조회한다.",
+            description = "접근 가능한 작업을 조회한다. projectId로 프로젝트를, scope=personal로 개인 작업만 선택한다.",
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult listTasks(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId) {
-        return results.call(() -> {
-            return projectId == null
-                    ? tasks.list(results.userId(context))
-                    : tasks.listProject(results.userId(context), projectId);
-        });
+            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "personal: 개인만. 생략: 전체. projectId와 함께 사용할 수 없음", required = false)
+                    String scope) {
+        return results.call(() -> tasks.list(results.userId(context), projectId, scope));
     }
 
     @McpTool(

@@ -33,9 +33,11 @@ public class NoteController {
     public NoteViews.NotePage list(
             @CurrentUser UUID userId,
             @RequestParam(required = false) String projectId,
+            @RequestParam(required = false) String scope,
             @RequestParam(defaultValue = "") @Size(max = 200) String q,
+            @RequestParam(defaultValue = "created-desc") String sort,
             @RequestParam(defaultValue = "0") @Min(0) @Max(100000) int offset) {
-        return notes.list(userId, projectId, q, offset);
+        return notes.list(userId, projectId, scope, q, offset, sort);
     }
 
     @PostMapping

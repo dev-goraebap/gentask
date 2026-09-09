@@ -1,12 +1,11 @@
+import { ScopeSelector } from '@/features/select-resource-scope';
 import { PageLayout, PageContent, PageHeader } from "@/shared/ui/page-layout";
 import { WIDTH } from "@/shared/config";
-import { MOBILE_QUERY } from "@/shared/ui/mobile";
+import { MobileFilterBar, MOBILE_QUERY } from "@/shared/ui/mobile";
 import { RequestState } from "@/shared/ui/request-state";
-import { useWorkspaceStore } from "@/entities/workspace";
 import {
   Button,
   EmptyState,
-  HStack,
   LayoutFooter,
   Selector,
   Text,
@@ -21,29 +20,32 @@ import { notesOptions } from "../api/notes";
 import { NoteMasonry } from "./NoteMasonry";
 import { NoteComposer } from "./NoteComposer";
 import { NoteDetail } from "./NoteDetail";
-import { NotesMenu } from "./NotesMenu";
 import "./notes.css";
 export function NotesPage({
   selectedId,
   onSelect,
   onClose,
   projectId,
+  personal = false,
   q,
   onFilter,
+  sort,
+  onSort,
 }: {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onClose: () => void;
   projectId?: string;
+  personal?: boolean;
   q: string;
+  sort: string;
+  onSort: (value: string) => void;
   onFilter: (project: string | undefined, q: string) => void;
 }) {
   const mobile = useMediaQuery(MOBILE_QUERY);
-  const { projects } = useWorkspaceStore();
-  const query = useInfiniteQuery(notesOptions(projectId, q));
+  const query = useInfiniteQuery(notesOptions(projectId, q, personal, sort));
   const [search, setSearch] = useState(q);
   const [announcement, setAnnouncement] = useState("");
-  const [viewport, setViewport] = useState<number>();
   useEffect(() => {
     setSearch(q);
   }, [q]);
@@ -52,65 +54,24 @@ export function NotesPage({
     const timer = window.setTimeout(() => onFilter(projectId, search.trim()), 300);
     return () => window.clearTimeout(timer);
   }, [search, q, projectId, onFilter]);
-  useEffect(() => {
-    if (!mobile) return;
-    const visual = window.visualViewport;
-    const resize = () => setViewport(visual?.height ?? window.innerHeight);
-    resize();
-    visual?.addEventListener("resize", resize);
-    return () => visual?.removeEventListener("resize", resize);
-  }, [mobile]);
   const notes = query.data?.pages.flatMap((page) => page.items) ?? [];
+  const sortControl = <Selector label="메모 정렬" isLabelHidden size="sm" value={sort} onChange={onSort}
+    options={[{ value: 'created-desc', label: '최근 작성순' }, { value: 'updated-desc', label: '최근 수정순' }, { value: 'created-asc', label: '오래된 작성순' }]} />;
   return (
     <>
       <PageLayout
         padding={0}
         height="fill"
         contentWidth={WIDTH.wide}
-        style={
-          mobile && viewport
-            ? { height: viewport, maxHeight: viewport }
-            : undefined
-        }
-        header={<>
-          <PageHeader
+        header={<PageHeader
             title="메모"
-            description="떠오른 생각부터 사진과 자료까지 편하게 남겨보세요."
             compact={mobile}
-            actions={mobile ? <NotesMenu /> : undefined}
-          />
-          <Toolbar className="page-filter-toolbar" label="메모 필터" size="sm"
-            startContent={
-              <HStack
-                gap={1}
-                wrap="wrap"
-              >
-                <TextInput
-                  label="메모 검색"
-                  isLabelHidden
-                  placeholder="메모 검색"
-                  value={search}
-                  onChange={setSearch}
-                  hasClear
-                  width={mobile ? "100%" : 280}
-                />
-                <Selector
-                  label="프로젝트별 메모"
-                  isLabelHidden
-                  size="sm"
-                  variant="ghost"
-                  value={projectId ?? ""}
-                  options={[
-                    { value: "", label: "모든 메모" },
-                    ...projects.map((p) => ({ value: p.id, label: p.name })),
-                  ]}
-                  onChange={(value) =>
-                    onFilter(value || undefined, search.trim())
-                  }
-                />
-              </HStack>
-            } />
-        </>}
+            toolbar={mobile ? <MobileFilterBar label="메모 필터" searchLabel="메모 검색" placeholder="메모 검색"
+            query={search} onQueryChange={setSearch} leadingContent={<ScopeSelector />} actions={sortControl} /> :
+            <Toolbar className="page-filter-toolbar" label="메모 필터" size="sm" endContent={sortControl}
+              startContent={<><ScopeSelector /><TextInput label="메모 검색" isLabelHidden placeholder="메모 검색"
+                value={search} onChange={setSearch} hasClear width="17.5rem" /></>} />}
+          />}
         content={
           <PageContent padding={mobile ? 2 : 4}>
             <VStack gap={3}>
@@ -150,8 +111,8 @@ export function NotesPage({
           </PageContent>
         }
         footer={
-          <LayoutFooter padding={mobile ? 2 : 3}>
-            <NoteComposer
+          <LayoutFooter padding={mobile ? 2 : 3} style={mobile ? { paddingBottom: 'calc(var(--spacing-2) + env(safe-area-inset-bottom))' } : undefined}>
+            <NoteComposer key={projectId ?? "personal"} initialProjectId={projectId}
               onCreated={() => setAnnouncement("메모를 등록했습니다.")}
             />
             <Text

@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import xyz.gentask.module.task.application.task.TaskRequests.ChangeCompletion;
 import xyz.gentask.module.task.application.task.TaskRequests.ChangeImportance;
 import xyz.gentask.module.task.application.task.TaskRequests.ChangeMyDay;
-import xyz.gentask.module.task.application.task.TaskRequests.CreateTask;
 import xyz.gentask.module.task.application.task.TaskRequests.EditTask;
 import xyz.gentask.module.task.application.task.TaskViews.TaskView;
 import xyz.gentask.shared.web.CurrentUser;
@@ -36,6 +35,12 @@ public class TaskController {
             @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Pattern(regexp = "TODO|IN_PROGRESS|DONE") String state) {}
 
     public record AssignTask(UUID assigneeId) {}
+
+    public record ScopedTask(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 200) String title,
+
+            java.time.LocalDate dueDate,
+            String projectId) {}
 
     @PatchMapping("/{taskId}/state")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -69,14 +74,19 @@ public class TaskController {
 
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
-    public ResponseEntity<Void> add(@CurrentUser UUID userId, @Valid @RequestBody CreateTask createTask) {
-        UUID taskId = taskService.add(userId, createTask.title(), createTask.dueDate());
+    public ResponseEntity<Void> add(@CurrentUser UUID userId, @Valid @RequestBody ScopedTask createTask) {
+        UUID taskId = createTask.projectId() == null
+                ? taskService.add(userId, createTask.title(), createTask.dueDate())
+                : taskService.addProject(userId, createTask.projectId(), createTask.title(), createTask.dueDate());
         return ResponseEntity.created(URI.create("/api/v1/tasks/" + taskId)).build();
     }
 
     @GetMapping
-    public List<TaskView> list(@CurrentUser UUID userId) {
-        return taskService.list(userId);
+    public List<TaskView> list(
+            @CurrentUser UUID userId,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String projectId,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String scope) {
+        return taskService.list(userId, projectId, scope);
     }
 
     @GetMapping("/{taskId}")

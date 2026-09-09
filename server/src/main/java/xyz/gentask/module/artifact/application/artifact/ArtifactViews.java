@@ -49,7 +49,9 @@ public final class ArtifactViews {
             Instant createdAt,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
-            Instant updatedAt) {}
+            Instant updatedAt,
+
+            @Schema(types = {"string", "null"}) String projectId) {}
 
     /**
      * 목록의 한 줄.
@@ -81,7 +83,9 @@ public final class ArtifactViews {
             Instant createdAt,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
-            Instant updatedAt) {}
+            Instant updatedAt,
+
+            @Schema(types = {"string", "null"}) String projectId) {}
 
     @Schema(name = "ArtifactView")
     public record ArtifactView(

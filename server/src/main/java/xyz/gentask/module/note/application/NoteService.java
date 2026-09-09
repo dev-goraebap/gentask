@@ -39,8 +39,22 @@ public class NoteService {
 
     @Transactional(readOnly = true)
     public NotePage list(UUID userId, String projectId, String search, int offset) {
+        return list(userId, projectId, null, search, offset);
+    }
+
+    @Transactional(readOnly = true)
+    public NotePage list(UUID userId, String projectId, String scope, String search, int offset) {
+        return list(userId, projectId, scope, search, offset, "created-desc");
+    }
+
+    @Transactional(readOnly = true)
+    public NotePage list(UUID userId, String projectId, String scope, String search, int offset, String sort) {
+        if (!java.util.Set.of("created-desc", "updated-desc", "created-asc").contains(sort))
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Invalid note sort");
+        var filter = xyz.gentask.shared.domain.ResourceFilter.of(projectId, scope);
         if (projectId != null) projects.requireAccess(userId, projectId);
-        var rows = store.list(userId, projectId, search, offset, 31);
+        var rows = store.list(userId, projectId, filter.personal(), search, offset, 31, sort);
         return new NotePage(rows.stream().limit(30).map(this::view).toList(), rows.size() > 30 ? offset + 30 : null);
     }
 

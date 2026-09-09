@@ -7,6 +7,7 @@ export const SORT_LABEL: Record<DocSort, string> = {
 };
 
 export interface DocsProps {
+  readonly personal?: boolean;
   readonly projectId: string | null;
   readonly folderId: string | null;
   readonly onFolderChange: (id: string | null) => void;

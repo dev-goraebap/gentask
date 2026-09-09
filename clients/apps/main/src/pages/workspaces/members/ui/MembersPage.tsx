@@ -140,9 +140,9 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
 
   return <>
     <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
-      header={<>{mobile ? null : <PageHeader title="멤버" description="프로젝트 멤버와 역할을 관리합니다."
+      header={<><PageHeader title="멤버" compact={mobile}
         actions={<Button label="멤버 초대" size="sm" variant="primary" icon={<HgiPlus />} isDisabled={!canManage}
-          onClick={() => { setLabel(''); setRole('viewer'); setDays('7'); setCreatedId(undefined); setInviteTab('new'); setRevoking(undefined); setCreating(true); }} />} />}
+          onClick={() => { setLabel(''); setRole('viewer'); setDays('7'); setCreatedId(undefined); setInviteTab('new'); setRevoking(undefined); setCreating(true); }} />} />
         {memberToolbar}
         {mobile && roleFilter !== 'all' ? <HStack paddingInline={mobile ? 3 : 4} paddingBlockEnd={2} gap={2} align="center">
           <Text color="secondary">역할 · {roles.map(role => ROLE_LABEL[role as keyof typeof ROLE_LABEL]).join(', ')}</Text>

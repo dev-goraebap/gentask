@@ -1,30 +1,11 @@
-import { NotesPage } from "@/pages/notes";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { NotesPage } from '@/pages/notes';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 export function NotesRoute() {
-  const { project, q, note } = useSearch({ strict: false }) as {
-    project?: string;
-    q?: string;
-    note?: string;
-  };
+  const search = useSearch({ from: '/notes' });
   const navigate = useNavigate();
-  return (
-    <NotesPage
-      selectedId={note ?? null}
-      projectId={project}
-      q={q ?? ""}
-      onFilter={(project, q) => {
-        void navigate({ to: "/notes", search: { project, q }, replace: true });
-      }}
-      onSelect={(id) => {
-        void navigate({
-          to: "/notes/$noteId",
-          params: { noteId: id },
-          search: { project, q },
-        });
-      }}
-      onClose={() => {
-        void navigate({ to: "/notes", search: { project, q } });
-      }}
-    />
-  );
+  return <NotesPage selectedId={search.note ?? null} projectId={search.projectId ?? search.project} personal={search.scope === 'personal'} q={search.q ?? ''} sort={search.sort ?? 'created-desc'}
+    onSort={sort => void navigate({ to: '/notes', search: { ...search, sort: sort === 'created-desc' ? undefined : sort }, replace: true })}
+    onFilter={(_, q) => void navigate({ to: '/notes', search: { ...search, q }, replace: true })}
+    onSelect={note => void navigate({ to: '/notes', search: { ...search, note } })}
+    onClose={() => void navigate({ to: '/notes', search: { ...search, note: undefined } })} />;
 }

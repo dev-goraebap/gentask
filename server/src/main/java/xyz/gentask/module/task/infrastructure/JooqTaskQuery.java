@@ -41,6 +41,11 @@ class JooqTaskQuery implements TaskQuery {
     }
 
     @Override
+    public List<TaskView> findVisible(UUID userId, boolean personal) {
+        return fetch(accessible(userId).and(personal ? TASKS.PROJECT_ID.isNull() : DSL.noCondition()));
+    }
+
+    @Override
     public List<TaskView> findProject(String projectId) {
         return fetch(TASKS.PROJECT_ID.eq(projectId));
     }

@@ -1,12 +1,11 @@
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton, MobileSurface } from '@/shared/ui/mobile';
 import { ListingFooter, SortSelector, SortFields, type SortValue, type SortOption, useListing } from '@/shared/ui/listing';
-import { MobilePageHeader } from '@/shared/ui/mobile';
 import { ProjectAvatar } from '@/entities/workspace';
-import { CreateProjectDialog } from '@/features/create-project';
+import { CreateProjectDialog } from './CreateProjectDialog';
 import { useProjectList } from '@/features/project-list';
 import { WIDTH } from '@/shared/config';
-import { HgiSearch } from '@/shared/ui/icons';
+import { HgiSearch, HgiFilter } from '@/shared/ui/icons';
 import { CreateButton } from '@/shared/ui/mobile';
 import { Button, CheckboxList, CheckboxListItem, DialogHeader, MultiSelector, EmptyState, HStack, Item, Layout, LayoutContent, List, Selector, Text, TextInput, Token, Toolbar, VStack } from '@astryxdesign/core';
 import { useNavigate, useSearch } from '@tanstack/react-router';
@@ -41,22 +40,23 @@ export function WorkspacesPage() {
   if (sort.key === 'name') matched.sort((a, b) => (sort.direction === 'asc' ? 1 : -1) * a.name.localeCompare(b.name, 'ko'));
   const visible = matched.slice(listing.range(matched.length).start, listing.range(matched.length).end);
   return <>
-    <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide} header={<>
-      {mobile ? <><MobilePageHeader title="프로젝트" /><CreateButton label="프로젝트 만들기" onClick={() => setCreating(true)} /></> : <PageHeader title="프로젝트" description="참여 중인 프로젝트를 확인하고 관리합니다." />}
-      {mobile ? <MobileFilterBar label="프로젝트 필터" searchLabel="프로젝트 검색" placeholder="프로젝트 이름으로 검색" query={query} onQueryChange={setQuery}
+    <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide} header={<PageHeader title="프로젝트" compact={mobile}
+      actions={<CreateButton label="프로젝트 만들기" onClick={() => setCreating(true)} />}
+      toolbar={mobile ? <MobileFilterBar leadingContent={<HStack aria-hidden="true" align="center" style={{ color: 'var(--color-text-secondary)' }}><HgiFilter size={18} /></HStack>} label="프로젝트 필터" searchLabel="프로젝트 검색" placeholder="프로젝트 이름으로 검색" query={query} onQueryChange={setQuery}
         actions={<MobileFilterButton active={status.length > 0} onClick={() => { setDraft({ status, sort }); setFiltersOpen(true); }} />} /> :
         <Toolbar className="page-filter-toolbar" label="프로젝트 필터" size="sm" startContent={<>
+          <HStack aria-hidden="true" align="center" style={{ color: 'var(--color-text-secondary)' }}><HgiFilter size={18} /></HStack>
           <TextInput label="프로젝트 검색" isLabelHidden placeholder="프로젝트 이름으로 검색" value={query} onChange={setQuery} startIcon={<HgiSearch />} hasClear width="13.75rem" />
           <MultiSelector label="프로젝트 상태" isLabelHidden placeholder="모든 상태" value={status} onChange={setStatus} options={statusOptions} triggerDisplay="count" formatValue={items => `상태 · ${items.length}`} hasSelectAll selectAllLabel="전체 선택" />
           {query || status.length ? <Button label="초기화" variant="secondary" onClick={() => { setQuery(''); setStatus([]); }} /> : null}
         </>} endContent={<SortSelector options={sortOptions} value={sort} onChange={setSort} />} />}
 
-    </>} footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} />} content={<PageContent ref={listing.ref} onScroll={listing.onScroll} padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-10))' } : undefined}>
+    />} footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} />} content={<PageContent ref={listing.ref} onScroll={listing.onScroll} padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-12) + var(--spacing-4) * 2 + env(safe-area-inset-bottom))' } : undefined}>
       {visible.length ? <List hasDividers style={{ marginInline: mobile ? 'calc(-1 * var(--spacing-3))' : 'calc(-1 * var(--spacing-2))' }}>{visible.map((p) => <Item as="li" key={p.id} label={p.name} labelLines={2} density={mobile ? 'spacious' : 'balanced'}
         startContent={<ProjectAvatar project={p} size="md" />}
         description={`프로젝트 키 · ${p.prefix}`}
         endContent={p.archived ? <Token label="보관됨" /> : undefined}
-        onClick={() => navigate({ to: p.archived ? '/projects/$projectId/settings' : '/projects/$projectId/tasks', params: { projectId: p.id }, search: {} })} />)}</List> :
+        onClick={() => navigate({ to: p.archived ? '/projects/$projectId/settings' : '/projects/$projectId/members', params: { projectId: p.id }, search: {} })} />)}</List> :
         <EmptyState title={!projects.length ? '참여 중인 프로젝트가 없습니다' : '표시할 프로젝트가 없습니다'}
           description={!projects.length ? '첫 프로젝트를 만들어 함께 작업할 공간을 마련하세요.' : '검색어나 프로젝트 상태를 바꿔 보세요.'}
           actions={!projects.length ? <Button label="첫 프로젝트 만들기" onClick={() => setCreating(true)} /> : <Button label="전체 프로젝트 보기" onClick={() => { setQuery(''); setStatus([]); }} />} />}

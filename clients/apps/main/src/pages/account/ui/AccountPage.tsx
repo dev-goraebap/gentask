@@ -26,7 +26,7 @@ export function AccountPage() {
     },
   });
   return <PageLayout padding={0} contentWidth={WIDTH.wide}
-    header={mobile ? <MobilePageHeader title="내 정보" /> : <PageHeader title="내 정보" description="프로필과 화면 설정, 에이전트 연결을 관리하세요." />}
+    header={mobile ? <MobilePageHeader title="내 정보" /> : <PageHeader title="내 정보" />}
     content={<PageContent padding={mobile ? 3 : 4}><VStack gap={5} className="account-settings">
       <SettingsGroup title="프로필">
         <SettingsRow title={me?.nickname ?? '프로필'} description={me?.email} icon={<HgiUser />}

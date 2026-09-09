@@ -5,7 +5,6 @@ import static xyz.gentask.jooq.Tables.ARTIFACT_FOLDERS;
 import static xyz.gentask.jooq.Tables.ARTIFACT_REVISIONS;
 import static xyz.gentask.jooq.Tables.USERS;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.Record5;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 import xyz.gentask.jooq.tables.ArtifactFolders;
@@ -36,10 +34,25 @@ class JooqArtifactQuery implements ArtifactQuery {
 
     @Override
     public List<ArtifactSummary> findAll(ArtifactScope projectId) {
+        return summaries(ArtifactScopeCondition.matches(projectId, ARTIFACTS.PROJECT_ID, ARTIFACTS.OWNER_ID));
+    }
+
+    @Override
+    public List<ArtifactSummary> findVisible(java.util.UUID userId) {
+        return summaries(visible(userId, ARTIFACTS.PROJECT_ID, ARTIFACTS.OWNER_ID));
+    }
+
+    private List<ArtifactSummary> summaries(Condition condition) {
         return dslContext
-                .select(ARTIFACTS.ID, ARTIFACTS.TITLE, ARTIFACTS.FOLDER_ID, ARTIFACTS.CREATED_AT, ARTIFACTS.UPDATED_AT)
+                .select(
+                        ARTIFACTS.ID,
+                        ARTIFACTS.TITLE,
+                        ARTIFACTS.FOLDER_ID,
+                        ARTIFACTS.CREATED_AT,
+                        ARTIFACTS.UPDATED_AT,
+                        ARTIFACTS.PROJECT_ID)
                 .from(ARTIFACTS)
-                .where(ArtifactScopeCondition.matches(projectId, ARTIFACTS.PROJECT_ID, ARTIFACTS.OWNER_ID))
+                .where(condition)
                 .and(ARTIFACTS.DELETED_AT.isNull())
                 .orderBy(ARTIFACTS.UPDATED_AT.desc(), ARTIFACTS.ID.asc())
                 .fetch(JooqArtifactQuery::toSummary);
@@ -50,6 +63,16 @@ class JooqArtifactQuery implements ArtifactQuery {
      */
     @Override
     public List<FolderSummary> findFolders(ArtifactScope projectId) {
+        return folders(
+                ArtifactScopeCondition.matches(projectId, ARTIFACT_FOLDERS.PROJECT_ID, ARTIFACT_FOLDERS.OWNER_ID));
+    }
+
+    @Override
+    public List<FolderSummary> findVisibleFolders(java.util.UUID userId) {
+        return folders(visible(userId, ARTIFACT_FOLDERS.PROJECT_ID, ARTIFACT_FOLDERS.OWNER_ID));
+    }
+
+    private List<FolderSummary> folders(Condition condition) {
         ArtifactFolders child = ARTIFACT_FOLDERS.as("child");
         Field<Integer> artifactCount = DSL.selectCount()
                 .from(ARTIFACTS)
@@ -69,10 +92,10 @@ class JooqArtifactQuery implements ArtifactQuery {
                         artifactCount,
                         folderCount,
                         ARTIFACT_FOLDERS.CREATED_AT,
-                        ARTIFACT_FOLDERS.UPDATED_AT)
+                        ARTIFACT_FOLDERS.UPDATED_AT,
+                        ARTIFACT_FOLDERS.PROJECT_ID)
                 .from(ARTIFACT_FOLDERS)
-                .where(ArtifactScopeCondition.matches(
-                        projectId, ARTIFACT_FOLDERS.PROJECT_ID, ARTIFACT_FOLDERS.OWNER_ID))
+                .where(condition)
                 .orderBy(ARTIFACT_FOLDERS.NAME.asc(), ARTIFACT_FOLDERS.ID.asc())
                 .fetch(record -> new FolderSummary(
                         record.get(ARTIFACT_FOLDERS.ID),
@@ -81,7 +104,8 @@ class JooqArtifactQuery implements ArtifactQuery {
                         record.get(artifactCount),
                         record.get(folderCount),
                         record.get(ARTIFACT_FOLDERS.CREATED_AT),
-                        record.get(ARTIFACT_FOLDERS.UPDATED_AT)));
+                        record.get(ARTIFACT_FOLDERS.UPDATED_AT),
+                        record.get(ARTIFACT_FOLDERS.PROJECT_ID)));
     }
 
     @Override
@@ -90,6 +114,7 @@ class JooqArtifactQuery implements ArtifactQuery {
         return dslContext
                 .select(
                         ARTIFACTS.ID,
+                        ARTIFACTS.PROJECT_ID,
                         ARTIFACTS.TITLE,
                         ARTIFACTS.FOLDER_ID,
                         ARTIFACTS.CREATED_AT,
@@ -115,7 +140,8 @@ class JooqArtifactQuery implements ArtifactQuery {
                                 record.get(ARTIFACTS.TITLE),
                                 record.get(ARTIFACTS.FOLDER_ID),
                                 record.get(ARTIFACTS.CREATED_AT),
-                                record.get(ARTIFACTS.UPDATED_AT)),
+                                record.get(ARTIFACTS.UPDATED_AT),
+                                record.get(ARTIFACTS.PROJECT_ID)),
                         record.get(ARTIFACT_REVISIONS.BODY),
                         record.get(ARTIFACT_REVISIONS.REVISION_NO),
                         record.get(USERS.NICKNAME) == null ? "" : record.get(USERS.NICKNAME),
@@ -196,12 +222,48 @@ class JooqArtifactQuery implements ArtifactQuery {
                 record.get(ARTIFACT_REVISIONS.COMMENT));
     }
 
-    private static ArtifactSummary toSummary(Record5<String, String, String, Instant, Instant> record) {
+    private static ArtifactSummary toSummary(Record record) {
         return new ArtifactSummary(
                 record.get(ARTIFACTS.ID),
                 record.get(ARTIFACTS.TITLE),
                 record.get(ARTIFACTS.FOLDER_ID),
                 record.get(ARTIFACTS.CREATED_AT),
-                record.get(ARTIFACTS.UPDATED_AT));
+                record.get(ARTIFACTS.UPDATED_AT),
+                record.get(ARTIFACTS.PROJECT_ID));
+    }
+
+    private Condition visible(java.util.UUID userId, Field<String> projectId, Field<java.util.UUID> ownerId) {
+        var projects = xyz.gentask.jooq.Tables.PROJECTS;
+        var members = xyz.gentask.jooq.Tables.PROJECT_MEMBERS;
+        return projectId
+                .isNull()
+                .and(ownerId.eq(userId))
+                .or(projectId.in(DSL.select(projects.ID)
+                        .from(projects)
+                        .where(projects.OWNER_ID
+                                .eq(userId)
+                                .or(DSL.exists(DSL.selectOne()
+                                        .from(members)
+                                        .where(members.PROJECT_ID.eq(projects.ID))
+                                        .and(members.USER_ID.eq(userId)))))));
+    }
+
+    @Override
+    public Optional<ArtifactScope> artifactScope(String id) {
+        return dslContext
+                .select(ARTIFACTS.PROJECT_ID, ARTIFACTS.OWNER_ID)
+                .from(ARTIFACTS)
+                .where(ARTIFACTS.ID.eq(id))
+                .and(ARTIFACTS.DELETED_AT.isNull())
+                .fetchOptional(r -> new ArtifactScope(r.value1(), r.value2()));
+    }
+
+    @Override
+    public Optional<ArtifactScope> folderScope(String id) {
+        return dslContext
+                .select(ARTIFACT_FOLDERS.PROJECT_ID, ARTIFACT_FOLDERS.OWNER_ID)
+                .from(ARTIFACT_FOLDERS)
+                .where(ARTIFACT_FOLDERS.ID.eq(id))
+                .fetchOptional(r -> new ArtifactScope(r.value1(), r.value2()));
     }
 }

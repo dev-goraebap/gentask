@@ -217,4 +217,28 @@ class NoteApiTest {
         mvc.perform(delete(note).cookie(owner)).andExpect(status().isNoContent());
         mvc.perform(get(note).cookie(owner)).andExpect(status().isNotFound());
     }
+
+    @Test
+    void 정렬을_적용한_순서로_페이지를_조회한다() throws Exception {
+        String first = create(owner, Map.of("body", "first"));
+        String second = create(owner, Map.of("body", "second"));
+        var table = xyz.gentask.jooq.Tables.NOTES;
+        dsl.update(table)
+                .set(table.CREATED_AT, Instant.parse("2026-01-01T00:00:00Z"))
+                .set(table.UPDATED_AT, Instant.parse("2026-03-01T00:00:00Z"))
+                .where(table.ID.eq(first.substring(first.lastIndexOf('/') + 1)))
+                .execute();
+        dsl.update(table)
+                .set(table.CREATED_AT, Instant.parse("2026-02-01T00:00:00Z"))
+                .set(table.UPDATED_AT, Instant.parse("2026-02-01T00:00:00Z"))
+                .where(table.ID.eq(second.substring(second.lastIndexOf('/') + 1)))
+                .execute();
+        mvc.perform(get("/api/v1/notes").cookie(owner))
+                .andExpect(jsonPath("$.items[0].body").value("second"));
+        mvc.perform(get("/api/v1/notes?sort=created-asc").cookie(owner))
+                .andExpect(jsonPath("$.items[0].body").value("first"));
+        mvc.perform(get("/api/v1/notes?sort=updated-desc&offset=1").cookie(owner))
+                .andExpect(jsonPath("$.items[0].body").value("second"));
+        mvc.perform(get("/api/v1/notes?sort=unknown").cookie(owner)).andExpect(status().isBadRequest());
+    }
 }

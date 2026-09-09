@@ -10,6 +10,13 @@ import xyz.gentask.module.artifact.application.artifact.ArtifactViews.VersionVie
 import xyz.gentask.module.artifact.domain.ArtifactScope;
 
 public interface ArtifactQuery {
+    List<ArtifactSummary> findVisible(java.util.UUID userId);
+
+    List<FolderSummary> findVisibleFolders(java.util.UUID userId);
+
+    Optional<ArtifactScope> artifactScope(String id);
+
+    Optional<ArtifactScope> folderScope(String id);
 
     List<ArtifactSummary> findAll(ArtifactScope projectId);
 
