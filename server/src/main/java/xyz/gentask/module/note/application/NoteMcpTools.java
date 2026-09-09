@@ -24,12 +24,14 @@ public class NoteMcpTools {
     public CallToolResult listNotes(
             McpTransportContext context,
             @McpToolParam(description = "프로젝트 NanoID", required = false) String projectId,
+            @McpToolParam(description = "personal: 개인만. 생략: 전체. projectId와 함께 사용할 수 없음", required = false) String scope,
             @McpToolParam(description = "본문 검색어", required = false) String query,
             @McpToolParam(description = "다음 페이지 위치", required = false) Integer offset) {
         return results.call(() -> {
             return notes.list(
                     results.userId(context),
                     projectId,
+                    scope,
                     query == null ? "" : query,
                     offset == null ? 0 : Math.max(0, Math.min(offset, 100000)));
         });

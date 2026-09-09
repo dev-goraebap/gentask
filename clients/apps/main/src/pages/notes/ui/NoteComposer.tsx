@@ -14,12 +14,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Suspense, useRef, useState } from "react";
 import { createNote, prepareNoteFile } from "../api/notes";
 
-export function NoteComposer({ onCreated }: { onCreated: () => void }) {
+export function NoteComposer({ onCreated, initialProjectId }: { onCreated: () => void; initialProjectId?: string }) {
   const { projects } = useWorkspaceStore();
   const mobile = useMediaQuery(MOBILE_QUERY);
   const client = useQueryClient();
   const [body, setBody] = useState("");
-  const [projectId, setProjectId] = useState("");
+  const [projectId, setProjectId] = useState(initialProjectId ?? "");
   const attachments = useNoteFiles();
   const files = attachments.files.map(item => item.file);
   const [error, setError] = useState("");

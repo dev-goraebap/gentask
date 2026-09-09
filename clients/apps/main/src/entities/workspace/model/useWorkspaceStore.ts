@@ -2,6 +2,9 @@ import { createContext, useContext } from 'react';
 import { type Project } from './data';
 
 export interface WorkspaceStore {
+  readonly isPending: boolean;
+  readonly error: Error | null;
+  readonly retry: () => void;
   readonly projects: readonly Project[];
   readonly createProject: (name: string, description: string, ownerName: string, image?: File) => string;
   readonly projectOrderByUser: Readonly<Record<string, readonly string[]>>;

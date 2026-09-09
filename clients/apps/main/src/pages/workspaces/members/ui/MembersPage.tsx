@@ -1,3 +1,5 @@
+import { PageState as EmptyState } from '@/shared/ui/page-state';
+import { UserAvatar } from '@/shared/ui/user-avatar';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
 import { useSession } from '@/entities/session';
@@ -10,7 +12,7 @@ import { HgiMembers, HgiPlus, HgiSearch, HgiTrash } from '@/shared/ui/icons';
 import { ListingFooter, PageSize, SortSelector, SortFields, useListing } from '@/shared/ui/listing';
 import { MobileSurface } from '@/shared/ui/mobile';
 import {
-    Avatar, Button, CheckboxList, CheckboxListItem, MultiSelector, Dialog, DialogHeader, EmptyState,
+    Button, CheckboxList, CheckboxListItem, MultiSelector, Dialog, DialogHeader,
     HStack,
     Item,
     Layout, LayoutContent,
@@ -28,7 +30,7 @@ import { ROLE_OPTIONS, type MemberRow, type MembersProps } from './members';
 const sortOptions = [{ value: 'title', label: '이름 순' }, { value: 'role', label: '역할 순' }];
 
 export function MembersPage({ projectId, onPreview }: MembersProps) {
-  const { projects } = useWorkspaceStore();
+  const { projects, isPending: projectsPending, error: projectsError, retry: retryProjects } = useWorkspaceStore();
   const session = useSession();
   const client = useQueryClient();
   const memberQuery = useQuery(membersOptions(projectId));
@@ -101,7 +103,7 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
     {
       key: 'name', header: '멤버', width: proportional(2),
       renderCell: (member) => <HStack gap={2} align="center">
-        <Avatar src={member.profileImageUrl} name={member.name} size="sm" />
+        <UserAvatar userId={member.id} src={member.profileImageUrl} name={member.name} size="sm" />
         <HStack gap={1} wrap="wrap" align="center">
           <Text weight="semibold">{member.name}</Text>
           {member.id === session.data?.id ? <Text type="supporting">나</Text> : null}
@@ -125,8 +127,6 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
     },
   ];
 
-  if (!memberQuery.data) return <RequestState error={memberQuery.error} retry={() => { void memberQuery.refetch(); }} />;
-  if (!project) return <EmptyState title="프로젝트를 찾을 수 없습니다" />;
 
   const memberToolbar = mobile ? <MobileFilterBar label="멤버 필터" searchLabel="멤버 검색" placeholder="이름으로 검색" query={query} onQueryChange={setQuery}
     actions={<>
@@ -135,18 +135,22 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
     </>} /> : <Toolbar className="page-filter-toolbar" label="멤버 필터" size="sm" endContent={<HStack gap={2} align="center"><SortSelector options={sortOptions} value={{ key: listing.sort, direction: listing.direction }} onChange={value => listing.change({ sort: value.key, direction: value.direction })} /><Text type="supporting">참여 중 · {matched.length}명</Text></HStack>} startContent={<>
       <TextInput label="멤버 검색" isLabelHidden placeholder="이름으로 검색" startIcon={<HgiSearch />} value={query} onChange={setQuery} hasClear width="13.75rem" />
       <MultiSelector label="역할 필터" isLabelHidden placeholder="모든 역할" value={roles} onChange={setRoles} options={Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))} triggerDisplay="count" formatValue={items => `역할 · ${items.length}`} hasSelectAll selectAllLabel="전체 선택" />
-      {query || roleFilter !== 'all' ? <Button label="초기화" variant="ghost" onClick={() => { setQuery(''); setRoles([]); }} /> : null}
+      {query || roleFilter !== 'all' ? <Button label="초기화" variant="secondary" onClick={() => { setQuery(''); setRoles([]); }} /> : null}
     </>} />;
+
+  if (!memberQuery.data || !project) return <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
+    header={<PageHeader title="멤버" compact={mobile} toolbar={memberToolbar} />}
+    content={<PageContent>{!project && !projectsPending && !projectsError ? <EmptyState kind="not-found" title="프로젝트를 찾을 수 없습니다" /> : <RequestState error={memberQuery.error ?? projectsError} retry={() => { void memberQuery.refetch(); retryProjects(); }} />}</PageContent>} />;
 
   return <>
     <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
-      header={<>{mobile ? null : <PageHeader title="멤버" description="프로젝트 멤버와 역할을 관리합니다."
+      header={<><PageHeader title="멤버" compact={mobile}
         actions={<Button label="멤버 초대" size="sm" variant="primary" icon={<HgiPlus />} isDisabled={!canManage}
-          onClick={() => { setLabel(''); setRole('viewer'); setDays('7'); setCreatedId(undefined); setInviteTab('new'); setRevoking(undefined); setCreating(true); }} />} />}
+          onClick={() => { setLabel(''); setRole('viewer'); setDays('7'); setCreatedId(undefined); setInviteTab('new'); setRevoking(undefined); setCreating(true); }} />} />
         {memberToolbar}
         {mobile && roleFilter !== 'all' ? <HStack paddingInline={mobile ? 3 : 4} paddingBlockEnd={2} gap={2} align="center">
           <Text color="secondary">역할 · {roles.map(role => ROLE_LABEL[role as keyof typeof ROLE_LABEL]).join(', ')}</Text>
-          <Button label="해제" variant="ghost" onClick={() => setRoles([])} />
+          <Button label="해제" variant="secondary" onClick={() => setRoles([])} />
         </HStack> : null}
       </>}
       footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} unit="명" />}
@@ -157,11 +161,11 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
             {mobile ? <Text weight="semibold">참여 중 · {matched.length}명</Text> : null}
             {mobile ? <List hasDividers style={{ marginInline: 'calc(-1 * var(--spacing-3))' }}>{visibleMembers.map((member) => <Item as="li" key={member.id}
               label={member.name} labelLines={2} description={`${ROLE_LABEL[member.role]}${member.isGuest ? ' · 게스트' : ''}`}
-              startContent={<Avatar src={member.profileImageUrl} name={member.name} size="sm" />} density="spacious"
+              startContent={<UserAvatar userId={member.id} src={member.profileImageUrl} name={member.name} size="sm" />} density="spacious"
               onClick={() => setSelectedMember(member.id)} />)}</List> :
               <Table<MemberRow> aria-label="프로젝트 멤버" data={visibleMembers.map((member) => ({ ...member }))}
                 columns={columns} idKey="id" density="balanced" dividers="rows" hasHover />}
-            {!matched.length ? <EmptyState title="검색 결과가 없습니다" description="다른 이름이나 역할로 검색해 주세요." /> : null}
+            {!matched.length ? <EmptyState kind="search" title="검색 결과가 없습니다" description="다른 이름이나 역할로 검색해 주세요." /> : null}
           </VStack>
           <VStack gap={1} paddingInline={0}>
             <Text color="secondary">편집자는 문서를 수정하고, 열람자는 문서를 읽고 코멘트를 남길 수 있습니다.</Text>
@@ -227,12 +231,12 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
                   <Token size="sm" label={invite.revoked ? '비활성' : isActive(invite) ? '사용 가능' : '만료'} color={isActive(invite) ? 'green' : 'gray'} /></HStack>}
                 description={`${ROLE_LABEL[invite.role]} · ${new Date(invite.expiresAt).toLocaleDateString('ko-KR')} 만료 · ${invite.uses}명 참여`}
                 endContent={<HStack gap={1} wrap="wrap">
-                  <Button label="복사" size="sm" variant="ghost" isDisabled={!isActive(invite)} onClick={() => void copy(invite.id)} />
-                  <Button label="미리보기" size="sm" variant="ghost" isDisabled={!isActive(invite)} onClick={() => { setCreating(false); onPreview(invite.token); }} />
+                  <Button label="복사" size="sm" variant="secondary" isDisabled={!isActive(invite)} onClick={() => void copy(invite.id)} />
+                  <Button label="미리보기" size="sm" variant="secondary" isDisabled={!isActive(invite)} onClick={() => { setCreating(false); onPreview(invite.token); }} />
                   <Button label={`${invite.label} 비활성화`} size="sm" variant="ghost" isIconOnly icon={<HgiTrash />}
                     isDisabled={!canManage || !isActive(invite)} onClick={() => setRevoking(invite)} />
                 </HStack>} />)}
-            </List> : <EmptyState isCompact icon={<HgiMembers />} title="초대 링크가 없습니다" description="새 초대 탭에서 링크를 만들어 공유하세요." />}
+            </List> : <EmptyState isCompact title="초대 링크가 없습니다" description="새 초대 탭에서 링크를 만들어 공유하세요." />}
           </VStack>
 
         </> : created ? <>
@@ -241,7 +245,7 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
           <TextInput label="초대 링크" value={urlFor(created.id)} isReadOnly />
           <Text color="secondary">링크를 전달받은 사람 누구나 참여할 수 있습니다. 필요한 사람에게만 공유하세요.</Text>
           <HStack gap={2} justify="end" wrap="wrap">
-            <Button label="새 링크 만들기" variant="ghost" onClick={() => { setCreatedId(undefined); setLabel(''); }} />
+            <Button label="새 링크 만들기" variant="secondary" onClick={() => { setCreatedId(undefined); setLabel(''); }} />
             <Button label="참여 미리보기" isDisabled={!isActive(created)} onClick={() => { setCreating(false); onPreview(created.token); }} />
             <Button label="링크 복사" variant="primary" isDisabled={!isActive(created)} onClick={() => void copy(created.id)} />
           </HStack>

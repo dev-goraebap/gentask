@@ -1,14 +1,16 @@
+import { extractImageMetadata } from "@/shared/lib/image-color";
 import { createdId, get, request } from "@/shared/api";
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import type { components } from "api-types";
 export type Note = components["schemas"]["NoteView"];
 export type NoteFile = Note["files"][number];
-export const notesOptions = (projectId?: string, q = "") =>
+export const notesOptions = (projectId?: string, q = "", personal = false, sort = "created-desc") =>
   infiniteQueryOptions({
-    queryKey: ["notes", "list", projectId ?? null, q],
+    queryKey: ["notes", "list", projectId ?? null, personal, q, sort],
     initialPageParam: 0,
     queryFn: ({ pageParam, signal }) => {
-      const search = new URLSearchParams({ offset: String(pageParam), q });
+      const search = new URLSearchParams({ offset: String(pageParam), q, sort });
+      if (personal) search.set("scope", "personal");
       if (projectId) search.set("projectId", projectId);
       return get<components["schemas"]["NotePage"]>("/notes?" + search, signal);
     },
@@ -61,6 +63,7 @@ export async function prepareNoteFile(file: File) {
         fileName: file.name,
         contentType,
         size: file.size,
+        ...await extractImageMetadata(file),
       }),
     },
   );

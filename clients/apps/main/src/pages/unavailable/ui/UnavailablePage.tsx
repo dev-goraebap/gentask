@@ -1,4 +1,5 @@
-import { Button, EmptyState } from '@astryxdesign/core';
+import { PageState as EmptyState } from '@/shared/ui/page-state';
+import { Button } from '@astryxdesign/core';
 import { useNavigate } from '@tanstack/react-router';
 export function UnavailablePage() {
   const navigate = useNavigate();

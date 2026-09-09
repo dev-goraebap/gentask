@@ -1,6 +1,7 @@
+import { PageState as EmptyState } from '@/shared/ui/page-state';
 import { WIDTH } from '@/shared/config';
 import { PageContent, PageLayout, PageHeader } from '@/shared/ui/page-layout';
-import { EmptyState } from '@astryxdesign/core';
+
 export function TasksComingSoonPage() {
   return <PageLayout padding={0} contentWidth={WIDTH.wide}
     header={<PageHeader title="작업" />}

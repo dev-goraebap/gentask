@@ -28,6 +28,10 @@ class JooqPendingUploadRepository implements PendingUploadRepository {
                 .set(PENDING_UPLOADS.CONTENT_TYPE, pendingUpload.contentType())
                 .set(PENDING_UPLOADS.ISSUED_BY, pendingUpload.issuedBy())
                 .set(PENDING_UPLOADS.CREATED_AT, pendingUpload.createdAt())
+                .set(
+                        PENDING_UPLOADS.METADATA,
+                        FileMetadata.encode(
+                                pendingUpload.dominantColor(), pendingUpload.width(), pendingUpload.height()))
                 .execute();
     }
 
@@ -56,6 +60,9 @@ class JooqPendingUploadRepository implements PendingUploadRepository {
                 pendingUploadsRecord.getFileName(),
                 pendingUploadsRecord.getContentType(),
                 pendingUploadsRecord.getIssuedBy(),
-                pendingUploadsRecord.getCreatedAt());
+                pendingUploadsRecord.getCreatedAt(),
+                FileMetadata.color(pendingUploadsRecord.getMetadata()),
+                FileMetadata.dimension(pendingUploadsRecord.getMetadata(), "width"),
+                FileMetadata.dimension(pendingUploadsRecord.getMetadata(), "height"));
     }
 }

@@ -6,6 +6,7 @@ import java.util.UUID;
 import xyz.gentask.module.task.application.task.TaskViews.TaskView;
 
 public interface TaskQuery {
+    List<TaskView> findVisible(UUID userId, boolean personal);
 
     List<TaskView> findAll(UUID userId);
 

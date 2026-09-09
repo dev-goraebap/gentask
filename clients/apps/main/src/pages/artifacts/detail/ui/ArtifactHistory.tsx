@@ -1,6 +1,7 @@
+import { UserAvatar } from '@/shared/ui/user-avatar';
 import { versionsOptions } from '@/entities/artifact';
 import { RequestState } from '@/shared/ui/request-state';
-import { Avatar, Button, HStack, List, ListItem, Text, VStack } from '@astryxdesign/core';
+import { Button, HStack, List, ListItem, Text, VStack } from '@astryxdesign/core';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { formatArtifactDate } from './document-detail';
@@ -18,7 +19,7 @@ export function ArtifactHistory({ projectId, artifactId, latestVersion, selected
         {query.data.items.map(version => <ListItem key={version.versionNo}
           label={<HStack gap={2} align="center" justify="between">
             <HStack gap={2} align="center" style={{ minWidth: 0 }}>
-              <Avatar name={version.authorName || '알 수 없는 사용자'} size="sm" tooltip={false} />
+              <UserAvatar userId={version.authorId} name={version.authorName || '알 수 없는 사용자'} size="sm" tooltip={false} />
               <Text size="sm" weight="medium" maxLines={1}>{version.authorName || '알 수 없는 사용자'}</Text>
             </HStack>
             {version.versionNo === latestVersion ? <Text type="supporting" style={{ flexShrink: 0 }}>최신</Text> : null}

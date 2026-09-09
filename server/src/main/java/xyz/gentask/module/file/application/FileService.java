@@ -52,7 +52,15 @@ public class FileService implements Attachments {
      * 스토리지 업로드용 Presigned URL을 발급한다. 엔터티 소유권 및 첨부 개수 제한 검증은 실제 첨부 시점에 각 도메인 모듈이 수행한다.
      */
     @Transactional
-    public PresignedUpload presign(AttachmentSlot slot, UUID actorId, String fileName, String contentType, long size) {
+    public PresignedUpload presign(
+            AttachmentSlot slot,
+            UUID actorId,
+            String fileName,
+            String contentType,
+            long size,
+            String dominantColor,
+            Integer width,
+            Integer height) {
         if (!slot.accepts(contentType)) {
             throw FileErrorCode.FILE_TYPE_NOT_ALLOWED.raise();
         }
@@ -62,8 +70,17 @@ public class FileService implements Attachments {
 
         Instant now = clock.instant();
         String storageKey = slot.storagePrefix() + "/" + KEY_DATE.format(now) + "/" + UUID.randomUUID();
-        pendingUploadRepository.save(
-                PendingUpload.issue(UUID.randomUUID(), storageKey, slot.name(), fileName, contentType, actorId, now));
+        pendingUploadRepository.save(PendingUpload.issue(
+                UUID.randomUUID(),
+                storageKey,
+                slot.name(),
+                fileName,
+                contentType,
+                actorId,
+                now,
+                contentType.startsWith("image/") ? dominantColor : null,
+                contentType.startsWith("image/") ? width : null,
+                contentType.startsWith("image/") ? height : null));
         return new PresignedUpload(storageKey, objectStorage.presignPut(storageKey, contentType, UPLOAD_EXPIRY));
     }
 
@@ -121,7 +138,16 @@ public class FileService implements Attachments {
         }
 
         Instant now = clock.instant();
-        Blob blob = Blob.store(UUID.randomUUID(), storageKey, pending.fileName(), pending.contentType(), byteSize, now);
+        Blob blob = Blob.store(
+                UUID.randomUUID(),
+                storageKey,
+                pending.fileName(),
+                pending.contentType(),
+                byteSize,
+                now,
+                pending.dominantColor(),
+                pending.width(),
+                pending.height());
         blobRepository.save(blob);
 
         Attachment attachment =
@@ -179,6 +205,9 @@ public class FileService implements Attachments {
                 blob.contentType(),
                 blob.byteSize(),
                 objectStorage.presignGet(blob.storageKey(), blob.fileName(), DOWNLOAD_EXPIRY),
-                attachment.createdAt());
+                attachment.createdAt(),
+                blob.dominantColor(),
+                blob.width(),
+                blob.height());
     }
 }

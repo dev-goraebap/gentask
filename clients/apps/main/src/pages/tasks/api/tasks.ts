@@ -1,12 +1,13 @@
+import { extractImageMetadata } from "@/shared/lib/image-color";
+import { resourceSearch } from '@/shared/config';
 import { createdId, get, request } from '@/shared/api';
 import { queryOptions } from '@tanstack/react-query';
 export type TaskState = 'TODO' | 'IN_PROGRESS' | 'DONE';
 export type Task = { id:string; title:string; note:string; state:TaskState; projectId:string|null; projectName:string|null; assigneeId:string|null; assigneeName:string|null; dueDate:string|null; remindAt:string|null; createdAt:string };
 export const STATES: {value:TaskState;label:string}[] = [{value:'TODO',label:'할 일'},{value:'IN_PROGRESS',label:'진행 중'},{value:'DONE',label:'완료'}];
-const base=(projectId:string|null)=>projectId ? '/projects/'+encodeURIComponent(projectId)+'/tasks':'/tasks';
-export const tasksOptions=(projectId:string|null)=>queryOptions({queryKey:['tasks','list',projectId],queryFn:({signal})=>get<Task[]>(base(projectId),signal)});
+export const tasksOptions=(projectId:string|null,personal=false)=>queryOptions({queryKey:['tasks','list',projectId,personal],queryFn:({signal})=>get<Task[]>('/tasks'+resourceSearch(projectId,personal),signal)});
 export const taskOptions=(id:string)=>queryOptions({queryKey:['tasks','detail',id],queryFn:({signal})=>get<Task>('/tasks/'+id,signal)});
-export const addTask=async(projectId:string|null,title:string)=>createdId((await request(base(projectId),{method:'POST',body:JSON.stringify({title})})).location);
+export const addTask=async(projectId:string|null,title:string)=>createdId((await request('/tasks',{method:'POST',body:JSON.stringify({title,projectId})})).location);
 export const editTask=(id:string,input:{title:string;note:string;dueDate:string|null;remindAt:string|null})=>request('/tasks/'+id,{method:'PATCH',body:JSON.stringify(input)});
 export const changeTaskState=(id:string,state:TaskState)=>request('/tasks/'+id+'/state',{method:'PATCH',body:JSON.stringify({state})});
 export const assignTask=(id:string,assigneeId:string|null)=>request('/tasks/'+id+'/assignee',{method:'PATCH',body:JSON.stringify({assigneeId})});
@@ -18,7 +19,7 @@ export const taskFilesOptions=(id:string)=>queryOptions({queryKey:['tasks',id,'f
 export const removeTaskFile=(id:string,fileId:string)=>request('/tasks/'+id+'/files/'+fileId,{method:'DELETE'});
 export async function uploadTaskFile(id:string,file:File){
  const contentType=file.type||'application/octet-stream';
- const {data}=await request<{objectKey:string;url:string}>('/attachments/presign',{method:'POST',body:JSON.stringify({slot:'TASK_FILES',fileName:file.name,contentType,size:file.size})});
+ const {data}=await request<{objectKey:string;url:string}>('/attachments/presign',{method:'POST',body:JSON.stringify({slot:'TASK_FILES',fileName:file.name,contentType,size:file.size,...await extractImageMetadata(file)})});
  const target=new URL(data.url);
  const uploadUrl=import.meta.env.DEV&&target.origin===import.meta.env.DEV_STORAGE_ORIGIN ? '/__storage'+target.pathname+target.search : data.url;
  let result:Response;

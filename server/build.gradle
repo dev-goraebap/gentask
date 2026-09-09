@@ -146,6 +146,10 @@ jooq {
 				 * 시각" 은 절대 순간이 아니라서 LocalDateTime 으로 남아야 한다.
 				 */
 				forcedTypes {
+                    forcedType {
+                        name = 'JSONB'
+                        includeExpression = '.*\\.(blobs|pending_uploads)\\.metadata'
+                    }
 					forcedType {
 						userType = 'java.time.Instant'
 						converter = 'org.jooq.Converter.ofNullable(java.time.OffsetDateTime.class, java.time.Instant.class, java.time.OffsetDateTime::toInstant, i -> i.atOffset(java.time.ZoneOffset.UTC))'

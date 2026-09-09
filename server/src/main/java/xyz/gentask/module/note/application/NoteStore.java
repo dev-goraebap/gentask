@@ -21,7 +21,8 @@ public interface NoteStore {
 
     Optional<NoteRecord> find(String id, boolean lock);
 
-    List<NoteRecord> list(UUID userId, String projectId, String search, int offset, int limit);
+    List<NoteRecord> list(
+            UUID userId, String projectId, boolean personal, String search, int offset, int limit, String sort);
 
     void edit(String id, String body, Instant now);
 

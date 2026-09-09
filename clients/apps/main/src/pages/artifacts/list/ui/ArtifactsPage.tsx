@@ -1,4 +1,5 @@
-import { MobilePageHeader } from '@/shared/ui/mobile';
+import { PageState as EmptyState } from '@/shared/ui/page-state';
+import { ScopeSelector } from '@/features/select-resource-scope';
 import { useWorkspaceStore } from '@/entities/workspace';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
@@ -15,7 +16,6 @@ import {
     Breadcrumbs,
     Button,
     DialogHeader,
-    EmptyState,
     Heading,
     HStack,
     ListItem,
@@ -35,16 +35,16 @@ import { SORT_LABEL, type DocSort, type DocsProps } from './documents';
 
 const sortOptions: SortOption[] = Object.entries(SORT_LABEL).map(([value, label]) => ({ value, label, defaultDirection: value === 'updated' ? 'desc' : 'asc' }));
 
-export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: DocsProps) {
+export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId, personal = true }: DocsProps) {
   const { projects } = useWorkspaceStore();
-  const canEdit = projectId === null || ['owner', 'editor'].includes(projects.find(p => p.id === projectId)?.role ?? '');
+
   const rawSearch = useSearch({ strict: false });
   const search = parseListingSearch(rawSearch, ['title', 'updated'], 'title');
   const navigate = useNavigate();
   const listing = useListing(`artifacts:${projectId}:${folderId ?? ''}`, '', {
     value: { query: search.q, sort: search.sort, direction: search.direction, page: search.page, size: search.size },
-    onChange: state => { void navigate({ ...(projectId === null ? { to: '/artifacts' as const } : { to: '/projects/$projectId/artifacts' as const, params: { projectId } }), replace: state.query !== search.q,
-      search: { folder: folderId ?? undefined, q: state.query, sort: state.sort, direction: state.direction, page: state.page, size: state.size } }); },
+    onChange: state => { void navigate({ to: '/artifacts' as const, replace: state.query !== search.q,
+      search: { projectId: projectId ?? undefined, scope: personal && !projectId ? "personal" : undefined, folder: folderId ?? undefined, q: state.query, sort: state.sort, direction: state.direction, page: state.page, size: state.size } }); },
   });
   const { query, mobile } = listing;
   const sort = listing.sort as DocSort;
@@ -55,18 +55,19 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
   const [createMenu, setCreateMenu] = useState(false);
   const [creating, setCreating] = useState<'doc' | 'folder' | null>(null);
   const client = useQueryClient();
-  const artifacts = useQuery(artifactsOptions(projectId));
-  const folderQuery = useQuery(foldersOptions(projectId));
+  const artifacts = useQuery(artifactsOptions(projectId, personal));
+  const folderQuery = useQuery(foldersOptions(projectId, personal));
   const artifactList = artifacts.data ?? [];
+  const destination = folderQuery.data?.find(f => f.id === folderId)?.projectId ?? projectId;
   const folderList = (folderQuery.data ?? []).map(folder => ({ ...folder, title: folder.name }));
+  const canEdit = destination === null || ['owner', 'editor'].includes(projects.find(p => p.id === destination)?.role ?? '');
   const folderMutation = useMutation({
-    mutationFn: (name: string) => createFolder(projectId, { name, parentId: folderId }),
+    mutationFn: (name: string) => createFolder(destination, { name, parentId: folderId }),
     onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: artifactKeys.folders(projectId) });
+      await client.invalidateQueries({ queryKey: ['artifact-folders'] });
     },
   });
-  if (!artifacts.data || !folderQuery.data) return <RequestState error={artifacts.error ?? folderQuery.error}
-    retry={() => { void artifacts.refetch(); void folderQuery.refetch(); }} />;
+
 
   const matched = artifactList.filter(d => d.folderId === folderId &&
     d.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
@@ -101,19 +102,15 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
       padding={0}
       height="fill"
       contentWidth={WIDTH.wide}
-      header={
-        <>
-          {mobile ? <>{projectId === null ? <MobilePageHeader title="아티팩트" /> : null}{canEdit ? <CreateButton label="새로 만들기" onClick={() => setCreateMenu(true)} /> : null}</> :
-            <PageHeader title="아티팩트"
-              description={projectId === null ? '아이디어부터 다양한 기록과 문서까지, 한곳에서 관리하세요.' : '프로젝트의 생각과 지식을 함께 기록합니다.'}
-              actions={canEdit ? <><Button label="새 폴더" variant="secondary" size="sm" icon={<HgiFolder />} onClick={() => setCreating('folder')} /><CreateButton label="새 아티팩트" onClick={() => setCreating('doc')} /></> : undefined} />}
-
-          {mobile ? <MobileFilterBar label="아티팩트 필터" searchLabel="아티팩트 검색" placeholder="제목으로 검색" query={query} onQueryChange={setQuery}
+      header={<PageHeader title="아티팩트" compact={mobile}
+        actions={canEdit ? mobile ? <CreateButton label="새로 만들기" onClick={() => setCreateMenu(true)} /> : <><Button label="새 폴더" variant="secondary" size="sm" icon={<HgiFolder />} onClick={() => setCreating('folder')} /><CreateButton label="새 아티팩트" onClick={() => setCreating('doc')} /></> : undefined}
+        toolbar={mobile ? <MobileFilterBar leadingContent={<ScopeSelector />} label="아티팩트 필터" searchLabel="아티팩트 검색" placeholder="제목으로 검색" query={query} onQueryChange={setQuery}
             actions={<MobileFilterButton active={false} onClick={() => { setDraft({ sort, direction, filter: listing.filter, size: listing.size }); setFiltersOpen(true); }} />} /> : <Toolbar className="page-filter-toolbar"
               label="아티팩트 필터"
               size="sm"
               startContent={
                 <>
+                  <ScopeSelector />
                   <TextInput
                     label="검색"
                     isLabelHidden
@@ -126,7 +123,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
                     size="sm"
                   />
 
-                  {isFiltered ? <Button label="초기화" variant="ghost" onClick={reset} /> : null}
+                  {isFiltered ? <Button label="초기화" variant="secondary" onClick={reset} /> : null}
                 </>
               }
               endContent={
@@ -136,34 +133,35 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
                 </>
               }
             />}
-        </>
-      }
+      />}
       footer={mobile ? undefined : <ListingFooter {...listing.pagination(entries.length)} />}
     >
-      <PageContent padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-10) + var(--spacing-4))' } : undefined} ref={listing.ref} onScroll={listing.onScroll}>
+      <PageContent padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-12) + var(--spacing-4) * 2 + env(safe-area-inset-bottom))' } : undefined} ref={listing.ref} onScroll={listing.onScroll}>
         <VStack gap={4}>
+          {!artifacts.data || !folderQuery.data ? <RequestState error={artifacts.error ?? folderQuery.error} retry={() => { void artifacts.refetch(); void folderQuery.refetch(); }} /> : <>
           <HStack justify="between" align="center" gap={2} wrap="wrap" padding={0}>
           <Breadcrumbs label="아티팩트 폴더 경로">
             <BreadcrumbItem isCurrent={!folderId} onClick={() => onFolderChange(null)}>전체 아티팩트</BreadcrumbItem>
             {ancestors.map((folder) => <BreadcrumbItem key={folder.id} isCurrent={folder.id === folderId}
               onClick={() => onFolderChange(folder.id)}>{folder.title}</BreadcrumbItem>)}
           </Breadcrumbs>
-            {currentFolder ? <Button label="상위 폴더로" variant="ghost" size="sm"
+            {currentFolder ? <Button label="상위 폴더로" variant="secondary" size="sm"
               onClick={() => onFolderChange(currentFolder.parentId)} /> : null}
           </HStack>
-          {folderId && !currentFolder ? <EmptyState title="폴더를 찾을 수 없습니다"
+          {folderId && !currentFolder ? <EmptyState kind="not-found" title="폴더를 찾을 수 없습니다"
             actions={<Button label="전체 아티팩트로" onClick={() => onFolderChange(null)} />} /> : <>
             {folders.length || matched.length ? <List hasDividers density={mobile ? 'spacious' : 'balanced'} style={{ marginInline: mobile ? 'calc(-1 * var(--spacing-3))' : 'calc(-1 * var(--spacing-2))' }}>
               {visible.map((entry) => entry.kind === 'folder' ?
                 <ListItem key={entry.folder.id} label={entry.folder.title}
-                  startContent={<HgiFolder size={16} />} onClick={() => onFolderChange(entry.folder.id)} description="폴더" /> :
+                  startContent={<HgiFolder size={16} />} onClick={() => onFolderChange(entry.folder.id)} description={"폴더 · " + (entry.folder.projectId ? projects.find(p => p.id === entry.folder.projectId)?.name ?? "프로젝트" : "개인")} /> :
                 <ListItem key={entry.doc.id} label={<Text type="inherit" maxLines={mobile ? 2 : 1}>{entry.doc.title}</Text>}
                   startContent={<HgiFile size={15} />} onClick={() => onOpen(entry.doc.id)}
-                  description={`수정 ${new Date(entry.doc.updatedAt).toLocaleString('ko-KR')}`} />)}
-            </List> : <EmptyState icon={isFiltered ? <HgiSearchEmpty /> : <HgiFolder />}
+                  description={`${entry.doc.projectId ? projects.find(p => p.id === entry.doc.projectId)?.name ?? "프로젝트" : "개인"} · 수정 ${new Date(entry.doc.updatedAt).toLocaleString('ko-KR')}`} />)}
+            </List> : <EmptyState kind={isFiltered ? 'search' : 'empty'}
               title={isFiltered ? '조건에 맞는 항목이 없습니다' : '폴더가 비어 있습니다'}
               description={isFiltered ? '현재 폴더에서 검색어나 필터를 바꿔 보세요.' : '이 폴더에는 하위 폴더나 아티팩트가 없습니다.'}
               actions={isFiltered ? <Button label="필터 초기화" onClick={reset} /> : undefined} />}
+          </>}
           </>}
         </VStack>
         {mobile ? <ListingFooter {...listing.pagination(entries.length)} /> : null}
@@ -185,8 +183,8 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId }: D
         <Button label="폴더 만들기" icon={<HgiFolder />} size="lg" onClick={() => { setCreateMenu(false); setCreating('folder'); }} />
       </VStack>
     </BottomSheet>
-    {creating === 'doc' ? <ArtifactEditor projectId={projectId} folderId={folderId} onClose={() => setCreating(null)} onSaved={id => { setCreating(null); onOpen(id); }} /> : null}
-    {creating === 'folder' ? <CreateDialog title="새 폴더" withBody={false} onClose={() => setCreating(null)} onSave={async title => { await folderMutation.mutateAsync(title); listing.change({ query: title }); }} /> : null}
+    {creating === 'doc' ? <ArtifactEditor projectId={destination} folderId={folderId} onClose={() => setCreating(null)} onSaved={id => { setCreating(null); onOpen(id); }} /> : null}
+    {creating === 'folder' ? <CreateDialog title={`새 폴더 · ${destination ? projects.find(p => p.id === destination)?.name : "개인"}`} withBody={false} onClose={() => setCreating(null)} onSave={async title => { await folderMutation.mutateAsync(title); listing.change({ query: title }); }} /> : null}
     </>
   );
 }

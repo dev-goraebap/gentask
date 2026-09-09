@@ -95,7 +95,7 @@ export function NoteDetail({
             </HStack> : null}
           {writable && note && draft !== null && draft !== note.body ? (
             <HStack gap={1} style={{ flexShrink: 0 }}>
-              <Button label="수정 취소" aria-label="수정 취소" variant="ghost" size="sm" isDisabled={action.isPending}
+              <Button label="수정 취소" aria-label="수정 취소" variant="secondary" size="sm" isDisabled={action.isPending}
                 onClick={() => { setDraft(null); setEditorReset(value => value + 1); }}>취소</Button>
               <Button label="수정 저장" aria-label="수정 저장" variant="primary" size="sm"
                 isDisabled={action.isPending || (!draft.trim() && !note.files.length)}
@@ -123,7 +123,7 @@ export function NoteDetail({
         }
         footer={note ? <LayoutFooter hasDivider={false} padding={0} label="메모 기능">
                   {note.files.length ? <div className="note-attachment-tray note-attachment-tray-detail">
-                    {note.files.map(file => <NoteAttachment key={file.id} name={file.fileName} type={file.contentType}
+                    {note.files.map(file => <NoteAttachment key={file.id} name={file.fileName} type={file.contentType} dominantColor={file.dominantColor}
                       size={file.size} url={file.url} busy={action.isPending} removeLabel="첨부 삭제"
                       onRemove={writable ? () => { if (window.confirm('이 첨부파일을 삭제할까요?')) action.mutate(() => detachNoteFile(id, file.id)); } : undefined} />)}
                   </div> : null}

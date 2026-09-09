@@ -1,9 +1,10 @@
-import { Button, Text, Thumbnail, VStack } from '@astryxdesign/core';
+import { NoteImage } from "./NoteImage";
+import { Button, Text, VStack } from '@astryxdesign/core';
 import { HgiCancel, HgiFile } from '@/shared/ui/icons';
 import { useEffect, useState } from 'react';
 
-export function NoteAttachment({ name, type, size, file, url, onRemove, busy = false, removeLabel = '첨부 취소' }: {
-  name: string; type: string; size: number; file?: File; url?: string;
+export function NoteAttachment({ name, type, size, file, url, dominantColor, onRemove, busy = false, removeLabel = '첨부 취소' }: {
+  name: string; type: string; size: number; file?: File; url?: string; dominantColor?: string | null;
   onRemove?: () => void; busy?: boolean; removeLabel?: string;
 }) {
   const [preview, setPreview] = useState<string>();
@@ -18,9 +19,10 @@ export function NoteAttachment({ name, type, size, file, url, onRemove, busy = f
   const sizeLabel = size >= 1024 * 1024 ? `${(size / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.ceil(size / 1024))} KB`;
   const fileIcon = <VStack align="center" gap={1}><HgiFile size={30} /><Text type="supporting">{extension}</Text></VStack>;
   return <VStack gap={0.5} className="note-attachment" role="group" aria-label={name}>
-    <div className="note-attachment-preview">
-      {image ? <Thumbnail src={preview ?? url} alt={name} label={name} style={{ width: '100%' }}
-        onClick={url ? () => window.open(url, '_blank', 'noopener,noreferrer') : undefined} /> :
+    <div className="note-attachment-preview" style={{ backgroundColor: image ? dominantColor ?? undefined : undefined }}>
+      {image ? url ? <Button label={`${name} 열기`} href={url} target="_blank" variant="ghost" className="note-image-open">
+        <NoteImage src={preview ?? url} alt={name} color={dominantColor} square />
+      </Button> : <NoteImage src={preview} alt={name} color={dominantColor} square /> :
         url ? <Button label={`${name} 다운로드`} href={url} target="_blank"
           variant="ghost" className="note-attachment-file">{fileIcon}</Button> : <div className="note-attachment-file">{fileIcon}</div>}
       {onRemove ? <Button label={`${name} ${removeLabel}`} icon={<HgiCancel size={14} />} isIconOnly size="sm"

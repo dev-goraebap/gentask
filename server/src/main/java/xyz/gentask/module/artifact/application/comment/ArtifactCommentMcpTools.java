@@ -15,6 +15,7 @@ import xyz.gentask.shared.mcp.McpResults;
 public class ArtifactCommentMcpTools {
     private final ArtifactCommentService comments;
     private final McpResults results;
+    private final xyz.gentask.module.artifact.application.ArtifactResources resources;
 
     @McpTool(
             name = "list_artifact_comments",
@@ -23,10 +24,15 @@ public class ArtifactCommentMcpTools {
             annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
     public CallToolResult list(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "프로젝트 NanoID. 생성 시 소속 지정. 개별 항목은 ID로 소속을 확인", required = false)
+                    String projectId,
             @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
             @McpToolParam(description = "조회할 버전 번호", required = true) int versionNo) {
-        return results.call(() -> comments.list(results.userId(context), projectId, artifactId, versionNo));
+        return results.call(() -> comments.list(
+                results.userId(context),
+                resources.artifactProject(results.userId(context), artifactId, projectId),
+                artifactId,
+                versionNo));
     }
 
     @McpTool(
@@ -36,7 +42,8 @@ public class ArtifactCommentMcpTools {
             annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = false, openWorldHint = false))
     public CallToolResult createArtifactComment(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "프로젝트 NanoID. 생성 시 소속 지정. 개별 항목은 ID로 소속을 확인", required = false)
+                    String projectId,
             @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
             @McpToolParam(description = "versionNo", required = true) int versionNo,
             @McpToolParam(description = "body", required = true) String body,
@@ -44,7 +51,14 @@ public class ArtifactCommentMcpTools {
             @McpToolParam(description = "blockEnd", required = false) Integer blockEnd) {
         return results.call(() -> {
             var r = results.validate(new ArtifactCommentRequests.CreateComment(body, blockStart, blockEnd));
-            return Map.of("id", comments.add(results.userId(context), projectId, artifactId, versionNo, r));
+            return Map.of(
+                    "id",
+                    comments.add(
+                            results.userId(context),
+                            resources.artifactProject(results.userId(context), artifactId, projectId),
+                            artifactId,
+                            versionNo,
+                            r));
         });
     }
 
@@ -54,12 +68,18 @@ public class ArtifactCommentMcpTools {
             annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = true, openWorldHint = false))
     public CallToolResult deleteArtifactComment(
             McpTransportContext context,
-            @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
+            @McpToolParam(description = "프로젝트 NanoID. 생성 시 소속 지정. 개별 항목은 ID로 소속을 확인", required = false)
+                    String projectId,
             @McpToolParam(description = "아티팩트 NanoID", required = true) String artifactId,
             @McpToolParam(description = "versionNo", required = true) int versionNo,
             @McpToolParam(description = "commentId", required = true) String commentId) {
         return results.call(() -> {
-            comments.delete(results.userId(context), projectId, artifactId, versionNo, commentId);
+            comments.delete(
+                    results.userId(context),
+                    resources.artifactProject(results.userId(context), artifactId, projectId),
+                    artifactId,
+                    versionNo,
+                    commentId);
             return Map.of("saved", true);
         });
     }

@@ -65,6 +65,44 @@ class TaskFileApiTest {
     }
 
     @Test
+    void 이미지_대표색을_첨부와_목록에서_보존한다() throws Exception {
+        String response = mockMvc.perform(post("/api/v1/attachments/presign")
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {"slot":"TASK_FILES","fileName":"image.png","contentType":"image/png","size":100,"dominantColor":"#75814C","width":1600,"height":900}
+                    """))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        String key = JsonPath.read(response, "$.objectKey");
+        fakeStorage.put(key, 100);
+        mockMvc.perform(post("/api/v1/tasks/{taskId}/files", taskId)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"objectKey\":\"" + key
+                                + "\",\"fileName\":\"image.png\",\"contentType\":\"image/png\"}"))
+                .andExpect(status().isCreated());
+        mockMvc.perform(get("/api/v1/tasks/{taskId}/files", taskId).cookie(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].dominantColor").value("#75814C"))
+                .andExpect(jsonPath("$[0].width").value(1600))
+                .andExpect(jsonPath("$[0].height").value(900));
+    }
+
+    @Test
+    void 잘못된_대표색은_거부한다() throws Exception {
+        mockMvc.perform(post("/api/v1/attachments/presign")
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {"slot":"TASK_FILES","fileName":"image.png","contentType":"image/png","size":100,"dominantColor":"red"}
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("파일 첨부 완료 시 파일명, 크기, 다운로드 URL을 응답에 포함한다")
     void 붙이면_목록에_이름과_크기와_받을_주소가_있다() throws Exception {
         String objectKey = 파일을_붙인다("자료.pdf", "application/pdf", 2048);

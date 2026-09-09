@@ -28,10 +28,10 @@ export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersio
   const historical = selectedVersion !== null;
   const title = historical ? history.data?.title ?? `v${selectedVersion}` : doc.title;
   const body = historical ? history.data?.body : artifact.body;
-  const editButton = <Button label="편집" icon={<HgiEdit />} isIconOnly={mobile} variant="ghost" size="sm" isDisabled={historical} onClick={() => setEditing(true)} />;
+  const editButton = <Button label="편집" icon={<HgiEdit />} isIconOnly={mobile} variant={mobile ? "ghost" : "secondary"} size="sm" isDisabled={historical} onClick={() => setEditing(true)} />;
   const actions = <HStack gap={1} align="center">
     <Button label="버전 이력" tooltip="버전 이력" icon={<HgiHistory />} isIconOnly variant="ghost" size="sm" aria-pressed={aside.active?.key === historyKey} onClick={() => aside.open({ key: historyKey, title: '버전 이력' })} />
-    <Button label="코멘트" icon={<HgiComment />} variant="ghost" size="sm" aria-pressed={aside.active?.key === commentsKey} onClick={() => aside.open({ key: commentsKey, title: '코멘트' })} />
+    <Button label="코멘트" icon={<HgiComment />} variant="secondary" size="sm" aria-pressed={aside.active?.key === commentsKey} onClick={() => aside.open({ key: commentsKey, title: '코멘트' })} />
     {canEdit ? editButton : null}</HStack>;
   const versionHistory = <ArtifactHistory artifactId={doc.id} latestVersion={artifact.versionNo} projectId={projectId} selectedVersion={selectedVersion}
     onSelect={version => onSelectVersion(version === artifact.versionNo ? null : version)} />;
@@ -41,7 +41,7 @@ export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersio
         <PageHeader title={title} onBack={onBack} backLabel="아티팩트 목록으로" actions={actions} />}
       content={<PageContent padding={mobile ? 3 : 4}><VStack gap={4}>
         <HStack gap={2} justify="between" align="center" wrap="wrap">
-          <HStack gap={2} align="center" wrap="wrap"><Text type="supporting">{doc.id}</Text><Text type="supporting">· v{selectedVersion ?? artifact.versionNo}</Text></HStack>
+          <HStack gap={2} align="center" wrap="wrap"><Text type="supporting">{projectId ? projects.find(p => p.id === projectId)?.name ?? "프로젝트" : "개인"}</Text><Text type="supporting">· {doc.id}</Text><Text type="supporting">· v{selectedVersion ?? artifact.versionNo}</Text></HStack>
           {mobile ? actions : null}
         </HStack>
         {historical ? <Banner status="info" title={`버전 보기 · v${selectedVersion}`}

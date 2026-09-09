@@ -25,6 +25,14 @@ public class AttachmentController {
 
     @PostMapping("/presign")
     public PresignedUpload presign(@CurrentUser UUID userId, @Valid @RequestBody PresignAttachment request) {
-        return fileService.presign(request.slot(), userId, request.fileName(), request.contentType(), request.size());
+        return fileService.presign(
+                request.slot(),
+                userId,
+                request.fileName(),
+                request.contentType(),
+                request.size(),
+                request.dominantColor(),
+                request.width(),
+                request.height());
     }
 }

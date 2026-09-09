@@ -38,6 +38,13 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
+    public List<TaskView> list(UUID userId, String projectId, String scope) {
+        var filter = xyz.gentask.shared.domain.ResourceFilter.of(projectId, scope);
+        if (projectId != null) return listProject(userId, projectId);
+        return taskQuery.findVisible(userId, filter.personal());
+    }
+
+    @Transactional(readOnly = true)
     public TaskView detail(UUID userId, UUID taskId) {
         return taskQuery.findOne(taskId, userId).orElseThrow(TaskErrorCode.TASK_NOT_FOUND::raise);
     }

@@ -29,6 +29,7 @@ class JooqBlobRepository implements BlobRepository {
                 .set(BLOBS.CONTENT_TYPE, blob.contentType())
                 .set(BLOBS.BYTE_SIZE, blob.byteSize())
                 .set(BLOBS.CREATED_AT, blob.createdAt())
+                .set(BLOBS.METADATA, FileMetadata.encode(blob.dominantColor(), blob.width(), blob.height()))
                 .execute();
     }
 
@@ -61,6 +62,9 @@ class JooqBlobRepository implements BlobRepository {
                 blobsRecord.getFileName(),
                 blobsRecord.getContentType(),
                 blobsRecord.getByteSize(),
-                blobsRecord.getCreatedAt());
+                blobsRecord.getCreatedAt(),
+                FileMetadata.color(blobsRecord.getMetadata()),
+                FileMetadata.dimension(blobsRecord.getMetadata(), "width"),
+                FileMetadata.dimension(blobsRecord.getMetadata(), "height"));
     }
 }
