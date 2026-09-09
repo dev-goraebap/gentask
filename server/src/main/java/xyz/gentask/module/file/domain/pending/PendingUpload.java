@@ -28,9 +28,23 @@ public final class PendingUpload {
 
     @NonNull private final Instant createdAt;
 
+    private final String dominantColor;
+    private final Integer width;
+    private final Integer height;
+
     public static PendingUpload issue(
-            UUID id, String storageKey, String slot, String fileName, String contentType, UUID issuedBy, Instant now) {
-        return new PendingUpload(id, storageKey, slot, fileName, contentType, issuedBy, now);
+            UUID id,
+            String storageKey,
+            String slot,
+            String fileName,
+            String contentType,
+            UUID issuedBy,
+            Instant now,
+            String dominantColor,
+            Integer width,
+            Integer height) {
+        return new PendingUpload(
+                id, storageKey, slot, fileName, contentType, issuedBy, now, dominantColor, width, height);
     }
 
     public static PendingUpload restore(
@@ -40,8 +54,12 @@ public final class PendingUpload {
             String fileName,
             String contentType,
             UUID issuedBy,
-            Instant createdAt) {
-        return new PendingUpload(id, storageKey, slot, fileName, contentType, issuedBy, createdAt);
+            Instant createdAt,
+            String dominantColor,
+            Integer width,
+            Integer height) {
+        return new PendingUpload(
+                id, storageKey, slot, fileName, contentType, issuedBy, createdAt, dominantColor, width, height);
     }
 
     /** 지정한 발급 위치 및 발급 사용자와 일치하는지 검증한다. */

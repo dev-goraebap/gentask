@@ -1,3 +1,4 @@
+import { extractImageMetadata } from "@/shared/lib/image-color";
 import { resourceSearch } from '@/shared/config';
 import { createdId, get, request } from '@/shared/api';
 import { queryOptions } from '@tanstack/react-query';
@@ -18,7 +19,7 @@ export const taskFilesOptions=(id:string)=>queryOptions({queryKey:['tasks',id,'f
 export const removeTaskFile=(id:string,fileId:string)=>request('/tasks/'+id+'/files/'+fileId,{method:'DELETE'});
 export async function uploadTaskFile(id:string,file:File){
  const contentType=file.type||'application/octet-stream';
- const {data}=await request<{objectKey:string;url:string}>('/attachments/presign',{method:'POST',body:JSON.stringify({slot:'TASK_FILES',fileName:file.name,contentType,size:file.size})});
+ const {data}=await request<{objectKey:string;url:string}>('/attachments/presign',{method:'POST',body:JSON.stringify({slot:'TASK_FILES',fileName:file.name,contentType,size:file.size,...await extractImageMetadata(file)})});
  const target=new URL(data.url);
  const uploadUrl=import.meta.env.DEV&&target.origin===import.meta.env.DEV_STORAGE_ORIGIN ? '/__storage'+target.pathname+target.search : data.url;
  let result:Response;

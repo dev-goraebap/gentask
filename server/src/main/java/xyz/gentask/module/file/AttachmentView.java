@@ -16,4 +16,10 @@ public record AttachmentView(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String contentType,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long size,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String url,
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant createdAt) {}
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant createdAt,
+
+        @Schema(description = "이미지 대표색(#RRGGBB). 제공되지 않은 파일은 null이다.")
+        String dominantColor,
+
+        @Schema(description = "원본 이미지 너비(px)") Integer width,
+        @Schema(description = "원본 이미지 높이(px)") Integer height) {}

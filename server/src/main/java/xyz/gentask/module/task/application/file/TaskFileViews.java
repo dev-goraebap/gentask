@@ -26,5 +26,9 @@ public final class TaskFileViews {
             String url,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Instant createdAt) {}
+            Instant createdAt,
+
+            @Schema(description = "이미지 대표색(#RRGGBB)") String dominantColor,
+            Integer width,
+            Integer height) {}
 }

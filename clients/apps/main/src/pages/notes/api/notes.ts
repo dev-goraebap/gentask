@@ -1,3 +1,4 @@
+import { extractImageMetadata } from "@/shared/lib/image-color";
 import { createdId, get, request } from "@/shared/api";
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import type { components } from "api-types";
@@ -62,6 +63,7 @@ export async function prepareNoteFile(file: File) {
         fileName: file.name,
         contentType,
         size: file.size,
+        ...await extractImageMetadata(file),
       }),
     },
   );

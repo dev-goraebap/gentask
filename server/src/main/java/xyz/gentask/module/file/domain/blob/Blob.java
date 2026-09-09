@@ -26,13 +26,33 @@ public final class Blob {
 
     @NonNull private final Instant createdAt;
 
+    private final String dominantColor;
+    private final Integer width;
+    private final Integer height;
+
     public static Blob store(
-            UUID id, String storageKey, String fileName, String contentType, long byteSize, Instant now) {
-        return new Blob(id, storageKey, fileName, contentType, byteSize, now);
+            UUID id,
+            String storageKey,
+            String fileName,
+            String contentType,
+            long byteSize,
+            Instant now,
+            String dominantColor,
+            Integer width,
+            Integer height) {
+        return new Blob(id, storageKey, fileName, contentType, byteSize, now, dominantColor, width, height);
     }
 
     public static Blob restore(
-            UUID id, String storageKey, String fileName, String contentType, long byteSize, Instant createdAt) {
-        return new Blob(id, storageKey, fileName, contentType, byteSize, createdAt);
+            UUID id,
+            String storageKey,
+            String fileName,
+            String contentType,
+            long byteSize,
+            Instant createdAt,
+            String dominantColor,
+            Integer width,
+            Integer height) {
+        return new Blob(id, storageKey, fileName, contentType, byteSize, createdAt, dominantColor, width, height);
     }
 }

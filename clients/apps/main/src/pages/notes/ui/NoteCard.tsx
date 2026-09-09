@@ -1,3 +1,4 @@
+import { NoteImage } from "./NoteImage";
 import {
   ClickableCard,
   HStack,
@@ -20,12 +21,7 @@ export function NoteCard({ note, onOpen }: { note: Note; onOpen: () => void }) {
     >
       <VStack gap={2}>
         {image ? (
-          <img
-            src={image.url}
-            alt={image.fileName}
-            loading="lazy"
-            className="note-card-image"
-          />
+          <NoteImage src={image.url} alt={image.fileName} color={image.dominantColor} width={image.width} height={image.height} />
         ) : null}
         {note.body ? (
           <Markdown

@@ -63,6 +63,9 @@ public class TaskFileService {
                 attachment.contentType(),
                 attachment.size(),
                 attachment.url(),
-                attachment.createdAt());
+                attachment.createdAt(),
+                attachment.dominantColor(),
+                attachment.width(),
+                attachment.height());
     }
 }

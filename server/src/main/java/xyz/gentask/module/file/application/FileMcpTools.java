@@ -25,11 +25,31 @@ public class FileMcpTools {
             @McpToolParam(description = "slot", required = true) String slot,
             @McpToolParam(description = "fileName", required = true) String fileName,
             @McpToolParam(description = "contentType", required = true) String contentType,
-            @McpToolParam(description = "size", required = true) long size) {
+            @McpToolParam(description = "size", required = true) long size,
+            @McpToolParam(
+                            description = "이미지와 어울리는 대표색(#RRGGBB). 에이전트가 이미지를 보고 제안해도 된다. 판단할 수 없거나 이미지가 아니면 생략한다.",
+                            required = false)
+                    String dominantColor,
+            @McpToolParam(description = "원본 이미지의 실제 너비(px). 확인할 수 없으면 생략한다.", required = false) Integer width,
+            @McpToolParam(description = "원본 이미지의 실제 높이(px). 확인할 수 없으면 생략한다.", required = false) Integer height) {
         return results.call(() -> {
             var r = results.validate(new AttachmentRequests.PresignAttachment(
-                    xyz.gentask.module.file.AttachmentSlot.valueOf(slot), fileName, contentType, size));
-            return files.presign(r.slot(), results.userId(context), r.fileName(), r.contentType(), r.size());
+                    xyz.gentask.module.file.AttachmentSlot.valueOf(slot),
+                    fileName,
+                    contentType,
+                    size,
+                    dominantColor,
+                    width,
+                    height));
+            return files.presign(
+                    r.slot(),
+                    results.userId(context),
+                    r.fileName(),
+                    r.contentType(),
+                    r.size(),
+                    r.dominantColor(),
+                    r.width(),
+                    r.height());
         });
     }
 }

@@ -1,0 +1,2 @@
+ALTER TABLE blobs ADD COLUMN metadata JSONB NOT NULL DEFAULT '{}';
+ALTER TABLE pending_uploads ADD COLUMN metadata JSONB NOT NULL DEFAULT '{}';

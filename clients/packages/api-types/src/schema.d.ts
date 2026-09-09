@@ -1204,6 +1204,12 @@ export interface components {
             url: string;
             /** Format: date-time */
             createdAt: string;
+            /** @description 이미지 대표색(#RRGGBB) */
+            dominantColor?: string;
+            /** Format: int32 */
+            width?: number;
+            /** Format: int32 */
+            height?: number;
         };
         RegisterPushSubscription: {
             endpoint: string;
@@ -1255,6 +1261,18 @@ export interface components {
             url: string;
             /** Format: date-time */
             createdAt: string;
+            /** @description 이미지 대표색(#RRGGBB). 제공되지 않은 파일은 null이다. */
+            dominantColor?: string;
+            /**
+             * Format: int32
+             * @description 원본 이미지 너비(px)
+             */
+            width?: number;
+            /**
+             * Format: int32
+             * @description 원본 이미지 높이(px)
+             */
+            height?: number;
         };
         RevertVersion: {
             /** @description 왜 되돌리는지. 적지 않아도 된다 */
@@ -1308,6 +1326,18 @@ export interface components {
             contentType: string;
             /** Format: int64 */
             size: number;
+            /** @description 이미지 배경에 사용할 대표색. 선택 사항이며 #RRGGBB 형식이다. */
+            dominantColor?: string;
+            /**
+             * Format: int32
+             * @description 원본 이미지 너비(px)
+             */
+            width?: number;
+            /**
+             * Format: int32
+             * @description 원본 이미지 높이(px)
+             */
+            height?: number;
         };
         PresignedUpload: {
             objectKey: string;
