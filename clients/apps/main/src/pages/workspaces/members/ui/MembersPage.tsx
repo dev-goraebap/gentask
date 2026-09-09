@@ -28,7 +28,7 @@ import { ROLE_OPTIONS, type MemberRow, type MembersProps } from './members';
 const sortOptions = [{ value: 'title', label: '이름 순' }, { value: 'role', label: '역할 순' }];
 
 export function MembersPage({ projectId, onPreview }: MembersProps) {
-  const { projects } = useWorkspaceStore();
+  const { projects, isPending: projectsPending, error: projectsError, retry: retryProjects } = useWorkspaceStore();
   const session = useSession();
   const client = useQueryClient();
   const memberQuery = useQuery(membersOptions(projectId));
@@ -125,8 +125,6 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
     },
   ];
 
-  if (!memberQuery.data) return <RequestState error={memberQuery.error} retry={() => { void memberQuery.refetch(); }} />;
-  if (!project) return <EmptyState title="프로젝트를 찾을 수 없습니다" />;
 
   const memberToolbar = mobile ? <MobileFilterBar label="멤버 필터" searchLabel="멤버 검색" placeholder="이름으로 검색" query={query} onQueryChange={setQuery}
     actions={<>
@@ -137,6 +135,10 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
       <MultiSelector label="역할 필터" isLabelHidden placeholder="모든 역할" value={roles} onChange={setRoles} options={Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))} triggerDisplay="count" formatValue={items => `역할 · ${items.length}`} hasSelectAll selectAllLabel="전체 선택" />
       {query || roleFilter !== 'all' ? <Button label="초기화" variant="secondary" onClick={() => { setQuery(''); setRoles([]); }} /> : null}
     </>} />;
+
+  if (!memberQuery.data || !project) return <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
+    header={<PageHeader title="멤버" compact={mobile} toolbar={memberToolbar} />}
+    content={<PageContent>{!project && !projectsPending && !projectsError ? <EmptyState title="프로젝트를 찾을 수 없습니다" /> : <RequestState error={memberQuery.error ?? projectsError} retry={() => { void memberQuery.refetch(); retryProjects(); }} />}</PageContent>} />;
 
   return <>
     <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}

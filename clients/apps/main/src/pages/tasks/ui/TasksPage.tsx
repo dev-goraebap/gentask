@@ -61,7 +61,8 @@ export function TasksPage({ projectId, personal = false }: { projectId: string |
       </LayoutFooter> : undefined}>
       <PageContent padding={mobile ? 3 : 4} contentWidth={view === 'board' ? '100%' : undefined}>
         <VStack gap={3}>
-          {query.isPending || query.error ? <RequestState error={query.error} retry={() => void query.refetch()} /> : tasks.length ? <>
+          {query.isRefetchError ? <RequestState error={query.error} retry={() => void query.refetch()} /> : null}
+          {query.isPending || (query.error && !query.data) ? <RequestState error={query.error} retry={() => void query.refetch()} /> : tasks.length ? <>
             <Text type="supporting">{filtered ? '검색 결과' : '전체 작업'} · {tasks.length}</Text>
             {view === 'board' ? <TaskBoard tasks={tasks} onOpen={open} canEdit={canEdit} busy={action.isPending} showProject={projectId === null} onMove={(id, state) => action.mutate(() => changeTaskState(id, state))} /> :
               <List hasDividers density="balanced" style={{ marginInline: 'calc(-1 * var(--spacing-2))' }}>

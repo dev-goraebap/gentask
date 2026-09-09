@@ -1,3 +1,4 @@
+import { RequestState } from '@/shared/ui/request-state';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton, MobileSurface } from '@/shared/ui/mobile';
 import { ListingFooter, SortSelector, SortFields, type SortValue, type SortOption, useListing } from '@/shared/ui/listing';
@@ -18,7 +19,7 @@ const sortOptions: SortOption[] = [{ value: 'manual', label: '지정한 순서',
 
 export function WorkspacesPage() {
 
-  const { projects } = useProjectList();
+  const { projects, isPending, error, retry } = useProjectList();
   const navigate = useNavigate();
   const search = useSearch({ from: '/projects' });
   const [status, setStatus] = useState<string[]>(['active']);
@@ -52,7 +53,7 @@ export function WorkspacesPage() {
         </>} endContent={<SortSelector options={sortOptions} value={sort} onChange={setSort} />} />}
 
     />} footer={mobile ? undefined : <ListingFooter {...listing.pagination(matched.length)} />} content={<PageContent ref={listing.ref} onScroll={listing.onScroll} padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-12) + var(--spacing-4) * 2 + env(safe-area-inset-bottom))' } : undefined}>
-      {visible.length ? <List hasDividers style={{ marginInline: mobile ? 'calc(-1 * var(--spacing-3))' : 'calc(-1 * var(--spacing-2))' }}>{visible.map((p) => <Item as="li" key={p.id} label={p.name} labelLines={2} density={mobile ? 'spacious' : 'balanced'}
+      {isPending || (error && !projects.length) ? <RequestState error={error} retry={retry} /> : visible.length ? <List hasDividers style={{ marginInline: mobile ? 'calc(-1 * var(--spacing-3))' : 'calc(-1 * var(--spacing-2))' }}>{visible.map((p) => <Item as="li" key={p.id} label={p.name} labelLines={2} density={mobile ? 'spacious' : 'balanced'}
         startContent={<ProjectAvatar project={p} size="md" />}
         description={`프로젝트 키 · ${p.prefix}`}
         endContent={p.archived ? <Token label="보관됨" /> : undefined}

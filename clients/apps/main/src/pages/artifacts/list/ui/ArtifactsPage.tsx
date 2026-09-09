@@ -67,8 +67,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId, per
       await client.invalidateQueries({ queryKey: ['artifact-folders'] });
     },
   });
-  if (!artifacts.data || !folderQuery.data) return <RequestState error={artifacts.error ?? folderQuery.error}
-    retry={() => { void artifacts.refetch(); void folderQuery.refetch(); }} />;
+
 
   const matched = artifactList.filter(d => d.folderId === folderId &&
     d.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
@@ -139,6 +138,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId, per
     >
       <PageContent padding={mobile ? 3 : 4} style={mobile ? { paddingBottom: 'calc(var(--spacing-12) + var(--spacing-4) * 2 + env(safe-area-inset-bottom))' } : undefined} ref={listing.ref} onScroll={listing.onScroll}>
         <VStack gap={4}>
+          {!artifacts.data || !folderQuery.data ? <RequestState error={artifacts.error ?? folderQuery.error} retry={() => { void artifacts.refetch(); void folderQuery.refetch(); }} /> : <>
           <HStack justify="between" align="center" gap={2} wrap="wrap" padding={0}>
           <Breadcrumbs label="아티팩트 폴더 경로">
             <BreadcrumbItem isCurrent={!folderId} onClick={() => onFolderChange(null)}>전체 아티팩트</BreadcrumbItem>
@@ -161,6 +161,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId, per
               title={isFiltered ? '조건에 맞는 항목이 없습니다' : '폴더가 비어 있습니다'}
               description={isFiltered ? '현재 폴더에서 검색어나 필터를 바꿔 보세요.' : '이 폴더에는 하위 폴더나 아티팩트가 없습니다.'}
               actions={isFiltered ? <Button label="필터 초기화" onClick={reset} /> : undefined} />}
+          </>}
           </>}
         </VStack>
         {mobile ? <ListingFooter {...listing.pagination(entries.length)} /> : null}

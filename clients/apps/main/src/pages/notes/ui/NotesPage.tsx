@@ -76,9 +76,10 @@ export function NotesPage({
           <PageContent padding={mobile ? 2 : 4}>
             <VStack gap={3}>
 
+              {query.isRefetchError ? <RequestState error={query.error} retry={() => void query.refetch()} /> : null}
               {query.isPending ? (
                 <RequestState />
-              ) : query.isError ? (
+              ) : query.isError && !query.data ? (
                 <RequestState
                   error={query.error}
                   retry={() => void query.refetch()}

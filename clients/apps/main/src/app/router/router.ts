@@ -5,8 +5,7 @@ import { stripSearchParams, type SearchSchemaInput } from '@tanstack/react-route
 import { parseListingSearch, type ListingSearch } from '@/shared/ui/listing';
 import type { QueryClient } from '@tanstack/react-query';
 import { sessionOptions } from '@/entities/session';
-import { projectsOptions } from '@/entities/workspace';
-import { artifactsOptions, artifactOptions, foldersOptions, parseVersionSearch } from '@/entities/artifact';
+import { parseVersionSearch } from '@/entities/artifact';
 import { ApiError } from '@/shared/api';
 import { UnavailablePage } from '@/pages/unavailable';
 import { RootLayout } from './RootLayout';
@@ -34,7 +33,7 @@ export const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }
   validateSearch: parseResourceScope,
   beforeLoad: async ({ context, location }) => {
     if (location.pathname === '/login' || location.pathname.startsWith('/invitations/')) return;
-    try { await context.queryClient.fetchQuery(sessionOptions()); }
+    try { await context.queryClient.ensureQueryData({ ...sessionOptions(), revalidateIfStale: true }); }
     catch (error) {
       if (error instanceof ApiError && error.status === 401) throw redirect({ to: '/login', replace: true });
       throw error;
@@ -68,13 +67,10 @@ export const personalArtifactsRoute = createRoute({ getParentRoute: () => rootRo
   beforeLoad: ({ search }) => {
     if (!search.projectId && search.scope !== 'personal') throw redirect({ to: '/artifacts', search: { ...search, scope: 'personal' }, replace: true });
   },
-  loaderDeps: ({ search }) => parseResourceScope(search),
-  loader: ({ context, deps }) => Promise.all([context.queryClient.ensureQueryData({ ...artifactsOptions(deps.projectId ?? null, deps.scope === "personal"), revalidateIfStale: true }), context.queryClient.ensureQueryData({ ...foldersOptions(deps.projectId ?? null, deps.scope === "personal"), revalidateIfStale: true })]),
 });
 export const personalArtifactRoute = createRoute({ getParentRoute: () => rootRoute, path: '/artifacts/$docId', component: ArtifactRoute,
   validateSearch: (search: Partial<ListingSearch> & { version?: number | string } & SearchSchemaInput) => ({ ...parseListingSearch(search, ['title', 'updated'], 'title'), version: parseVersionSearch(search.version) }),
   search: { middlewares: [stripSearchParams({ q: '', sort: 'title', direction: 'asc', page: 1, size: 25 })] },
-  loader: ({ context, params }) => context.queryClient.ensureQueryData({ ...artifactOptions(null, params.docId), revalidateIfStale: true }),
 });
 
 export const notesRoute = createRoute({
@@ -141,7 +137,7 @@ export const membersRoute = createRoute({
 });
 
 
-export const projectsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects', validateSearch: (search: Partial<ListingSearch> & SearchSchemaInput) => parseListingSearch(search, ['manual', 'name'], 'manual'), component: WorkspacesPage, loader: ({ context }) => context.queryClient.ensureQueryData({ ...projectsOptions(), revalidateIfStale: true }) });
+export const projectsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects', validateSearch: (search: Partial<ListingSearch> & SearchSchemaInput) => parseListingSearch(search, ['manual', 'name'], 'manual'), component: WorkspacesPage });
 
 export const settingsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects/$projectId/settings', component: WorkspaceSettingsPage });
 
@@ -169,7 +165,7 @@ export const routeTree = rootRoute.addChildren([
   docRoute,
 ]);
 
-export const router = createRouter({ routeTree, context: { queryClient }, defaultPreloadStaleTime: 0, defaultErrorComponent: RouteError, defaultPendingComponent: RoutePending });
+export const router = createRouter({ routeTree, context: { queryClient }, defaultPreloadStaleTime: 0, defaultErrorComponent: RouteError, defaultPendingComponent: RoutePending, defaultPendingMs: 200, defaultPendingMinMs: 0 });
 
 declare module '@tanstack/react-router' {
   interface Register {
