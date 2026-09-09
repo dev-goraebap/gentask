@@ -1,0 +1,1 @@
+export { LoadingAvatar } from './LoadingAvatar';

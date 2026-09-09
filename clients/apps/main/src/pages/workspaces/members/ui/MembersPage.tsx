@@ -1,3 +1,4 @@
+import { PageState as EmptyState } from '@/shared/ui/page-state';
 import { UserAvatar } from '@/shared/ui/user-avatar';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
@@ -11,7 +12,7 @@ import { HgiMembers, HgiPlus, HgiSearch, HgiTrash } from '@/shared/ui/icons';
 import { ListingFooter, PageSize, SortSelector, SortFields, useListing } from '@/shared/ui/listing';
 import { MobileSurface } from '@/shared/ui/mobile';
 import {
-    Button, CheckboxList, CheckboxListItem, MultiSelector, Dialog, DialogHeader, EmptyState,
+    Button, CheckboxList, CheckboxListItem, MultiSelector, Dialog, DialogHeader,
     HStack,
     Item,
     Layout, LayoutContent,
@@ -139,7 +140,7 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
 
   if (!memberQuery.data || !project) return <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
     header={<PageHeader title="멤버" compact={mobile} toolbar={memberToolbar} />}
-    content={<PageContent>{!project && !projectsPending && !projectsError ? <EmptyState title="프로젝트를 찾을 수 없습니다" /> : <RequestState error={memberQuery.error ?? projectsError} retry={() => { void memberQuery.refetch(); retryProjects(); }} />}</PageContent>} />;
+    content={<PageContent>{!project && !projectsPending && !projectsError ? <EmptyState kind="not-found" title="프로젝트를 찾을 수 없습니다" /> : <RequestState error={memberQuery.error ?? projectsError} retry={() => { void memberQuery.refetch(); retryProjects(); }} />}</PageContent>} />;
 
   return <>
     <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
@@ -164,7 +165,7 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
               onClick={() => setSelectedMember(member.id)} />)}</List> :
               <Table<MemberRow> aria-label="프로젝트 멤버" data={visibleMembers.map((member) => ({ ...member }))}
                 columns={columns} idKey="id" density="balanced" dividers="rows" hasHover />}
-            {!matched.length ? <EmptyState title="검색 결과가 없습니다" description="다른 이름이나 역할로 검색해 주세요." /> : null}
+            {!matched.length ? <EmptyState kind="search" title="검색 결과가 없습니다" description="다른 이름이나 역할로 검색해 주세요." /> : null}
           </VStack>
           <VStack gap={1} paddingInline={0}>
             <Text color="secondary">편집자는 문서를 수정하고, 열람자는 문서를 읽고 코멘트를 남길 수 있습니다.</Text>
@@ -235,7 +236,7 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
                   <Button label={`${invite.label} 비활성화`} size="sm" variant="ghost" isIconOnly icon={<HgiTrash />}
                     isDisabled={!canManage || !isActive(invite)} onClick={() => setRevoking(invite)} />
                 </HStack>} />)}
-            </List> : <EmptyState isCompact icon={<HgiMembers />} title="초대 링크가 없습니다" description="새 초대 탭에서 링크를 만들어 공유하세요." />}
+            </List> : <EmptyState isCompact title="초대 링크가 없습니다" description="새 초대 탭에서 링크를 만들어 공유하세요." />}
           </VStack>
 
         </> : created ? <>

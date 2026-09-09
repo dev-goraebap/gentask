@@ -1,21 +1,22 @@
+import { useNoteInfiniteScroll } from '../model/useNoteInfiniteScroll';
+import { NoteListLoading } from './NoteListLoading';
+import { PageState as EmptyState } from '@/shared/ui/page-state';
 import { ScopeSelector } from '@/features/select-resource-scope';
 import { PageLayout, PageContent, PageHeader } from "@/shared/ui/page-layout";
 import { WIDTH } from "@/shared/config";
 import { MobileFilterBar, MOBILE_QUERY } from "@/shared/ui/mobile";
 import { RequestState } from "@/shared/ui/request-state";
 import {
-  Button,
-  EmptyState,
   LayoutFooter,
   Selector,
   Text,
   TextInput,
   Toolbar,
   VStack,
-} from "@astryxdesign/core";
+} from '@astryxdesign/core';
 import { useMediaQuery } from "@astryxdesign/core/hooks";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { notesOptions } from "../api/notes";
 import { NoteMasonry } from "./NoteMasonry";
 import { NoteComposer } from "./NoteComposer";
@@ -44,6 +45,10 @@ export function NotesPage({
 }) {
   const mobile = useMediaQuery(MOBILE_QUERY);
   const query = useInfiniteQuery(notesOptions(projectId, q, personal, sort));
+  const contentRef = useRef<HTMLDivElement>(null);
+  const loadMore = useCallback(() => query.fetchNextPage({ cancelRefetch: false }), [query.fetchNextPage]);
+  const sentinel = useNoteInfiniteScroll({ root: contentRef,
+    enabled: Boolean(query.hasNextPage && !query.isFetching && !query.isError && !selectedId), loadMore });
   const [search, setSearch] = useState(q);
   const [announcement, setAnnouncement] = useState("");
   useEffect(() => {
@@ -54,7 +59,9 @@ export function NotesPage({
     const timer = window.setTimeout(() => onFilter(projectId, search.trim()), 300);
     return () => window.clearTimeout(timer);
   }, [search, q, projectId, onFilter]);
-  const notes = query.data?.pages.flatMap((page) => page.items) ?? [];
+  const notes = useMemo(() => Array.from(new Map(
+    (query.data?.pages.flatMap(page => page.items) ?? []).map(note => [note.id, note])
+  ).values()), [query.data]);
   const sortControl = <Selector label="메모 정렬" isLabelHidden size="sm" value={sort} onChange={onSort}
     options={[{ value: 'created-desc', label: '최근 작성순' }, { value: 'updated-desc', label: '최근 수정순' }, { value: 'created-asc', label: '오래된 작성순' }]} />;
   return (
@@ -73,10 +80,10 @@ export function NotesPage({
                 value={search} onChange={setSearch} hasClear width="17.5rem" /></>} />}
           />}
         content={
-          <PageContent padding={mobile ? 2 : 4}>
+          <PageContent ref={contentRef} padding={mobile ? 2 : 4}>
             <VStack gap={3}>
 
-              {query.isRefetchError ? <RequestState error={query.error} retry={() => void query.refetch()} /> : null}
+              {query.isRefetchError && !query.isFetchNextPageError ? <RequestState error={query.error} retry={() => void query.refetch()} /> : null}
               {query.isPending ? (
                 <RequestState />
               ) : query.isError && !query.data ? (
@@ -87,7 +94,7 @@ export function NotesPage({
               ) : notes.length ? (
                 <NoteMasonry notes={notes} onSelect={onSelect} />
               ) : (
-                <EmptyState
+                <EmptyState kind={q ? 'search' : 'empty'}
                   title={
                     q || projectId
                       ? "표시할 메모가 없습니다"
@@ -100,14 +107,11 @@ export function NotesPage({
                   }
                 />
               )}
-              {query.hasNextPage ? (
-                <Button
-                  label="더 보기"
-                  variant="secondary"
-                  isLoading={query.isFetchingNextPage}
-                  onClick={() => void query.fetchNextPage()}
-                />
-              ) : null}
+              {notes.length > 0 || query.hasNextPage ? <VStack ref={sentinel} gap={0}>
+                <NoteListLoading fetching={query.isFetchingNextPage} failed={query.isFetchNextPageError}
+                  complete={!query.hasNextPage && !query.isFetching && !query.isError}
+                  retry={() => { void loadMore(); }} />
+              </VStack> : null}
             </VStack>
           </PageContent>
         }

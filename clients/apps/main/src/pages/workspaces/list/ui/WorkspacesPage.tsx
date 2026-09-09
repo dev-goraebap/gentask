@@ -1,3 +1,4 @@
+import { PageState as EmptyState } from '@/shared/ui/page-state';
 import { RequestState } from '@/shared/ui/request-state';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton, MobileSurface } from '@/shared/ui/mobile';
@@ -8,7 +9,7 @@ import { useProjectList } from '@/features/project-list';
 import { WIDTH } from '@/shared/config';
 import { HgiSearch, HgiFilter } from '@/shared/ui/icons';
 import { CreateButton } from '@/shared/ui/mobile';
-import { Button, CheckboxList, CheckboxListItem, DialogHeader, MultiSelector, EmptyState, HStack, Item, Layout, LayoutContent, List, Selector, Text, TextInput, Token, Toolbar, VStack } from '@astryxdesign/core';
+import { Button, CheckboxList, CheckboxListItem, DialogHeader, MultiSelector, HStack, Item, Layout, LayoutContent, List, Selector, Text, TextInput, Token, Toolbar, VStack } from '@astryxdesign/core';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 
@@ -58,7 +59,7 @@ export function WorkspacesPage() {
         description={`프로젝트 키 · ${p.prefix}`}
         endContent={p.archived ? <Token label="보관됨" /> : undefined}
         onClick={() => navigate({ to: p.archived ? '/projects/$projectId/settings' : '/projects/$projectId/members', params: { projectId: p.id }, search: {} })} />)}</List> :
-        <EmptyState title={!projects.length ? '참여 중인 프로젝트가 없습니다' : '표시할 프로젝트가 없습니다'}
+        <EmptyState kind={projects.length ? 'search' : 'empty'} title={!projects.length ? '참여 중인 프로젝트가 없습니다' : '표시할 프로젝트가 없습니다'}
           description={!projects.length ? '첫 프로젝트를 만들어 함께 작업할 공간을 마련하세요.' : '검색어나 프로젝트 상태를 바꿔 보세요.'}
           actions={!projects.length ? <Button label="첫 프로젝트 만들기" onClick={() => setCreating(true)} /> : <Button label="전체 프로젝트 보기" onClick={() => { setQuery(''); setStatus([]); }} />} />}
       {mobile ? <ListingFooter {...listing.pagination(matched.length)} /> : null}

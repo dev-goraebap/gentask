@@ -1,3 +1,4 @@
+import { RouteNotFound } from './RouteNotFound';
 import { parseResourceScope } from '@/shared/config';
 import { NotesRoute } from './NotesRoute';
 import { InvitationRoute } from './InvitationRoute';
@@ -30,6 +31,7 @@ import { TasksRoute } from './TasksRoute';
 
 export const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootLayout,
+  notFoundComponent: RouteNotFound,
   validateSearch: parseResourceScope,
   beforeLoad: async ({ context, location }) => {
     if (location.pathname === '/login' || location.pathname.startsWith('/invitations/')) return;

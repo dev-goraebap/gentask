@@ -1,3 +1,4 @@
+import { PageState as EmptyState } from '@/shared/ui/page-state';
 import { ScopeSelector } from '@/features/select-resource-scope';
 import { useWorkspaceStore } from '@/entities/workspace';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
@@ -15,7 +16,6 @@ import {
     Breadcrumbs,
     Button,
     DialogHeader,
-    EmptyState,
     Heading,
     HStack,
     ListItem,
@@ -148,7 +148,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId, per
             {currentFolder ? <Button label="상위 폴더로" variant="secondary" size="sm"
               onClick={() => onFolderChange(currentFolder.parentId)} /> : null}
           </HStack>
-          {folderId && !currentFolder ? <EmptyState title="폴더를 찾을 수 없습니다"
+          {folderId && !currentFolder ? <EmptyState kind="not-found" title="폴더를 찾을 수 없습니다"
             actions={<Button label="전체 아티팩트로" onClick={() => onFolderChange(null)} />} /> : <>
             {folders.length || matched.length ? <List hasDividers density={mobile ? 'spacious' : 'balanced'} style={{ marginInline: mobile ? 'calc(-1 * var(--spacing-3))' : 'calc(-1 * var(--spacing-2))' }}>
               {visible.map((entry) => entry.kind === 'folder' ?
@@ -157,7 +157,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId, per
                 <ListItem key={entry.doc.id} label={<Text type="inherit" maxLines={mobile ? 2 : 1}>{entry.doc.title}</Text>}
                   startContent={<HgiFile size={15} />} onClick={() => onOpen(entry.doc.id)}
                   description={`${entry.doc.projectId ? projects.find(p => p.id === entry.doc.projectId)?.name ?? "프로젝트" : "개인"} · 수정 ${new Date(entry.doc.updatedAt).toLocaleString('ko-KR')}`} />)}
-            </List> : <EmptyState icon={isFiltered ? <HgiSearchEmpty /> : <HgiFolder />}
+            </List> : <EmptyState kind={isFiltered ? 'search' : 'empty'}
               title={isFiltered ? '조건에 맞는 항목이 없습니다' : '폴더가 비어 있습니다'}
               description={isFiltered ? '현재 폴더에서 검색어나 필터를 바꿔 보세요.' : '이 폴더에는 하위 폴더나 아티팩트가 없습니다.'}
               actions={isFiltered ? <Button label="필터 초기화" onClick={reset} /> : undefined} />}

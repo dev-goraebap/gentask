@@ -1,6 +1,7 @@
+import { PageState as EmptyState } from '@/shared/ui/page-state';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, EmptyState, HStack, LayoutFooter, List, Selector, Text, TextInput, VStack } from '@astryxdesign/core';
+import { Button, HStack, LayoutFooter, List, Selector, Text, TextInput, VStack } from '@astryxdesign/core';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { useWorkspaceStore } from '@/entities/workspace';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
@@ -68,7 +69,7 @@ export function TasksPage({ projectId, personal = false }: { projectId: string |
               <List hasDividers density="balanced" style={{ marginInline: 'calc(-1 * var(--spacing-2))' }}>
                 {tasks.map(task => <TaskRow key={task.id} task={task} showProject={projectId === null} selected={aside.active?.key === panelKey && task.id === selected} onOpen={() => open(task.id)} />)}
               </List>}
-          </> : <EmptyState icon={filtered ? <HgiSearchEmpty /> : <HgiTask />} title={filtered ? '조건에 맞는 작업이 없습니다' : '아직 작업이 없습니다'}
+          </> : <EmptyState kind={filtered ? 'search' : 'empty'} title={filtered ? '조건에 맞는 작업이 없습니다' : '아직 작업이 없습니다'}
             description={filtered ? '검색어나 필터를 바꿔 보세요.' : writable(projectId) ? '아래 입력창에서 첫 작업을 추가하세요.' : '프로젝트에 추가된 작업이 여기에 표시됩니다.'}
             actions={filtered ? <Button label="초기화" onClick={() => { setSearch(''); setFilters(DEFAULT_FILTERS); }} /> : undefined} />}
         </VStack>
