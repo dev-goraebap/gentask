@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api/v1/tasks/{taskId}/notes/{noteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["linkNote"];
+        post?: never;
+        delete: operations["unlinkNote"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tasks/{taskId}/artifacts/{artifactId}": {
         parameters: {
             query?: never;
@@ -15,6 +31,22 @@ export interface paths {
         put: operations["link"];
         post?: never;
         delete: operations["unlink"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/{id}/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["tags"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -45,6 +77,22 @@ export interface paths {
         };
         get?: never;
         put: operations["connect"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["archive"];
         post?: never;
         delete?: never;
         options?: never;
@@ -868,6 +916,22 @@ export interface paths {
         patch: operations["rename_2"];
         trace?: never;
     };
+    "/api/v1/tasks/{taskId}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["notes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tasks/{taskId}/artifacts": {
         parameters: {
             query?: never;
@@ -1160,11 +1224,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        TagNote: {
+            tags: string[];
+        };
         ShareNote: {
             shared?: boolean;
         };
         ConnectNote: {
             projectId?: string;
+        };
+        ArchiveNote: {
+            archived?: boolean;
         };
         ConfirmProfileImage: {
             objectKey: string;
@@ -1429,6 +1499,11 @@ export interface components {
             assigneeId: string | null;
             assigneeName: string | null;
         };
+        Reference: {
+            id?: string;
+            preview?: string;
+            archived?: boolean;
+        };
         LinkedArtifact: {
             id?: string;
             title?: string;
@@ -1469,6 +1544,8 @@ export interface components {
             projectId: string | null;
             projectName: string | null;
             shared: boolean;
+            archived: boolean;
+            tags: string[];
             /** Format: uuid */
             ownerId: string;
             authorName: string;
@@ -1655,6 +1732,48 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    linkNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: string;
+                noteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unlinkNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: string;
+                noteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     link: {
         parameters: {
             query?: never;
@@ -1687,6 +1806,30 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    tags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TagNote"];
+            };
+        };
         responses: {
             /** @description No Content */
             204: {
@@ -1733,6 +1876,30 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ConnectNote"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    archive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArchiveNote"];
             };
         };
         responses: {
@@ -2233,6 +2400,8 @@ export interface operations {
                 scope?: string;
                 q?: string;
                 sort?: string;
+                archive?: string;
+                tag?: string;
                 offset?: number;
             };
             header?: never;
@@ -3643,6 +3812,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    notes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Reference"][];
+                };
             };
         };
     };

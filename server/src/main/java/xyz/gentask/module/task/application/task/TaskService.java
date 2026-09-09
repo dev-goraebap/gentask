@@ -30,6 +30,29 @@ public class TaskService {
     private final xyz.gentask.module.project.ProjectAccessIn projects;
     private final xyz.gentask.module.artifact.ArtifactReferenceIn artifacts;
     private final TaskLinkStore links;
+    private final TaskNoteLinkStore noteLinks;
+    private final xyz.gentask.module.note.NoteReferenceIn notes;
+
+    @Transactional(readOnly = true)
+    public List<xyz.gentask.module.note.NoteReferenceIn.Reference> linkedNotes(UUID userId, UUID taskId) {
+        var task = find(taskId, userId);
+        return notes.references(userId, task.projectId(), noteLinks.list(taskId));
+    }
+
+    @Transactional
+    public void linkNote(UUID userId, UUID taskId, String noteId) {
+        var task = findForWrite(taskId, userId);
+        if (notes.references(userId, task.projectId(), List.of(noteId)).isEmpty())
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND, "연결 가능한 메모를 찾을 수 없습니다.");
+        noteLinks.add(taskId, noteId);
+    }
+
+    @Transactional
+    public void unlinkNote(UUID userId, UUID taskId, String noteId) {
+        findForWrite(taskId, userId);
+        noteLinks.remove(taskId, noteId);
+    }
 
     // --- 조회 --------------------------------------------------------------------------------------------------------
     @Transactional(readOnly = true)

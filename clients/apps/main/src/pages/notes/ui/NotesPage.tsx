@@ -1,7 +1,8 @@
+import { NoteOrganizationFilters } from './NoteOrganizationFilters';
+import { FilterIndicator } from '@/shared/ui/listing';
 import { useNoteInfiniteScroll } from '../model/useNoteInfiniteScroll';
 import { NoteListLoading } from './NoteListLoading';
 import { PageState as EmptyState } from '@/shared/ui/page-state';
-import { ScopeSelector } from '@/features/select-resource-scope';
 import { PageLayout, PageContent, PageHeader } from "@/shared/ui/page-layout";
 import { WIDTH } from "@/shared/config";
 import { MobileFilterBar, MOBILE_QUERY } from "@/shared/ui/mobile";
@@ -31,7 +32,7 @@ export function NotesPage({
   q,
   onFilter,
   sort,
-  onSort,
+  onSort, archive, tag, onOrganization,
 }: {
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -40,11 +41,12 @@ export function NotesPage({
   personal?: boolean;
   q: string;
   sort: string;
+  archive: string; tag: string; onOrganization: (archive:string,tag:string)=>void;
   onSort: (value: string) => void;
   onFilter: (project: string | undefined, q: string) => void;
 }) {
   const mobile = useMediaQuery(MOBILE_QUERY);
-  const query = useInfiniteQuery(notesOptions(projectId, q, personal, sort));
+  const query = useInfiniteQuery(notesOptions(projectId, q, personal, sort, archive, tag));
   const contentRef = useRef<HTMLDivElement>(null);
   const loadMore = useCallback(() => query.fetchNextPage({ cancelRefetch: false }), [query.fetchNextPage]);
   const sentinel = useNoteInfiniteScroll({ root: contentRef,
@@ -62,6 +64,7 @@ export function NotesPage({
   const notes = useMemo(() => Array.from(new Map(
     (query.data?.pages.flatMap(page => page.items) ?? []).map(note => [note.id, note])
   ).values()), [query.data]);
+  const organization = <NoteOrganizationFilters archive={archive} tag={tag} onChange={onOrganization} />;
   const sortControl = <Selector label="메모 정렬" isLabelHidden size="sm" value={sort} onChange={onSort}
     options={[{ value: 'created-desc', label: '최근 작성순' }, { value: 'updated-desc', label: '최근 수정순' }, { value: 'created-asc', label: '오래된 작성순' }]} />;
   return (
@@ -74,10 +77,10 @@ export function NotesPage({
             title="메모"
             compact={mobile}
             toolbar={mobile ? <MobileFilterBar label="메모 필터" searchLabel="메모 검색" placeholder="메모 검색"
-            query={search} onQueryChange={setSearch} leadingContent={<ScopeSelector />} actions={sortControl} /> :
+            query={search} onQueryChange={setSearch} leadingContent={<FilterIndicator />} actions={<>{organization}{sortControl}</>} /> :
             <Toolbar className="page-filter-toolbar" label="메모 필터" size="sm" endContent={sortControl}
-              startContent={<><ScopeSelector /><TextInput label="메모 검색" isLabelHidden placeholder="메모 검색"
-                value={search} onChange={setSearch} hasClear width="17.5rem" /></>} />}
+              startContent={<><FilterIndicator /><TextInput label="메모 검색" isLabelHidden placeholder="메모 검색"
+                value={search} onChange={setSearch} hasClear width="17.5rem" />{organization}</>} />}
           />}
         content={
           <PageContent ref={contentRef} padding={mobile ? 2 : 4}>
@@ -96,13 +99,13 @@ export function NotesPage({
               ) : (
                 <EmptyState kind={q ? 'search' : 'empty'}
                   title={
-                    q || projectId
+                    q || projectId || tag || archive !== "active"
                       ? "표시할 메모가 없습니다"
                       : "생각이 떠오르면, 여기에"
                   }
                   description={
                     q || projectId
-                      ? "검색어나 프로젝트를 바꿔보세요."
+                      ? "검색어, 태그 또는 보관 필터를 바꿔보세요."
                       : "짧은 생각부터 사진과 자료까지 편하게 남겨보세요."
                   }
                 />

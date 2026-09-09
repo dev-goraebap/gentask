@@ -42,6 +42,8 @@ export function NoteCard({ note, onOpen }: { note: Note; onOpen: () => void }) {
             </Text>
           </HStack>
         ) : null}
+        {note.tags?.length ? <Text type="supporting" color="secondary">{note.tags.map(tag=>"#"+tag).join(" · ")}</Text> : null}
+        {note.archived ? <Text type="supporting">보관됨</Text> : null}
         <HStack gap={1} wrap="wrap">
           <Text type="supporting" color="secondary">
             {note.projectName ?? "개인"}

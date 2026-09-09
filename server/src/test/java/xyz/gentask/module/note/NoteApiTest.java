@@ -241,4 +241,116 @@ class NoteApiTest {
                 .andExpect(jsonPath("$.items[0].body").value("second"));
         mvc.perform(get("/api/v1/notes?sort=unknown").cookie(owner)).andExpect(status().isBadRequest());
     }
+
+    @Test
+    void 보관은_기본목록에서_제외하고_태그조회와_복원을_지원한다() throws Exception {
+        String note = create(owner, Map.of("body", "정리할 메모"));
+        mvc.perform(put(note + "/tags")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"tags\":[\" 질문 \",\"질문\",\"아이디어\"]}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get(note).cookie(owner))
+                .andExpect(jsonPath("$.tags.length()").value(2))
+                .andExpect(jsonPath("$.archived").value(false));
+        mvc.perform(get("/api/v1/notes").cookie(owner).param("tag", "질문"))
+                .andExpect(jsonPath("$.items.length()").value(1));
+        mvc.perform(get("/api/v1/notes").cookie(owner).param("tag", "없는태그"))
+                .andExpect(jsonPath("$.items.length()").value(0));
+        mvc.perform(put(note + "/archive")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"archived\":true}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/api/v1/notes").cookie(owner))
+                .andExpect(jsonPath("$.items.length()").value(0));
+        mvc.perform(get("/api/v1/notes")
+                        .cookie(owner)
+                        .param("archive", "archived")
+                        .param("tag", "질문"))
+                .andExpect(jsonPath("$.items.length()").value(1));
+        mvc.perform(get(note).cookie(owner)).andExpect(status().isOk());
+        mvc.perform(put(note + "/archive")
+                        .cookie(outsider)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"archived\":false}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(put(note + "/tags")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"tags\":[\"   \"]}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v1/notes").cookie(owner).param("archive", "invalid"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(put(note + "/archive")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"archived\":false}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/api/v1/notes").cookie(owner))
+                .andExpect(jsonPath("$.items.length()").value(1));
+    }
+
+    @Test
+    void 작업연결은_공개범위를_유지하고_보관메모를_조회하며_공유회수를_반영한다() throws Exception {
+        String note = create(owner, Map.of("body", "프로젝트 근거", "projectId", project));
+        String id = note.substring(note.lastIndexOf('/') + 1);
+        String task = mvc.perform(post("/api/v1/tasks")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("title", "근거 확인", "projectId", project))))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getHeader("Location");
+        mvc.perform(put(task + "/notes/" + id).cookie(owner)).andExpect(status().isNotFound());
+        mvc.perform(get(note).cookie(owner)).andExpect(jsonPath("$.shared").value(false));
+        mvc.perform(put(note + "/sharing")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"shared\":true}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(put(task + "/notes/" + id).cookie(owner)).andExpect(status().isNoContent());
+        mvc.perform(put(task + "/notes/" + id).cookie(owner)).andExpect(status().isNoContent());
+        mvc.perform(put(note + "/archive")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"archived\":true}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get(task + "/notes").cookie(member))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].archived").value(true));
+        mvc.perform(get(task + "/notes").cookie(outsider)).andExpect(status().isNotFound());
+        mvc.perform(put(note + "/sharing")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"shared\":false}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get(task + "/notes").cookie(member))
+                .andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(delete(task + "/notes/" + id).cookie(owner)).andExpect(status().isNoContent());
+        mvc.perform(get(note).cookie(owner)).andExpect(status().isOk());
+    }
+
+    @Test
+    void 개인작업에는_다른사람의_메모를_연결할수없다() throws Exception {
+        String note = create(outsider, Map.of("body", "비공개"));
+        String task = mvc.perform(post("/api/v1/tasks")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"개인 작업\"}"))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getHeader("Location");
+        mvc.perform(put(task + "/notes/" + note.substring(note.lastIndexOf('/') + 1))
+                        .cookie(owner))
+                .andExpect(status().isNotFound());
+        String mine = create(owner, Map.of("body", "내 메모"));
+        String id = mine.substring(mine.lastIndexOf('/') + 1);
+        mvc.perform(put(task + "/notes/" + id).cookie(owner)).andExpect(status().isNoContent());
+        mvc.perform(delete(mine).cookie(owner)).andExpect(status().isNoContent());
+        mvc.perform(get(task + "/notes").cookie(owner))
+                .andExpect(jsonPath("$.length()").value(0));
+    }
 }

@@ -18,7 +18,7 @@ import xyz.gentask.shared.domain.NanoId;
 
 @Service
 @RequiredArgsConstructor
-public class NoteService {
+public class NoteService implements xyz.gentask.module.note.NoteReferenceIn {
     private final NoteStore store;
     private final ProjectAccessIn projects;
     private final Attachments attachments;
@@ -49,12 +49,28 @@ public class NoteService {
 
     @Transactional(readOnly = true)
     public NotePage list(UUID userId, String projectId, String scope, String search, int offset, String sort) {
+        return list(userId, projectId, scope, search, offset, sort, "active", "");
+    }
+
+    @Transactional(readOnly = true)
+    public NotePage list(
+            UUID userId,
+            String projectId,
+            String scope,
+            String search,
+            int offset,
+            String sort,
+            String archive,
+            String tag) {
+        if (!java.util.Set.of("active", "archived", "all").contains(archive))
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Invalid archive filter");
         if (!java.util.Set.of("created-desc", "updated-desc", "created-asc").contains(sort))
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.BAD_REQUEST, "Invalid note sort");
         var filter = xyz.gentask.shared.domain.ResourceFilter.of(projectId, scope);
         if (projectId != null) projects.requireAccess(userId, projectId);
-        var rows = store.list(userId, projectId, filter.personal(), search, offset, 31, sort);
+        var rows = store.list(userId, projectId, filter.personal(), search, offset, 31, sort, archive, tag.strip());
         return new NotePage(rows.stream().limit(30).map(this::view).toList(), rows.size() > 30 ? offset + 30 : null);
     }
 
@@ -120,6 +136,32 @@ public class NoteService {
         store.edit(id, note.body(), clock.instant());
     }
 
+    @Transactional
+    public void archive(UUID userId, String id, boolean archived) {
+        own(userId, id);
+        store.archive(id, archived, clock.instant());
+    }
+
+    @Transactional
+    public void tags(UUID userId, String id, java.util.List<String> tags) {
+        var note = own(userId, id);
+        if (note.shared()) projects.requireWrite(userId, note.projectId());
+        var normalized = tags.stream().map(String::strip).distinct().sorted().toList();
+        if (normalized.stream().anyMatch(String::isBlank))
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Empty tag");
+        store.tags(id, normalized);
+        store.edit(id, note.body(), clock.instant());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<xyz.gentask.module.note.NoteReferenceIn.Reference> references(
+            UUID userId, String projectId, java.util.List<String> ids) {
+        if (projectId != null) projects.requireAccess(userId, projectId);
+        return store.references(userId, projectId, ids);
+    }
+
     private NoteRecord find(String id, boolean lock) {
         return store.find(id, lock).orElseThrow(NoteErrorCode.NOTE_NOT_FOUND::raise);
     }
@@ -137,6 +179,8 @@ public class NoteService {
                 note.projectId(),
                 note.projectName(),
                 note.shared(),
+                note.archived(),
+                store.tags(note.id()),
                 note.ownerId(),
                 note.authorName(),
                 note.createdAt(),

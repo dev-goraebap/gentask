@@ -1,6 +1,7 @@
 package xyz.gentask.module.note.infrastructure;
 
 import static xyz.gentask.jooq.Tables.NOTES;
+import static xyz.gentask.jooq.Tables.NOTE_TAGS;
 import static xyz.gentask.jooq.Tables.PROJECTS;
 import static xyz.gentask.jooq.Tables.PROJECT_MEMBERS;
 import static xyz.gentask.jooq.Tables.USERS;
@@ -54,7 +55,15 @@ class JooqNoteStore implements NoteStore {
 
     @Override
     public List<NoteRecord> list(
-            UUID userId, String projectId, boolean personal, String search, int offset, int limit, String sort) {
+            UUID userId,
+            String projectId,
+            boolean personal,
+            String search,
+            int offset,
+            int limit,
+            String sort,
+            String archive,
+            String tag) {
         var membership = PROJECTS.OWNER_ID
                 .eq(userId)
                 .or(DSL.exists(dsl.selectOne()
@@ -74,6 +83,14 @@ class JooqNoteStore implements NoteStore {
                         personal
                                 ? NOTES.PROJECT_ID.isNull()
                                 : projectId == null ? DSL.noCondition() : NOTES.PROJECT_ID.eq(projectId))
+                .and(archive.equals("all") ? DSL.noCondition() : NOTES.ARCHIVED.eq(archive.equals("archived")))
+                .and(
+                        tag.isBlank()
+                                ? DSL.noCondition()
+                                : DSL.exists(dsl.selectOne()
+                                        .from(NOTE_TAGS)
+                                        .where(NOTE_TAGS.NOTE_ID.eq(NOTES.ID))
+                                        .and(NOTE_TAGS.TAG.eq(tag))))
                 .and(search.isBlank() ? DSL.noCondition() : NOTES.BODY.containsIgnoreCase(search))
                 .orderBy(
                         switch (sort) {
@@ -94,6 +111,7 @@ class JooqNoteStore implements NoteStore {
                 row.get(NOTES.PROJECT_ID),
                 row.get(PROJECTS.NAME),
                 row.get(NOTES.SHARED) && row.get(NOTES.PROJECT_ID) != null,
+                row.get(NOTES.ARCHIVED),
                 row.get(NOTES.OWNER_ID),
                 row.get(USERS.NICKNAME),
                 row.get(NOTES.CREATED_AT),
@@ -126,6 +144,51 @@ class JooqNoteStore implements NoteStore {
                 .set(NOTES.UPDATED_AT, now)
                 .where(NOTES.ID.eq(id))
                 .execute();
+    }
+
+    @Override
+    public void archive(String id, boolean archived, Instant now) {
+        dsl.update(NOTES)
+                .set(NOTES.ARCHIVED, archived)
+                .set(NOTES.UPDATED_AT, now)
+                .where(NOTES.ID.eq(id))
+                .execute();
+    }
+
+    @Override
+    public List<String> tags(String id) {
+        return dsl.select(NOTE_TAGS.TAG)
+                .from(NOTE_TAGS)
+                .where(NOTE_TAGS.NOTE_ID.eq(id))
+                .orderBy(NOTE_TAGS.TAG)
+                .fetch(NOTE_TAGS.TAG);
+    }
+
+    @Override
+    public void tags(String id, List<String> tags) {
+        dsl.deleteFrom(NOTE_TAGS).where(NOTE_TAGS.NOTE_ID.eq(id)).execute();
+        for (String tag : tags)
+            dsl.insertInto(NOTE_TAGS)
+                    .set(NOTE_TAGS.NOTE_ID, id)
+                    .set(NOTE_TAGS.TAG, tag)
+                    .execute();
+    }
+
+    @Override
+    public List<xyz.gentask.module.note.NoteReferenceIn.Reference> references(
+            UUID userId, String projectId, List<String> ids) {
+        return dsl.select(NOTES.ID, NOTES.BODY, NOTES.ARCHIVED)
+                .from(NOTES)
+                .where(NOTES.ID.in(ids))
+                .and(
+                        projectId == null
+                                ? NOTES.PROJECT_ID.isNull().and(NOTES.OWNER_ID.eq(userId))
+                                : NOTES.PROJECT_ID.eq(projectId).and(NOTES.SHARED.isTrue()))
+                .orderBy(NOTES.CREATED_AT.desc(), NOTES.ID)
+                .fetch(row -> new xyz.gentask.module.note.NoteReferenceIn.Reference(
+                        row.value1(),
+                        row.value2().substring(0, Math.min(200, row.value2().length())),
+                        row.value3()));
     }
 
     @Override

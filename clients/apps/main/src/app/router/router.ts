@@ -28,6 +28,7 @@ import {
 } from '@tanstack/react-router';
 import { MembersRoute } from './MembersRoute';
 import { TasksRoute } from './TasksRoute';
+import { TaskRoute } from './TaskRoute';
 
 export const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootLayout,
@@ -53,14 +54,7 @@ export const indexRoute = createRoute({
   },
 });
 
-export const tasksRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/tasks/$view',
-  validateSearch: (search: Record<string, unknown>): { task?: string } => ({
-    task: typeof search.task === 'string' ? search.task : undefined,
-  }),
-  component: TasksRoute,
-});
+export const tasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks/$taskId', component: TaskRoute });
 
 export const personalTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks', component: TasksRoute });
 export const projectTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects/$projectId/tasks', beforeLoad: ({ params }) => { throw redirect({ to: '/tasks', search: { projectId: params.projectId }, replace: true }); } });
@@ -78,7 +72,9 @@ export const personalArtifactRoute = createRoute({ getParentRoute: () => rootRou
 export const notesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/notes',
-  validateSearch: (search: Record<string, unknown>): {project?:string;q?:string;note?:string;sort?:string} => ({
+  validateSearch: (search: Record<string, unknown>): {project?:string;q?:string;note?:string;sort?:string;archive?:string;tag?:string} => ({
+    archive: ['archived', 'all'].includes(String(search.archive)) ? String(search.archive) : undefined,
+    tag: typeof search.tag === 'string' ? search.tag.slice(0,40) : undefined,
     sort: ['updated-desc', 'created-asc'].includes(String(search.sort)) ? String(search.sort) : undefined,
     note: typeof search.note === 'string' ? search.note : undefined,
     project: typeof search.project === 'string' ? search.project : undefined,

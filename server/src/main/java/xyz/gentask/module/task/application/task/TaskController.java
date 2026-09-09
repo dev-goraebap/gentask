@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -125,5 +126,23 @@ public class TaskController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(@CurrentUser UUID userId, @PathVariable UUID taskId) {
         taskService.remove(userId, taskId);
+    }
+
+    @GetMapping("/{taskId}/notes")
+    public List<xyz.gentask.module.note.NoteReferenceIn.Reference> notes(
+            @CurrentUser UUID userId, @PathVariable UUID taskId) {
+        return taskService.linkedNotes(userId, taskId);
+    }
+
+    @PutMapping("/{taskId}/notes/{noteId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void linkNote(@CurrentUser UUID userId, @PathVariable UUID taskId, @PathVariable String noteId) {
+        taskService.linkNote(userId, taskId, noteId);
+    }
+
+    @DeleteMapping("/{taskId}/notes/{noteId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unlinkNote(@CurrentUser UUID userId, @PathVariable UUID taskId, @PathVariable String noteId) {
+        taskService.unlinkNote(userId, taskId, noteId);
     }
 }

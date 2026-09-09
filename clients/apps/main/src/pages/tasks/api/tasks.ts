@@ -27,3 +27,7 @@ export async function uploadTaskFile(id:string,file:File){
  if(!result.ok)throw new Error('파일을 업로드하지 못했습니다. 다시 시도해 주세요.');
  await request('/tasks/'+id+'/files',{method:'POST',body:JSON.stringify({objectKey:data.objectKey,fileName:file.name,contentType})});
 }
+
+export type LinkedNote = {id:string;preview:string;archived:boolean};
+export const taskNotesOptions = (id:string) => queryOptions({queryKey:['tasks',id,'notes'],queryFn:({signal})=>get<LinkedNote[]>('/tasks/'+id+'/notes',signal)});
+export const linkTaskNote = (id:string,noteId:string,linked:boolean) => request('/tasks/'+id+'/notes/'+encodeURIComponent(noteId),{method:linked?'PUT':'DELETE'});

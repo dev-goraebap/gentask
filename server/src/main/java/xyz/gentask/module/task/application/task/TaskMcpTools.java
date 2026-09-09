@@ -198,4 +198,43 @@ public class TaskMcpTools {
             return tasks.linkedArtifacts(results.userId(context), UUID.fromString(taskId));
         });
     }
+
+    @McpTool(
+            name = "list_task_notes",
+            description = "작업에 연결된 접근 가능한 메모를 조회한다. 공유 해제되거나 다른 영역으로 이동한 메모는 제외한다.",
+            annotations = @McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = false))
+    public CallToolResult linkedNotes(
+            McpTransportContext context, @McpToolParam(description = "작업 UUID", required = true) String taskId) {
+        return results.call(() -> {
+            return tasks.linkedNotes(results.userId(context), UUID.fromString(taskId));
+        });
+    }
+
+    @McpTool(
+            name = "link_task_note",
+            description = "같은 영역의 메모를 작업에 연결한다. 프로젝트 작업에는 공유된 메모만 연결하며 공개 범위를 바꾸지 않는다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = false, openWorldHint = false))
+    public CallToolResult linkNote(
+            McpTransportContext context,
+            @McpToolParam(description = "작업 UUID", required = true) String taskId,
+            @McpToolParam(description = "메모 NanoID", required = true) String noteId) {
+        return results.call(() -> {
+            tasks.linkNote(results.userId(context), UUID.fromString(taskId), noteId);
+            return Map.of("saved", true);
+        });
+    }
+
+    @McpTool(
+            name = "unlink_task_note",
+            description = "작업과 메모의 연결만 해제한다. 원본 메모는 유지한다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = false, openWorldHint = false))
+    public CallToolResult unlinkNote(
+            McpTransportContext context,
+            @McpToolParam(description = "작업 UUID", required = true) String taskId,
+            @McpToolParam(description = "메모 NanoID", required = true) String noteId) {
+        return results.call(() -> {
+            tasks.unlinkNote(results.userId(context), UUID.fromString(taskId), noteId);
+            return Map.of("saved", true);
+        });
+    }
 }

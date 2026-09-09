@@ -88,7 +88,7 @@ class McpApiTest {
                 .isEqualTo("2025-11-25");
         var response = 요청(token, "tools/list", Map.of());
         JsonNode tools = mapper.readTree(response.body()).path("result").path("tools");
-        assertThat(tools.size()).isEqualTo(57);
+        assertThat(tools.size()).isEqualTo(62);
         for (JsonNode tool : tools) {
             assertThat(tool.path("inputSchema").path("properties").has("context"))
                     .isFalse();
@@ -613,6 +613,37 @@ class McpApiTest {
         assertThat(데이터(호출(token, "get_note", Map.of("noteId", id))).path("body").asText())
                 .isEqualTo("정리한 발견");
         데이터(호출(token, "delete_note", Map.of("noteId", id)));
+    }
+
+    @Test
+    void 메모의_태그와_보관을_설정하고_작업에서_참조한다() throws Exception {
+        String noteId = 데이터(호출(token, "create_note", Map.of("body", "검토할 발견")))
+                .path("id")
+                .asText();
+        String taskId = 데이터(호출(token, "create_task", Map.of("title", "발견 검토")))
+                .path("id")
+                .asText();
+        데이터(호출(token, "set_note_tags", Map.of("noteId", noteId, "tags", java.util.List.of("질문", "아이디어"))));
+        데이터(호출(token, "link_task_note", Map.of("taskId", taskId, "noteId", noteId)));
+        데이터(호출(token, "set_note_archived", Map.of("noteId", noteId, "archived", true)));
+        assertThat(데이터(호출(token, "list_notes", Map.of())).path("items").size()).isZero();
+        assertThat(데이터(호출(token, "list_notes", Map.of("archive", "archived", "tag", "질문")))
+                        .path("items")
+                        .size())
+                .isEqualTo(1);
+        assertThat(데이터(호출(token, "list_task_notes", Map.of("taskId", taskId)))
+                        .get(0)
+                        .path("archived")
+                        .asBoolean())
+                .isTrue();
+        데이터(호출(token, "unlink_task_note", Map.of("taskId", taskId, "noteId", noteId)));
+        assertThat(데이터(호출(token, "list_task_notes", Map.of("taskId", taskId))).size())
+                .isZero();
+        데이터(호출(token, "set_note_archived", Map.of("noteId", noteId, "archived", false)));
+        assertThat(데이터(호출(token, "get_note", Map.of("noteId", noteId)))
+                        .path("tags")
+                        .size())
+                .isEqualTo(2);
     }
 
     private JsonNode 호출(String credential, String name, Map<String, ?> arguments) throws Exception {

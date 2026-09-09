@@ -1,3 +1,5 @@
+import { NoteTags } from './NoteTags';
+import { NoteIdentity } from './NoteIdentity';
 import { NoteAttachment } from './NoteAttachment';
 import { HgiCancel, HgiAttachment, HgiTrash } from '@/shared/ui/icons';
 import { useSession } from "@/entities/session";
@@ -22,6 +24,7 @@ import { useMediaQuery } from "@astryxdesign/core/hooks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Suspense, useRef, useState } from "react";
 import {
+  archiveNote,
   attachNoteFile,
   connectNote,
   deleteNote,
@@ -50,7 +53,7 @@ export function NoteDetail({
   const action = useMutation({
     mutationFn: (run: () => Promise<unknown>) => run(),
     onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ["notes"] });
+      await Promise.all([client.invalidateQueries({ queryKey: ["notes"] }),client.invalidateQueries({queryKey:["tasks"]})]);
     },
   });
   const project = projects.find((p) => p.id === note?.projectId);
@@ -89,6 +92,7 @@ export function NoteDetail({
             {note ? <HStack align="center" gap={2} style={{ flex: 1, minWidth: 0 }}>
               <VStack gap={0.5} style={{ minWidth: 0 }}>
                 <Text weight="semibold" maxLines={1}>{note.authorName}</Text>
+                <NoteIdentity id={id} archived={note.archived} />
                 <Text type="supporting" color="secondary" maxLines={1}>{new Date(note.createdAt).toLocaleString("ko-KR")}</Text>
               </VStack>
               <Text type="supporting" color="secondary">{note.shared ? "프로젝트 공유" : "나만 보기"}</Text>
@@ -192,7 +196,7 @@ export function NoteDetail({
                           }}
                         />
                         <MoreMenu label="메모 더보기" size="sm" placement="above" alignment="end"
-                          isDisabled={action.isPending} items={[{
+                          isDisabled={action.isPending} items={[{label:note.archived?'보관 해제':'메모 보관',onClick:()=>action.mutate(()=>archiveNote(id,!note.archived))},{
                             label: '메모 삭제', icon: <HgiTrash />, variant: 'destructive',
                             onClick: () => {
                               if (window.confirm('메모와 첨부파일을 삭제할까요?'))
@@ -238,6 +242,7 @@ export function NoteDetail({
 
                 </>
               ) : null}
+              {note ? <NoteTags id={id} tags={note.tags} writable={Boolean(writable)} /> : null}
               {action.error ? (
                 <Text role="alert">{action.error.message}</Text>
               ) : null}

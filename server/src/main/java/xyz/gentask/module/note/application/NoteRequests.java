@@ -8,6 +8,14 @@ import java.util.List;
 public final class NoteRequests {
     private NoteRequests() {}
 
+    public record ArchiveNote(boolean archived) {}
+
+    public record TagNote(@NotNull @Size(max = 10) List<@NotBlank @Size(max = 40) String> tags) {
+        public TagNote {
+            tags = tags == null ? null : java.util.Collections.unmodifiableList(new java.util.ArrayList<>(tags));
+        }
+    }
+
     public record CreateNote(
             @NotNull @Size(max = 50000) String body,
             @Size(min = 12, max = 12) String projectId,

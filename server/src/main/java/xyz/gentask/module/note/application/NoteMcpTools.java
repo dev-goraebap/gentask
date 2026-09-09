@@ -26,14 +26,19 @@ public class NoteMcpTools {
             @McpToolParam(description = "프로젝트 NanoID", required = false) String projectId,
             @McpToolParam(description = "personal: 개인만. 생략: 전체. projectId와 함께 사용할 수 없음", required = false) String scope,
             @McpToolParam(description = "본문 검색어", required = false) String query,
-            @McpToolParam(description = "다음 페이지 위치", required = false) Integer offset) {
+            @McpToolParam(description = "다음 페이지 위치", required = false) Integer offset,
+            @McpToolParam(description = "active(기본), archived, all", required = false) String archive,
+            @McpToolParam(description = "정확히 일치하는 태그", required = false) String tag) {
         return results.call(() -> {
             return notes.list(
                     results.userId(context),
                     projectId,
                     scope,
                     query == null ? "" : query,
-                    offset == null ? 0 : Math.max(0, Math.min(offset, 100000)));
+                    offset == null ? 0 : Math.max(0, Math.min(offset, 100000)),
+                    "created-desc",
+                    archive == null ? "active" : archive,
+                    tag == null ? "" : tag);
         });
     }
 
@@ -145,6 +150,35 @@ public class NoteMcpTools {
         return results.call(() -> {
             notes.detach(results.userId(context), noteId, java.util.UUID.fromString(fileId));
             return Map.of("deleted", true);
+        });
+    }
+
+    @McpTool(
+            name = "set_note_archived",
+            description = "작성한 메모를 보관하거나 복원한다. 보관은 완료 처리가 아니며 기본 목록에서만 숨긴다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = false, openWorldHint = false))
+    public CallToolResult archive(
+            McpTransportContext context,
+            @McpToolParam(description = "메모 NanoID", required = true) String noteId,
+            @McpToolParam(description = "보관 여부", required = true) boolean archived) {
+        return results.call(() -> {
+            notes.archive(results.userId(context), noteId, archived);
+            return Map.of("saved", true);
+        });
+    }
+
+    @McpTool(
+            name = "set_note_tags",
+            description = "메모 태그 목록 전체를 교체한다. 최대 10개, 각 40자. 먼저 get_note로 현재 태그를 확인한다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = true, openWorldHint = false))
+    public CallToolResult tags(
+            McpTransportContext context,
+            @McpToolParam(description = "메모 NanoID", required = true) String noteId,
+            @McpToolParam(description = "태그 목록. 빈 배열은 모두 제거", required = true) java.util.List<String> tags) {
+        return results.call(() -> {
+            var request = results.validate(new NoteRequests.TagNote(tags));
+            notes.tags(results.userId(context), noteId, request.tags());
+            return Map.of("saved", true);
         });
     }
 }
