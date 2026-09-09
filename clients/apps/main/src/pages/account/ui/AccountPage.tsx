@@ -1,10 +1,11 @@
+import { UserAvatar } from '@/shared/ui/user-avatar';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobilePageHeader, MOBILE_QUERY } from '@/shared/ui/mobile';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { logout, useSession } from '@/entities/session';
 import { WIDTH } from '@/shared/config';
 import { ThemeToggle } from '@/shared/ui/theme';
-import { Avatar, Button, Text, VStack } from '@astryxdesign/core';
+import { Button, Text, VStack } from '@astryxdesign/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { ApiTokenSettings } from './ApiTokenSettings';
@@ -30,7 +31,7 @@ export function AccountPage() {
     content={<PageContent padding={mobile ? 3 : 4}><VStack gap={5} className="account-settings">
       <SettingsGroup title="프로필">
         <SettingsRow title={me?.nickname ?? '프로필'} description={me?.email} icon={<HgiUser />}
-          control={<Avatar name={me?.nickname ?? ''} size="lg" tooltip={false} />} />
+          control={<UserAvatar userId={me?.id} src={me?.profileImageUrl ?? undefined} name={me?.nickname ?? ''} size="lg" tooltip={false} />} />
       </SettingsGroup>
       <SettingsGroup title="화면 설정">
         <SettingsRow title="화면 테마" description="밝은 화면과 어두운 화면을 전환합니다." icon={<HgiSun />} control={<ThemeToggle />} />

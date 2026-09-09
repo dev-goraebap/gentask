@@ -125,7 +125,9 @@ public final class ArtifactViews {
                     requiredMode = Schema.RequiredMode.REQUIRED,
                     types = {"string", "null"},
                     description = "왜 고쳤는지. 적지 않았으면 값이 없다")
-            String comment) {}
+            String comment,
+
+            @Schema(description = "작성자 식별자") java.util.UUID authorId) {}
 
     /** 이력 한 쪽. 최근 것부터 담는다(DOC-004 A3). */
     @Schema(name = "VersionPageView")

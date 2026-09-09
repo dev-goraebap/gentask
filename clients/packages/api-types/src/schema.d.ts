@@ -1519,6 +1519,11 @@ export interface components {
             authorName: string;
             /** @description 왜 고쳤는지. 적지 않았으면 값이 없다 */
             comment: string | null;
+            /**
+             * Format: uuid
+             * @description 작성자 식별자
+             */
+            authorId?: string;
         };
         VersionView: {
             summary: components["schemas"]["VersionSummary"];

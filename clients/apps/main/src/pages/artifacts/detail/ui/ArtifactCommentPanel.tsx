@@ -1,7 +1,8 @@
+import { UserAvatar } from '@/shared/ui/user-avatar';
 import { commentsOptions, createArtifactComment, deleteArtifactComment, type ArtifactCommentView } from '@/entities/artifact';
 import { useSession } from '@/entities/session';
 import { HgiTrash } from '@/shared/ui/icons';
-import { Avatar, Button, HStack, Layout, LayoutContent, LayoutFooter, List, ListItem, Text, TextArea, VStack } from '@astryxdesign/core';
+import { Button, HStack, Layout, LayoutContent, LayoutFooter, List, ListItem, Text, TextArea, VStack } from '@astryxdesign/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { blockKey, type CommentBlock } from '../model/comment-blocks';
@@ -29,7 +30,7 @@ export function ArtifactCommentPanel({ projectId, artifactId, versionNo, block, 
         const target = blocks.find(item => blockKey(item.start, item.end) === blockKey(comment.blockStart, comment.blockEnd));
         return <ListItem key={comment.id} style={{ paddingInline: 0 }} isSelected={!!block && target?.start === block.start && target.end === block.end}
           label={<HStack gap={2} align="center" justify="between"><HStack gap={2} align="center" style={{ minWidth: 0 }}>
-            <Avatar name={comment.authorName || '알 수 없는 사용자'} size="sm" tooltip={false} /><Text size="sm" weight="medium" maxLines={1}>{comment.authorName || '알 수 없는 사용자'}</Text>
+            <UserAvatar userId={comment.authorId} name={comment.authorName || '알 수 없는 사용자'} size="sm" tooltip={false} /><Text size="sm" weight="medium" maxLines={1}>{comment.authorName || '알 수 없는 사용자'}</Text>
           </HStack>{writable && comment.authorId === session.data?.id ? <Button label="내 코멘트 삭제" icon={<HgiTrash size={16} />} isIconOnly size="sm" variant="ghost" isDisabled={busy} isLoading={remove.isPending && remove.variables === comment.id} onClick={() => remove.mutate(comment.id)} /> : null}</HStack>}
           description={<VStack gap={2}><Text type="supporting">{formatArtifactDate(comment.createdAt)}</Text>
             {target ? <Button label={`${target.label.replace(/^\d+\.\s*/, '')}에 남긴 코멘트`} tooltip="본문에서 위치 보기" size="sm" variant="secondary" style={{ alignSelf: 'flex-start' }} isDisabled={busy} onClick={() => onReveal(target)} /> :

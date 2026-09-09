@@ -154,6 +154,7 @@ class JooqArtifactQuery implements ArtifactQuery {
                 .select(
                         ARTIFACT_REVISIONS.REVISION_NO,
                         ARTIFACT_REVISIONS.CREATED_AT,
+                        ARTIFACT_REVISIONS.CREATED_BY,
                         USERS.NICKNAME,
                         ARTIFACT_REVISIONS.COMMENT)
                 .from(ARTIFACT_REVISIONS)
@@ -186,6 +187,7 @@ class JooqArtifactQuery implements ArtifactQuery {
                 .select(
                         ARTIFACT_REVISIONS.REVISION_NO,
                         ARTIFACT_REVISIONS.CREATED_AT,
+                        ARTIFACT_REVISIONS.CREATED_BY,
                         USERS.NICKNAME,
                         ARTIFACT_REVISIONS.COMMENT,
                         ARTIFACT_REVISIONS.TITLE,
@@ -219,7 +221,8 @@ class JooqArtifactQuery implements ArtifactQuery {
                 record.get(ARTIFACT_REVISIONS.REVISION_NO),
                 record.get(ARTIFACT_REVISIONS.CREATED_AT),
                 nickname == null ? "" : nickname,
-                record.get(ARTIFACT_REVISIONS.COMMENT));
+                record.get(ARTIFACT_REVISIONS.COMMENT),
+                record.get(ARTIFACT_REVISIONS.CREATED_BY));
     }
 
     private static ArtifactSummary toSummary(Record record) {

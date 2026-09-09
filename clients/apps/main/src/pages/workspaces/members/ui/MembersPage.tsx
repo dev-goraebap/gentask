@@ -1,3 +1,4 @@
+import { UserAvatar } from '@/shared/ui/user-avatar';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
 import { useSession } from '@/entities/session';
@@ -10,7 +11,7 @@ import { HgiMembers, HgiPlus, HgiSearch, HgiTrash } from '@/shared/ui/icons';
 import { ListingFooter, PageSize, SortSelector, SortFields, useListing } from '@/shared/ui/listing';
 import { MobileSurface } from '@/shared/ui/mobile';
 import {
-    Avatar, Button, CheckboxList, CheckboxListItem, MultiSelector, Dialog, DialogHeader, EmptyState,
+    Button, CheckboxList, CheckboxListItem, MultiSelector, Dialog, DialogHeader, EmptyState,
     HStack,
     Item,
     Layout, LayoutContent,
@@ -101,7 +102,7 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
     {
       key: 'name', header: '멤버', width: proportional(2),
       renderCell: (member) => <HStack gap={2} align="center">
-        <Avatar src={member.profileImageUrl} name={member.name} size="sm" />
+        <UserAvatar userId={member.id} src={member.profileImageUrl} name={member.name} size="sm" />
         <HStack gap={1} wrap="wrap" align="center">
           <Text weight="semibold">{member.name}</Text>
           {member.id === session.data?.id ? <Text type="supporting">나</Text> : null}
@@ -159,7 +160,7 @@ export function MembersPage({ projectId, onPreview }: MembersProps) {
             {mobile ? <Text weight="semibold">참여 중 · {matched.length}명</Text> : null}
             {mobile ? <List hasDividers style={{ marginInline: 'calc(-1 * var(--spacing-3))' }}>{visibleMembers.map((member) => <Item as="li" key={member.id}
               label={member.name} labelLines={2} description={`${ROLE_LABEL[member.role]}${member.isGuest ? ' · 게스트' : ''}`}
-              startContent={<Avatar src={member.profileImageUrl} name={member.name} size="sm" />} density="spacious"
+              startContent={<UserAvatar userId={member.id} src={member.profileImageUrl} name={member.name} size="sm" />} density="spacious"
               onClick={() => setSelectedMember(member.id)} />)}</List> :
               <Table<MemberRow> aria-label="프로젝트 멤버" data={visibleMembers.map((member) => ({ ...member }))}
                 columns={columns} idKey="id" density="balanced" dividers="rows" hasHover />}

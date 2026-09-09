@@ -1,3 +1,5 @@
+import { useSession } from '@/entities/session';
+import { UserAvatar } from '@/shared/ui/user-avatar';
 import { useState } from 'react';
 import { HgiArtifacts, HgiFolder, HgiTask, HgiUser, HgiNote } from '@/shared/ui/icons';
 import { MOBILE_QUERY } from '@/shared/ui/mobile';
@@ -10,6 +12,7 @@ import { parseResourceScope } from '@/shared/config';
 import { useViewportHeight } from './useViewportHeight';
 
 export function AppShellLayout() {
+  const { data: me } = useSession();
   const mobile = useMediaQuery(MOBILE_QUERY);
   const viewportHeight = useViewportHeight(mobile);
   const navigate = useNavigate();
@@ -26,7 +29,7 @@ export function AppShellLayout() {
   return <AppShell mobileNav={{ hasToggle: false, breakpoint: 'lg', isOpen: menuOpen, onOpenChange: setMenuOpen }} height="fill" style={viewportHeight ? { height: viewportHeight, maxHeight: viewportHeight } : undefined} variant="section" contentPadding={0}
     sideNav={<SideNav style={mobile ? undefined : { width: '16.25rem' }}
       header={<HStack gap={2} align="center"><BrandMark size={36} /><Text className="app-logo" size="lg">Gentask</Text></HStack>}
-      footer={<HStack justify="between" align="center"><Button label="계정" icon={<HgiUser />} variant="secondary" onClick={() => { setMenuOpen(false); void navigate({ to: '/me', search }); }} /><ThemeToggle /></HStack>}>
+      footer={<HStack justify="between" align="center"><Button label="계정" icon={<UserAvatar userId={me?.id} name={me?.nickname} src={me?.profileImageUrl ?? undefined} size="sm" tooltip={false} />} variant="secondary" onClick={() => { setMenuOpen(false); void navigate({ to: '/me', search }); }} /><ThemeToggle /></HStack>}>
       <VStack gap={0}>{menu.slice(0, 4).map(m => <SideNavItem key={m.path} label={m.label} icon={m.icon} isSelected={path.startsWith(m.path)} onClick={() => { setMenuOpen(false); void navigate({ to: m.path, search }); }} />)}</VStack>
     </SideNav>}>
     <Layout padding={0} content={<Outlet />} />
