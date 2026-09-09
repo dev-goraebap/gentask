@@ -1,4 +1,4 @@
-import { ScopeSelector } from '@/features/select-resource-scope';
+import { FilterIndicator } from '@/shared/ui/listing';
 import { Button, CheckboxList, CheckboxListItem, Heading, HStack, MultiSelector, TextInput, Toolbar, VStack } from '@astryxdesign/core';
 import { useState } from 'react';
 import { MobileFilterBar, MobileFilterButton, MobileSurface } from '@/shared/ui/mobile';
@@ -14,11 +14,11 @@ export function TaskFilters({ mobile, query, onQueryChange, filters, onChange, v
   const filtered = filters.states.length > 0;
   const reset = () => { onQueryChange(''); onChange(DEFAULT_FILTERS); };
   return <>
-    {mobile ? <MobileFilterBar leadingContent={<ScopeSelector />} label="작업 필터" searchLabel="작업 검색" placeholder="제목, 담당자로 검색" query={query} onQueryChange={onQueryChange}
+    {mobile ? <MobileFilterBar leadingContent={<FilterIndicator />} label="작업 필터" searchLabel="작업 검색" placeholder="제목, 담당자로 검색" query={query} onQueryChange={onQueryChange}
       actions={<><Button label={view === 'list' ? '보드 보기' : '목록 보기'} icon={view === 'list' ? <HgiViewBoard /> : <HgiViewList />} isIconOnly variant="ghost" size="lg" onClick={() => onViewChange(view === 'list' ? 'board' : 'list')} />
         <MobileFilterButton active={filtered} onClick={() => { setDraft(filters); setOpen(true); }} /></>} /> :
       <Toolbar className="page-filter-toolbar" label="작업 필터" size="sm"
-        startContent={<><ScopeSelector /><TextInput label="작업 검색" isLabelHidden placeholder="제목, 담당자로 검색" value={query} onChange={onQueryChange} startIcon={<HgiSearch />} hasClear width="13.75rem" size="sm" />
+        startContent={<><FilterIndicator /><TextInput label="작업 검색" isLabelHidden placeholder="제목, 담당자로 검색" value={query} onChange={onQueryChange} startIcon={<HgiSearch />} hasClear width="13.75rem" size="sm" />
           <MultiSelector label="상태 필터" isLabelHidden placeholder="모든 상태" value={filters.states} options={STATE_OPTIONS} variant="ghost" size="sm"
             onChange={states => onChange({ ...filters, states })} triggerDisplay="count" formatValue={items => `상태 · ${items.length}`} hasSelectAll selectAllLabel="전체 선택" />
           {query || filtered ? <Button label="초기화" variant="secondary" onClick={reset} /> : null}</>}

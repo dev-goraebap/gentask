@@ -30,6 +30,12 @@ public final class NoteViews {
             boolean shared,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            boolean archived,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            List<String> tags,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             UUID ownerId,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -45,6 +51,7 @@ public final class NoteViews {
             List<AttachmentView> files) {
         public NoteView {
             files = List.copyOf(files);
+            tags = List.copyOf(tags);
         }
     }
 

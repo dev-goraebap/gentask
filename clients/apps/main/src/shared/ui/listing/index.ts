@@ -6,3 +6,4 @@ export { SortSelector } from './SortSelector';
 export { SortFields } from './SortFields';
 export type { SortValue, SortOption, SortDirection } from './sort';
 export { parseListingSearch, type ListingSearch } from './search';
+export { FilterIndicator } from './FilterIndicator';

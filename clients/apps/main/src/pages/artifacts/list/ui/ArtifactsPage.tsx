@@ -1,5 +1,5 @@
+import { FilterIndicator } from '@/shared/ui/listing';
 import { PageState as EmptyState } from '@/shared/ui/page-state';
-import { ScopeSelector } from '@/features/select-resource-scope';
 import { useWorkspaceStore } from '@/entities/workspace';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
@@ -104,13 +104,14 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId, per
       contentWidth={WIDTH.wide}
       header={<PageHeader title="아티팩트" compact={mobile}
         actions={canEdit ? mobile ? <CreateButton label="새로 만들기" onClick={() => setCreateMenu(true)} /> : <><Button label="새 폴더" variant="secondary" size="sm" icon={<HgiFolder />} onClick={() => setCreating('folder')} /><CreateButton label="새 아티팩트" onClick={() => setCreating('doc')} /></> : undefined}
-        toolbar={mobile ? <MobileFilterBar leadingContent={<ScopeSelector />} label="아티팩트 필터" searchLabel="아티팩트 검색" placeholder="제목으로 검색" query={query} onQueryChange={setQuery}
+        toolbar={mobile ? <MobileFilterBar leadingContent={<FilterIndicator />} label="아티팩트 필터" searchLabel="아티팩트 검색" placeholder="제목으로 검색" query={query} onQueryChange={setQuery}
             actions={<MobileFilterButton active={false} onClick={() => { setDraft({ sort, direction, filter: listing.filter, size: listing.size }); setFiltersOpen(true); }} />} /> : <Toolbar className="page-filter-toolbar"
               label="아티팩트 필터"
               size="sm"
               startContent={
                 <>
-                  <ScopeSelector />
+                  <FilterIndicator />
+
                   <TextInput
                     label="검색"
                     isLabelHidden

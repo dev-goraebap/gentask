@@ -36,8 +36,10 @@ public class NoteController {
             @RequestParam(required = false) String scope,
             @RequestParam(defaultValue = "") @Size(max = 200) String q,
             @RequestParam(defaultValue = "created-desc") String sort,
+            @RequestParam(defaultValue = "active") String archive,
+            @RequestParam(defaultValue = "") @Size(max = 40) String tag,
             @RequestParam(defaultValue = "0") @Min(0) @Max(100000) int offset) {
-        return notes.list(userId, projectId, scope, q, offset, sort);
+        return notes.list(userId, projectId, scope, q, offset, sort, archive, tag);
     }
 
     @PostMapping
@@ -70,6 +72,20 @@ public class NoteController {
     public void share(
             @CurrentUser UUID userId, @PathVariable String id, @Valid @RequestBody NoteRequests.ShareNote request) {
         notes.share(userId, id, request.shared());
+    }
+
+    @PutMapping("/{id}/archive")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void archive(
+            @CurrentUser UUID userId, @PathVariable String id, @Valid @RequestBody NoteRequests.ArchiveNote request) {
+        notes.archive(userId, id, request.archived());
+    }
+
+    @PutMapping("/{id}/tags")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void tags(
+            @CurrentUser UUID userId, @PathVariable String id, @Valid @RequestBody NoteRequests.TagNote request) {
+        notes.tags(userId, id, request.tags());
     }
 
     @DeleteMapping("/{id}")

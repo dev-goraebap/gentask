@@ -4,12 +4,12 @@ import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import type { components } from "api-types";
 export type Note = components["schemas"]["NoteView"];
 export type NoteFile = Note["files"][number];
-export const notesOptions = (projectId?: string, q = "", personal = false, sort = "created-desc") =>
+export const notesOptions = (projectId?: string, q = "", personal = false, sort = "created-desc", archive = "active", tag = "") =>
   infiniteQueryOptions({
-    queryKey: ["notes", "list", projectId ?? null, personal, q, sort],
+    queryKey: ["notes", "list", projectId ?? null, personal, q, sort, archive, tag],
     initialPageParam: 0,
     queryFn: ({ pageParam, signal }) => {
-      const search = new URLSearchParams({ offset: String(pageParam), q, sort });
+      const search = new URLSearchParams({ offset: String(pageParam), q, sort, archive, tag });
       if (personal) search.set("scope", "personal");
       if (projectId) search.set("projectId", projectId);
       return get<components["schemas"]["NotePage"]>("/notes?" + search, signal);
@@ -88,3 +88,6 @@ export async function attachNoteFile(id: string, file: File) {
     body: JSON.stringify({ objectKey }),
   });
 }
+
+export const archiveNote = (id: string, archived: boolean) => request('/notes/'+id+'/archive', {method:'PUT',body:JSON.stringify({archived})});
+export const setNoteTags = (id: string, tags: string[]) => request('/notes/'+id+'/tags', {method:'PUT',body:JSON.stringify({tags})});

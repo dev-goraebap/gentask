@@ -1,0 +1,12 @@
+.task-detail-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: var(--spacing-6); align-items: start; }
+.task-detail-body, .task-detail-meta { min-width: 0; }
+.task-detail-meta { padding-block: var(--spacing-2); }
+.task-document-field.astryx-text-area { background: transparent; border: 0; box-shadow: none; border-radius: 0; padding: 0; }
+.task-document-field .astryx-text-area-control { background: transparent; border: 0; box-shadow: none; padding: 0; resize: none; overflow: hidden; line-height: 1.7; }
+.task-document-title .astryx-text-area-control { font-size: 1.5rem; font-weight: 650; line-height: 1.4; }
+.task-document-field.astryx-text-area:focus-within { outline: none; box-shadow: none; }
+.task-document-field .astryx-text-area-control:focus-visible { outline: 1px dashed var(--color-border-emphasized); outline-offset: var(--spacing-1); }
+.task-detail-meta button { max-width: 100%; }
+@media (max-width: 1024px) {
+  .task-detail-grid { grid-template-columns: minmax(0, 1fr); }
+}
