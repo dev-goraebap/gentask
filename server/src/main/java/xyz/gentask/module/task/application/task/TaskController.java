@@ -33,15 +33,9 @@ public class TaskController {
     private final TaskService taskService;
 
     public record ChangeTaskState(
-            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Pattern(regexp = "TODO|IN_PROGRESS|DONE") String state) {}
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Pattern(regexp = "TODO|PLANNED|IN_PROGRESS|DONE") String state) {}
 
     public record AssignTask(UUID assigneeId) {}
-
-    public record ScopedTask(
-            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 200) String title,
-
-            java.time.LocalDate dueDate,
-            String projectId) {}
 
     @PatchMapping("/{taskId}/state")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -54,6 +48,15 @@ public class TaskController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void assign(@CurrentUser UUID userId, @PathVariable UUID taskId, @Valid @RequestBody AssignTask request) {
         taskService.assign(userId, taskId, request.assigneeId());
+    }
+
+    @PatchMapping("/{taskId}/schedule")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void schedule(
+            @CurrentUser UUID userId,
+            @PathVariable UUID taskId,
+            @Valid @RequestBody TaskRequests.ChangeSchedule request) {
+        taskService.schedule(userId, taskId, request.scheduledDate(), request.dueDate());
     }
 
     @GetMapping("/{taskId}/artifacts")
@@ -75,10 +78,9 @@ public class TaskController {
 
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
-    public ResponseEntity<Void> add(@CurrentUser UUID userId, @Valid @RequestBody ScopedTask createTask) {
-        UUID taskId = createTask.projectId() == null
-                ? taskService.add(userId, createTask.title(), createTask.dueDate())
-                : taskService.addProject(userId, createTask.projectId(), createTask.title(), createTask.dueDate());
+    public ResponseEntity<Void> add(
+            @CurrentUser UUID userId, @Valid @RequestBody TaskRequests.CreateScopedTask createTask) {
+        UUID taskId = taskService.create(userId, createTask);
         return ResponseEntity.created(URI.create("/api/v1/tasks/" + taskId)).build();
     }
 
@@ -86,8 +88,14 @@ public class TaskController {
     public List<TaskView> list(
             @CurrentUser UUID userId,
             @org.springframework.web.bind.annotation.RequestParam(required = false) String projectId,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) String scope) {
-        return taskService.list(userId, projectId, scope);
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String scope,
+            @org.springframework.web.bind.annotation.RequestParam(required = false)
+                    @org.springframework.format.annotation.DateTimeFormat(
+                            iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+                    java.time.LocalDate date,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "false") boolean undated,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "false") boolean includeOverdue) {
+        return taskService.list(userId, projectId, scope, new TaskDateFilter(date, undated, includeOverdue));
     }
 
     @GetMapping("/{taskId}")

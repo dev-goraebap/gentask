@@ -5,12 +5,12 @@ import xyz.gentask.shared.error.DomainRuleViolation;
 
 public record TaskNote(String value) implements ValueObject {
 
-    public static final int MAX = 2000;
+    public static final int MAX = 100_000;
 
     public static TaskNote of(String rawNote) {
         String noteValue = rawNote == null ? "" : rawNote;
         if (noteValue.length() > MAX) {
-            throw new DomainRuleViolation("메모는 " + MAX + "자를 넘을 수 없습니다");
+            throw new DomainRuleViolation("작업 설명은 " + MAX + "자를 넘을 수 없습니다");
         }
         return new TaskNote(noteValue);
     }

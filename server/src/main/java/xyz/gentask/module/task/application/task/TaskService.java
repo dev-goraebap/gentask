@@ -62,9 +62,17 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public List<TaskView> list(UUID userId, String projectId, String scope) {
+        return list(userId, projectId, scope, TaskDateFilter.all());
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskView> list(UUID userId, String projectId, String scope, TaskDateFilter dates) {
         var filter = xyz.gentask.shared.domain.ResourceFilter.of(projectId, scope);
-        if (projectId != null) return listProject(userId, projectId);
-        return taskQuery.findVisible(userId, filter.personal());
+        if (projectId != null) {
+            projects.requireAccess(userId, projectId);
+            return taskQuery.findProject(projectId, dates);
+        }
+        return taskQuery.findVisible(userId, filter.personal(), dates);
     }
 
     @Transactional(readOnly = true)
@@ -102,6 +110,31 @@ public class TaskService {
         task.changeDueDate(dueDate, clock.instant());
         taskRepository.save(task);
         return task.id();
+    }
+
+    @Transactional
+    public UUID create(UUID userId, TaskRequests.CreateScopedTask input) {
+        if (input.projectId() != null) projects.requireWrite(userId, input.projectId());
+        if (input.assigneeId() != null) {
+            if (input.projectId() == null) throw TaskErrorCode.PROJECT_TASK_REQUIRED.raise();
+            projects.requireAccess(input.assigneeId(), input.projectId());
+        }
+        Instant now = clock.instant();
+        Task task = Task.create(UUID.randomUUID(), userId, TaskTitle.of(input.title()), now);
+        task.restoreScope(input.projectId(), input.assigneeId(), xyz.gentask.module.task.domain.task.TaskState.TODO);
+        task.changeNote(TaskNote.of(input.note()), now);
+        task.changeSchedule(input.scheduledDate(), input.dueDate(), now);
+        task.changeState(
+                input.state() == null ? xyz.gentask.module.task.domain.task.TaskState.TODO : input.state(), now);
+        taskRepository.save(task);
+        return task.id();
+    }
+
+    @Transactional
+    public void schedule(UUID userId, UUID taskId, LocalDate scheduledDate, LocalDate dueDate) {
+        Task task = findForWrite(taskId, userId);
+        task.changeSchedule(scheduledDate, dueDate, clock.instant());
+        taskRepository.save(task);
     }
 
     @Transactional

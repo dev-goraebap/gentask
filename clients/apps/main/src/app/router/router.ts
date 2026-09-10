@@ -31,6 +31,7 @@ import {
 import { MembersRoute } from './MembersRoute';
 import { TasksRoute } from './TasksRoute';
 import { TaskRoute } from './TaskRoute';
+import { TaskCreateRoute } from './TaskCreateRoute';
 
 export const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootLayout,
@@ -57,6 +58,9 @@ export const indexRoute = createRoute({
 });
 
 export const tasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks/$taskId', component: TaskRoute });
+export const taskCreateRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks/new', component: TaskCreateRoute,
+  validateSearch: (search: Record<string, unknown>): { state: 'TODO' | 'PLANNED' | 'IN_PROGRESS' | 'DONE' } => ({ state: search.state === 'PLANNED' || search.state === 'IN_PROGRESS' || search.state === 'DONE' ? search.state : 'TODO' }),
+});
 
 export const personalTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks', component: TasksRoute });
 export const projectTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects/$projectId/tasks', beforeLoad: ({ params }) => { throw redirect({ to: '/tasks', search: { projectId: params.projectId }, replace: true }); } });
@@ -157,6 +161,7 @@ export const routeTree = rootRoute.addChildren([
   legacyDiscoveryRoute,
   accountRoute,
   personalTasksRoute,
+  taskCreateRoute,
   projectTasksRoute,
   personalArtifactsRoute,
   artifactCreateRoute,

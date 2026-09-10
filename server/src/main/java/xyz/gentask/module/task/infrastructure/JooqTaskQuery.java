@@ -13,6 +13,7 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
+import xyz.gentask.module.task.application.task.TaskDateFilter;
 import xyz.gentask.module.task.application.task.TaskQuery;
 import xyz.gentask.module.task.application.task.TaskViews.TaskView;
 
@@ -41,18 +42,31 @@ class JooqTaskQuery implements TaskQuery {
     }
 
     @Override
-    public List<TaskView> findVisible(UUID userId, boolean personal) {
-        return fetch(accessible(userId).and(personal ? TASKS.PROJECT_ID.isNull() : DSL.noCondition()));
+    public List<TaskView> findVisible(UUID userId, boolean personal, TaskDateFilter filter) {
+        return fetch(accessible(userId)
+                .and(personal ? TASKS.PROJECT_ID.isNull() : DSL.noCondition())
+                .and(dates(filter)));
     }
 
     @Override
-    public List<TaskView> findProject(String projectId) {
-        return fetch(TASKS.PROJECT_ID.eq(projectId));
+    public List<TaskView> findProject(String projectId, TaskDateFilter filter) {
+        return fetch(TASKS.PROJECT_ID.eq(projectId).and(dates(filter)));
     }
 
     @Override
     public Optional<TaskView> findOne(UUID taskId, UUID userId) {
         return fetch(TASKS.ID.eq(taskId).and(accessible(userId))).stream().findFirst();
+    }
+
+    private Condition dates(TaskDateFilter filter) {
+        if (filter.undated()) return TASKS.SCHEDULED_DATE.isNull().and(TASKS.DUE_DATE.isNull());
+        if (filter.date() == null) return DSL.noCondition();
+        Condition period = DSL.coalesce(TASKS.SCHEDULED_DATE, TASKS.DUE_DATE)
+                .le(filter.date())
+                .and(DSL.coalesce(TASKS.DUE_DATE, TASKS.SCHEDULED_DATE).ge(filter.date()));
+        if (filter.includeOverdue())
+            period = period.or(TASKS.DUE_DATE.lt(filter.date()).and(TASKS.STATE.ne("DONE")));
+        return period;
     }
 
     private List<TaskView> fetch(Condition condition) {
@@ -77,11 +91,12 @@ class JooqTaskQuery implements TaskQuery {
                             t.getProjectId() == null ? t.getMyDayOn() : null,
                             t.getCompletedAt(),
                             t.getCreatedAt(),
-                            t.getState(),
+                            xyz.gentask.module.task.domain.task.TaskState.valueOf(t.getState()),
                             t.getProjectId(),
                             r.get(PROJECTS.NAME),
                             t.getAssigneeId(),
-                            r.get(USERS.NICKNAME));
+                            r.get(USERS.NICKNAME),
+                            t.getScheduledDate());
                 });
     }
 }

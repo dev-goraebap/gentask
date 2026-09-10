@@ -19,6 +19,6 @@ export function PageHeader({ title, titleContent, toolbar, trailingAccessory, ac
       {trailingAccessory ? <HStack align="center" style={{ flexShrink: 0 }}>{trailingAccessory}</HStack> : null}
     </HStack>
     </LayoutHeader>
-    {toolbar}
+    {toolbar ? <VStack width="100%" style={{ '--layout-content-width': 'none' } as CSSProperties}>{toolbar}</VStack> : null}
   </>;
 }

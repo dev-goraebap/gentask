@@ -1,0 +1,17 @@
+.task-board { overflow-x: auto; min-height: 60vh; padding-bottom: var(--spacing-3); align-items: stretch; }
+.task-board-column { flex: 1 0 18rem; max-width: 24rem; min-width: 0; padding: var(--spacing-2); border-radius: var(--radius-inner); background: color-mix(in srgb, var(--color-background-muted) 45%, transparent); }
+.task-board-column[data-drop-target='true'] { background: var(--color-accent-muted); outline: var(--border-width) solid var(--color-accent); outline-offset: calc(-1 * var(--border-width)); }
+.task-board-column-title { font-size: var(--text-label-size); font-weight: var(--font-weight-medium); }
+.task-board-card { padding: var(--spacing-3); background: var(--color-background-card); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-inner); box-shadow: var(--shadow-low); min-width: 0; }
+.task-board-card:hover { border-color: var(--color-border-emphasized); }
+.task-board-card[draggable='true'] { cursor: grab; }
+.task-board-card .astryx-button { border-radius: var(--radius-inner); corner-shape: round; }
+.task-board-card-title.astryx-button { padding: 0; min-height: 0; height: auto; justify-content: flex-start; text-align: start; white-space: normal; background: transparent; box-shadow: none; color: var(--color-text-primary); }
+.task-board-project { width: fit-content; max-width: 100%; padding-inline: var(--spacing-1); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-inner); }
+.task-board-page .page-filter-toolbar [role='toolbar'] { max-width: none; margin-inline: 0; }
+@media (max-width: 640px) { .task-board-column { flex-basis: 82vw; max-width: 82vw; } }
+[data-gentask-palette='neutral'][data-astryx-media='dark'] .task-board-column { background: var(--color-background-surface); }
+.task-board-card { border-color: light-dark(var(--color-border), color-mix(in srgb, var(--color-text-primary) 8%, transparent)); box-shadow: none; }
+.task-board-card:hover { border-color: light-dark(var(--color-border-emphasized), color-mix(in srgb, var(--color-text-primary) 15%, transparent)); }
+.task-board-column .astryx-button { border-radius: var(--radius-inner); corner-shape: round; }
+[data-gentask-palette='neutral'][data-astryx-media='dark'] .task-board-column[data-drop-target='true'] { background: var(--color-accent-muted); }

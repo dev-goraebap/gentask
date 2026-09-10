@@ -692,6 +692,22 @@ export interface paths {
         patch: operations["state_1"];
         trace?: never;
     };
+    "/api/v1/tasks/{taskId}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["schedule"];
+        trace?: never;
+    };
     "/api/v1/tasks/{taskId}/my-day": {
         parameters: {
             query?: never;
@@ -1253,11 +1269,18 @@ export interface components {
              */
             parentId?: string | null;
         };
-        ScopedTask: {
+        CreateScopedTask: {
             title: string;
+            note?: string;
+            projectId?: string | null;
+            /** Format: uuid */
+            assigneeId?: string | null;
+            /** @enum {string} */
+            state?: "TODO" | "PLANNED" | "IN_PROGRESS" | "DONE";
             /** Format: date */
-            dueDate?: string;
-            projectId?: string;
+            scheduledDate?: string | null;
+            /** Format: date */
+            dueDate?: string | null;
         };
         AttachTaskFile: {
             objectKey: string;
@@ -1440,6 +1463,12 @@ export interface components {
         ChangeTaskState: {
             state: string;
         };
+        ChangeSchedule: {
+            /** Format: date */
+            scheduledDate?: string | null;
+            /** Format: date */
+            dueDate?: string | null;
+        };
         ChangeMyDay: {
             inMyDay: boolean;
         };
@@ -1500,12 +1529,15 @@ export interface components {
             completedAt: string | null;
             /** Format: date-time */
             createdAt: string;
-            state: string;
+            /** @enum {string} */
+            state: "TODO" | "PLANNED" | "IN_PROGRESS" | "DONE";
             projectId: string | null;
             projectName: string | null;
             /** Format: uuid */
             assigneeId: string | null;
             assigneeName: string | null;
+            /** Format: date */
+            scheduledDate: string | null;
         };
         Reference: {
             id?: string;
@@ -2114,6 +2146,9 @@ export interface operations {
             query?: {
                 projectId?: string;
                 scope?: string;
+                date?: string;
+                undated?: boolean;
+                includeOverdue?: boolean;
             };
             header?: never;
             path?: never;
@@ -2141,7 +2176,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ScopedTask"];
+                "application/json": components["schemas"]["CreateScopedTask"];
             };
         };
         responses: {
@@ -3244,6 +3279,30 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ChangeTaskState"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeSchedule"];
             };
         };
         responses: {

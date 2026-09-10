@@ -6,8 +6,8 @@ export const SORT_OPTIONS: SortOption[] = [
   { value: 'due', label: '마감일', defaultDirection: 'asc' },
   { value: 'title', label: '제목', defaultDirection: 'asc' },
 ];
-export type TaskFilters = { states: string[]; sort: SortValue };
-export const DEFAULT_FILTERS: TaskFilters = { states: ['TODO', 'IN_PROGRESS'], sort: { key: 'created', direction: 'desc' } };
+export type TaskFilters = { states: string[]; dateMode: 'today' | 'date' | 'all' | 'undated'; date: string; sort: SortValue };
+export const DEFAULT_FILTERS: TaskFilters = { states: [], dateMode: 'today', date: '', sort: { key: 'created', direction: 'desc' } };
 export function filterTasks(tasks: Task[], query: string, filters: TaskFilters) {
   const term = query.trim().toLocaleLowerCase();
   return tasks.filter(task => (!filters.states.length || filters.states.includes(task.state)) &&

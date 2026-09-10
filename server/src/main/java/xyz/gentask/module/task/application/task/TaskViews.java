@@ -57,7 +57,7 @@ public final class TaskViews {
             Instant createdAt,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            String state,
+            xyz.gentask.module.task.domain.task.TaskState state,
 
             @Schema(
                     requiredMode = Schema.RequiredMode.REQUIRED,
@@ -77,5 +77,11 @@ public final class TaskViews {
             @Schema(
                     requiredMode = Schema.RequiredMode.REQUIRED,
                     types = {"string", "null"})
-            String assigneeName) {}
+            String assigneeName,
+
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    types = {"string", "null"},
+                    format = "date")
+            LocalDate scheduledDate) {}
 }
