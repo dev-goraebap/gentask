@@ -1,0 +1,72 @@
+@use '@gentask/tiptap-ui/styles/_variables.scss';
+
+.gentask-simple-editor,
+.tiptap-dropdown-menu-content,
+.tiptap-popover,
+.tiptap-tooltip {
+  --tt-radius-lg: 1.5rem;
+  --tt-radius-md: 1.5rem;
+  --tt-toolbar-bg-color: var(--color-background-surface);
+  --tt-toolbar-border-color: var(--color-border);
+  --tiptap-card-bg-color: var(--color-background-popover);
+  --tiptap-card-border-color: var(--color-border);
+  --tiptap-card-group-label-color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.gentask-simple-editor { min-width: 0; width: 100%; }
+.gentask-simple-editor .tiptap-toolbar[data-variant='fixed'] {
+  position: sticky;
+  top: 0;
+  height: auto;
+  min-height: 2.75rem;
+  padding: 0.25rem 0;
+  border-top: none;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+  z-index: 2;
+}
+.gentask-simple-editor .tiptap-toolbar-group { flex-shrink: 0; }
+.gentask-simple-editor .drawer-rich-content { min-height: 12rem; outline: none; }
+.gentask-simple-editor .drawer-rich-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-secondary);
+  float: left;
+  pointer-events: none;
+  height: 0;
+}
+.gentask-simple-editor .tiptap-button[data-style][type="button"],
+.tiptap-dropdown-menu-content .tiptap-button[data-style][type="button"],
+.tiptap-popover .tiptap-button[data-style][type="button"] {
+  --tt-button-default-text-color: var(--color-text-secondary);
+  --tt-button-default-icon-color: var(--color-text-secondary);
+  --tt-button-hover-bg-color: var(--color-background-muted);
+  --tt-button-hover-text-color: var(--color-text-primary);
+  --tt-button-hover-icon-color: var(--color-text-primary);
+  --tt-button-active-bg-color: var(--color-background-muted);
+  --tt-button-active-bg-color-emphasized: var(--color-background-muted);
+  --tt-button-active-bg-color-subdued: var(--color-background-muted);
+  --tt-button-active-hover-bg-color: var(--color-background-muted);
+  --tt-button-active-hover-bg-color-emphasized: var(--color-background-muted);
+  --tt-button-active-hover-bg-color-subdued: var(--color-background-muted);
+  --tt-button-active-text-color: var(--color-text-accent);
+  --tt-button-active-icon-color: var(--color-text-accent);
+  --tt-button-active-icon-color-emphasized: var(--color-text-accent);
+  --tt-button-active-icon-color-subdued: var(--color-text-accent);
+  corner-shape: superellipse(1.6);
+}
+.tiptap-dropdown-menu-content,
+.tiptap-popover { z-index: 1000; }
+.tiptap-dropdown-menu-content,
+.tiptap-popover .tiptap-card {
+  background: var(--color-background-popover);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+  border-radius: 1.5rem;
+  corner-shape: superellipse(1.6);
+}
+
+

@@ -6,7 +6,7 @@ import { useSession } from "@/entities/session";
 import { useWorkspaceStore } from "@/entities/workspace";
 import { MobileSurface, MOBILE_QUERY } from "@/shared/ui/mobile";
 import { RequestState } from "@/shared/ui/request-state";
-import { LazyRichEditor } from '@/shared/ui/markdown-editor';
+import { LazyNoteSimpleEditor } from './LazyNoteSimpleEditor';
 import {
   Button,
   HStack,
@@ -228,9 +228,8 @@ export function NoteDetail({
                   {writable ? (
                     <VStack className="note-detail-editor">
                       <Suspense fallback={<Text color="secondary">편집기를 불러오는 중…</Text>}>
-                        <LazyRichEditor key={editorReset} initialValue={note.body} onChange={setDraft}
-                          label="메모 본문" placeholder="내용을 적어보세요" hasToolbar={false}
-                          paragraphAfterHeading isDisabled={action.isPending} />
+                        <LazyNoteSimpleEditor key={editorReset} initialValue={note.body} onChange={setDraft}
+                            isDisabled={action.isPending} />
                       </Suspense>
                     </VStack>
                   ) : note.body ? (

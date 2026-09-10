@@ -1,0 +1,7 @@
+# Tiptap UI Components
+
+MIT-licensed components from https://template.tiptap.dev/api/registry/components, retrieved 2026-09-10. Selected from the Simple Editor template. Import paths are converted to relative paths for this workspace package. Gentask integration and theme overrides live in the main app.
+
+Registry components: toolbar, use-menu-navigation, use-composed-ref, tiptap-utils, separator, styles, heading-dropdown-menu, use-tiptap-editor, chevron-down-icon, heading-icon, heading-button, use-is-breakpoint, button, tooltip, check-icon, badge, heading-one-icon, heading-two-icon, heading-three-icon, heading-four-icon, heading-five-icon, heading-six-icon, dropdown-menu, card, list-dropdown-menu, list-button, list-icon, list-todo-icon, list-ordered-icon, blockquote-button, blockquote-icon, code-block-button, code-block-icon, link-popover, popover, input, button-group, link-icon, trash-icon, corner-down-left-icon, external-link-icon, mark-button, bold-icon, code2-icon, italic-icon, strike-icon, subscript-icon, underline-icon, superscript-icon, undo-redo-button, undo2-icon, redo2-icon
+
+Local adaptations: dark selectors follow Astryx's data-astryx-media attribute; base variables are scoped to the editor and its overlays. Dropdowns, popovers and tooltips portal into the owning native dialog. The editor state selector includes editability so toolbar availability updates after saving. Gentask exposes only formatting that survives Markdown serialization and retains its existing attachment workflow.
