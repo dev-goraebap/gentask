@@ -1,9 +1,10 @@
+import { LazyDocumentEditor } from '@/shared/ui/lazy-document-editor';
 import { TaskNotes } from './TaskNotes';
 import { type Task, STATES, deleteTask, type TaskState } from '../api/tasks';
 import { useWorkspaceStore, membersOptions } from '@/entities/workspace';
 import { Button, Text, TextArea, DateInput, Selector, VStack } from '@astryxdesign/core';
 import { useQuery } from '@tanstack/react-query';
-import { useLayoutEffect, useRef, type ComponentProps } from 'react';
+import { Suspense, useLayoutEffect, useRef, type ComponentProps } from 'react';
 import './task-detail.css';
 import { useTaskAction } from '../model/useTaskAction';
 import { useTaskAutosave } from '../model/useTaskAutosave';
@@ -39,10 +40,10 @@ export function TaskForm({ task, onDeleted }: { task: Task; onDeleted: () => voi
         onChange={(value, event) => autosave.changeText('title', value, (event?.nativeEvent as InputEvent | undefined)?.isComposing)}
         onCompositionEnd={event => { if (event.target instanceof HTMLTextAreaElement) autosave.changeText('title', event.target.value); }} onBlur={() => autosave.flush('title')}
         status={autosave.status('title')} isReadOnly={!writable} isDisabled={action.isPending} />
-      <TextArea className="task-document-field task-document-note" label="설명" isLabelHidden placeholder="설명을 입력하세요" value={autosave.values.note}
-        onChange={(value, event) => autosave.changeText('note', value, (event?.nativeEvent as InputEvent | undefined)?.isComposing)}
-        onCompositionEnd={event => { if (event.target instanceof HTMLTextAreaElement) autosave.changeText('note', event.target.value); }} onBlur={() => autosave.flush('note')}
-        status={autosave.status('note')} rows={8} isReadOnly={!writable} isDisabled={action.isPending} />
+      <Suspense fallback={<Text>편집기를 불러오는 중…</Text>}>
+        <LazyDocumentEditor key={task.id} initialMarkdown={task.note ?? ''} label="작업 설명" readOnly={!writable} disabled={action.isPending}
+          onChange={value => autosave.changeText('note', value.markdown, value.composing)} onBlur={() => autosave.flush('note')} />
+      </Suspense>
       {autosave.isPending ? <Text role="status" type="supporting">자동 저장 중…</Text> : null}
       {autosave.hasErrors ? <Button label="다시 시도" variant="secondary" isDisabled={disabled || autosave.isPending} onClick={autosave.retry} /> : null}
       {action.error ? <Text role="alert">{action.error.message}</Text> : null}

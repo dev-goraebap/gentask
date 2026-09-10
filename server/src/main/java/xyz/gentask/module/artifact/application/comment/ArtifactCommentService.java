@@ -43,11 +43,34 @@ public class ArtifactCommentService {
         if (!revision.id().equals(artifact.headRevisionId())) throw ArtifactErrorCode.COMMENT_VERSION_CHANGED.raise();
         String body = request.body() == null ? "" : request.body().strip();
         if (body.isBlank() || body.length() > 5000) throw new DomainRuleViolation("코멘트는 1~5000자로 입력해 주세요");
+        if (request.textAnchor() != null) {
+            if (request.blockStart() != null
+                    || request.blockEnd() != null
+                    || request.textAnchor().length() > 10000) throw new DomainRuleViolation("잘못된 선택 범위입니다.");
+            try {
+                var anchor =
+                        tools.jackson.databind.json.JsonMapper.builder().build().readTree(request.textAnchor());
+                int start = anchor.path("start").asInt(-1);
+                int end = anchor.path("end").asInt(-1);
+                String quote = anchor.path("quote").asText("");
+                if (start < 0 || end <= start || end > 2000000 || quote.isBlank() || quote.length() != end - start)
+                    throw new IllegalArgumentException();
+            } catch (RuntimeException error) {
+                throw new DomainRuleViolation("잘못된 선택 범위입니다.");
+            }
+        }
         validateRange(revision.body().value(), request.blockStart(), request.blockEnd());
         return NanoId.create(
                 id -> id,
                 id -> comments.insert(
-                        id, revision.id(), request.blockStart(), request.blockEnd(), body, userId, clock.instant()));
+                        id,
+                        revision.id(),
+                        request.blockStart(),
+                        request.blockEnd(),
+                        body,
+                        userId,
+                        clock.instant(),
+                        request.textAnchor()));
     }
 
     @Transactional
@@ -59,6 +82,20 @@ public class ArtifactCommentService {
         ArtifactRevision revision = revision(artifactId, versionNo);
         if (!revision.id().equals(artifact.headRevisionId())) throw ArtifactErrorCode.COMMENT_VERSION_CHANGED.raise();
         if (!comments.deleteOwn(commentId, revision.id(), userId)) throw ArtifactErrorCode.COMMENT_NOT_FOUND.raise();
+    }
+
+    @Transactional
+    public void edit(UUID userId, String projectId, String artifactId, int versionNo, String commentId, String body) {
+        ArtifactScope accessible = projectAccess.requireAccess(userId, projectId);
+        Artifact artifact = artifacts
+                .findByIdForUpdate(accessible, artifactId)
+                .orElseThrow(ArtifactErrorCode.ARTIFACT_NOT_FOUND::raise);
+        ArtifactRevision revision = revision(artifactId, versionNo);
+        if (!revision.id().equals(artifact.headRevisionId())) throw ArtifactErrorCode.COMMENT_VERSION_CHANGED.raise();
+        if (body == null || body.isBlank() || body.strip().length() > 5000)
+            throw new DomainRuleViolation("코멘트는 1~5000자로 입력해 주세요");
+        if (!comments.editOwn(commentId, revision.id(), userId, body.strip()))
+            throw ArtifactErrorCode.COMMENT_NOT_FOUND.raise();
     }
 
     private ArtifactRevision revision(String artifactId, int versionNo) {

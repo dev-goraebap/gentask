@@ -18,6 +18,17 @@ class JooqArtifactCommentStore implements ArtifactCommentStore {
     private final DSLContext dsl;
 
     @Override
+    public boolean editOwn(String id, UUID revisionId, UUID authorId, String body) {
+        return dsl.update(ARTIFACT_COMMENTS)
+                        .set(ARTIFACT_COMMENTS.BODY, body)
+                        .where(ARTIFACT_COMMENTS.ID.eq(id))
+                        .and(ARTIFACT_COMMENTS.REVISION_ID.eq(revisionId))
+                        .and(ARTIFACT_COMMENTS.CREATED_BY.eq(authorId))
+                        .execute()
+                == 1;
+    }
+
+    @Override
     public boolean deleteOwn(String id, UUID revisionId, UUID authorId) {
         return dsl.deleteFrom(ARTIFACT_COMMENTS)
                         .where(ARTIFACT_COMMENTS.ID.eq(id))
@@ -29,13 +40,21 @@ class JooqArtifactCommentStore implements ArtifactCommentStore {
 
     @Override
     public boolean insert(
-            String id, UUID revisionId, Integer start, Integer end, String body, UUID authorId, Instant createdAt) {
+            String id,
+            UUID revisionId,
+            Integer start,
+            Integer end,
+            String body,
+            UUID authorId,
+            Instant createdAt,
+            String textAnchor) {
         return dsl.insertInto(ARTIFACT_COMMENTS)
                         .set(ARTIFACT_COMMENTS.ID, id)
                         .set(ARTIFACT_COMMENTS.REVISION_ID, revisionId)
                         .set(ARTIFACT_COMMENTS.BLOCK_START, start)
                         .set(ARTIFACT_COMMENTS.BLOCK_END, end)
                         .set(ARTIFACT_COMMENTS.BODY, body)
+                        .set(ARTIFACT_COMMENTS.TEXT_ANCHOR, textAnchor)
                         .set(ARTIFACT_COMMENTS.CREATED_BY, authorId)
                         .set(ARTIFACT_COMMENTS.CREATED_AT, createdAt)
                         .onConflict(ARTIFACT_COMMENTS.ID)
@@ -65,7 +84,8 @@ class JooqArtifactCommentStore implements ArtifactCommentStore {
                             row.get(ARTIFACT_COMMENTS.BODY),
                             row.get(ARTIFACT_COMMENTS.CREATED_BY),
                             row.get(USERS.NICKNAME),
-                            row.get(ARTIFACT_COMMENTS.CREATED_AT));
+                            row.get(ARTIFACT_COMMENTS.CREATED_AT),
+                            row.get(ARTIFACT_COMMENTS.TEXT_ANCHOR));
                 });
     }
 }

@@ -22,21 +22,7 @@
 
       React 가 붙기 전에 정해 두어야 첫 그림이 흔들리지 않는다.
     -->
-    <script>
-      (function () {
-        var stored = null;
-        try {
-          stored = localStorage.getItem('astryx-media');
-        } catch (error) {
-          stored = null;
-        }
-        var system = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        var media = stored === 'light' || stored === 'dark' ? stored : system;
-        document.body.setAttribute('data-astryx-media', media);
-        document.getElementById('app-favicon').setAttribute('href', '/brand/favicon-' + media + '.svg');
-        document.querySelector('meta[name="theme-color"]').setAttribute('content', media === 'dark' ? '#11120e' : '#f5f5ef');
-      })();
-    </script>
+    <!-- GENTASK_APPEARANCE -->
     <div id="root"></div>
     <script type="module" src="/src/app/entry.tsx"></script>
   </body>

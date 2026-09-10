@@ -6,6 +6,7 @@ import { UserAvatar } from '@/shared/ui/user-avatar';
 import { Breadcrumbs, BreadcrumbItem, Heading, HStack, Text } from '@astryxdesign/core';
 import { useSearch } from '@tanstack/react-router';
 import type { ComponentProps } from 'react';
+import './scope-page-header.css';
 
 export function ScopePageHeader(props: ComponentProps<typeof PageHeader>) {
   const { projects } = useWorkspaceStore();
@@ -17,8 +18,10 @@ export function ScopePageHeader(props: ComponentProps<typeof PageHeader>) {
     <Breadcrumbs label="현재 페이지 경로" separator="/">
       <BreadcrumbItem>
         <HStack gap={1} align="center" style={{ minWidth: 0 }}>
-          {project ? <ProjectAvatar project={project} size="sm" /> : !search.projectId ?
-            <UserAvatar userId={me?.id} name={me?.nickname} src={me?.profileImageUrl ?? undefined} size="sm" tooltip={false} /> : null}
+          <HStack className="scope-header-avatar" aria-hidden="true" align="center">
+            {project ? <ProjectAvatar project={project} size="sm" /> : !search.projectId ?
+              <UserAvatar userId={me?.id} name={me?.nickname} src={me?.profileImageUrl ?? undefined} size="sm" tooltip={false} /> : null}
+          </HStack>
           <Text type="label" maxLines={1} style={{ maxWidth: 'clamp(4rem, 18vw, 16rem)' }}>{name}</Text>
         </HStack>
       </BreadcrumbItem>

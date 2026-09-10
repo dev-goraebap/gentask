@@ -1,6 +1,6 @@
 import { useWorkspaceStore } from '@/entities/workspace';
 import { artifactOptions, createArtifact, editArtifact, type ArtifactView } from '@/entities/artifact';
-import { LazySimpleEditor } from '@/shared/ui/simple-editor';
+import { LazyDocumentEditor } from '@/shared/ui/lazy-document-editor';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { WIDTH } from '@/shared/config';
 import { Button, Selector, HStack, Text, TextInput, VStack, useToast } from '@astryxdesign/core';
@@ -24,10 +24,10 @@ export function ArtifactEditor({ projectId, folderId, artifact, onClose, onSaved
   const mutation = useMutation({
     mutationFn: async () => {
       if (!canEdit) throw new Error('이 프로젝트에 아티팩트를 작성할 권한이 없습니다.');
-      if (!artifact) return createArtifact(destination, { folderId, title: title.trim(), body });
+      if (!artifact) return createArtifact(destination, { folderId: folderId ?? undefined, title: title.trim(), body });
       const latest = await client.fetchQuery({ ...artifactOptions(projectId, artifact.summary.id), staleTime: 0 });
       if (latest.versionNo !== version.current) throw new Error('편집 중 새 버전이 저장됐습니다. 작성한 내용을 복사한 뒤 편집기를 다시 열어 확인해 주세요.');
-      await editArtifact(projectId, artifact.summary.id, { title: title.trim(), body });
+      await editArtifact(projectId, artifact.summary.id, { title: title.trim(), body, expectedVersion: version.current });
       return artifact.summary.id;
     },
     onSuccess: async id => {
@@ -61,7 +61,7 @@ export function ArtifactEditor({ projectId, folderId, artifact, onClose, onSaved
       <TextInput label="제목" aria-label="제목" isLabelHidden placeholder="아티팩트의 제목을 입력하세요" value={title} onChange={setTitle} isRequired isDisabled={mutation.isPending} />
       {mutation.error ? <Text role="alert">{mutation.error.message}</Text> : null}
       <Suspense fallback={<Text>편집기를 불러오는 중입니다.</Text>}>
-        <LazySimpleEditor initialValue={artifact?.body ?? ''} onChange={setBody} label="아티팩트 본문" isDisabled={mutation.isPending || !canEdit} />
+        <LazyDocumentEditor initialMarkdown={artifact?.body ?? ''} onChange={value => setBody(value.markdown)} disabled={mutation.isPending || !canEdit} />
       </Suspense>
     </VStack></PageContent>} />;
 }

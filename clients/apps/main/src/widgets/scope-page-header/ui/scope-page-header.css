@@ -1,0 +1,8 @@
+.scope-header-avatar,
+.scope-header-avatar .astryx-avatar[data-size] {
+  width: 1.125rem;
+  height: 1.125rem;
+  min-width: 1.125rem;
+  flex-shrink: 0;
+}
+

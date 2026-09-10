@@ -1,13 +1,14 @@
+import './artifact-actions.css';
 import { useWorkspaceStore } from '@/entities/workspace';
 import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
 import { versionOptions } from '@/entities/artifact';
 import { ArtifactEditor } from '@/features/edit-artifact';
 import { WIDTH } from '@/shared/config';
 import { AppAsideContent, useAppAside } from '@/shared/ui/app-aside';
-import { HgiComment, HgiEdit, HgiHistory } from '@/shared/ui/icons';
+import { HgiEdit, HgiHistory } from '@/shared/ui/icons';
 import { MobilePageHeader, MOBILE_QUERY } from '@/shared/ui/mobile';
 import { RequestState } from '@/shared/ui/request-state';
-import { Banner, Button, HStack, LayoutContent, Text, VStack } from '@astryxdesign/core';
+import { Banner, Button, ButtonGroup, HStack, LayoutContent, Text, VStack } from '@astryxdesign/core';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -22,17 +23,15 @@ export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersio
   const [editing, setEditing] = useState(false);
   const aside = useAppAside();
   const historyKey = `artifact-history:${artifact.summary.id}`;
-  const commentsKey = `artifact-comments:${artifact.summary.id}`;
   const history = useQuery({ ...versionOptions(projectId, artifact.summary.id, selectedVersion ?? artifact.versionNo), enabled: selectedVersion !== null });
   const doc = artifact.summary;
   const historical = selectedVersion !== null;
   const title = historical ? history.data?.title ?? `v${selectedVersion}` : doc.title;
   const body = historical ? history.data?.body : artifact.body;
-  const editButton = <Button label="편집" icon={<HgiEdit />} isIconOnly={mobile} variant={mobile ? "ghost" : "secondary"} size="sm" isDisabled={historical} onClick={() => setEditing(true)} />;
-  const actions = <HStack gap={1} align="center">
-    <Button label="버전 이력" tooltip="버전 이력" icon={<HgiHistory />} isIconOnly variant="ghost" size="sm" aria-pressed={aside.active?.key === historyKey} onClick={() => aside.open({ key: historyKey, title: '버전 이력' })} />
-    <Button label="코멘트" icon={<HgiComment />} variant="secondary" size="sm" aria-pressed={aside.active?.key === commentsKey} onClick={() => aside.open({ key: commentsKey, title: '코멘트' })} />
-    {canEdit ? editButton : null}</HStack>;
+  const editButton = <Button label="편집" icon={<HgiEdit />} variant="secondary" size="sm" isDisabled={historical} onClick={() => setEditing(true)} />;
+  const actions = <ButtonGroup label="문서 작업" size="sm" className="artifact-action-group">
+    <Button label="버전 이력" icon={<HgiHistory />} variant="secondary" size="sm" aria-pressed={aside.active?.key === historyKey} onClick={() => aside.open({ key: historyKey, title: '버전 이력' })} />
+    {canEdit ? editButton : null}</ButtonGroup>;
   const versionHistory = <ArtifactHistory artifactId={doc.id} latestVersion={artifact.versionNo} projectId={projectId} selectedVersion={selectedVersion}
     onSelect={version => onSelectVersion(version === artifact.versionNo ? null : version)} />;
   if (editing && canEdit) return <ArtifactEditor projectId={projectId} folderId={doc.folderId} artifact={artifact} onClose={() => setEditing(false)} onSaved={() => setEditing(false)} />;
@@ -49,7 +48,7 @@ export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersio
           description={history.data ? `${history.data.summary.authorName || '알 수 없는 사용자'} · ${formatArtifactDate(history.data.summary.createdAt)}` : undefined}
           endContent={<Button label="최신 문서로" size="sm" onClick={() => onSelectVersion(null)} />} /> : null}
         {historical && (!history.data || history.error) ? <RequestState error={history.error} retry={() => { void history.refetch(); }} /> :
-          <ArtifactComments key={`${doc.id}:${selectedVersion ?? artifact.versionNo}`} panelKey={commentsKey} projectId={projectId} artifactId={doc.id} versionNo={selectedVersion ?? artifact.versionNo} body={body ?? ''} writable={(selectedVersion ?? artifact.versionNo) === artifact.versionNo} />}
+          <ArtifactComments key={`${doc.id}:${selectedVersion ?? artifact.versionNo}`} projectId={projectId} artifactId={doc.id} versionNo={selectedVersion ?? artifact.versionNo} body={body ?? ''} editorState={historical ? history.data?.editorState : artifact.editorState} writable={(selectedVersion ?? artifact.versionNo) === artifact.versionNo} />}
       </VStack></PageContent>} />
     <AppAsideContent panelKey={historyKey}><LayoutContent padding={3}>{versionHistory}</LayoutContent></AppAsideContent>
   </>;

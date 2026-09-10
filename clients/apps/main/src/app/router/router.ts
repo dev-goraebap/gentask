@@ -1,4 +1,5 @@
 import { ArtifactCreateRoute } from './ArtifactCreateRoute';
+import { EditorPlaygroundRoute } from './EditorPlaygroundRoute';
 import { RouteNotFound } from './RouteNotFound';
 import { parseResourceScope } from '@/shared/config';
 import { NotesRoute } from './NotesRoute';
@@ -36,7 +37,7 @@ export const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }
   notFoundComponent: RouteNotFound,
   validateSearch: parseResourceScope,
   beforeLoad: async ({ context, location }) => {
-    if (location.pathname === '/login' || location.pathname.startsWith('/invitations/')) return;
+    if (location.pathname === '/login' || location.pathname.startsWith('/invitations/') || (import.meta.env.DEV && location.pathname === '/playground/editor')) return;
     try { await context.queryClient.ensureQueryData({ ...sessionOptions(), revalidateIfStale: true }); }
     catch (error) {
       if (error instanceof ApiError && error.status === 401) throw redirect({ to: '/login', replace: true });
@@ -145,7 +146,10 @@ export const settingsRoute = createRoute({ getParentRoute: () => rootRoute, path
 
 export const accountRoute = createRoute({ getParentRoute: () => rootRoute, path: '/me', component: AccountPage });
 
+const editorPlaygroundRoute = createRoute({ getParentRoute: () => rootRoute, path: '/playground/editor', component: EditorPlaygroundRoute });
+
 export const routeTree = rootRoute.addChildren([
+  ...(import.meta.env.DEV ? [editorPlaygroundRoute] : []),
   loginRoute, invitationRoute,
   legacyDocsRoute,
   legacyDocRoute,

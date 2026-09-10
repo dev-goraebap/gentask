@@ -34,3 +34,5 @@ export { HgiComment } from './HgiComment';
 export { HgiHistory } from './HgiHistory';
 export { HgiTask } from './HgiTask';
 export { HgiArtifacts } from './HgiArtifacts';
+
+export { SvgIcon } from './SvgIcon';

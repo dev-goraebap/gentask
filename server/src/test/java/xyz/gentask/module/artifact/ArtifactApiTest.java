@@ -57,6 +57,67 @@ class ArtifactApiTest {
     private String projectId;
 
     @Test
+    void 구조화_본문과_구절_코멘트를_버전별로_보존한다() throws Exception {
+        var mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+        String state =
+                "{\"root\":{\"type\":\"root\",\"version\":1,\"children\":[{\"type\":\"paragraph\",\"version\":1,\"children\":[{\"type\":\"text\",\"version\":1,\"text\":\"hello\"}]}]}}";
+        String location = mockMvc.perform(post("/api/v1/artifacts")
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(
+                                java.util.Map.of("title", "구조화 문서", "body", "hello", "editorState", state))))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getHeader("Location");
+        mockMvc.perform(get(location).cookie(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.editorState").value(state));
+        String path = location + "/versions/1/comments";
+        String anchor = "{\"start\":0,\"end\":5,\"quote\":\"hello\"}";
+        String response = mockMvc.perform(post(path)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(java.util.Map.of("body", "의견", "textAnchor", anchor))))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        String id = mapper.readTree(response).path("id").asText();
+        Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "range-other-" + UUID.randomUUID() + "@example.com");
+        mockMvc.perform(patch(path + "/" + id)
+                        .cookie(other)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"침범\"}"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(patch(path + "/" + id)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"body\":\"수정 의견\"}"))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get(path).cookie(session))
+                .andExpect(jsonPath("$[0].textAnchor").value(anchor))
+                .andExpect(jsonPath("$[0].body").value("수정 의견"));
+        mockMvc.perform(get(location).cookie(session))
+                .andExpect(jsonPath("$.versionNo").value(1));
+        mockMvc.perform(patch(location)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(java.util.Map.of(
+                                "title", "두 번째", "body", "hello", "editorState", state, "expectedVersion", 1))))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get(location + "/versions/1").cookie(session))
+                .andExpect(jsonPath("$.editorState").value(state));
+        mockMvc.perform(patch(location)
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(
+                                java.util.Map.of("title", "충돌", "body", "hello", "expectedVersion", 1))))
+                .andExpect(status().is4xxClientError());
+        mockMvc.perform(delete(path + "/" + id).cookie(session)).andExpect(status().is4xxClientError());
+    }
+
+    @Test
     void 개인_아티팩트는_본인만_접근하고_프로젝트와_섞이지_않는다() throws Exception {
         Cookie other = AuthTestSupport.가입한다(mockMvc, mail, "personal-other-" + UUID.randomUUID() + "@example.com");
         String location = mockMvc.perform(post("/api/v1/me/artifacts")

@@ -84,7 +84,14 @@ public final class ArtifactRequests {
             @Size(max = RevisionComment.MAX) @Schema(
                     description = "왜 고쳤는지. 적지 않아도 된다",
                     types = {"string", "null"})
-            String comment) {}
+            String comment,
+
+            @Size(max = 2000000) String editorState,
+            Integer expectedVersion) {
+        public EditArtifact(String title, String body, String comment) {
+            this(title, body, comment, null, null);
+        }
+    }
 
     /**
      * 되돌리기. 되돌아갈 버전은 주소가 담으므로 여기 담는 것은 왜 되돌리는지뿐이다.

@@ -1,10 +1,10 @@
 import {defineTheme} from '@astryxdesign/core/theme';
-import {matchaTheme} from '@astryxdesign/theme-matcha';
+import {neutralTheme} from '@astryxdesign/theme-neutral';
 
-// hoho-hr/web/src/styles.css의 Halo · Olive 색상을 Matcha의 형태에 적용한다.
-export const gentaskTheme = defineTheme({
+// hoho-hr/web/src/styles.css의 Halo · Olive 색상을 Neutral의 형태에 적용한다.
+const customTheme = {
   name: 'gentask',
-  extends: matchaTheme,
+  extends: neutralTheme,
   // Astryx 0.5.2의 토스트 명암 판정은 OKLCH를 지원하지 않으므로 관련 배경·전경은 HEX로 둔다.
   tokens: {
   "--text-body-size": "0.9375rem",
@@ -692,4 +692,27 @@ export const gentaskTheme = defineTheme({
     }
   }
 }
+};
+
+const useCustomColors = false;
+
+function withoutColors<T>(value: T): T {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  return Object.fromEntries(Object.entries(value).filter(([key]) => !key.startsWith('--color-') && !key.startsWith('--shadow-') && !['color', 'background', 'backgroundColor', 'borderColor', 'boxShadow', 'fill', 'stroke'].includes(key)).map(([key, child]) => [key, withoutColors(child)])) as T;
+}
+
+export const gentaskTheme = defineTheme({
+  ...customTheme,
+  onLight: useCustomColors ? customTheme.onLight : undefined,
+  onDark: useCustomColors ? customTheme.onDark : undefined,
+  tokens: useCustomColors ? customTheme.tokens : withoutColors(customTheme.tokens),
+  components: {
+    ...(useCustomColors ? customTheme.components : withoutColors(customTheme.components)),
+    'app-shell-sidenav': {
+      base: {
+        backgroundColor: 'light-dark(var(--color-background-body), var(--color-background-surface))',
+        borderInlineEnd: 'var(--border-width) solid var(--color-border)',
+      },
+    },
+  },
 });

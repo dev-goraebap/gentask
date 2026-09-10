@@ -37,7 +37,9 @@ public class ArtifactResourceController {
             @jakarta.validation.constraints.Size(max = 100000) String body,
 
             String folderId,
-            String projectId) {}
+            String projectId,
+
+            @jakarta.validation.constraints.Size(max = 2000000) String editorState) {}
 
     private final ArtifactService artifactService;
     private final xyz.gentask.module.artifact.application.ArtifactResources resources;
@@ -45,8 +47,13 @@ public class ArtifactResourceController {
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Created")
     public ResponseEntity<Void> add(@CurrentUser UUID userId, @Valid @RequestBody CreateScopedArtifact request) {
-        String artifactId =
-                artifactService.add(userId, request.projectId(), request.title(), request.body(), request.folderId());
+        String artifactId = artifactService.add(
+                userId,
+                request.projectId(),
+                request.title(),
+                request.body(),
+                request.folderId(),
+                request.editorState());
         return ResponseEntity.created(URI.create("/api/v1" + "/artifacts/" + artifactId))
                 .build();
     }
@@ -74,7 +81,9 @@ public class ArtifactResourceController {
                 artifactId,
                 request.title(),
                 request.body(),
-                request.comment());
+                request.comment(),
+                request.editorState(),
+                request.expectedVersion());
     }
 
     @PutMapping("/{artifactId}/folder")

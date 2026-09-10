@@ -900,6 +900,22 @@ export interface paths {
         patch: operations["edit_5"];
         trace?: never;
     };
+    "/api/v1/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_1"];
+        options?: never;
+        head?: never;
+        patch: operations["edit_6"];
+        trace?: never;
+    };
     "/api/v1/artifact-folders/{folderId}": {
         parameters: {
             query?: never;
@@ -1182,29 +1198,13 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete: operations["delete_1"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
         delete: operations["delete_2"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
+    "/api/v1/projects/{projectId}/artifacts/{artifactId}/versions/{versionNo}/comments/{commentId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1354,6 +1354,7 @@ export interface components {
             blockStart?: number;
             /** Format: int32 */
             blockEnd?: number;
+            textAnchor?: string;
         };
         CreateArtifact: {
             title: string;
@@ -1418,6 +1419,7 @@ export interface components {
             body?: string;
             folderId?: string;
             projectId?: string;
+            editorState?: string;
         };
         CreateScopedFolder: {
             name: string;
@@ -1469,9 +1471,15 @@ export interface components {
             body: string;
             /** @description 왜 고쳤는지. 적지 않아도 된다 */
             comment?: string | null;
+            editorState?: string;
+            /** Format: int32 */
+            expectedVersion?: number;
         };
         RenameFolder: {
             name: string;
+        };
+        EditComment: {
+            body: string;
         };
         TaskView: {
             /** Format: uuid */
@@ -1583,6 +1591,7 @@ export interface components {
             authorName: string;
             /** Format: date-time */
             createdAt: string;
+            textAnchor?: string;
         };
         VersionSummary: {
             /**
@@ -1608,6 +1617,7 @@ export interface components {
             title: string;
             /** @description 그때의 본문. 마크다운 원문이다 */
             body: string;
+            editorState?: string;
         };
         VersionPageView: {
             items: components["schemas"]["VersionSummary"][];
@@ -1651,6 +1661,7 @@ export interface components {
             authorName: string;
             /** @description 최종 수정자의 닉네임 */
             lastEditorName: string;
+            editorState?: string;
         };
         ArtifactFolderSummary: {
             id: string;
@@ -3771,6 +3782,54 @@ export interface operations {
             };
         };
     };
+    delete_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifactId: string;
+                versionNo: number;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    edit_6: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifactId: string;
+                versionNo: number;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditComment"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     remove_4: {
         parameters: {
             query?: never;
@@ -4180,34 +4239,11 @@ export interface operations {
             };
         };
     };
-    delete_1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                artifactId: string;
-                versionNo: number;
-                commentId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     delete_2: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                projectId: string;
                 artifactId: string;
                 versionNo: number;
                 commentId: string;
@@ -4230,6 +4266,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                projectId: string;
                 artifactId: string;
                 versionNo: number;
                 commentId: string;

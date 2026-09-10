@@ -12,7 +12,16 @@ import xyz.gentask.shared.error.DomainRuleViolation;
  *
  * 내용 변경 여부를 신속히 비교하기 위해 본문의 SHA-1 해시를 계산하여 제공한다(DOC-003 A2).
  */
-public record ArtifactBody(String value) implements ValueObject {
+public record ArtifactBody(String value, String editorState) implements ValueObject {
+
+    public ArtifactBody(String value) {
+        this(value, null);
+    }
+
+    public static ArtifactBody of(String value, String editorState) {
+        ArtifactBody body = of(value);
+        return new ArtifactBody(body.value(), editorState);
+    }
 
     public static final int MAX = 100_000;
 
@@ -36,7 +45,9 @@ public record ArtifactBody(String value) implements ValueObject {
     public String sha1() {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
-            return HexFormat.of().formatHex(messageDigest.digest(value.getBytes(StandardCharsets.UTF_8)));
+            return HexFormat.of()
+                    .formatHex(messageDigest.digest((editorState == null ? value : value + "\u0000" + editorState)
+                            .getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
             throw new IllegalStateException("SHA-1 이 없는 런타임이다", noSuchAlgorithmException);
         }

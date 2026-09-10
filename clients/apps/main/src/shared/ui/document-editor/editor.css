@@ -1,0 +1,11 @@
+.document-editor .astryx-button{border-radius:6px!important;corner-shape:round!important;min-height:30px;box-shadow:none}
+.document-editor .astryx-button.secondary{background:transparent;border-color:transparent;color:var(--color-text-secondary)}
+.document-editor .astryx-button.secondary:hover:not(:disabled),.document-editor .astryx-button[aria-pressed=true]{background:var(--color-background-muted);color:var(--color-text-accent)}
+.lex-editor-menu{border-radius:8px!important;corner-shape:round!important}.lex-editor-menu [role=menuitem]{border-radius:5px!important;corner-shape:round!important}
+.lex-toolbar-shell{flex-shrink:0;border-bottom:1px solid var(--color-border);background:var(--color-background)}.lex-toolbar{overflow-x:auto;padding-inline:22px!important}.lex-toolbar [role=toolbar]{width:max-content;min-width:100%}.lex-divider{height:18px;border-left:1px solid var(--color-border);margin:0 6px;flex-shrink:0}
+.lex-format-bold{font-weight:800}.lex-format-italic{font-family:Georgia,serif;font-style:italic}.lex-format-underline{text-decoration:underline}.lex-format-strikethrough{text-decoration:line-through}.lex-format-code{font-family:monospace}
+.lex-link-form{display:flex;align-items:center;gap:8px;padding:8px 24px;max-width:600px}.lex-link-form>:first-child{flex:1}.lex-link-form input{border-radius:6px!important;corner-shape:round!important}
+.lex-editable{outline:none;min-height:440px;overflow-wrap:anywhere}.lex-editable>*{position:relative}
+.document-editor{width:100%;min-width:0}.document-editor .lex-editable{min-height:24rem;padding:2rem 0}.document-editor.is-readonly .lex-editable{min-height:0;padding:0}.document-editor .lex-placeholder{color:var(--color-text-secondary)}
+
+.document-editor .lex-editable{min-height:12rem;padding:0}.document-editor .lex-highlight,.document-editor mark{background:color-mix(in srgb,var(--color-text-accent) 24%,transparent);color:inherit;border-radius:2px}

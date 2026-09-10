@@ -19,5 +19,6 @@ public final class ArtifactCommentViews {
             String body,
             UUID authorId,
             String authorName,
-            Instant createdAt) {}
+            Instant createdAt,
+            String textAnchor) {}
 }

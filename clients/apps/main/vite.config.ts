@@ -1,7 +1,9 @@
 import viteReact from '@vitejs/plugin-react';
 import { Features } from 'lightningcss';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 import { defineConfig, loadEnv, type ProxyOptions } from 'vite';
+import { palettes, paletteTokens } from './src/shared/ui/theme/palettes';
 
 export default defineConfig(({ mode }) => {
   const storageEndpoint = process.env.DEV_STORAGE_TARGET ?? loadEnv(mode, fileURLToPath(new URL('../../../server', import.meta.url)), 'STORAGE_ENDPOINT').STORAGE_ENDPOINT;
@@ -31,6 +33,13 @@ export default defineConfig(({ mode }) => {
       },
     },
     resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-    plugins: [viteReact()],
+    plugins: [viteReact(), {
+      name: 'gentask-appearance',
+      transformIndexHtml(html) {
+        const tokens = { neutral: {}, ...Object.fromEntries(palettes.map(palette => [palette.id, paletteTokens(palette)])) };
+        const bootstrap = readFileSync(new URL('./src/shared/ui/theme/appearance-bootstrap.js', import.meta.url), 'utf8');
+        return html.replace('<!-- GENTASK_APPEARANCE -->', `<script>(${bootstrap})(${JSON.stringify(tokens)});</script>`);
+      },
+    }],
   };
 });
