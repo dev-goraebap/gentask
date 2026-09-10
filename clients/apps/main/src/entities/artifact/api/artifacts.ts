@@ -24,7 +24,7 @@ export const foldersOptions = (projectId: string | null, personal = true) => que
   queryKey: [...artifactKeys.folders(projectId), personal],
   queryFn: ({ signal }) => get<components['schemas']['ArtifactFolderSummary'][]>('/artifact-folders' + resourceSearch(projectId, personal), signal),
 });
-export async function createArtifact(projectId: string | null, input: components['schemas']['CreateArtifact']) {
+export async function createArtifact(projectId: string | null, input: components['schemas']['CreateScopedArtifact']) {
   const result = await request('/artifacts', { method: 'POST', body: JSON.stringify({ ...input, projectId }) });
   return createdId(result.location);
 }
@@ -53,3 +53,6 @@ export const createArtifactComment = (projectId: string | null, artifactId: stri
 
 export const deleteArtifactComment = (projectId: string | null, artifactId: string, versionNo: number, commentId: string) =>
   request('/artifacts/' + encodeURIComponent(artifactId) + '/versions/' + versionNo + '/comments/' + encodeURIComponent(commentId), { method: 'DELETE' });
+
+export const editArtifactComment = (artifactId: string, versionNo: number, commentId: string, body: string) =>
+  request('/artifacts/' + encodeURIComponent(artifactId) + '/versions/' + versionNo + '/comments/' + encodeURIComponent(commentId), { method: 'PATCH', body: JSON.stringify({ body }) });

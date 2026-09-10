@@ -31,6 +31,7 @@ class JooqTaskRepository implements TaskRepository {
                 .set(TASKS.TITLE, task.title().value())
                 .set(TASKS.NOTE, task.note().value())
                 .set(TASKS.DUE_DATE, task.dueDate())
+                .set(TASKS.SCHEDULED_DATE, task.scheduledDate())
                 .set(TASKS.REMIND_AT, task.remindAt())
                 .set(TASKS.IMPORTANT, task.important())
                 .set(TASKS.MY_DAY_ON, task.myDayOn())
@@ -45,6 +46,7 @@ class JooqTaskRepository implements TaskRepository {
                 .set(TASKS.TITLE, task.title().value())
                 .set(TASKS.NOTE, task.note().value())
                 .set(TASKS.DUE_DATE, task.dueDate())
+                .set(TASKS.SCHEDULED_DATE, task.scheduledDate())
                 .set(TASKS.REMIND_AT, task.remindAt())
                 .set(TASKS.IMPORTANT, task.important())
                 .set(TASKS.MY_DAY_ON, task.myDayOn())
@@ -94,6 +96,7 @@ class JooqTaskRepository implements TaskRepository {
                 tasksRecord.getProjectId(),
                 tasksRecord.getAssigneeId(),
                 xyz.gentask.module.task.domain.task.TaskState.valueOf(tasksRecord.getState()));
+        task.restoreSchedule(tasksRecord.getScheduledDate());
         return task;
     }
 }

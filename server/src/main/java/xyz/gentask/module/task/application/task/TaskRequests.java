@@ -41,6 +41,39 @@ public final class TaskRequests {
                     example = "2026-08-30T09:00")
             LocalDateTime remindAt) {}
 
+    public record CreateScopedTask(
+            @NotBlank @Size(max = TaskTitle.MAX) String title,
+            @Size(max = TaskNote.MAX) String note,
+            @Schema(types = {"string", "null"}) String projectId,
+
+            @Schema(
+                    types = {"string", "null"},
+                    format = "uuid")
+            java.util.UUID assigneeId,
+
+            xyz.gentask.module.task.domain.task.TaskState state,
+
+            @Schema(
+                    types = {"string", "null"},
+                    format = "date")
+            LocalDate scheduledDate,
+
+            @Schema(
+                    types = {"string", "null"},
+                    format = "date")
+            LocalDate dueDate) {}
+
+    public record ChangeSchedule(
+            @Schema(
+                    types = {"string", "null"},
+                    format = "date")
+            LocalDate scheduledDate,
+
+            @Schema(
+                    types = {"string", "null"},
+                    format = "date")
+            LocalDate dueDate) {}
+
     public record ChangeCompletion(
             @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             Boolean completed) {}

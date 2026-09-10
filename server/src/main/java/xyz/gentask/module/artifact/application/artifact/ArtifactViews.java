@@ -102,7 +102,9 @@ public final class ArtifactViews {
             String authorName,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "최종 수정자의 닉네임")
-            String lastEditorName) {}
+            String lastEditorName,
+
+            String editorState) {}
 
     /**
      * 이력의 한 줄.
@@ -165,5 +167,7 @@ public final class ArtifactViews {
             String title,
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "그때의 본문. 마크다운 원문이다")
-            String body) {}
+            String body,
+
+            String editorState) {}
 }

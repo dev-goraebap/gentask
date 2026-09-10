@@ -37,6 +37,33 @@ class ProjectTaskApiTest {
     private RecordingMailSender mail;
 
     @Test
+    void 생성시에_담당자_권한을_검증하고_일괄_저장한다() throws Exception {
+        Cookie owner = user(), editor = user(), outsider = user();
+        String project = create(owner, "/projects", "{\"name\":\"기간 작업\",\"key\":\"PLAN\"}");
+        join(owner, editor, project, "editor");
+        String payload =
+                "{\"title\":\"일괄 생성\",\"note\":\"본문\",\"state\":\"PLANNED\",\"scheduledDate\":\"2026-09-10\",\"projectId\":\""
+                        + project + "\",\"assigneeId\":\"%s\"}";
+        mvc.perform(post("/api/v1/tasks")
+                        .cookie(owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload.formatted(userId(outsider))))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/tasks?projectId=" + project).cookie(owner))
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(0)));
+        String id = create(owner, "/tasks", payload.formatted(userId(editor)));
+        mvc.perform(get("/api/v1/tasks/" + id).cookie(editor))
+                .andExpect(jsonPath("$.state").value("PLANNED"))
+                .andExpect(jsonPath("$.assigneeId").value(userId(editor)));
+        mvc.perform(get("/api/v1/tasks?projectId=" + project + "&date=2026-09-10")
+                        .cookie(editor))
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)));
+        mvc.perform(get("/api/v1/tasks?projectId=" + project + "&date=2026-09-11")
+                        .cookie(editor))
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(0)));
+    }
+
+    @Test
     void 접근_가능한_프로젝트_작업은_전체_목록과_같은_상태를_보여준다() throws Exception {
         Cookie owner = user();
         Cookie editor = user();

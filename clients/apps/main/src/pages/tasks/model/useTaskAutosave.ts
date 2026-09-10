@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@astryxdesign/core';
 import { get } from '@/shared/api';
-import { assignTask, changeTaskState, editTask, type Task } from '../api/tasks';
+import { assignTask, changeTaskState, editTask, scheduleTask, type Task } from '../api/tasks';
 
-type Field = 'title' | 'note' | 'dueDate' | 'state' | 'assigneeId';
+type Field = 'title' | 'note' | 'dueDate' | 'scheduledDate' | 'state' | 'assigneeId';
 type TextField = 'title' | 'note';
 type Update = { [K in Field]: { field: K; value: Task[K] } }[Field];
 
@@ -22,6 +22,9 @@ export function useTaskAutosave(task: Task) {
       if (update.field === 'state') return changeTaskState(task.id, update.value);
       if (update.field === 'assigneeId') return assignTask(task.id, update.value);
       const current = await get<Task>('/tasks/' + task.id);
+      if (update.field === 'scheduledDate' || update.field === 'dueDate') {
+        return scheduleTask(task.id, {scheduledDate: current.scheduledDate, dueDate: current.dueDate, [update.field]: update.value});
+      }
       return editTask(task.id, {
         title: current.title, note: current.note, dueDate: current.dueDate, remindAt: current.remindAt,
         [update.field]: update.field === 'title' ? update.value?.trim() : update.value,

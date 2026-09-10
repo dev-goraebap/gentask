@@ -1,0 +1,155 @@
+/*!
+Adapted from Fumadocs packages/tailwind/src/typography/styles.ts
+https://github.com/fuma-nama/fumadocs
+
+MIT License
+
+Copyright (c) 2023 Fuma
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+MIT License
+
+Copyright (c) Tailwind Labs, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+.lex-editable {
+  --doc-body: color-mix(in oklab, var(--color-text-primary) 90%, transparent);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--doc-body);
+}
+.lex-editable .lex-paragraph { margin-block: 1.25em; }
+.lex-editable :is(.lex-h1, .lex-h2, .lex-h3) {
+  color: var(--color-text-primary);
+  letter-spacing: -.025em;
+  text-wrap: pretty;
+}
+.lex-editable .lex-h1 { font-size: 1.875rem; font-weight: 800; line-height: 1.3; margin: 0 0 .889em; }
+.lex-editable .lex-h2 { font-size: 1.5em; font-weight: 600; line-height: 1.4; margin: 2em 0 1em; }
+.lex-editable .lex-h3 { font-size: 1.25em; font-weight: 600; line-height: 1.6; margin: 1.6em 0 .6em; }
+.lex-editable :is(.lex-h1, .lex-h2, .lex-h3) + * { margin-top: 0; }
+.lex-editable .lex-bold { font-weight: 600; color: var(--color-text-primary); }
+.lex-editable .lex-italic { font-style: italic; }
+.lex-editable .lex-underline { text-decoration: underline; }
+.lex-editable .lex-strike { text-decoration: line-through; }
+.lex-editable .lex-underline.lex-strike { text-decoration: underline line-through; }
+.lex-editable .lex-quote {
+  margin-block: 1.6em;
+  padding-inline-start: 1em;
+  border-inline-start: .25rem solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-style: normal;
+}
+.lex-editable :is(.lex-ul, .lex-ol) { margin-block: 1.25em; }
+.lex-editable .lex-ul { list-style-type: disc; padding-inline-start: 1rem; }
+.lex-editable .lex-ol { list-style-type: decimal; padding-inline-start: 1.625rem; }
+.lex-editable .lex-li { margin-block: .5em; }
+.lex-editable .lex-ol > .lex-li { padding-inline-start: .375em; }
+.lex-editable .lex-li::marker { color: var(--color-text-secondary); font-weight: 400; }
+.lex-editable .lex-li :is(.lex-ul, .lex-ol) { margin-block: .75em; }
+.lex-editable .lex-li > .lex-paragraph { margin-block: .75em; }
+.lex-editable .lex-link {
+  color: var(--color-text-accent);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3.5px;
+  transition: opacity .2s;
+}
+.lex-editable .lex-link:hover { opacity: .8; }
+.lex-editable .lex-inline-code {
+  padding: .1875rem .3rem;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-background-muted);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-code), monospace;
+  font-size: .8125em;
+  font-weight: 400;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.lex-editable .lex-code {
+  display: block;
+  margin-block: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-background-muted);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-code), monospace;
+  font-size: .8125rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  tab-size: 2;
+}
+.lex-editable .lex-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-block: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: .875rem;
+  line-height: 1.714;
+}
+.lex-editable .lex-cell {
+  min-width: 3.75rem;
+  padding: .625rem;
+  border: 0;
+  border-inline-end: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  text-align: start;
+  vertical-align: top;
+}
+.lex-editable .lex-cell:last-child { border-inline-end: 0; }
+.lex-editable tr:last-child > .lex-cell { border-bottom: 0; }
+.lex-editable tr:first-child > .lex-cell:first-child { border-start-start-radius: 5px; }
+.lex-editable tr:first-child > .lex-cell:last-child { border-start-end-radius: 5px; }
+.lex-editable tr:last-child > .lex-cell:first-child { border-end-start-radius: 5px; }
+.lex-editable tr:last-child > .lex-cell:last-child { border-end-end-radius: 5px; }
+.lex-editable .lex-cell .lex-paragraph { margin: 0; }
+.lex-editable .lex-cell-header { background: var(--color-background-muted); color: var(--color-text-primary); font-weight: 600; }
+.lex-editable .lex-cell-selected { background: var(--color-accent-muted); }
+.lex-editable .lex-image { margin-block: 2rem; }
+.lex-editable .lex-image img { display: block; max-width: 100%; max-height: 520px; object-fit: contain; border-radius: 4px; }
+.lex-editable .lex-image figcaption { margin-top: .857em; color: var(--color-text-secondary); font-size: .875rem; line-height: 1.43; }
+.lex-editable > :first-child { margin-top: 0; }
+.lex-editable > :last-child { margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .lex-editable .lex-link { transition: none; } }

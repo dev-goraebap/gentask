@@ -25,6 +25,7 @@ public final class Task {
     private UUID assigneeId;
     private TaskState state;
     private LocalDate dueDate;
+    private LocalDate scheduledDate;
 
     private LocalDateTime remindAt;
 
@@ -47,6 +48,7 @@ public final class Task {
                 null,
                 null,
                 TaskState.TODO,
+                null,
                 null,
                 null,
                 false,
@@ -77,6 +79,7 @@ public final class Task {
                 null,
                 completedAt == null ? TaskState.TODO : TaskState.DONE,
                 dueDate,
+                null,
                 remindAt,
                 important,
                 myDayOn,
@@ -139,8 +142,21 @@ public final class Task {
         this.updatedAt = now;
     }
 
-    public void changeDueDate(LocalDate dueDate, Instant now) {
+    public void restoreSchedule(LocalDate scheduledDate) {
+        this.scheduledDate = scheduledDate;
+    }
+
+    public void changeSchedule(LocalDate scheduledDate, LocalDate dueDate, Instant now) {
+        if (scheduledDate != null && dueDate != null && scheduledDate.isAfter(dueDate)) {
+            throw new IllegalArgumentException("예정일은 마감일보다 늦을 수 없습니다.");
+        }
+        this.scheduledDate = scheduledDate;
         this.dueDate = dueDate;
+        this.updatedAt = now;
+    }
+
+    public void changeDueDate(LocalDate dueDate, Instant now) {
+        changeSchedule(this.scheduledDate, dueDate, now);
         this.updatedAt = now;
     }
 

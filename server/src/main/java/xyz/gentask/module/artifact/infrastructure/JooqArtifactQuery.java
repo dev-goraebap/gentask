@@ -119,6 +119,7 @@ class JooqArtifactQuery implements ArtifactQuery {
                         ARTIFACTS.FOLDER_ID,
                         ARTIFACTS.CREATED_AT,
                         ARTIFACTS.UPDATED_AT,
+                        ARTIFACT_REVISIONS.EDITOR_STATE,
                         ARTIFACT_REVISIONS.BODY,
                         ARTIFACT_REVISIONS.REVISION_NO,
                         USERS.NICKNAME,
@@ -145,7 +146,8 @@ class JooqArtifactQuery implements ArtifactQuery {
                         record.get(ARTIFACT_REVISIONS.BODY),
                         record.get(ARTIFACT_REVISIONS.REVISION_NO),
                         record.get(USERS.NICKNAME) == null ? "" : record.get(USERS.NICKNAME),
-                        record.get(editor.NICKNAME) == null ? "" : record.get(editor.NICKNAME)));
+                        record.get(editor.NICKNAME) == null ? "" : record.get(editor.NICKNAME),
+                        record.get(ARTIFACT_REVISIONS.EDITOR_STATE)));
     }
 
     @Override
@@ -191,7 +193,8 @@ class JooqArtifactQuery implements ArtifactQuery {
                         USERS.NICKNAME,
                         ARTIFACT_REVISIONS.COMMENT,
                         ARTIFACT_REVISIONS.TITLE,
-                        ARTIFACT_REVISIONS.BODY)
+                        ARTIFACT_REVISIONS.BODY,
+                        ARTIFACT_REVISIONS.EDITOR_STATE)
                 .from(ARTIFACT_REVISIONS)
                 .join(ARTIFACTS)
                 .on(ARTIFACTS.ID.eq(ARTIFACT_REVISIONS.ARTIFACT_ID))
@@ -203,7 +206,8 @@ class JooqArtifactQuery implements ArtifactQuery {
                 .map(record -> new VersionView(
                         toVersionSummary(record),
                         record.get(ARTIFACT_REVISIONS.TITLE),
-                        record.get(ARTIFACT_REVISIONS.BODY)));
+                        record.get(ARTIFACT_REVISIONS.BODY),
+                        record.get(ARTIFACT_REVISIONS.EDITOR_STATE)));
     }
 
     /** 타 프로젝트 아티팩트 또는 논리 삭제된 아티팩트의 개정 이력 조회를 차단한다(DOC-004 A4, A5). */

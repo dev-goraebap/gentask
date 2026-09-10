@@ -1,3 +1,5 @@
+import { ArtifactCreateRoute } from './ArtifactCreateRoute';
+import { EditorPlaygroundRoute } from './EditorPlaygroundRoute';
 import { RouteNotFound } from './RouteNotFound';
 import { parseResourceScope } from '@/shared/config';
 import { NotesRoute } from './NotesRoute';
@@ -29,13 +31,14 @@ import {
 import { MembersRoute } from './MembersRoute';
 import { TasksRoute } from './TasksRoute';
 import { TaskRoute } from './TaskRoute';
+import { TaskCreateRoute } from './TaskCreateRoute';
 
 export const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootLayout,
   notFoundComponent: RouteNotFound,
   validateSearch: parseResourceScope,
   beforeLoad: async ({ context, location }) => {
-    if (location.pathname === '/login' || location.pathname.startsWith('/invitations/')) return;
+    if (location.pathname === '/login' || location.pathname.startsWith('/invitations/') || (import.meta.env.DEV && location.pathname === '/playground/editor')) return;
     try { await context.queryClient.ensureQueryData({ ...sessionOptions(), revalidateIfStale: true }); }
     catch (error) {
       if (error instanceof ApiError && error.status === 401) throw redirect({ to: '/login', replace: true });
@@ -55,6 +58,9 @@ export const indexRoute = createRoute({
 });
 
 export const tasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks/$taskId', component: TaskRoute });
+export const taskCreateRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks/new', component: TaskCreateRoute,
+  validateSearch: (search: Record<string, unknown>): { state: 'TODO' | 'PLANNED' | 'IN_PROGRESS' | 'DONE' } => ({ state: search.state === 'PLANNED' || search.state === 'IN_PROGRESS' || search.state === 'DONE' ? search.state : 'TODO' }),
+});
 
 export const personalTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/tasks', component: TasksRoute });
 export const projectTasksRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects/$projectId/tasks', beforeLoad: ({ params }) => { throw redirect({ to: '/tasks', search: { projectId: params.projectId }, replace: true }); } });
@@ -63,6 +69,9 @@ export const personalArtifactsRoute = createRoute({ getParentRoute: () => rootRo
   beforeLoad: ({ search }) => {
     if (!search.projectId && search.scope !== 'personal') throw redirect({ to: '/artifacts', search: { ...search, scope: 'personal' }, replace: true });
   },
+});
+export const artifactCreateRoute = createRoute({ getParentRoute: () => rootRoute, path: '/artifacts/new', component: ArtifactCreateRoute,
+  validateSearch: (search: { folder?: string } & SearchSchemaInput) => ({ folder: typeof search.folder === 'string' ? search.folder : undefined }),
 });
 export const personalArtifactRoute = createRoute({ getParentRoute: () => rootRoute, path: '/artifacts/$docId', component: ArtifactRoute,
   validateSearch: (search: Partial<ListingSearch> & { version?: number | string } & SearchSchemaInput) => ({ ...parseListingSearch(search, ['title', 'updated'], 'title'), version: parseVersionSearch(search.version) }),
@@ -141,7 +150,10 @@ export const settingsRoute = createRoute({ getParentRoute: () => rootRoute, path
 
 export const accountRoute = createRoute({ getParentRoute: () => rootRoute, path: '/me', component: AccountPage });
 
+const editorPlaygroundRoute = createRoute({ getParentRoute: () => rootRoute, path: '/playground/editor', component: EditorPlaygroundRoute });
+
 export const routeTree = rootRoute.addChildren([
+  ...(import.meta.env.DEV ? [editorPlaygroundRoute] : []),
   loginRoute, invitationRoute,
   legacyDocsRoute,
   legacyDocRoute,
@@ -149,8 +161,10 @@ export const routeTree = rootRoute.addChildren([
   legacyDiscoveryRoute,
   accountRoute,
   personalTasksRoute,
+  taskCreateRoute,
   projectTasksRoute,
   personalArtifactsRoute,
+  artifactCreateRoute,
   personalArtifactRoute,
   projectsRoute,
   settingsRoute,

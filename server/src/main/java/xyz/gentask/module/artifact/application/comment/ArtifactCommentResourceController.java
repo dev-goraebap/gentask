@@ -25,6 +25,23 @@ public class ArtifactCommentResourceController {
     private final ArtifactCommentService comments;
     private final xyz.gentask.module.artifact.application.ArtifactResources resources;
 
+    @org.springframework.web.bind.annotation.PatchMapping("/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void edit(
+            @CurrentUser UUID userId,
+            @PathVariable String artifactId,
+            @PathVariable int versionNo,
+            @PathVariable String commentId,
+            @Valid @RequestBody ArtifactCommentRequests.EditComment request) {
+        comments.edit(
+                userId,
+                resources.artifactProject(userId, artifactId),
+                artifactId,
+                versionNo,
+                commentId,
+                request.body());
+    }
+
     @DeleteMapping("/{commentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(

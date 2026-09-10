@@ -26,9 +26,18 @@ public class TaskMcpTools {
     public CallToolResult listTasks(
             McpTransportContext context,
             @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
-            @McpToolParam(description = "personal: 개인만. 생략: 전체. projectId와 함께 사용할 수 없음", required = false)
-                    String scope) {
-        return results.call(() -> tasks.list(results.userId(context), projectId, scope));
+            @McpToolParam(description = "personal: 개인만. 생략: 전체. projectId와 함께 사용할 수 없음", required = false) String scope,
+            @McpToolParam(description = "작업 기간에 포함되는 날짜 YYYY-MM-DD. 생략하면 전체 기간", required = false) String date,
+            @McpToolParam(description = "날짜가 모두 없는 작업만 조회. date와 함께 사용 불가", required = false) Boolean undated,
+            @McpToolParam(description = "기준 날짜 이전 마감인 미완료 작업도 포함", required = false) Boolean includeOverdue) {
+        return results.call(() -> tasks.list(
+                results.userId(context),
+                projectId,
+                scope,
+                new TaskDateFilter(
+                        date == null ? null : LocalDate.parse(date),
+                        Boolean.TRUE.equals(undated),
+                        Boolean.TRUE.equals(includeOverdue))));
     }
 
     @McpTool(
@@ -50,15 +59,40 @@ public class TaskMcpTools {
             McpTransportContext context,
             @McpToolParam(description = "프로젝트 NanoID. 생략하면 개인 영역", required = false) String projectId,
             @McpToolParam(description = "title", required = true) String title,
-            @McpToolParam(description = "dueDate", required = false) String dueDate) {
+            @McpToolParam(description = "마감일 YYYY-MM-DD", required = false) String dueDate,
+            @McpToolParam(description = "예정일 YYYY-MM-DD", required = false) String scheduledDate,
+            @McpToolParam(description = "마크다운 설명", required = false) String note,
+            @McpToolParam(description = "TODO, PLANNED, IN_PROGRESS, DONE. 기본 TODO", required = false) String state,
+            @McpToolParam(description = "프로젝트 담당자 UUID", required = false) String assigneeId) {
         return results.call(() -> {
-            var r = results.validate(
-                    new TaskRequests.CreateTask(title, dueDate == null ? null : LocalDate.parse(dueDate)));
-            return Map.of(
-                    "id",
-                    projectId == null
-                            ? tasks.add(results.userId(context), r.title(), r.dueDate())
-                            : tasks.addProject(results.userId(context), projectId, r.title(), r.dueDate()));
+            var input = results.validate(new TaskRequests.CreateScopedTask(
+                    title,
+                    note,
+                    projectId,
+                    assigneeId == null ? null : UUID.fromString(assigneeId),
+                    state == null ? null : xyz.gentask.module.task.domain.task.TaskState.valueOf(state),
+                    scheduledDate == null ? null : LocalDate.parse(scheduledDate),
+                    dueDate == null ? null : LocalDate.parse(dueDate)));
+            return Map.of("id", tasks.create(results.userId(context), input));
+        });
+    }
+
+    @McpTool(
+            name = "set_task_schedule",
+            description = "작업 예정일과 마감일을 함께 교체한다. 생략한 날짜는 비운다. 예정일은 마감일 이하여야 한다.",
+            annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = true, openWorldHint = false))
+    public CallToolResult schedule(
+            McpTransportContext context,
+            @McpToolParam(description = "작업 UUID", required = true) String taskId,
+            @McpToolParam(description = "예정일 YYYY-MM-DD", required = false) String scheduledDate,
+            @McpToolParam(description = "마감일 YYYY-MM-DD", required = false) String dueDate) {
+        return results.call(() -> {
+            tasks.schedule(
+                    results.userId(context),
+                    UUID.fromString(taskId),
+                    scheduledDate == null ? null : LocalDate.parse(scheduledDate),
+                    dueDate == null ? null : LocalDate.parse(dueDate));
+            return Map.of("saved", true);
         });
     }
 
@@ -88,7 +122,7 @@ public class TaskMcpTools {
 
     @McpTool(
             name = "change_task_state",
-            description = "작업 상태를 TODO, IN_PROGRESS, DONE 중 하나로 바꾼다.",
+            description = "작업 상태를 TODO, PLANNED, IN_PROGRESS, DONE 중 하나로 바꾼다.",
             annotations = @McpAnnotations(readOnlyHint = false, destructiveHint = false, openWorldHint = false))
     public CallToolResult changeTaskState(
             McpTransportContext context,

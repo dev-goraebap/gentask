@@ -164,7 +164,7 @@ body {
 html { font-size: 100%; }
 
 @media (min-width: 1920px) {
-  html { font-size: max(100%, min(125%, 20px, calc(100% + 0.625vw - 12px))); }
+  html { font-size: max(100%, min(112.5%, 18px, calc(100% + 0.3125vw - 6px))); }
 }
 
 /* 기본 16px에서 기존 테마 치수를 유지하며 사용자 글자 크기에 비례한다. */

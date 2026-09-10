@@ -67,6 +67,47 @@ class McpApiTest {
     }
 
     @Test
+    void 작업_기간과_계획을_도구로_저장하고_조회한다() throws Exception {
+        String id = 데이터(호출(
+                        token,
+                        "create_task",
+                        Map.of(
+                                "title",
+                                "예정 작업",
+                                "note",
+                                "설명",
+                                "state",
+                                "PLANNED",
+                                "scheduledDate",
+                                "2026-09-10",
+                                "dueDate",
+                                "2026-09-12")))
+                .path("id")
+                .asText();
+        assertThat(데이터(호출(token, "get_task", Map.of("taskId", id)))
+                        .path("state")
+                        .asText())
+                .isEqualTo("PLANNED");
+        assertThat(데이터(호출(token, "list_tasks", Map.of("date", "2026-09-11"))).toString())
+                .contains(id);
+        assertThat(데이터(호출(token, "list_tasks", Map.of("undated", true))).toString())
+                .doesNotContain(id);
+        assertThat(호출(
+                                token,
+                                "set_task_schedule",
+                                Map.of("taskId", id, "scheduledDate", "2026-09-13", "dueDate", "2026-09-12"))
+                        .path("isError")
+                        .asBoolean())
+                .isTrue();
+        assertThat(호출(token, "set_task_schedule", Map.of("taskId", id))
+                        .path("isError")
+                        .asBoolean())
+                .isFalse();
+        assertThat(데이터(호출(token, "list_tasks", Map.of("undated", true))).toString())
+                .contains(id);
+    }
+
+    @Test
     void 초기화와_도구_목록은_세션을_발급하지_않는다() throws Exception {
         var initialized = 요청(
                 token,
@@ -88,7 +129,7 @@ class McpApiTest {
                 .isEqualTo("2025-11-25");
         var response = 요청(token, "tools/list", Map.of());
         JsonNode tools = mapper.readTree(response.body()).path("result").path("tools");
-        assertThat(tools.size()).isEqualTo(62);
+        assertThat(tools.size()).isEqualTo(63);
         for (JsonNode tool : tools) {
             assertThat(tool.path("inputSchema").path("properties").has("context"))
                     .isFalse();

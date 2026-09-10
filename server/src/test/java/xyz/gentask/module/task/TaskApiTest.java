@@ -139,6 +139,75 @@ class TaskApiTest {
                 .andExpect(jsonPath("$.code").value("TASK_NOT_FOUND"));
     }
 
+    @Test
+    void 계획과_기간을_함께_생성하고_변경한다() throws Exception {
+        String id = 작업을_만든다("""
+                {"title":"작업", "note":"# 설명", "state":"PLANNED", "scheduledDate":"2026-09-10", "dueDate":"2026-09-12"}
+                """);
+        작업을_연다(id)
+                .andExpect(jsonPath("$.state").value("PLANNED"))
+                .andExpect(jsonPath("$.note").value("# 설명"))
+                .andExpect(jsonPath("$.scheduledDate").value("2026-09-10"));
+        하위_자원을_바꾼다(id, "state", "{\"state\":\"DONE\"}");
+        작업을_연다(id).andExpect(jsonPath("$.completedAt").isNotEmpty());
+        하위_자원을_바꾼다(id, "state", "{\"state\":\"PLANNED\"}");
+        작업을_연다(id).andExpect(jsonPath("$.completedAt").value(nullValue()));
+        하위_자원을_바꾼다(id, "schedule", "{\"scheduledDate\":\"2026-09-11\",\"dueDate\":null}");
+        작업을_연다(id)
+                .andExpect(jsonPath("$.scheduledDate").value("2026-09-11"))
+                .andExpect(jsonPath("$.dueDate").value(nullValue()));
+    }
+
+    @Test
+    void 날짜_필터는_기간_경계와_기한초과_완료여부를_구분한다() throws Exception {
+        작업을_만든다("""
+                {"title":"기간", "scheduledDate":"2026-09-10", "dueDate":"2026-09-12"}
+                """);
+        작업을_만든다("{\"title\":\"미지정\"}");
+        작업을_만든다("""
+                {"title":"예정만", "scheduledDate":"2026-09-10"}
+                """);
+        작업을_만든다("""
+                {"title":"마감만", "dueDate":"2026-09-10"}
+                """);
+        작업을_만든다("""
+                {"title":"기한초과", "dueDate":"2026-09-09"}
+                """);
+        작업을_만든다("""
+                {"title":"완료", "dueDate":"2026-09-09", "state":"DONE"}
+                """);
+        mockMvc.perform(get("/api/v1/tasks?date=2026-09-10").cookie(session)).andExpect(jsonPath("$", hasSize(3)));
+        mockMvc.perform(get("/api/v1/tasks?date=2026-09-12").cookie(session)).andExpect(jsonPath("$", hasSize(1)));
+        mockMvc.perform(get("/api/v1/tasks?date=2026-09-13").cookie(session)).andExpect(jsonPath("$", hasSize(0)));
+        mockMvc.perform(get("/api/v1/tasks?date=2026-09-10&includeOverdue=true").cookie(session))
+                .andExpect(jsonPath("$", hasSize(4)));
+        mockMvc.perform(get("/api/v1/tasks?undated=true").cookie(session)).andExpect(jsonPath("$", hasSize(1)));
+        mockMvc.perform(get("/api/v1/tasks").cookie(session)).andExpect(jsonPath("$", hasSize(6)));
+        mockMvc.perform(get("/api/v1/tasks?date=2026-09-10&undated=true").cookie(session))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/tasks?includeOverdue=true").cookie(session))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void 잘못된_기간은_작업을_남기지_않는다() throws Exception {
+        mockMvc.perform(post("/api/v1/tasks")
+                        .cookie(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {"title":"실패", "scheduledDate":"2026-09-12", "dueDate":"2026-09-10", "state":"PLANNED"}
+                """))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/tasks").cookie(session)).andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void 문서형_작업_설명을_저장한다() throws Exception {
+        String content = "설명".repeat(2000);
+        String id = 작업을_만든다("{\"title\":\"긴 설명\",\"note\":\"" + content + "\"}");
+        작업을_연다(id).andExpect(jsonPath("$.note").value(content));
+    }
+
     private String 작업을_만든다(String body) throws Exception {
         String location = requireNonNull(mockMvc.perform(post("/api/v1/tasks")
                         .cookie(session)

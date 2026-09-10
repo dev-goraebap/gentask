@@ -103,6 +103,12 @@ public class ArtifactService {
      */
     @Transactional
     public String add(UUID userId, String projectId, String title, String body, String folderId) {
+        return add(userId, projectId, title, body, folderId, null);
+    }
+
+    @Transactional
+    public String add(UUID userId, String projectId, String title, String body, String folderId, String editorState) {
+        validateEditorState(editorState);
         ArtifactScope accessibleProjectId = projectAccess.requireWrite(userId, projectId);
         Instant now = clock.instant();
 
@@ -120,7 +126,7 @@ public class ArtifactService {
                 UUID.randomUUID(),
                 artifact.id(),
                 artifact.title(),
-                ArtifactBody.of(body),
+                ArtifactBody.of(body, editorState),
                 RevisionComment.none(),
                 userId,
                 now);
@@ -136,6 +142,20 @@ public class ArtifactService {
      */
     @Transactional
     public void edit(UUID userId, String projectId, String artifactId, String title, String body, String comment) {
+        edit(userId, projectId, artifactId, title, body, comment, null, null);
+    }
+
+    @Transactional
+    public void edit(
+            UUID userId,
+            String projectId,
+            String artifactId,
+            String title,
+            String body,
+            String comment,
+            String editorState,
+            Integer expectedVersion) {
+        validateEditorState(editorState);
         ArtifactScope accessibleProjectId = projectAccess.requireWrite(userId, projectId);
         Artifact artifact = artifactRepository
                 .findByIdForUpdate(accessibleProjectId, readId(artifactId))
@@ -143,7 +163,13 @@ public class ArtifactService {
         ArtifactRevision head = head(artifact);
 
         ArtifactTitle newTitle = ArtifactTitle.of(title);
-        ArtifactBody newBody = ArtifactBody.of(body);
+        if (expectedVersion != null && head.revisionNo() != expectedVersion)
+            throw new xyz.gentask.shared.error.DomainRuleViolation("편집 중 새 버전이 저장됐습니다. 최신 문서를 확인해 주세요.");
+        ArtifactBody newBody = ArtifactBody.of(
+                body,
+                editorState == null && head.body().value().equals(body)
+                        ? head.body().editorState()
+                        : editorState);
         if (head.hasSameContent(newTitle, newBody)) {
             return;
         }
@@ -230,6 +256,21 @@ public class ArtifactService {
     private static RevisionComment revertReason(String rawComment, int revisionNo) {
         RevisionComment comment = RevisionComment.of(rawComment);
         return comment.isPresent() ? comment : RevisionComment.revertedTo(revisionNo);
+    }
+
+    private static void validateEditorState(String state) {
+        if (state == null) return;
+        if (state.length() > 2000000) throw new xyz.gentask.shared.error.DomainRuleViolation("문서 데이터가 너무 큽니다.");
+        try {
+            var root = tools.jackson.databind.json.JsonMapper.builder()
+                    .build()
+                    .readTree(state)
+                    .path("root");
+            if (!"root".equals(root.path("type").asText())
+                    || !root.path("children").isArray()) throw new IllegalArgumentException();
+        } catch (RuntimeException error) {
+            throw new xyz.gentask.shared.error.DomainRuleViolation("유효한 Lexical 문서가 아닙니다.");
+        }
     }
 
     private ArtifactRevision head(Artifact artifact) {

@@ -6,7 +6,7 @@ import { useSession } from "@/entities/session";
 import { useWorkspaceStore } from "@/entities/workspace";
 import { MobileSurface, MOBILE_QUERY } from "@/shared/ui/mobile";
 import { RequestState } from "@/shared/ui/request-state";
-import { LazyRichEditor } from '@/shared/ui/markdown-editor';
+import { LazyDocumentEditor } from '@/shared/ui/lazy-document-editor';
 import {
   Button,
   HStack,
@@ -14,7 +14,6 @@ import {
   LayoutContent,
   LayoutFooter,
   LayoutHeader,
-  Markdown,
   MoreMenu,
   Selector,
   Text,
@@ -228,15 +227,11 @@ export function NoteDetail({
                   {writable ? (
                     <VStack className="note-detail-editor">
                       <Suspense fallback={<Text color="secondary">편집기를 불러오는 중…</Text>}>
-                        <LazyRichEditor key={editorReset} initialValue={note.body} onChange={setDraft}
-                          label="메모 본문" placeholder="내용을 적어보세요" hasToolbar={false}
-                          paragraphAfterHeading isDisabled={action.isPending} />
+                        <LazyDocumentEditor key={`${id}:${editorReset}`} initialMarkdown={note.body} label="메모 본문" onChange={value => setDraft(value.markdown)} disabled={action.isPending} />
                       </Suspense>
                     </VStack>
                   ) : note.body ? (
-                    <Markdown density="compact" className="note-detail-body">
-                      {note.body}
-                    </Markdown>
+                    <Suspense fallback={<Text>문서를 불러오는 중…</Text>}><LazyDocumentEditor key={id} initialMarkdown={note.body} label="메모 본문" readOnly /></Suspense>
                   ) : null}
 
 

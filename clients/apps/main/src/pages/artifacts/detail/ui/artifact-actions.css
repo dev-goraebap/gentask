@@ -1,0 +1,21 @@
+.artifact-action-group > .astryx-button.secondary {
+  color: var(--color-text-secondary);
+  background-color: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
+  border-color: var(--color-border);
+}
+.artifact-action-group > .astryx-button.secondary:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background-color: var(--color-background-muted);
+}
+.artifact-action-group > .astryx-button.secondary[aria-pressed='true'] {
+  color: var(--color-text-accent);
+  background-color: var(--color-accent-muted);
+}
+.artifact-action-group > .astryx-button:not(:first-child) {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+.artifact-action-group > .astryx-button:has(~ .astryx-button) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}

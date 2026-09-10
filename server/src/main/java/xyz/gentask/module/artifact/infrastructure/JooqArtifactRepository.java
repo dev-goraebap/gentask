@@ -118,6 +118,7 @@ class JooqArtifactRepository implements ArtifactRepository {
                 .set(ARTIFACT_REVISIONS.REVISION_NO, revision.revisionNo())
                 .set(ARTIFACT_REVISIONS.TITLE, revision.title().value())
                 .set(ARTIFACT_REVISIONS.BODY, revision.body().value())
+                .set(ARTIFACT_REVISIONS.EDITOR_STATE, revision.body().editorState())
                 .set(ARTIFACT_REVISIONS.CONTENT_SHA1, revision.contentSha1())
                 .set(ARTIFACT_REVISIONS.COMMENT, revision.comment().orNull())
                 .set(ARTIFACT_REVISIONS.CREATED_AT, revision.createdAt())
@@ -165,7 +166,7 @@ class JooqArtifactRepository implements ArtifactRepository {
                 artifactRevisionsRecord.getArtifactId(),
                 artifactRevisionsRecord.getRevisionNo(),
                 ArtifactTitle.of(artifactRevisionsRecord.getTitle()),
-                ArtifactBody.of(artifactRevisionsRecord.getBody()),
+                ArtifactBody.of(artifactRevisionsRecord.getBody(), artifactRevisionsRecord.getEditorState()),
                 artifactRevisionsRecord.getContentSha1(),
                 RevisionComment.of(artifactRevisionsRecord.getComment()),
                 artifactRevisionsRecord.getCreatedAt(),
