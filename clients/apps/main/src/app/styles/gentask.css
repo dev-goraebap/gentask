@@ -51,14 +51,14 @@
 
   :where(p) {
     font-family: var(--font-family-body);
-    font-size: var(--font-size-base);
+    font-size: 0.9375rem;
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
     color: var(--color-text-primary);
   }
 
   :where(small) {
-    font-size: var(--font-size-sm);
+    font-size: 0.8125rem;
     font-weight: var(--font-weight-normal);
     line-height: 1.5385;
     color: var(--color-text-secondary);
@@ -175,19 +175,19 @@
     --text-heading-6-size: var(--font-size-xs);
     --text-heading-6-weight: var(--font-weight-semibold);
     --text-heading-6-leading: 1.6;
-    --text-body-size: var(--font-size-base);
+    --text-body-size: 0.9375rem;
     --text-body-weight: var(--font-weight-normal);
     --text-body-leading: 1.5;
     --text-large-size: var(--font-size-lg);
     --text-large-weight: var(--font-weight-semibold);
     --text-large-leading: 1.4;
-    --text-label-size: var(--font-size-base);
+    --text-label-size: 0.875rem;
     --text-label-weight: var(--font-weight-medium);
     --text-label-leading: 1.5;
     --text-code-size: var(--font-size-base);
     --text-code-weight: var(--font-weight-normal);
     --text-code-leading: 1.5;
-    --text-supporting-size: var(--font-size-sm);
+    --text-supporting-size: 0.8125rem;
     --text-supporting-weight: var(--font-weight-normal);
     --text-supporting-leading: 1.5385;
     --text-display-1-size: var(--font-size-5xl);
@@ -594,6 +594,7 @@
   }
 
   .astryx-side-nav-item {
+    font-size: var(--text-label-size);
     border-radius: 1.5rem;
     corner-shape: superellipse(1.6);
   }
@@ -700,6 +701,7 @@
   }
 
   .astryx-text-input {
+    --text-body-size: var(--text-label-size);
     border-radius: 1.5rem;
     corner-shape: superellipse(1.6);
   }

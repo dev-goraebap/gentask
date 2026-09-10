@@ -1,9 +1,10 @@
+import { ScopePageHeader } from '@/widgets/scope-page-header';
 import { FilterIndicator } from '@/shared/ui/listing';
 import { PageState as EmptyState } from '@/shared/ui/page-state';
 import { useWorkspaceStore } from '@/entities/workspace';
-import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
+import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { MobileFilterBar, MobileFilterButton } from '@/shared/ui/mobile';
-import { artifactKeys, artifactsOptions, foldersOptions, createFolder } from '@/entities/artifact';
+import { artifactsOptions, foldersOptions, createFolder } from '@/entities/artifact';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RequestState } from '@/shared/ui/request-state';
 import { WIDTH } from '@/shared/config';
@@ -29,7 +30,7 @@ import {
 } from '@astryxdesign/core';
 import { useState } from 'react';
 import { useSearch, useNavigate } from '@tanstack/react-router';
-import { ArtifactEditor } from '@/features/edit-artifact';
+
 
 import { SORT_LABEL, type DocSort, type DocsProps } from './documents';
 
@@ -53,7 +54,7 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId, per
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [draft, setDraft] = useState({ sort, direction, filter: listing.filter, size: listing.size });
   const [createMenu, setCreateMenu] = useState(false);
-  const [creating, setCreating] = useState<'doc' | 'folder' | null>(null);
+  const [creating, setCreating] = useState<'folder' | null>(null);
   const client = useQueryClient();
   const artifacts = useQuery(artifactsOptions(projectId, personal));
   const folderQuery = useQuery(foldersOptions(projectId, personal));
@@ -102,8 +103,8 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId, per
       padding={0}
       height="fill"
       contentWidth={WIDTH.wide}
-      header={<PageHeader title="아티팩트" compact={mobile}
-        actions={canEdit ? mobile ? <CreateButton label="새로 만들기" onClick={() => setCreateMenu(true)} /> : <><Button label="새 폴더" variant="secondary" size="sm" icon={<HgiFolder />} onClick={() => setCreating('folder')} /><CreateButton label="새 아티팩트" onClick={() => setCreating('doc')} /></> : undefined}
+      header={<ScopePageHeader title="아티팩트" compact={mobile}
+        actions={canEdit ? mobile ? <CreateButton label="새로 만들기" onClick={() => setCreateMenu(true)} /> : <><Button label="새 폴더" variant="secondary" size="sm" icon={<HgiFolder />} onClick={() => setCreating('folder')} /><CreateButton label="새 아티팩트" onClick={() => void navigate({ to: '/artifacts/new', search: { projectId: destination ?? undefined, scope: destination ? undefined : 'personal', folder: folderId ?? undefined } })} /></> : undefined}
         toolbar={mobile ? <MobileFilterBar leadingContent={<FilterIndicator />} label="아티팩트 필터" searchLabel="아티팩트 검색" placeholder="제목으로 검색" query={query} onQueryChange={setQuery}
             actions={<MobileFilterButton active={false} onClick={() => { setDraft({ sort, direction, filter: listing.filter, size: listing.size }); setFiltersOpen(true); }} />} /> : <Toolbar className="page-filter-toolbar"
               label="아티팩트 필터"
@@ -180,11 +181,10 @@ export function ArtifactsPage({ onOpen, folderId, onFolderChange, projectId, per
     <BottomSheet label="새로 만들기" isOpen={createMenu} onOpenChange={setCreateMenu} height="hug">
       <VStack padding={4} gap={3}>
         <HStack justify="between" align="center"><Heading level={2}>새로 만들기</Heading><Button label="닫기" onClick={() => setCreateMenu(false)} /></HStack>
-        <Button label="아티팩트 작성" icon={<HgiPlus />} size="lg" onClick={() => { setCreateMenu(false); setCreating('doc'); }} />
+        <Button label="아티팩트 작성" icon={<HgiPlus />} size="lg" onClick={() => { setCreateMenu(false); void navigate({ to: '/artifacts/new', search: { projectId: destination ?? undefined, scope: destination ? undefined : 'personal', folder: folderId ?? undefined } }); }} />
         <Button label="폴더 만들기" icon={<HgiFolder />} size="lg" onClick={() => { setCreateMenu(false); setCreating('folder'); }} />
       </VStack>
     </BottomSheet>
-    {creating === 'doc' ? <ArtifactEditor projectId={destination} folderId={folderId} onClose={() => setCreating(null)} onSaved={id => { setCreating(null); onOpen(id); }} /> : null}
     {creating === 'folder' ? <CreateDialog title={`새 폴더 · ${destination ? projects.find(p => p.id === destination)?.name : "개인"}`} withBody={false} onClose={() => setCreating(null)} onSave={async title => { await folderMutation.mutateAsync(title); listing.change({ query: title }); }} /> : null}
     </>
   );

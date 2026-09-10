@@ -7,6 +7,9 @@ export const gentaskTheme = defineTheme({
   extends: matchaTheme,
   // Astryx 0.5.2의 토스트 명암 판정은 OKLCH를 지원하지 않으므로 관련 배경·전경은 HEX로 둔다.
   tokens: {
+  "--text-body-size": "0.9375rem",
+  "--text-label-size": "0.875rem",
+  "--text-supporting-size": "0.8125rem",
   "--color-accent": [
     "oklch(0.5 0.105 118)",
     "oklch(0.68 0.12 118)"
@@ -359,6 +362,7 @@ export const gentaskTheme = defineTheme({
 
   "side-nav-item": {
     "base": {
+      "fontSize": "var(--text-label-size)",
       "borderRadius": "1.5rem",
       "cornerShape": "superellipse(1.6)"
     }
@@ -553,6 +557,7 @@ export const gentaskTheme = defineTheme({
   },
   "text-input": {
     "base": {
+      "--text-body-size": "var(--text-label-size)",
       "borderRadius": "1.5rem",
       "cornerShape": "superellipse(1.6)"
     },

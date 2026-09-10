@@ -1,3 +1,4 @@
+import { ArtifactCreateRoute } from './ArtifactCreateRoute';
 import { RouteNotFound } from './RouteNotFound';
 import { parseResourceScope } from '@/shared/config';
 import { NotesRoute } from './NotesRoute';
@@ -63,6 +64,9 @@ export const personalArtifactsRoute = createRoute({ getParentRoute: () => rootRo
   beforeLoad: ({ search }) => {
     if (!search.projectId && search.scope !== 'personal') throw redirect({ to: '/artifacts', search: { ...search, scope: 'personal' }, replace: true });
   },
+});
+export const artifactCreateRoute = createRoute({ getParentRoute: () => rootRoute, path: '/artifacts/new', component: ArtifactCreateRoute,
+  validateSearch: (search: { folder?: string } & SearchSchemaInput) => ({ folder: typeof search.folder === 'string' ? search.folder : undefined }),
 });
 export const personalArtifactRoute = createRoute({ getParentRoute: () => rootRoute, path: '/artifacts/$docId', component: ArtifactRoute,
   validateSearch: (search: Partial<ListingSearch> & { version?: number | string } & SearchSchemaInput) => ({ ...parseListingSearch(search, ['title', 'updated'], 'title'), version: parseVersionSearch(search.version) }),
@@ -151,6 +155,7 @@ export const routeTree = rootRoute.addChildren([
   personalTasksRoute,
   projectTasksRoute,
   personalArtifactsRoute,
+  artifactCreateRoute,
   personalArtifactRoute,
   projectsRoute,
   settingsRoute,

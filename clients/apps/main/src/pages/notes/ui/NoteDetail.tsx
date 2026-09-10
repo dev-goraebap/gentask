@@ -6,7 +6,7 @@ import { useSession } from "@/entities/session";
 import { useWorkspaceStore } from "@/entities/workspace";
 import { MobileSurface, MOBILE_QUERY } from "@/shared/ui/mobile";
 import { RequestState } from "@/shared/ui/request-state";
-import { LazyNoteSimpleEditor } from './LazyNoteSimpleEditor';
+import { LazySimpleEditor } from '@/shared/ui/simple-editor';
 import {
   Button,
   HStack,
@@ -228,7 +228,7 @@ export function NoteDetail({
                   {writable ? (
                     <VStack className="note-detail-editor">
                       <Suspense fallback={<Text color="secondary">편집기를 불러오는 중…</Text>}>
-                        <LazyNoteSimpleEditor key={editorReset} initialValue={note.body} onChange={setDraft}
+                        <LazySimpleEditor key={editorReset} initialValue={note.body} onChange={setDraft}
                             isDisabled={action.isPending} />
                       </Suspense>
                     </VStack>

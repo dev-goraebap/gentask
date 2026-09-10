@@ -1,10 +1,11 @@
+import { ScopePageHeader } from '@/widgets/scope-page-header';
 import { PageState as EmptyState } from '@/shared/ui/page-state';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button, HStack, LayoutFooter, List, Selector, Text, TextInput, VStack } from '@astryxdesign/core';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { useWorkspaceStore } from '@/entities/workspace';
-import { PageLayout, PageContent, PageHeader } from '@/shared/ui/page-layout';
+import { PageLayout, PageContent } from '@/shared/ui/page-layout';
 import { useNavigate } from '@tanstack/react-router';
 import { RequestState } from '@/shared/ui/request-state';
 import { MOBILE_QUERY } from '@/shared/ui/mobile';
@@ -44,7 +45,7 @@ export function TaskList({ projectId, personal = false }: { projectId: string | 
   const filtered = Boolean(search.trim()) || filters.states.length > 0;
   return <>
     <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
-      header={<PageHeader title="작업" compact={mobile}
+      header={<ScopePageHeader title="작업" compact={mobile}
         toolbar={<TaskFilters mobile={mobile} query={search} onQueryChange={setSearch} filters={filters} onChange={setFilters} view={view} onViewChange={setView} />} />}
       footer={writable(projectId) ? <LayoutFooter hasDivider padding={mobile ? 3 : 4} label="작업 추가" style={mobile ? { paddingBottom: 'calc(var(--spacing-3) + env(safe-area-inset-bottom))' } : undefined}>
         <VStack gap={2}>{!projectId && !personal ? <Selector label="새 작업 소속" size="sm" width="18rem" value={destination ?? 'personal'}

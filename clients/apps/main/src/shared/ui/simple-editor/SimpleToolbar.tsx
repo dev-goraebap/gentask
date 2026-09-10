@@ -7,8 +7,8 @@ import { LinkPopover } from '@gentask/tiptap-ui/tiptap-ui/link-popover';
 import { MarkButton } from '@gentask/tiptap-ui/tiptap-ui/mark-button';
 import { UndoRedoButton } from '@gentask/tiptap-ui/tiptap-ui/undo-redo-button';
 
-export function NoteSimpleToolbar() {
-  return <Toolbar aria-label="메모 본문 서식">
+export function SimpleToolbar() {
+  return <Toolbar aria-label="본문 서식">
     <ToolbarGroup>
       <UndoRedoButton action="undo" aria-label="실행 취소" />
       <UndoRedoButton action="redo" aria-label="다시 실행" />

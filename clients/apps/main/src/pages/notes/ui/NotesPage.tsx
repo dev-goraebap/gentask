@@ -1,9 +1,10 @@
+import { ScopePageHeader } from '@/widgets/scope-page-header';
 import { NoteOrganizationFilters } from './NoteOrganizationFilters';
 import { FilterIndicator } from '@/shared/ui/listing';
 import { useNoteInfiniteScroll } from '../model/useNoteInfiniteScroll';
 import { NoteListLoading } from './NoteListLoading';
 import { PageState as EmptyState } from '@/shared/ui/page-state';
-import { PageLayout, PageContent, PageHeader } from "@/shared/ui/page-layout";
+import { PageLayout, PageContent } from "@/shared/ui/page-layout";
 import { WIDTH } from "@/shared/config";
 import { MobileFilterBar, MOBILE_QUERY } from "@/shared/ui/mobile";
 import { RequestState } from "@/shared/ui/request-state";
@@ -73,7 +74,7 @@ export function NotesPage({
         padding={0}
         height="fill"
         contentWidth={WIDTH.wide}
-        header={<PageHeader
+        header={<ScopePageHeader
             title="메모"
             compact={mobile}
             toolbar={mobile ? <MobileFilterBar label="메모 필터" searchLabel="메모 검색" placeholder="메모 검색"

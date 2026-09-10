@@ -35,6 +35,7 @@ export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersio
     {canEdit ? editButton : null}</HStack>;
   const versionHistory = <ArtifactHistory artifactId={doc.id} latestVersion={artifact.versionNo} projectId={projectId} selectedVersion={selectedVersion}
     onSelect={version => onSelectVersion(version === artifact.versionNo ? null : version)} />;
+  if (editing && canEdit) return <ArtifactEditor projectId={projectId} folderId={doc.folderId} artifact={artifact} onClose={() => setEditing(false)} onSaved={() => setEditing(false)} />;
   return <>
     <PageLayout padding={0} height="fill" contentWidth={WIDTH.wide}
       header={mobile ? <MobilePageHeader title={title} onBack={onBack} backLabel="아티팩트 목록으로" /> :
@@ -51,6 +52,5 @@ export function ArtifactDetailPage({ artifact, projectId, onBack, selectedVersio
           <ArtifactComments key={`${doc.id}:${selectedVersion ?? artifact.versionNo}`} panelKey={commentsKey} projectId={projectId} artifactId={doc.id} versionNo={selectedVersion ?? artifact.versionNo} body={body ?? ''} writable={(selectedVersion ?? artifact.versionNo) === artifact.versionNo} />}
       </VStack></PageContent>} />
     <AppAsideContent panelKey={historyKey}><LayoutContent padding={3}>{versionHistory}</LayoutContent></AppAsideContent>
-    {editing && canEdit ? <ArtifactEditor projectId={projectId} folderId={doc.folderId} artifact={artifact} onClose={() => setEditing(false)} onSaved={() => setEditing(false)} /> : null}
   </>;
 }

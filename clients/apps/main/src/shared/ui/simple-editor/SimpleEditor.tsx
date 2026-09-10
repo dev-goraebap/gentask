@@ -5,16 +5,19 @@ import { TaskItem } from '@tiptap/extension-task-item';
 import { TaskList } from '@tiptap/extension-task-list';
 import { Placeholder } from '@tiptap/extensions';
 import { Markdown } from 'tiptap-markdown';
-import { NoteSimpleToolbar } from './NoteSimpleToolbar';
-import './note-simple-editor.scss';
+import { TableKit } from '@tiptap/extension-table';
+import Image from '@tiptap/extension-image';
+import { SimpleToolbar } from './SimpleToolbar';
+import './simple-editor.scss';
 
-interface NoteSimpleEditorProps {
+interface SimpleEditorProps {
   initialValue: string;
   onChange: (value: string) => void;
   isDisabled?: boolean;
+  label?: string;
 }
 
-export function NoteSimpleEditor({ initialValue, onChange, isDisabled = false }: NoteSimpleEditorProps) {
+export function SimpleEditor({ initialValue, onChange, isDisabled = false, label = '메모 본문' }: SimpleEditorProps) {
   const change = useRef(onChange);
   useEffect(() => { change.current = onChange; }, [onChange]);
 
@@ -23,6 +26,8 @@ export function NoteSimpleEditor({ initialValue, onChange, isDisabled = false }:
     extensions: [
       StarterKit.configure({ link: { openOnClick: false }, underline: false, trailingNode: false }),
       TaskList,
+      TableKit,
+      Image,
       TaskItem.configure({ nested: true, a11y: { checkboxLabel: node => node.textContent || '체크 항목' } }),
       Placeholder.configure({ placeholder: '내용을 적어보세요' }),
       Markdown.configure({ html: false, tightLists: true, linkify: false, breaks: false, transformPastedText: true }),
@@ -32,7 +37,7 @@ export function NoteSimpleEditor({ initialValue, onChange, isDisabled = false }:
     editorProps: {
       attributes: {
         role: 'textbox',
-        'aria-label': '메모 본문',
+        'aria-label': label,
         'aria-multiline': 'true',
         class: 'drawer-rich-content simple-editor',
       },
@@ -69,7 +74,7 @@ export function NoteSimpleEditor({ initialValue, onChange, isDisabled = false }:
   return (
     <div className="gentask-simple-editor">
       <EditorContext.Provider value={{ editor }}>
-        <NoteSimpleToolbar />
+        <SimpleToolbar />
         <EditorContent editor={editor} className="drawer-editor" />
       </EditorContext.Provider>
     </div>

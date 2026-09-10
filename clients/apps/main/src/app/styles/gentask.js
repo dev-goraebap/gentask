@@ -47,19 +47,19 @@ export const gentaskTheme = {
     "--text-heading-6-size": "var(--font-size-xs)",
     "--text-heading-6-weight": "var(--font-weight-semibold)",
     "--text-heading-6-leading": "1.6",
-    "--text-body-size": "var(--font-size-base)",
+    "--text-body-size": "0.9375rem",
     "--text-body-weight": "var(--font-weight-normal)",
     "--text-body-leading": "1.5",
     "--text-large-size": "var(--font-size-lg)",
     "--text-large-weight": "var(--font-weight-semibold)",
     "--text-large-leading": "1.4",
-    "--text-label-size": "var(--font-size-base)",
+    "--text-label-size": "0.875rem",
     "--text-label-weight": "var(--font-weight-medium)",
     "--text-label-leading": "1.5",
     "--text-code-size": "var(--font-size-base)",
     "--text-code-weight": "var(--font-weight-normal)",
     "--text-code-leading": "1.5",
-    "--text-supporting-size": "var(--font-size-sm)",
+    "--text-supporting-size": "0.8125rem",
     "--text-supporting-weight": "var(--font-weight-normal)",
     "--text-supporting-leading": "1.5385",
     "--text-display-1-size": "var(--font-size-5xl)",
@@ -436,6 +436,7 @@ export const gentaskTheme = {
     },
     "side-nav-item": {
       "base": {
+        "fontSize": "var(--text-label-size)",
         "borderRadius": "1.5rem",
         "cornerShape": "superellipse(1.6)"
       }
@@ -539,6 +540,7 @@ export const gentaskTheme = {
     },
     "text-input": {
       "base": {
+        "--text-body-size": "var(--text-label-size)",
         "borderRadius": "1.5rem",
         "cornerShape": "superellipse(1.6)"
       },
